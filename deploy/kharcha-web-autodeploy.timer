@@ -1,0 +1,10 @@
+[Unit]
+Description=Check kharcha-web main for new commits
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=3min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

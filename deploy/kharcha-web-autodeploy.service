@@ -1,0 +1,13 @@
+[Unit]
+Description=Deploy kharcha-web when origin/main changes
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=chetan
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+CacheDirectory=kharcha-web
+ExecStart=/bin/bash /srv/kharcha-web/autodeploy.sh
+Nice=10
+TimeoutStartSec=15min

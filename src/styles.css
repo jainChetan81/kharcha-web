@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #1d2433;
+  --color-paper: #f6f5f1;
+  --color-line: #e2e0d8;
+  --color-brand: #2f4a7a;
+  --color-spend: #a5402d;
+  --color-earn: #2d7a52;
+}
+
+/* ponytail: placeholder look until the Claude Design pass replaces it. */
+body { @apply bg-paper text-ink antialiased; font-family: system-ui, -apple-system, sans-serif; }
+:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
+input, select, button { font: inherit; }
+.field { @apply w-full min-h-11 rounded-lg border border-line bg-white px-3; font-size: 16px; }
+.btn { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-brand px-4 font-semibold text-white disabled:opacity-50; }
+.btn-ghost { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-line px-4 font-semibold text-brand; }

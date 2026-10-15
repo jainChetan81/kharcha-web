@@ -1,0 +1,26 @@
+[Unit]
+Description=Kharcha web (tailnet-only PWA + ingest)
+After=network.target
+
+[Service]
+Type=simple
+User=chetan
+WorkingDirectory=/srv/kharcha-web/current
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=8790
+Environment=NODE_OPTIONS=--no-warnings
+EnvironmentFile=/etc/kharcha-web/env
+StateDirectory=kharcha-web
+ExecStart=/usr/bin/node server/index.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=384M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target
