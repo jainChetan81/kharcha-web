@@ -44,11 +44,15 @@ npm run build
 
 ## Deploy (VPS)
 
-First install, from the Mac:
+Live since 2026-10-15 at `https://vps.bullhead-mine.ts.net:8790` (tailnet only). Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Token: `/etc/kharcha-web/env` (root:chetan 640).
 
-1. On the VPS, create `/etc/kharcha-web/env` with mode 600 containing `INGEST_TOKEN=<openssl rand -hex 32>`.
-2. Run `bash deploy/release.sh`. It installs the units, the `/usr/local/lib/kharcha-web/activate.sh` script, and the autodeploy timer.
+First install, from the Mac (already done):
+
+1. On the VPS, create `/etc/kharcha-web/env` (root:chetan, 640) containing `INGEST_TOKEN=<openssl rand -hex 32>`.
+2. Run `bash deploy/release.sh`. It installs the units, `/usr/local/lib/kharcha-web/activate.sh`, then enables the autodeploy timer once the first release is healthy. Needs passwordless sudo for `chetan` (same as odisha-travel).
 3. On the VPS, run `sudo tailscale serve --bg --https=8790 http://127.0.0.1:8790`.
+
+Operate: `systemctl status kharcha-web`, `journalctl -u kharcha-web`, `curl https://vps.bullhead-mine.ts.net:8790/api/health`. Backup: `sqlite3 /var/lib/kharcha-web/kharcha.db ".backup /tmp/kharcha.bak"`.
 
 Routine deploys: merge to `main`. The VPS timer builds and activates within about 3 minutes. Unit and script changes need `release.sh` again.
 

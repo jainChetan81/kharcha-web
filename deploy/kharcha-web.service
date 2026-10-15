@@ -16,6 +16,7 @@ ExecStart=/usr/bin/node server/index.mjs
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
+UMask=0077
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
