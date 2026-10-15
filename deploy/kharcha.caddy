@@ -1,6 +1,6 @@
 # Installed to /etc/caddy/sites.d/kharcha.caddy; /etc/caddy/Caddyfile imports sites.d/*.caddy.
-# sslip.io resolves to the VPS IP with no DNS setup; chetan-vps.tech needs Hostinger A record `kharcha`.
-kharcha.chetan-vps.tech, kharcha.200-234-46-235.sslip.io {
+# DNS: Hostinger A record `kharcha` -> 200.234.46.235.
+kharcha.chetan-vps.tech {
     encode zstd gzip
     header {
         Strict-Transport-Security "max-age=31536000"
