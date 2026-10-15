@@ -4,6 +4,7 @@ import {
   Link,
   Outlet,
   Scripts,
+  useRouterState,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
@@ -52,14 +53,19 @@ const tabs = [
 ] as const;
 
 function Layout() {
+  const onLogin = useRouterState({ select: (s) => s.location.pathname === "/login" });
   useEffect(() => {
     if ("serviceWorker" in navigator)
       navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
+  if (onLogin) return <Outlet />;
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col">
       <main className="flex-1 px-4 pt-6 pb-24">
         <Outlet />
+        <form method="post" action="/api/logout" className="mt-10 text-center">
+          <button type="submit" className="text-sm text-ink/50 underline">Sign out</button>
+        </form>
       </main>
       <nav
         aria-label="Main"
@@ -85,13 +91,22 @@ function Layout() {
 }
 
 function RootError({ error, reset }: ErrorComponentProps) {
+  const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
     <main className="p-6" role="alert">
       <h1 className="text-xl font-semibold">Kharcha could not load</h1>
-      <p className="mt-2 text-ink/70">{typeof navigator !== "undefined" && !navigator.onLine ? "You are offline." : error instanceof Error ? error.message : "Something went wrong."}</p>
-      <button type="button" className="btn mt-4" onClick={reset}>
-        Try again
-      </button>
+      <p className="mt-2 text-ink/70">
+        {offline ? "You are offline." : error instanceof Error ? error.message : "Something went wrong."}
+      </p>
+      <div className="mt-4 flex gap-2">
+        <button type="button" className="btn" onClick={reset}>
+          Try again
+        </button>
+        {/* A 401 from an expired session lands here; a full load hits the login redirect. */}
+        <a className="btn-ghost" href="/login">
+          Sign in
+        </a>
+      </div>
     </main>
   );
 }

@@ -45,6 +45,9 @@
       "src/**/*.{ts,tsx}",
       "src/**/*.css",
       "scripts/*.ts"
+    ],
+    "entry": [
+      "scripts/hash-password.ts"
     ]
   }
 }

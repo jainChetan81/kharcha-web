@@ -20,7 +20,12 @@ Every page is server-rendered with live data and sent `Cache-Control: no-store`.
 
 ## Security model
 
-Finance data. **Tailnet-only**: served by `tailscale serve` on `https://vps.bullhead-mine.ts.net:8790`. No Caddy site, never Funnel. The UI and server functions have no login; tailnet membership is the auth. `/api/ingest` also requires `INGEST_TOKEN` (32+ chars). Before exposing this anywhere public, add real auth.
+Finance data. Two ways in:
+
+- **Public**: `https://kharcha.chetan-vps.tech` via Caddy (`deploy/kharcha.caddy`, installed to `/etc/caddy/sites.d/`). Every page and server function requires a password login: scrypt hash in `APP_PASSWORD_HASH`, HMAC-signed 90-day `HttpOnly; Secure; SameSite=Lax` cookie keyed by `SESSION_SECRET`. Login is rate-limited (5 per IP and 30 global per 15 minutes). `/api/ingest` and `/api/health` return 404 publicly. If either env var is missing, the app fails closed.
+- **Tailnet**: `https://vps.bullhead-mine.ts.net:8790` (`tailscale serve`). Same login. The mini pushes to `/api/ingest` here with `INGEST_TOKEN`.
+
+Log out everywhere: change `SESSION_SECRET` and restart. Change password: `printf %s 'new password' | node --experimental-strip-types scripts/hash-password.ts`, put the output in `APP_PASSWORD_HASH`, restart.
 
 ## Screens (v1)
 
@@ -44,7 +49,7 @@ npm run build
 
 ## Deploy (VPS)
 
-Live since 2026-10-15 at `https://vps.bullhead-mine.ts.net:8790` (tailnet only). Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Token: `/etc/kharcha-web/env` (root:chetan 640).
+Live since 2026-10-15. Public `https://kharcha.chetan-vps.tech` (needs Hostinger A record `kharcha` → `200.234.46.235`), tailnet `https://vps.bullhead-mine.ts.net:8790`. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`.
 
 First install, from the Mac (already done):
 

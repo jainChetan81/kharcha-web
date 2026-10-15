@@ -29,6 +29,11 @@ if test "$mode" != --app-only; then
   sudo -n install -m 755 "$config/activate.sh" /usr/local/lib/kharcha-web/activate.sh
   install -m 755 "$config/autodeploy.sh" /srv/kharcha-web/autodeploy.sh
   sudo -n systemctl daemon-reload
+  # Public site: own file, imported by the shared Caddyfile (owned by the odisha-travel repo).
+  sudo -n install -d -m 755 /etc/caddy/sites.d
+  sudo -n install -m 644 "$config/kharcha.caddy" /etc/caddy/sites.d/kharcha.caddy
+  sudo -n caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+  grep -q 'import sites.d/\*.caddy' /etc/caddy/Caddyfile || echo "WARN: /etc/caddy/Caddyfile lacks 'import sites.d/*.caddy'; public site not served." >&2
 fi
 if test -n "$old"; then ln -sfn "$old" previous; fi
 ln -sfn "releases/$release" next
@@ -37,5 +42,6 @@ sudo -n systemctl enable kharcha-web.service
 sudo -n systemctl restart kharcha-web.service
 curl --fail --silent --retry 5 --retry-connrefused --retry-delay 1 http://127.0.0.1:8790/api/health -o /dev/null
 trap - ERR
+test "$mode" = --app-only || sudo -n systemctl reload caddy
 # Timer starts only after a good activation, so first install never races its own build.
 test "$mode" = --app-only || sudo -n systemctl enable --now kharcha-web-autodeploy.timer

@@ -1,0 +1,18 @@
+# Installed to /etc/caddy/sites.d/kharcha.caddy; /etc/caddy/Caddyfile imports sites.d/*.caddy.
+kharcha.chetan-vps.tech {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        -Server
+    }
+    # Machine endpoints stay tailnet-only (the Mac mini pushes over Tailscale).
+    @internal path /api/ingest /api/ingest/* /api/health
+    respond @internal 404
+    request_body {
+        max_size 64KB
+    }
+    reverse_proxy 127.0.0.1:8790
+}

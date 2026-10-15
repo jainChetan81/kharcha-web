@@ -1,6 +1,6 @@
 # kharcha-web
 
-- Personal finance data. Keep it tailnet-only (`tailscale serve`); never add a public Caddy site or Funnel without real auth.
+- Personal finance data. Public only behind the login in `src/start.ts`; every new route or server function is protected by default; add to `PUBLIC` only with its own guard. Keep `/api/ingest` and `/api/health` blocked in `deploy/kharcha.caddy`.
 - Never commit tokens, URLs with tokens, `.data/`, or real transaction exports. Use synthetic fixtures.
 - Run `npm run quality` after edits and `npm run build` for SSR/build changes. `scripts/check-db.ts` is the one self-check for ingest merge rules; keep it passing.
 - All DB access goes through Drizzle (`src/server/db/`). Schema changes: edit `schema.ts`, run `npm run db:generate`, commit the migration. Never hand-edit applied migrations.

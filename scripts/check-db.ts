@@ -61,3 +61,23 @@ const { meta } = await import("../src/server/db/schema.ts");
 const { eq } = await import("drizzle-orm");
 assert.equal(await db.select().from(meta).where(eq(meta.key, "missing")).get(), undefined, "get() miss is undefined");
 console.log("check-db: ok");
+
+// Auth helpers: session signing, expiry, tamper, password hash, redirect safety.
+{
+  const { makeSession, validSession, checkPassword, safeNext } = await import("../src/server/auth.ts");
+  const crypto = await import("node:crypto");
+  const secret = "x".repeat(40);
+  const s = makeSession(secret, Date.UTC(2026, 9, 15));
+  assert.ok(validSession(secret, s, Date.UTC(2026, 9, 16)), "fresh session valid");
+  assert.ok(!validSession(secret, s, Date.UTC(2027, 1, 1)), "expired session rejected");
+  assert.ok(!validSession("y".repeat(40), s, Date.UTC(2026, 9, 16)), "other secret rejected");
+  assert.ok(!validSession(secret, `9999999999.${s.split(".")[1]}`), "tampered expiry rejected");
+  const salt = crypto.randomBytes(16);
+  const hash = `scrypt:${salt.toString("hex")}:${crypto.scryptSync("correct horse", salt, 64).toString("hex")}`;
+  assert.ok(await checkPassword(hash, "correct horse"), "right password");
+  assert.ok(!(await checkPassword(hash, "wrong horse")), "wrong password");
+  assert.equal(safeNext("//evil.example"), "/", "protocol-relative next blocked");
+  assert.equal(safeNext("/\\evil.example"), "/", "backslash next blocked");
+  assert.equal(safeNext("/history?review=true"), "/history?review=true");
+  console.log("check-auth: ok");
+}
