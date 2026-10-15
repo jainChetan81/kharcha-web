@@ -1,11 +1,13 @@
 # Installed to /etc/caddy/sites.d/kharcha.caddy; /etc/caddy/Caddyfile imports sites.d/*.caddy.
-kharcha.chetan-vps.tech {
+# sslip.io resolves to the VPS IP with no DNS setup; chetan-vps.tech needs Hostinger A record `kharcha`.
+kharcha.chetan-vps.tech, kharcha.200-234-46-235.sslip.io {
     encode zstd gzip
     header {
         Strict-Transport-Security "max-age=31536000"
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
         Referrer-Policy no-referrer
+        X-Robots-Tag "noindex, nofollow"
         -Server
     }
     # Machine endpoints stay tailnet-only (the Mac mini pushes over Tailscale).
