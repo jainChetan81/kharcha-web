@@ -8,18 +8,20 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build && tsc --noEmit",
+    "build": "vite build && tsc --noEmit && cp -R drizzle .output/",
     "start": "node .output/server/index.mjs",
     "typecheck": "tsc --noEmit",
     "typecheck:tooling": "tsc --project tsconfig.tooling.json",
     "unused": "knip",
     "lint": "biome lint . --error-on-warnings",
     "check:db": "node --experimental-strip-types --no-warnings scripts/check-db.ts",
-    "quality": "npm run lint && npm run typecheck && npm run typecheck:tooling && npm run unused && npm run check:db"
+    "quality": "npm run lint && npm run typecheck && npm run typecheck:tooling && npm run unused && npm run check:db",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.44",
     "@tanstack/react-start": "^1.169.2",
+    "drizzle-orm": "^0.45.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zod": "^4.6.7"
@@ -31,6 +33,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "drizzle-kit": "^0.31.11",
     "knip": "^6.41.0",
     "nitro": "^3.0.260903-beta",
     "tailwindcss": "^4.3.3",

@@ -2,6 +2,7 @@
   "name": "Kharcha",
   "short_name": "Kharcha",
   "description": "Personal spending tracker.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,57 +1,57 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { getDb } from "./db/client";
 import {
-  add,
   addSchema,
-  categories,
-  edit,
+  addTxn,
+  budgetSchema,
+  categoryNames,
   editSchema,
-  getDb,
-  listTransactions,
+  editTxn,
+  listSchema,
+  listTxns,
+  monthSchema,
   monthSummary,
-  remove,
-} from "./db";
-
-const month = z.string().regex(/^\d{4}-\d{2}$/);
+  removeTxn,
+  setBudget,
+} from "./db/queries";
 
 export const getOverview = createServerFn({ method: "GET" })
-  .validator(z.object({ month }))
-  .handler(({ data }) => {
+  .validator(z.object({ month: monthSchema }))
+  .handler(async ({ data }) => {
     const db = getDb();
-    return {
-      summary: monthSummary(db, data.month),
-      recent: listTransactions(db, { month: data.month, limit: 15 }),
-    };
+    const [summary, recent] = await Promise.all([
+      monthSummary(db, data.month),
+      listTxns(db, { month: data.month, limit: 15 }),
+    ]);
+    return { summary, recent };
   });
 
 export const getTransactions = createServerFn({ method: "GET" })
-  .validator(
-    z.object({
-      month: month.optional(),
-      search: z.string().max(60).optional(),
-      review: z.boolean().optional(),
-    }),
-  )
-  .handler(({ data }) => {
+  .validator(listSchema)
+  .handler(async ({ data }) => {
     const db = getDb();
-    return {
-      transactions: listTransactions(db, { ...data, limit: 500 }),
-      categories: categories(db),
-    };
+    const [transactions, categories] = await Promise.all([
+      listTxns(db, { ...data, limit: 500, withRaw: true }),
+      categoryNames(db),
+    ]);
+    return { transactions, categories };
   });
 
-export const getCategories = createServerFn({ method: "GET" }).handler(() =>
-  categories(getDb()),
-);
+export const getCategories = createServerFn({ method: "GET" }).handler(() => categoryNames(getDb()));
 
 export const saveEdit = createServerFn({ method: "POST" })
   .validator(editSchema)
-  .handler(({ data }) => edit(getDb(), data));
+  .handler(({ data }) => editTxn(getDb(), data));
 
 export const addTransaction = createServerFn({ method: "POST" })
   .validator(addSchema)
-  .handler(({ data }) => add(getDb(), data));
+  .handler(({ data }) => addTxn(getDb(), data));
 
 export const deleteTransaction = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number().int().positive() }))
-  .handler(({ data }) => remove(getDb(), data.id));
+  .handler(({ data }) => removeTxn(getDb(), data.id));
+
+export const saveBudget = createServerFn({ method: "POST" })
+  .validator(budgetSchema)
+  .handler(({ data }) => setBudget(getDb(), data));

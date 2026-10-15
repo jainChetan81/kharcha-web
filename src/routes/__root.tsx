@@ -27,6 +27,13 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
+  // Finance pages: never keep a copy in the browser or any proxy cache.
+  headers: () => ({
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": "frame-ancestors 'none'",
+  }),
   shellComponent: Document,
   component: Layout,
   errorComponent: RootError,
@@ -40,6 +47,7 @@ export const Route = createRootRoute({
 const tabs = [
   { to: "/", label: "Today" },
   { to: "/history", label: "History" },
+  { to: "/budgets", label: "Budgets" },
   { to: "/add", label: "Add" },
 ] as const;
 

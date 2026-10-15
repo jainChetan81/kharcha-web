@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { getDb, ingest, miniRowSchema } from "../server/db";
+import { getDb } from "../server/db/client";
+import { ingest, miniRowSchema } from "../server/db/queries";
 
 const MAX_BODY = 2 * 1024 * 1024;
 const bodySchema = z.object({ transactions: z.array(miniRowSchema).max(1000) });
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/api/ingest")({
           return json({ error: "Batch failed validation." }, 400);
         }
         try {
-          return json({ ok: true, count: ingest(getDb(), parsed.transactions) });
+          return json({ ok: true, count: await ingest(getDb(), parsed.transactions) });
         } catch {
           return json({ error: "Store is unavailable." }, 500);
         }

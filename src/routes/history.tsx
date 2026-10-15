@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useRef, useState, type FormEvent } from "react";
 import { z } from "zod";
 import { money, shortDate } from "../lib";
-import type { Txn } from "../server/db";
+import type { TxnRow as Txn } from "../server/db/queries";
 import { deleteTransaction, getTransactions, saveEdit } from "../server/fns";
 
 const searchSchema = z.object({
@@ -72,12 +72,12 @@ function History() {
             <button type="button" onClick={() => open(t)} className="flex w-full justify-between gap-3 px-4 py-3 text-left text-sm">
               <span className="min-w-0">
                 <span className="block truncate font-medium">
-                  {t.needs_review ? "• " : ""}
+                  {t.needsReview ? "• " : ""}
                   {t.merchant}
                 </span>
                 <span className="text-ink/60">
                   {shortDate(t.date)} · {t.category ?? "Uncategorised"}
-                  {t.account_last4 ? ` · ${t.account_last4}` : ""}
+                  {t.accountLast4 ? ` · ${t.accountLast4}` : ""}
                 </span>
               </span>
               <span className={t.type === "income" ? "font-semibold text-earn" : t.type === "investment" ? "font-semibold text-brand" : "font-semibold"}>
@@ -134,7 +134,7 @@ function EditForm({ txn, categories, close }: { txn: Txn; categories: string[]; 
   return (
     <form onSubmit={submit} className="space-y-4 p-5">
       <h2 className="font-semibold">Edit transaction</h2>
-      {txn.raw_text && <p className="rounded-lg bg-paper p-3 text-xs text-ink/70">{txn.raw_text}</p>}
+      {txn.rawText && <p className="rounded-lg bg-paper p-3 text-xs text-ink/70">{txn.rawText}</p>}
       <label className="block text-sm font-medium">
         Merchant
         <input name="merchant" defaultValue={txn.merchant} required maxLength={120} className="field mt-1" />

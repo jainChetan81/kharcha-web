@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AddRouteImport } from './routes/add'
+import { Route as BudgetsRouteImport } from './routes/budgets'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as ApiHealthRouteImport } from './routes/api.health'
 import { Route as ApiIngestRouteImport } from './routes/api.ingest'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,9 +26,19 @@ const AddRoute = AddRouteImport.update({
   path: '/add',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BudgetsRoute = BudgetsRouteImport.update({
+  id: '/budgets',
+  path: '/budgets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiIngestRoute = ApiIngestRouteImport.update({
@@ -38,34 +50,50 @@ const ApiIngestRoute = ApiIngestRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/budgets': typeof BudgetsRoute
   '/history': typeof HistoryRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/budgets': typeof BudgetsRoute
   '/history': typeof HistoryRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/budgets': typeof BudgetsRoute
   '/history': typeof HistoryRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/history' | '/api/ingest'
+  fullPaths:
+    '/' | '/add' | '/budgets' | '/history' | '/api/health' | '/api/ingest'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/history' | '/api/ingest'
-  id: '__root__' | '/' | '/add' | '/history' | '/api/ingest'
+  to: '/' | '/add' | '/budgets' | '/history' | '/api/health' | '/api/ingest'
+  id:
+    | '__root__'
+    | '/'
+    | '/add'
+    | '/budgets'
+    | '/history'
+    | '/api/health'
+    | '/api/ingest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
+  BudgetsRoute: typeof BudgetsRoute
   HistoryRoute: typeof HistoryRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiIngestRoute: typeof ApiIngestRoute
 }
 
@@ -85,11 +113,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AddRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/budgets': {
+      id: '/budgets'
+      path: '/budgets'
+      fullPath: '/budgets'
+      preLoaderRoute: typeof BudgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history': {
       id: '/history'
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ingest': {
@@ -105,7 +147,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
+  BudgetsRoute: BudgetsRoute,
   HistoryRoute: HistoryRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiIngestRoute: ApiIngestRoute,
 }
 export const routeTree = rootRouteImport

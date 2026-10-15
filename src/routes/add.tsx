@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { nowLocal } from "../lib";
 import { addTransaction, getCategories } from "../server/fns";
@@ -13,6 +13,7 @@ const TYPES = ["expense", "income", "investment"] as const;
 function Add() {
   const categoryList = Route.useLoaderData();
   const navigate = useNavigate();
+  const router = useRouter();
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -31,6 +32,8 @@ function Add() {
           date: String(form.get("date")).replace("T", " "),
         },
       });
+      // Drop cached loader data so Today shows the new row.
+      await router.invalidate();
       await navigate({ to: "/" });
     } catch {
       setStatus("Could not save. Check the fields and your connection.");
