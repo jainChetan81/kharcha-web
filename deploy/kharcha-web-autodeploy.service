@@ -7,6 +7,8 @@ Wants=network-online.target
 Type=oneshot
 User=chetan
 Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin
+# Private repo: git reads ~/.gitconfig, whose credential helper is `gh auth git-credential`.
+Environment=HOME=/home/chetan
 CacheDirectory=kharcha-web
 ExecStart=/bin/bash /srv/kharcha-web/autodeploy.sh
 Nice=10

@@ -17,7 +17,8 @@ function bridge(sqlite: DatabaseSync) {
       return { rows: [] };
     }
     stmt.setReturnArrays(true);
-    if (method === "get") return { rows: (stmt.get(...args) as unknown[] | undefined) ?? [] };
+    // sqlite-proxy treats any truthy `rows` from get() as a row, so a miss must be undefined.
+    if (method === "get") return { rows: stmt.get(...args) as unknown as unknown[] };
     return { rows: stmt.all(...args) as unknown[] };
   };
   return {
@@ -38,7 +39,11 @@ function bridge(sqlite: DatabaseSync) {
   };
 }
 
-/** Apply drizzle-kit migrations from ./drizzle (journal order) in one transaction. */
+/**
+ * Apply drizzle-kit migrations from ./drizzle (journal order), each in one transaction.
+ * 0000_init is the baseline: no pre-Drizzle database was ever deployed. Delete a local
+ * pre-Drizzle .data/kharcha.db rather than baselining it.
+ */
 function migrate(sqlite: DatabaseSync, folder: string): void {
   const journal = JSON.parse(readFileSync(path.join(folder, "meta/_journal.json"), "utf8")) as {
     entries: { tag: string }[];

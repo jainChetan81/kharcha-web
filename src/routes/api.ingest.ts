@@ -21,14 +21,34 @@ function auth(request: Request): Response | undefined {
     return json({ error: "Wrong ingest token." }, 401);
 }
 
+/** Read at most MAX_BODY bytes; undefined when the body is larger. */
+async function readCapped(request: Request): Promise<string | undefined> {
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY) return undefined;
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY) {
+      await reader.cancel();
+      return undefined;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
 export const Route = createFileRoute("/api/ingest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const denied = auth(request);
         if (denied) return denied;
-        const text = await request.text();
-        if (text.length > MAX_BODY) return json({ error: "Batch too large." }, 413);
+        const text = await readCapped(request);
+        if (text === undefined) return json({ error: "Batch too large." }, 413);
         let parsed: z.infer<typeof bodySchema>;
         try {
           parsed = bodySchema.parse(JSON.parse(text));

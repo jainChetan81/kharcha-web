@@ -1,9 +1,18 @@
-import { and, between, count, desc, eq, isNotNull, isNull, like, ne, or, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, gte, isNull, like, lt, ne, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "./client.ts";
 import { budgets, meta, TXN_TYPES, transactions } from "./schema.ts";
 
-const dateTime = z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+/** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
+function realDate(value: string): boolean {
+  const [y, m, d] = value.slice(0, 10).split("-").map(Number);
+  const day = new Date(Date.UTC(y, m - 1, d));
+  if (day.getUTCFullYear() !== y || day.getUTCMonth() !== m - 1 || day.getUTCDate() !== d) return false;
+  if (value.length === 10) return true;
+  const [h, min] = value.slice(11).split(":").map(Number);
+  return h < 24 && min < 60;
+}
+const dateTime = z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/).refine(realDate, "not a real date");
 export const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 
 // Row shape kharcha-mini pushes (its drizzle select, camelCase). Unknown keys are dropped.
@@ -18,6 +27,7 @@ export const miniRowSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?$/)
+    .refine(realDate, "not a real date")
     .transform((d) => (d.length === 10 ? `${d} 00:00` : d)),
   rawText: z.string(),
   bankName: z.string().nullish(),
@@ -36,7 +46,12 @@ const live = isNull(transactions.deletedAt);
 /** Keep the app's value once a human edited the row; otherwise take the mini's. */
 const mini = (column: string) =>
   sql.raw(`CASE WHEN "transactions"."edited_at" IS NULL THEN excluded."${column}" ELSE "transactions"."${column}" END`);
-const inMonth = (month: string) => between(transactions.date, `${month}-01`, `${month}-31 99:99`);
+/** Half-open [first of month, first of next month). */
+function inMonth(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  const next = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
+  return sql`${gte(transactions.date, `${month}-01`)} AND ${lt(transactions.date, `${next}-01`)}`;
+}
 
 /** Upsert pushed rows by mini_id atomically. A tombstone from either side sticks. */
 export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
