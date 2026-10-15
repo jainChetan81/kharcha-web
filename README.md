@@ -49,7 +49,13 @@ npm run build
 
 ## Deploy (VPS)
 
-Live since 2026-10-15. Public `https://kharcha.chetan-vps.tech` (needs Hostinger A record `kharcha` → `200.234.46.235`), tailnet `https://vps.bullhead-mine.ts.net:8790`. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`.
+Live since 2026-10-15:
+
+- `https://kharcha.200-234-46-235.sslip.io` (works now; sslip.io maps the name to the VPS IP)
+- `https://kharcha.chetan-vps.tech` (Caddy issues TLS once Hostinger has A record `kharcha` → `200.234.46.235`)
+- `https://vps.bullhead-mine.ts.net:8790` (tailnet)
+
+**Login is currently OFF** (`KHARCHA_AUTH=off` in `/etc/kharcha-web/env`, owner's choice on 2026-10-15). Anyone with the URL can read and edit. To enable it: add `SESSION_SECRET` and `APP_PASSWORD_HASH`, remove `KHARCHA_AUTH=off`, then run `sudo systemctl restart kharcha-web`. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`.
 
 First install, from the Mac (already done):
 
