@@ -1,11 +1,15 @@
 // Self-check for ingest merge rules and queries. Run: npm run check:db
 import assert from "node:assert/strict";
+import { sql } from "drizzle-orm";
 import { openDb } from "../src/server/db/client.ts";
 import {
   addTxn, editTxn, ingest, listTxns, miniRowSchema, monthSummary, removeTxn, setBudget,
 } from "../src/server/db/queries.ts";
 
 const db = openDb(":memory:");
+assert.deepEqual(await db.all(sql`SELECT ${250} AS amount, ${"Test store"} AS merchant`), [{ amount: 250, merchant: "Test store" }], "raw SQL returns named columns");
+assert.deepEqual(await db.all(sql`SELECT id FROM transactions WHERE 0`), [], "raw SQL empty result");
+assert.deepEqual(await db.batch([db.all(sql`SELECT ${250} AS amount`)]), [[{ amount: 250 }]], "batched raw SQL returns named columns");
 const row = miniRowSchema.parse({
   id: 1, type: "expense", amount: 250, merchant: "SWIGGY", merchantCanonical: "Swiggy",
   category: "Food", date: "2026-10-15 13:00", rawText: "Rs 250 spent at SWIGGY", senderId: "AXISBK",

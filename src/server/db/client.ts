@@ -1,6 +1,9 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { sql } from "drizzle-orm";
+import { SQLiteAsyncDialect } from "drizzle-orm/sqlite-core";
+import { SQLiteRaw } from "drizzle-orm/sqlite-core/query-builders/raw";
 import { drizzle, type SqliteRemoteDatabase } from "drizzle-orm/sqlite-proxy";
 import * as schema from "./schema.ts";
 
@@ -73,7 +76,22 @@ export function openDb(file: string, migrations = path.resolve("drizzle")): Db {
   sqlite.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;");
   migrate(sqlite, migrations);
   const { one, batch } = bridge(sqlite);
-  return drizzle(one, batch, { schema });
+  const db = drizzle(one, batch, { schema });
+  // ponytail: sqlite-proxy leaves raw all() rows as arrays. Use named rows here
+  // until its driver supports object results; typed selects still use the bridge.
+  const dialect = new SQLiteAsyncDialect();
+  db.all = <T>(query: Parameters<Db["all"]>[0]) => {
+    const sequel = typeof query === "string" ? sql.raw(query) : query.getSQL();
+    const compiled = dialect.sqlToQuery(sequel);
+    const stmt = sqlite.prepare(compiled.sql);
+    const columns = stmt.columns().map((column) => column.name);
+    return new SQLiteRaw<T[]>(
+      async () => stmt.all(...compiled.params as SQLInputValue[]).map((row) => ({ ...row }) as T),
+      () => sequel, "all", dialect,
+      (result) => (result as { rows: unknown[][] }).rows.map((row) => Object.fromEntries(columns.map((column, i) => [column, row[i]]))),
+    );
+  };
+  return db;
 }
 
 let shared: Db | undefined;
