@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
@@ -51,14 +51,21 @@ export const saveCategory = createServerFn({ method: "POST" })
     }
     const clash = await db.select({ name: categories.name }).from(categories).where(and(eq(categories.name, data.name), eq(categories.type, data.type))).get();
     if (clash) throw new Error("A category with that name already exists.");
-    await db.batch([
+    // Income and expense can share a name (both have "Other"), so every cascade is scoped by type.
+    // Investment rows use expense categories. Budgets are expense-only. Rules carry no type: they follow
+    // the expense side when the name is shared, and whichever side owns it otherwise.
+    const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
+    const owned = db.select({ id: transactions.id }).from(transactions).where(ofType);
+    const shared = await db.select({ name: categories.name }).from(categories).where(and(eq(categories.name, data.oldName), ne(categories.type, data.type))).get();
+    const ops = [
       db.update(categories).set({ name: data.name, colorToken: data.colorToken, sortOrder: data.sortOrder }).where(and(eq(categories.name, data.oldName), eq(categories.type, data.type))),
-      db.update(transactions).set({ category: data.name }).where(eq(transactions.category, data.oldName)),
-      db.update(budgets).set({ category: data.name }).where(eq(budgets.category, data.oldName)),
-      db.update(merchantRules).set({ category: data.name }).where(eq(merchantRules.category, data.oldName)),
-      db.update(transactionItems).set({ category: data.name }).where(eq(transactionItems.category, data.oldName)),
-      db.update(transactionSplits).set({ category: data.name }).where(eq(transactionSplits.category, data.oldName)),
-    ]);
+      db.update(transactions).set({ category: data.name }).where(and(eq(transactions.category, data.oldName), ofType)),
+      db.update(transactionItems).set({ category: data.name }).where(and(eq(transactionItems.category, data.oldName), inArray(transactionItems.transactionId, owned))),
+      db.update(transactionSplits).set({ category: data.name }).where(and(eq(transactionSplits.category, data.oldName), inArray(transactionSplits.transactionId, owned))),
+      ...(data.type === "expense" ? [db.update(budgets).set({ category: data.name }).where(eq(budgets.category, data.oldName))] : []),
+      ...(data.type === "expense" || !shared ? [db.update(merchantRules).set({ category: data.name }).where(eq(merchantRules.category, data.oldName))] : []),
+    ];
+    await db.batch(ops as [(typeof ops)[number], ...(typeof ops)[number][]]);
   });
 
 // One atomic batch for all sortOrder writes, so a drag-reorder never half-applies.

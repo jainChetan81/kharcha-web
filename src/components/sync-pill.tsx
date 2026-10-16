@@ -1,7 +1,8 @@
-// Sync pill (§9, States board). Reads /api/health; every write control also reads `online`.
+// Sync pill (§9, States board). Every write control also reads `online`.
 import { createContext, useContext, useEffect, useState } from "react";
 import { ago } from "../lib/format";
 import { cn } from "../lib/cn";
+import { getLastIngestAt } from "../server/daily/fns";
 
 type Health = { state: "synced" | "offline" | "unreachable" | "quiet" | "unknown"; lastIngestAt: string | null };
 const QUIET_MS = 6 * 3600_000;
@@ -13,9 +14,7 @@ export function useHealth(): Health {
     async function poll() {
       if (!navigator.onLine) return alive && setH((p) => ({ ...p, state: "offline" }));
       try {
-        const r = await fetch("/api/health", { cache: "no-store" });
-        if (!r.ok) throw new Error();
-        const j = (await r.json()) as { lastIngestAt: string | null };
+        const j = await getLastIngestAt();
         const quiet = !j.lastIngestAt || Date.now() - Date.parse(j.lastIngestAt) > QUIET_MS;
         if (alive) setH({ state: quiet ? "quiet" : "synced", lastIngestAt: j.lastIngestAt });
       } catch {

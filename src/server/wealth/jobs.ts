@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client.ts";
+import { realDay } from "./xirr.ts";
 import { holdingTxns, holdings, prices, transactions } from "../db/schema.ts";
 
 const ymd = (date: string) => date.slice(0, 10);
@@ -27,14 +28,30 @@ export async function linkSips(txnIds: number[], db: Db = getDb()): Promise<void
   }
 }
 
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+/** "15-Oct-2026" or "15-10-2026" to "2026-10-15"; undefined when not a real date. */
+export function navDate(value: string | undefined) {
+  const [d, m, y] = value?.trim().split("-") ?? [];
+  const month = MONTHS.indexOf(m?.toLowerCase() ?? "") + 1 || Number(m);
+  const out = `${y}-${String(month).padStart(2, "0")}-${d?.padStart(2, "0")}`;
+  return realDay(out) ? out : undefined;
+}
+
+// NAVAll.txt columns: Scheme Code;ISIN Payout/Growth;ISIN Reinvestment;Scheme Name;Net Asset Value;Date
+export function amfiLine(text: string, code: string) {
+  const cols = text.split("\n").find((item) => item.startsWith(`${code};`))?.split(";");
+  const nav = Number(cols?.[4]); const date = navDate(cols?.[5]);
+  return cols && Number.isFinite(nav) && nav > 0 && date ? { nav, date, source: "amfi" as const } : undefined;
+}
 async function amfiNav(code: string) {
-  const text = await (await timeoutFetch("https://www.amfiindia.com/spages/NAVAll.txt")).text();
-  const line = text.split("\n").find((item) => item.startsWith(`${code};`));
-  if (!line) return undefined;
-  const [, , nav, date] = line.split(";");
-  const parts = date?.trim().split("-");
-  if (!parts || parts.length !== 3) return undefined;
-  return { nav: Number(nav), date: `${parts[2]}-${parts[1]}-${parts[0]}`, source: "amfi" as const };
+  return amfiLine(await (await timeoutFetch("https://www.amfiindia.com/spages/NAVAll.txt")).text(), code);
+}
+
+// MFAPI /latest returns data as an array of {date, nav}; older responses used one object.
+export function mfapiNav(body: { data?: unknown }) {
+  const raw = (Array.isArray(body.data) ? body.data[0] : body.data) as { nav?: string; date?: string } | undefined;
+  const nav = Number(raw?.nav); const date = navDate(raw?.date);
+  return Number.isFinite(nav) && nav > 0 && date ? { nav, date, source: "mfapi" as const } : undefined;
 }
 
 /** Fetch each scheme independently. Remote failures are deliberately ignored. */
@@ -44,15 +61,12 @@ export async function runPrices(db: Db = getDb()): Promise<{ updated: number }> 
   for (const holding of open) try {
     const code = holding.schemeCode!;
     let value: { nav: number; date: string; source: "mfapi" | "amfi" } | undefined;
-    const response = await timeoutFetch(`https://api.mfapi.in/mf/${encodeURIComponent(code)}/latest`);
-    if (response.ok) {
-      const body = await response.json() as { data?: { nav?: string; date?: string } };
-      const raw = body.data;
-      const parts = raw?.date?.split("-");
-      if (raw?.nav && parts?.length === 3) value = { nav: Number(raw.nav), date: `${parts[2]}-${parts[1]}-${parts[0]}`, source: "mfapi" };
-    }
+    try {
+      const response = await timeoutFetch(`https://api.mfapi.in/mf/${encodeURIComponent(code)}/latest`);
+      if (response.ok) value = mfapiNav(await response.json() as { data?: unknown });
+    } catch { /* primary failure still allows AMFI fallback */ }
     value ??= await amfiNav(code);
-    if (!value || !Number.isFinite(value.nav)) continue;
+    if (!value) continue;
     await db.insert(prices).values({ schemeCode: code, ...value }).onConflictDoUpdate({ target: [prices.schemeCode, prices.date], set: { nav: value.nav, source: value.source } });
     const missing = await db.select().from(holdingTxns).where(and(eq(holdingTxns.holdingId, holding.id), isNull(holdingTxns.units)));
     for (const txn of missing) {

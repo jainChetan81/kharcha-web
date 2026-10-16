@@ -65,7 +65,8 @@ export function ruleMatches(rule: Pick<MerchantRule, "match">, merchant: string)
 
 /** Upsert pushed rows by mini_id atomically. A tombstone from either side sticks. */
 export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
-  if (rows.length === 0) return 0;
+  // A ₹0 row is a parser miss (OTP, balance alert). Skip it rather than reject the batch, so the mini never retries forever.
+  rows = rows.filter((r) => r.amount !== 0 || r.deletedAt);
   const [rules, cats] = await Promise.all([
     db.select().from(merchantRules).orderBy(desc(merchantRules.id)),
     db.select({ name: categories.name, type: categories.type }).from(categories),

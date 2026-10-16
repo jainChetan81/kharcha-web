@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/health")({
         try {
           return Response.json(await health(getDb()), { headers: { "Cache-Control": "no-store" } });
         } catch {
-          return Response.json({ ok: false }, { status: 500 });
+          return Response.json({ ok: false }, { status: 500, headers: { "Cache-Control": "no-store" } });
         }
       },
     },

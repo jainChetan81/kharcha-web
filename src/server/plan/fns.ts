@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getDb } from "../db/client";
 import { monthBounds, monthSchema, spendByCategory } from "../db/queries";
 import { categories, recurringOccurrences, recurringSeries, transactionTrips, transactions, trips } from "../db/schema";
+import { scheduleSeries } from "./jobs";
 
 export type UpcomingPayment = { seriesId: number; date: string; name: string; amount: number; kind: string };
 const today = () => new Date().toISOString().slice(0, 10);
@@ -31,9 +32,10 @@ export const getPlanBudgets = createServerFn({ method: "GET" }).validator(z.obje
   const db = getDb(); const [from, to] = monthBounds(data.month);
   const [spend, limits, cats] = await Promise.all([spendByCategory(db, from, to), db.query.budgets.findMany(), db.select().from(categories).where(eq(categories.type, "expense")).orderBy(categories.sortOrder)]);
   const byName = new Map(spend.map((row) => [row.category, row.total])); const limitOf = new Map(limits.map((row) => [row.category, row.monthlyLimit]));
-  return cats.filter((cat) => cat.name !== "Other").map((cat) => ({ ...cat, spent: byName.get(cat.name) ?? 0, limit: limitOf.get(cat.name) ?? null })).concat(
-    limitOf.size ? [] : [],
-  );
+  // Same scope as Today: every expense category, Other included, plus any spend under a category since removed.
+  const known = new Set(cats.map((cat) => cat.name));
+  const orphans = spend.filter((row) => !known.has(row.category)).map((row, i) => ({ name: row.category, type: "expense" as const, colorToken: "cat-other", sortOrder: 99 + i }));
+  return [...cats, ...orphans].map((cat) => ({ ...cat, spent: byName.get(cat.name) ?? 0, limit: limitOf.get(cat.name) ?? null }));
 });
 
 export const getRecurring = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
@@ -41,7 +43,7 @@ export const getRecurring = createServerFn({ method: "GET" }).validator(z.object
   const [series, occurrences, detector] = await Promise.all([
     db.select().from(recurringSeries).orderBy(asc(recurringSeries.name)),
     db.select({ seriesId: recurringOccurrences.seriesId, dueDate: recurringOccurrences.dueDate, status: recurringOccurrences.status, transactionId: recurringOccurrences.transactionId }).from(recurringOccurrences).where(and(gte(recurringOccurrences.dueDate, from), lte(recurringOccurrences.dueDate, to))),
-    db.all<{ payload_json: string }>(sql`select payload_json from insights where detector = 'new_recurring' and dismissed_at is null limit 1`),
+    db.all<{ payload_json: string }>(sql`select payload_json from insights where detector = 'recurring' and dismissed_at is null limit 1`),
   ]);
   return { series, occurrences, suggestion: detector[0]?.payload_json ?? null };
 });
@@ -58,20 +60,21 @@ export const getSeries = createServerFn({ method: "GET" }).validator(id).handler
 
 export const saveSeries = createServerFn({ method: "POST" }).validator(seriesSchema).handler(async ({ data }) => {
   const db = getDb(); const { id: seriesId, ...values } = data;
-  if (seriesId) { await db.update(recurringSeries).set(values).where(eq(recurringSeries.id, seriesId)); return seriesId; }
-  const [row] = await db.insert(recurringSeries).values(values).returning({ id: recurringSeries.id }); return row!.id;
+  let saved = seriesId;
+  if (saved) await db.update(recurringSeries).set(values).where(eq(recurringSeries.id, saved)); else saved = (await db.insert(recurringSeries).values(values).returning({ id: recurringSeries.id }))[0]!.id;
+  await scheduleSeries(saved, db); return saved;
 });
 export const removeSeries = createServerFn({ method: "POST" }).validator(id).handler(async ({ data }) => { await getDb().delete(recurringSeries).where(eq(recurringSeries.id, data.id)); });
 
 export const getTrips = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb(); const all = await db.select().from(trips).orderBy(desc(trips.startDate)); const now = today();
-  const totals = await db.all<{ trip_id: number; total: number }>(sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where t.deleted_at is null and tt.in_daily_budget=1 group by tt.trip_id`);
+  const totals = await db.all<{ trip_id: number; total: number }>(sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where t.deleted_at is null and t.type = 'expense' and t.excluded = 0 and t.duplicate_of is null and tt.in_daily_budget=1 group by tt.trip_id`);
   const spend = new Map(totals.map((row) => [Number(row.trip_id), Number(row.total)])); return all.map((trip) => ({ ...trip, spent: spend.get(trip.id) ?? 0, active: trip.startDate <= now && trip.endDate >= now && !trip.endedAt }));
 });
 
 export const getTrip = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
   const db = getDb(); const trip = await db.select().from(trips).where(eq(trips.id, data.id)).get(); if (!trip) return null;
-  const rows = await db.select({ id: transactions.id, amount: transactions.amount, merchant: transactions.merchant, category: transactions.category, date: transactions.date, daily: transactionTrips.inDailyBudget }).from(transactionTrips).innerJoin(transactions, eq(transactionTrips.transactionId, transactions.id)).where(and(eq(transactionTrips.tripId, data.id), isNull(transactions.deletedAt))).orderBy(desc(transactions.date));
+  const rows = await db.select({ id: transactions.id, amount: transactions.amount, merchant: transactions.merchant, category: transactions.category, date: transactions.date, daily: transactionTrips.inDailyBudget }).from(transactionTrips).innerJoin(transactions, eq(transactionTrips.transactionId, transactions.id)).where(and(eq(transactionTrips.tripId, data.id), isNull(transactions.deletedAt), eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf))).orderBy(desc(transactions.date));
   return { trip, rows };
 });
 
