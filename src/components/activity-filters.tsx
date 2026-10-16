@@ -87,7 +87,7 @@ function Pop({ label, value, active, children }: { label: string; value: string;
 }
 const FilterTrigger = forwardRef<HTMLButtonElement, { label: string; value: string; active: boolean } & ComponentProps<"button">>(
   ({ label, value, active, ...props }, ref) => (
-    <button ref={ref} type="button" {...props} className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-chip border px-3.5 text-sm transition-transform active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${active ? "border-ink bg-ink text-paper" : "border-field bg-card text-ink"}`}>
+    <button ref={ref} type="button" {...props} className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-chip border px-3.5 text-sm transition-transform active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${active ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}>
       {value || label}<ChevronDown size={14} aria-hidden="true" />
     </button>
   ),
@@ -132,7 +132,7 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
           <Button variant="primary" onClick={() => { close(); setSheet(null); }}>Done · {activeCats.length} selected</Button>
         </>}
         {name === "Amount" && <>
-          <div className="flex flex-wrap gap-2">{[["Under ₹500", undefined, 499], ["₹500–5K", 500, 5000], ["₹5K–25K", 5000, 25000], ["Over ₹25K", 25001, undefined]].map(([label, lo, hi]) => <Chip key={String(label)} on={search.min === lo && search.max === hi} onClick={() => apply({ min: lo as number | undefined, max: hi as number | undefined })}>{label}</Chip>)}</div>
+          <div className="flex flex-wrap gap-2">{[["Under ₹500", undefined, 499.99], ["₹500–5K", 500, 5000], ["₹5K–25K", 5000.01, 25000], ["Over ₹25K", 25000.01, undefined]].map(([label, lo, hi]) => <Chip key={String(label)} on={search.min === lo && search.max === hi} onClick={() => apply({ min: lo as number | undefined, max: hi as number | undefined })}>{label}</Chip>)}</div>
           <div className="grid grid-cols-2 gap-3"><label className="flex flex-col gap-1 text-[13px] text-ink-2">Minimum<input aria-label="Minimum amount" inputMode="decimal" value={min} onChange={(e) => setMin(e.target.value.replace(/[^\d.]/g, ""))} className="field min-h-11 px-3" /></label><label className="flex flex-col gap-1 text-[13px] text-ink-2">Maximum<input aria-label="Maximum amount" inputMode="decimal" value={max} onChange={(e) => setMax(e.target.value.replace(/[^\d.]/g, ""))} className="field min-h-11 px-3" /></label></div>
           {badAmount && <p role="alert" className="m-0 text-sm text-over">Minimum is more than maximum.</p>}
           <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={() => apply({ min: undefined, max: undefined })}>Clear</Button><Button disabled={badAmount} className="flex-1" onClick={() => apply({ min: min ? Number(min) : undefined, max: max ? Number(max) : undefined })}>Show</Button></div>
@@ -144,7 +144,7 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
         </>}
         {name === "Sort" && <fieldset className="m-0 border-0 p-0"><legend className="sr-only">Sort transactions</legend>{sorts.map(([key, label]) => <label key={key} className="flex min-h-12 w-full items-center justify-between border-b border-hairline text-left"><span>{label}</span><input type="radio" name="activity-sort" checked={(search.sort ?? "newest") === key} onChange={() => apply({ sort: key })} className="size-5 accent-brand" />{(search.sort ?? "newest") === key && <Check size={18} aria-hidden="true" />}</label>)}</fieldset>}
         {name === "Card" && <div className="flex flex-wrap gap-2">{cards.map((v) => <Chip key={v} on={search.card === v} onClick={() => apply({ card: search.card === v ? undefined : v })}>••{v}</Chip>)}<Button variant="outline" onClick={() => apply({ card: undefined })}>Clear</Button></div>}
-        {name === "Type" && <div className="flex flex-wrap gap-2">{([ ["expense", "Expense"], ["income", "Income"], ["investment", "Investment"], ["transfer", "Transfer"] ] as const).map(([key, label]) => <Chip key={key} on={search.type === key} onClick={() => apply({ type: search.type === key ? undefined : key })}>{label}</Chip>)}</div>}
+        {name === "Type" && <div className="flex flex-wrap gap-2">{([ ["expense", "Expense"], ["income", "Income"], ["investment", "Investment"], ["transfer", "Not counted"] ] as const).map(([key, label]) => <Chip key={key} on={search.type === key} onClick={() => apply({ type: search.type === key ? undefined : key })}>{label}</Chip>)}</div>}
         {name === "Trip" && <div className="flex flex-wrap gap-2">{trips.map((trip) => <Chip key={trip.id} on={search.tripId === trip.id} onClick={() => apply({ tripId: search.tripId === trip.id ? undefined : trip.id })}>{trip.name}</Chip>)}<Button variant="outline" onClick={() => apply({ tripId: undefined })}>Clear</Button></div>}
         {name === "Filter" && <div className="grid grid-cols-2 gap-2">{["Date", "Category", "Card", "Type", "Trip", "Amount", "Sort"].map((v) => <button key={v} type="button" onClick={() => setSheet(v)} className="min-h-11 rounded-chip border border-field text-sm">{v}</button>)}</div>}
       </div>
@@ -154,17 +154,17 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
     ? <Pop key={name} label={label} value={value} active={active}>{(close) => content(name, close)}</Pop>
     : <FilterTrigger key={name} label={label} value={value} active={active} onClick={() => setSheet(name)} />;
   return <>
-    <div role="toolbar" aria-label="Activity filters" className="relative -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 after:pointer-events-none after:fixed after:right-0 after:h-11 after:w-8 after:bg-gradient-to-l after:from-paper after:to-transparent desk:mx-0 desk:flex-wrap desk:overflow-visible desk:px-0">
+    <div className="relative -mx-5 desk:mx-0"><div role="toolbar" aria-label="Activity filters" className="flex gap-2 overflow-x-auto px-5 pb-1 desk:flex-wrap desk:overflow-visible desk:px-0">
       <button type="button" aria-pressed={Boolean(search.review)} onClick={onReview} className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-chip border px-3.5 text-sm active:scale-[0.96] ${search.review ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}><i aria-hidden className="size-2 rounded-full bg-brand" />Needs review <strong>{reviewCount}</strong></button>
       {picker("Filter", "Filter", `Filter${count ? ` · ${count}` : ""}`, count > 0)}
       {picker("Sort", "Sort", sorts.find(([k]) => k === search.sort)?.[1] ?? "Newest", Boolean(search.sort && search.sort !== "newest"))}
       {picker("Category", "Category", activeCats.length ? `${activeCats.length} categories` : "", activeCats.length > 0)}
       {picker("Card", "Card", search.card ? `••${search.card}` : "", Boolean(search.card))}
-      {picker("Type", "Type", search.type ?? "", Boolean(search.type))}
+      {picker("Type", "Type", search.type === "transfer" ? "Not counted" : search.type ?? "", Boolean(search.type))}
       {picker("Trip", "Trip", trips.find((t) => t.id === search.tripId)?.name ?? "", Boolean(search.tripId))}
       {picker("Amount", "Amount", amountTitle, Boolean(amountTitle))}
-    </div>
-    {count > 0 && <div className="flex flex-wrap gap-2">{search.from && search.to && <Applied label={dateTitle} onClick={() => onApply({ from: undefined, to: undefined })} />}{activeCats.map((value) => <Applied key={value} label={value.split(":").at(-1) ?? value} onClick={() => { const next = activeCats.filter((v) => v !== value); onApply({ categories: next.length ? next : undefined, category: undefined }); }} />)}{search.card && <Applied label={`••${search.card}`} onClick={() => onApply({ card: undefined })} />}{search.type && <Applied label={search.type} onClick={() => onApply({ type: undefined })} />}{search.tripId && <Applied label={trips.find((t) => t.id === search.tripId)?.name ?? "Trip"} onClick={() => onApply({ tripId: undefined })} />}{amountTitle && <Applied label={amountTitle} onClick={() => onApply({ min: undefined, max: undefined })} />}<button type="button" onClick={onClear} className="min-h-9 px-2 text-sm font-medium text-brand">Clear</button></div>}
+    </div><span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-paper to-transparent desk:hidden" /></div>
+    {count > 0 && <div className="flex flex-wrap gap-2">{search.from && search.to && <Applied label={dateTitle} onClick={() => onApply({ from: undefined, to: undefined })} />}{activeCats.map((value) => <Applied key={value} label={value.split(":").at(-1) ?? value} onClick={() => { const next = activeCats.filter((v) => v !== value); onApply({ categories: next.length ? next : undefined, category: undefined }); }} />)}{search.card && <Applied label={`••${search.card}`} onClick={() => onApply({ card: undefined })} />}{search.type && <Applied label={search.type === "transfer" ? "Not counted" : search.type} onClick={() => onApply({ type: undefined })} />}{search.tripId && <Applied label={trips.find((t) => t.id === search.tripId)?.name ?? "Trip"} onClick={() => onApply({ tripId: undefined })} />}{amountTitle && <Applied label={amountTitle} onClick={() => onApply({ min: undefined, max: undefined })} />}<button type="button" onClick={onClear} className="min-h-9 px-2 text-sm font-medium text-brand">Clear</button></div>}
     {sheet && <Sheet title={sheet} onClose={() => { setSheet(null); onDateClose?.(); }}>{content(sheet, () => { setSheet(null); onDateClose?.(); })}</Sheet>}
   </>;
 }

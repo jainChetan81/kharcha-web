@@ -24,7 +24,7 @@ export function SummaryStrip({ summary, colors }: { summary: Summary; colors: Re
     { value: String(summary.count), label: "rows", tone: "" },
     { value: money(summary.spent), label: "spent", tone: "" },
     ...(summary.income ? [{ value: money(summary.income), label: "income", tone: "text-earn" }] : []),
-    ...(summary.transferred ? [{ value: money(summary.transferred), label: "transferred", tone: "" }] : []),
+    ...(summary.transferred ? [{ value: money(summary.transferred), label: "not counted", tone: "" }] : []),
   ];
   const max = Math.max(1, ...summary.top.map((c) => c.total));
   const tone = (category: string) => `var(--color-${colors[category] ?? "cat-other"})`;

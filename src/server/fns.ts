@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "./db/client";
 import {
   addRule, addSchema, addTxn, budgetSchema, categoryList, editSchema, editTxn, flagSchema, flagTxn, getTxn, listSchema,
-  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget, summarizeTxns,
+  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget, splitsByTxnIds, summarizeTxns,
 } from "./db/queries";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
@@ -42,7 +42,11 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
 
 export const getTransactions = createServerFn({ method: "GET" })
   .validator(listSchema.extend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
-  .handler(({ data }) => listTxns(getDb(), { ...data, limit: data.limit ?? 500 }));
+  .handler(async ({ data }) => {
+    const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500 });
+    const splits = await splitsByTxnIds(getDb(), rows.map((r) => r.id));
+    return rows.map((r) => ({ ...r, splits: splits[r.id] ?? [] }));
+  });
 
 export const getTransactionSummary = createServerFn({ method: "GET" })
   .validator(listSchema)

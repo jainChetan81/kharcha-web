@@ -16,11 +16,14 @@ export type LedgerTxn = {
   originalAmount?: number | null;
   needsReview: boolean;
   excluded?: boolean;
+  rawMerchant?: string | null;
+  splits?: { category: string; amount: number }[];
 };
 
 /** Excluded rows (card bills, own-account moves, anything marked "Not a spend") stay listed but don't count. Ingest files card bills as Other, so the tag can't tell them apart. */
+const cardBill = (t: LedgerTxn) => /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
 const label = (t: LedgerTxn) =>
-  t.excluded ? "Not counted" : t.type === "income" ? "Income" : t.type === "investment" ? "Investment" : (t.category ?? "Other");
+  t.excluded ? (cardBill(t) ? "Card bill" : "Transfer") : t.type === "income" ? "Income" : t.type === "investment" ? "Investment" : (t.category ?? "Other");
 
 /** Row meta line with the category in its colour; "Other" and uncounted rows stay neutral. */
 export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boolean; color?: string }) {
@@ -34,6 +37,21 @@ export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boole
         <span className="truncate">{label(t)}</span>
       </span>
       {t.accountLast4 && <><span aria-hidden>·</span><span className="shrink-0">{card(t.accountLast4)}</span></>}
+    </span>
+  );
+}
+
+/** Mini bar + first two categories for a split row. With a category filter, the row shows only that part. */
+export function SplitMeta({ splits, only, ofTotal }: { splits: { category: string; amount: number }[]; only?: string; ofTotal?: number }) {
+  const total = splits.reduce((s, x) => s + x.amount, 0) || 1;
+  const shown = only ? splits.filter((s) => s.category === only) : splits;
+  const names = shown.slice(0, 2).map((s) => s.category).join(", ") + (shown.length > 2 ? ` +${shown.length - 2}` : "");
+  return (
+    <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-ink-2">
+      <span role="img" aria-label={`Split: ${splits.map((s) => `${s.category} ${money(s.amount)}`).join(", ")}`} className="flex h-1 w-12 shrink-0 gap-px overflow-hidden rounded-full">
+        {splits.map((s) => <i key={s.category} aria-hidden className="h-full" style={{ width: `${(s.amount / total) * 100}%`, background: `var(--color-cat-${s.category.toLowerCase()})` }} />)}
+      </span>
+      <span className="truncate">{ofTotal !== undefined ? `${money(shown.reduce((s, x) => s + x.amount, 0))} of ${money(ofTotal)}` : names}</span>
     </span>
   );
 }
@@ -57,7 +75,7 @@ export function LedgerRow({ t, withDate, trailing, className, color }: { t: Ledg
     >
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">
-          {t.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}
+          {t.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}
           <span className="truncate">{t.merchant}</span>
         </span>
         <RowMeta t={t} withDate={withDate} color={color} />
