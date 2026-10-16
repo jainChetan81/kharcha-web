@@ -34,7 +34,7 @@ export const getDetail = createServerFn({ method: "GET" }).validator(id).handler
     db.select().from(attachments).where(eq(attachments.transactionId, txn.id)),
     db.select().from(transactionItems).where(eq(transactionItems.transactionId, txn.id)).orderBy(transactionItems.sortOrder),
     db.select().from(transactionSplits).where(eq(transactionSplits.transactionId, txn.id)),
-    db.select({ name: categories.name, colorToken: categories.colorToken }).from(categories),
+    db.select({ name: categories.name, colorToken: categories.colorToken }).from(categories).where(eq(categories.type, txn.type === "income" ? "income" : "expense")),
   ]);
   return { txn, more, files, items, splits, categoryColors: Object.fromEntries(categoryRows.map((row) => [row.name, row.colorToken])) };
 });

@@ -9,6 +9,7 @@ import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import {
   deleteCategory,
+  getCategoryDeleteCounts,
   getSettings,
   removeRule,
   reorderCategories,
@@ -47,6 +48,7 @@ function Settings() {
   const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
   const [colorPicker, setColorPicker] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<(typeof data.categories)[number] | null>(null);
+  const [deleteCounts, setDeleteCounts] = useState<{ transactions: number; budgets: number; rules: number } | null>(null);
   const { used, cap } = data.ai;
 
   const refresh = () => void router.invalidate();
@@ -182,8 +184,8 @@ function Settings() {
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
           {data.aiOn && <div className="space-y-3 pt-3.5">
-            <ModelSelect id="model" label="Text model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} onChange={(value) => void save("openrouter_model", value)} />
-            <ModelSelect id="vision" label="Vision model, for receipts" value={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} onChange={(value) => void save("openrouter_vision_model", value)} />
+            <ModelSelect id="model" label="Text model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
+            <ModelSelect id="vision" label="Vision model, for receipts" value={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} costs={data.costs.vision} onChange={(value) => void save("openrouter_vision_model", value)} />
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[13px] text-ink-2">Daily call cap</span>
@@ -215,7 +217,7 @@ function Settings() {
                     onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
                     onNameChange={(name) => void updateCategory(item, { name })}
                     onMove={(dir) => void moveCategory(item, dir)}
-                    onDelete={() => setDeleteTarget(item)}
+                    onDelete={() => { setDeleteTarget(item); setDeleteCounts(null); void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } }).then(setDeleteCounts).catch(() => setDeleteCounts(null)); }}
                   />
                 ))}
               </Reorder.Group>
@@ -227,10 +229,10 @@ function Settings() {
             <span className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} aria-hidden />
             <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
           </div>
-          {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={`Its ${deleteTarget.transactionCount} transactions move to Other. Its budget and merchant rules are removed.`} onClose={() => setDeleteTarget(null)}>
+          {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
             <div className="grid grid-cols-2 gap-2.5 pt-1.5">
               <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
-              <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" onClick={() => void deleteCategoryNow()}>Delete and move {deleteTarget.transactionCount}</Button>
+              <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
             </div>
           </Sheet>}
         </section>

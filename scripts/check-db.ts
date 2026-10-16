@@ -8,6 +8,27 @@ import {
 
 const db = openDb(":memory:");
 assert.deepEqual(await db.all(sql`SELECT ${250} AS amount, ${"Test store"} AS merchant`), [{ amount: 250, merchant: "Test store" }], "raw SQL returns named columns");
+// Deleting a category merges its split into an existing Other row without a PK collision.
+{
+  const sdb = openDb(":memory:");
+  const { transactionSplits } = await import("../src/server/db/schema.ts");
+  const withOther = await addTxn(sdb, { type: "expense", amount: 30, merchant: "Split merge", category: "Dining", date: "2026-10-16 09:00" });
+  const withoutOther = await addTxn(sdb, { type: "expense", amount: 40, merchant: "Split insert", category: "Dining", date: "2026-10-16 09:01" });
+  await sdb.insert(transactionSplits).values([
+    { transactionId: withOther, category: "Other", amount: 5 },
+    { transactionId: withOther, category: "Dining", amount: 7 },
+    { transactionId: withoutOther, category: "Dining", amount: 11 },
+  ]);
+  await sdb.run(sql`INSERT INTO transaction_splits (transaction_id, category, amount)
+    SELECT transaction_id, 'Other', amount FROM transaction_splits WHERE category = ${"Dining"}
+    ON CONFLICT (transaction_id, category) DO UPDATE SET amount = amount + excluded.amount`);
+  await sdb.delete(transactionSplits).where(sql`${transactionSplits.category} = ${"Dining"}`);
+  assert.deepEqual(
+    (await sdb.select().from(transactionSplits).where(sql`${transactionSplits.transactionId} IN (${withOther}, ${withoutOther})`).orderBy(transactionSplits.transactionId)).map(({ transactionId, category, amount }) => [transactionId, category, amount]),
+    [[withOther, "Other", 12], [withoutOther, "Other", 11]],
+    "category delete combines existing Other splits and renames lone splits",
+  );
+}
 assert.deepEqual(await db.all(sql`SELECT id FROM transactions WHERE 0`), [], "raw SQL empty result");
 assert.deepEqual(await db.batch([db.all(sql`SELECT ${250} AS amount`)]), [[{ amount: 250 }]], "batched raw SQL returns named columns");
 const row = miniRowSchema.parse({

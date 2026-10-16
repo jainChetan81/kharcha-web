@@ -3,6 +3,7 @@ import { and, count, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
+import { modelCosts } from "../ai/pricing";
 import { getMeta, setMeta } from "../db/queries";
 import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
 
@@ -28,6 +29,8 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
   const entries = await Promise.all(keys.map(async (key) => [key, await getMeta(db, key)] as const));
   // Count is type-scoped: income categories count income rows, expense categories count the rest.
   const transactionCount = count(transactions.id);
+  const aiOn = process.env.KHARCHA_AI === "on";
+  const ai = await aiConfig(db);
   return {
     categories: await db.select({ name: categories.name, type: categories.type, colorToken: categories.colorToken, sortOrder: categories.sortOrder, transactionCount })
       .from(categories)
@@ -37,10 +40,26 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
 
     rules: await db.select().from(merchantRules).orderBy(desc(merchantRules.id)),
     values: Object.fromEntries(entries),
-    aiOn: process.env.KHARCHA_AI === "on",
-    ai: await aiConfig(db),
+    aiOn,
+    ai,
+    costs: await modelCosts(db, aiOn),
   };
 });
+
+// Real counts for the delete sheet. Same scoping rules as deleteCategory.
+export const getCategoryDeleteCounts = createServerFn({ method: "GET" })
+  .validator(z.object({ name, type }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
+    const shared = await db.select({ name: categories.name }).from(categories).where(and(eq(categories.name, data.name), ne(categories.type, data.type))).get();
+    const [txns, budget, rules] = await Promise.all([
+      db.select({ count: count() }).from(transactions).where(and(eq(transactions.category, data.name), isNull(transactions.deletedAt), ofType)).get(),
+      data.type === "expense" ? db.select({ count: count() }).from(budgets).where(eq(budgets.category, data.name)).get() : Promise.resolve({ count: 0 }),
+      data.type === "expense" || !shared ? db.select({ count: count() }).from(merchantRules).where(eq(merchantRules.category, data.name)).get() : Promise.resolve({ count: 0 }),
+    ]);
+    return { transactions: txns?.count ?? 0, budgets: budget?.count ?? 0, rules: rules?.count ?? 0 };
+  });
 
 export const saveSettings = createServerFn({ method: "POST" })
   .validator(settingsSchema)
@@ -88,7 +107,10 @@ export const deleteCategory = createServerFn({ method: "POST" })
     const ops = [
       db.update(transactions).set({ category: "Other" }).where(and(eq(transactions.category, data.name), ofType)),
       db.update(transactionItems).set({ category: "Other" }).where(and(eq(transactionItems.category, data.name), inArray(transactionItems.transactionId, owned))),
-      db.update(transactionSplits).set({ category: "Other" }).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
+      // A transaction may already hold an "Other" split (PK is transaction_id + category), so fold the amount into it.
+      db.insert(transactionSplits).select(db.select({ transactionId: transactionSplits.transactionId, category: sql<string>`'Other'`.as("category"), amount: transactionSplits.amount }).from(transactionSplits).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))))
+        .onConflictDoUpdate({ target: [transactionSplits.transactionId, transactionSplits.category], set: { amount: sql`${transactionSplits.amount} + excluded.amount` } }),
+      db.delete(transactionSplits).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
       ...(data.type === "expense" ? [db.delete(budgets).where(eq(budgets.category, data.name))] : []),
       ...(data.type === "expense" || !shared ? [db.delete(merchantRules).where(eq(merchantRules.category, data.name))] : []),
       db.delete(categories).where(and(eq(categories.name, data.name), eq(categories.type, data.type))),
