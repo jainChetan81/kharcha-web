@@ -1,7 +1,7 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, type Db } from "../db/client.ts";
-import { spendByCategory } from "../db/queries.ts";
+import { shareSql, spendByCategory } from "../db/queries.ts";
 import { budgets, digests, holdings, holdingTxns, insights, recurringSeries, transactions } from "../db/schema.ts";
 import { scrub } from "../ai/ask.ts";
 import { callOpenRouter } from "../ai/client.ts";
@@ -21,7 +21,7 @@ async function addInsight(db: Db, detector: string, key: string, payload: object
 /** detectors job (§8), nightly. Owner: Insights+AI agent. */
 export async function runDetectors(db: Db = getDb()): Promise<{ found: number }> {
   const now = localDate(); const from = new Date(now.getTime() - 56 * 864e5); const thisWeek = weekStart(now);
-  const rows = await db.select({ id: transactions.id, merchant: transactions.merchant, amount: transactions.amount, date: transactions.date, category: transactions.category }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf), sql`${transactions.date} >= ${iso(from)}`));
+  const rows = await db.select({ id: transactions.id, merchant: transactions.merchant, amount: shareSql(), date: transactions.date, category: transactions.category }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf), sql`${transactions.date} >= ${iso(from)}`));
   let found = 0;
   const merchants = new Map<string, number[]>();
   for (const row of rows) {
@@ -72,7 +72,7 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
   const weeklySpend = await spendByCategory(db, iso(week), iso(new Date(week.getTime() + 7 * 864e5)));
   const usualSpend = await spendByCategory(db, iso(new Date(week.getTime() - 28 * 864e5)), iso(week));
   const monthSpend = await spendByCategory(db, iso(month), iso(monthEnd(now)));
-  const monthRows = await db.all<{ merchant: string; total: number }>(sql`SELECT merchant, SUM(amount) total FROM transactions WHERE deleted_at IS NULL AND type = 'expense' AND excluded = 0 AND duplicate_of IS NULL AND date >= ${iso(month)} AND date < ${iso(monthEnd(now))} GROUP BY merchant ORDER BY total DESC LIMIT 1`);
+  const monthRows = await db.all<{ merchant: string; total: number }>(sql`SELECT merchant, SUM(${shareSql()}) total FROM transactions WHERE deleted_at IS NULL AND type = 'expense' AND excluded = 0 AND duplicate_of IS NULL AND date >= ${iso(month)} AND date < ${iso(monthEnd(now))} GROUP BY merchant ORDER BY total DESC LIMIT 1`);
   const total = monthSpend.reduce((sum, row) => sum + row.total, 0); const top = monthRows[0];
   const cat = weeklySpend.map((row) => ({ ...row, change: row.total - (usualSpend.find((usual) => usual.category === row.category)?.total ?? 0) / 4 })).sort((a, b) => b.change - a.change)[0]; const reviews = await db.all<{ n: number }>(sql`SELECT COUNT(*) n FROM transactions WHERE deleted_at IS NULL AND needs_review = 1 AND category = 'Other'`);
   const limits = await db.select().from(budgets); const day = Math.max(1, now.getUTCDate());

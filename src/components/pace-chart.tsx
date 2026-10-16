@@ -26,6 +26,31 @@ export function PaceChart({ month, points, previous, limit }: { month: string; p
   const spike = points.filter((point) => Number(point.date.slice(8, 10)) <= currentDay).reduce<Point | null>((largest, point) => !largest || point.amount > largest.amount ? point : largest, null);
   const spikeX = spike ? x(Number(spike.date.slice(8, 10))) : 0;
   const spikeY = spike ? y(spent[Number(spike.date.slice(8, 10)) - 1] ?? 0) : 0;
+  // Spike label: right of the spike, else left; never over the today dot or label, never past the edge, always above the line.
+  // Shorten the amount (compact), then drop the merchant. ponytail: char width estimated at 5.6px for 10px text.
+  const aheadText = limit > 0 && currentDay > 0 ? `${money(Math.abs(ahead))} ${ahead >= 0 ? "ahead" : "behind"} pace` : "";
+  const aheadX = Math.min(220, x(currentDay) + 8);
+  const taken = [
+    { x0: x(currentDay) - 6, x1: x(currentDay) + 6, y0: y(currentTotal) - 6, y1: y(currentTotal) + 6 },
+    { x0: aheadX, x1: aheadX + aheadText.length * 5.6, y0: 21, y1: 34 },
+  ];
+  const hit = (box: { x0: number; x1: number; y0: number; y1: number }) => taken.some((t) => !(box.x1 < t.x0 || box.x0 > t.x1 || box.y1 < t.y0 || box.y0 > t.y1));
+  const label = spike && (() => {
+    const merchant = spike.merchant.length > 16 ? `${spike.merchant.slice(0, 15).trim()}…` : spike.merchant;
+    const baseline = spikeY - 6;
+    for (const text of [`${merchant} ${money(spike.amount)}`, `${merchant} ${compact(spike.amount)}`, compact(spike.amount)]) {
+      const w = text.length * 5.6;
+      const sides: { anchor: "start" | "end"; x: number; x0: number; x1: number }[] = [
+        { anchor: "start", x: spikeX + 6, x0: spikeX + 6, x1: spikeX + 6 + w },
+        { anchor: "end", x: spikeX - 6, x0: spikeX - 6 - w, x1: spikeX - 6 },
+      ];
+      for (const side of sides) {
+        const box = { x0: side.x0, x1: side.x1, y0: baseline - 10, y1: baseline + 3 };
+        if (box.x0 >= 0 && box.x1 <= 330 && box.y0 >= -6 && !hit(box)) return { text, x: side.x, anchor: side.anchor, y: baseline };
+      }
+    }
+    return null;
+  })();
 
   return <figure className="m-0">
     <svg viewBox="-4 -6 340 150" className="block h-[150px] w-full" role="img" aria-label={`Cumulative ${month} spend ${money(currentTotal)} against budget pace ${money(limit)} and ${lastMonth} spend`}>
@@ -37,8 +62,9 @@ export function PaceChart({ month, points, previous, limit }: { month: string; p
       <polygon points={`${current} ${x(currentDay)},130`} fill="var(--color-on-ink-month)" fillOpacity=".16" />
       <polyline points={current} fill="none" stroke="var(--color-on-ink-month)" strokeWidth="2.5" strokeLinejoin="round" />
       {currentDay > 0 && <circle cx={x(currentDay)} cy={y(currentTotal)} r="4.5" fill="var(--color-on-ink-month)" />}
-      {spike && <><line x1={spikeX} x2={spikeX} y1={spikeY} y2="75" stroke="var(--color-on-ink-month)" strokeDasharray="1 2" /><text x={Math.max(0, Math.min(326, spikeX))} y="20" textAnchor={spikeX < 110 ? "start" : spikeX > 220 ? "end" : "middle"} fill="var(--color-on-ink-month)" fontSize="10">{spike.merchant.length > 16 ? `${spike.merchant.slice(0, 15).trim()}…` : spike.merchant} {compact(spike.amount)}</text></>}
-      {limit > 0 && currentDay > 0 && <text x={Math.min(220, x(currentDay) + 8)} y="31" fill="var(--color-on-ink)" fontSize="10">{money(Math.abs(ahead))} {ahead >= 0 ? "ahead" : "behind"} pace</text>}
+      {spike && <line x1={spikeX} x2={spikeX} y1={spikeY} y2="75" stroke="var(--color-on-ink-month)" strokeDasharray="1 2" />}
+      {label && <text x={label.x} y={label.y} textAnchor={label.anchor} fill="var(--color-on-ink-month)" fontSize="10">{label.text}</text>}
+      {aheadText && <text x={aheadX} y="31" fill="var(--color-on-ink)" fontSize="10">{aheadText}</text>}
       <text x="0" y="143" fill="var(--color-on-ink-2)" fontSize="10">1 {monthName(month, "short")}</text>
       {currentDay > 1 && currentDay < days && <text x={Math.max(0, x(currentDay) - 12)} y="143" fill="var(--color-on-ink)" fontSize="10">Today</text>}
       <text x="297" y="143" fill="var(--color-on-ink-2)" fontSize="10">{days} {monthName(month, "short")}</text>

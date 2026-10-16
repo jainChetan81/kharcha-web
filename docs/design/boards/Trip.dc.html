@@ -128,10 +128,10 @@ class Component extends DCLogic {
     const C = { Food: '#B4572E', Transport: '#2F6F8F', Shopping: '#6B4C8A', Entertainment: '#9B3D5C', Other: '#8A8576' };
     const t = (m, time, cat, a) => ({ m, meta: time + ' · ' + cat, a, color: C[cat] });
     const data = [
-      { label: '18', short: '3.9K', name: 'Sun 18 Oct', total: 3920, rows: [t('Rapido to BLR airport', '05:10', 'Transport', '₹620'), t('Airport café', '06:40', 'Food', '₹480'), t('Prepaid taxi, BBI to Puri', '11:20', 'Transport', '₹1,900'), t('Wildgrass', '20:30', 'Food', '₹920')] },
-      { label: '19', short: '2.5K', name: 'Mon 19 Oct', total: 2480, rows: [t('Breakfast', '08:30', 'Food', '₹260'), t('Beach shack', '13:10', 'Food', '₹540'), t('Auto', '16:00', 'Transport', '₹240'), t('Shell craft stall', '17:45', 'Shopping', '₹620'), t('Dinner', '21:00', 'Food', '₹820')] },
-      { label: '20', short: '4.6K', name: 'Tue 20 Oct', total: 4610, rows: [t('Cab to Chilika', '07:30', 'Transport', '₹1,230'), t('Chilika boat ride', '10:00', 'Entertainment', '₹1,370'), t('Lunch at Satapada', '13:30', 'Food', '₹640'), t('Hotel laundry', '18:00', 'Other', '₹820'), t('Dinner', '21:15', 'Food', '₹550')] },
-      { label: '21', short: '3.9K', name: 'Today · Wed 21 Oct', total: 3850, rows: [t('Uber, Puri to Konark', '08:15', 'Transport', '₹1,650'), t('Sun Temple tickets', '09:30', 'Entertainment', '₹80'), t('Chai and snacks', '11:00', 'Food', '₹180'), t('Pipli applique work', '15:20', 'Shopping', '₹700'), t('Dalma', '20:40', 'Food', '₹1,240')] },
+      { label: '18', short: '3.9K', name: 'Sun 18 Oct', total: 3920, rows: [t('Rapido to BLR airport', '5:10 AM', 'Transport', '₹620'), t('Airport café', '6:40 AM', 'Food', '₹480'), t('Prepaid taxi, BBI to Puri', '11:20 AM', 'Transport', '₹1,900'), t('Wildgrass', '8:30 PM', 'Food', '₹920')] },
+      { label: '19', short: '2.5K', name: 'Mon 19 Oct', total: 2480, rows: [t('Breakfast', '8:30 AM', 'Food', '₹260'), t('Beach shack', '1:10 PM', 'Food', '₹540'), t('Auto', '4:00 PM', 'Transport', '₹240'), t('Shell craft stall', '5:45 PM', 'Shopping', '₹620'), t('Dinner', '9:00 PM', 'Food', '₹820')] },
+      { label: '20', short: '4.6K', name: 'Tue 20 Oct', total: 4610, rows: [t('Cab to Chilika', '7:30 AM', 'Transport', '₹1,230'), t('Chilika boat ride', '10:00 AM', 'Entertainment', '₹1,370'), t('Lunch at Satapada', '1:30 PM', 'Food', '₹640'), t('Hotel laundry', '6:00 PM', 'Other', '₹820'), t('Dinner', '9:15 PM', 'Food', '₹550')] },
+      { label: '21', short: '3.9K', name: 'Today · Wed 21 Oct', total: 3850, rows: [t('Uber, Puri to Konark', '8:15 AM', 'Transport', '₹1,650'), t('Sun Temple tickets', '9:30 AM', 'Entertainment', '₹80'), t('Chai and snacks', '11:00 AM', 'Food', '₹180'), t('Pipli applique work', '3:20 PM', 'Shopping', '₹700'), t('Dalma', '8:40 PM', 'Food', '₹1,240')] },
       { label: '22', short: '', name: 'Thu 22 Oct', total: 0, rows: [] },
       { label: '23', short: '', name: 'Fri 23 Oct', total: 0, rows: [] }
     ];

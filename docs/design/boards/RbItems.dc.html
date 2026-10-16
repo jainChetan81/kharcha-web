@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reimbursable items</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1000px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 8px">
+    <div style="display: flex; align-items: center">
+      <a href="RbList.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Which items go back?</h1>
+    </div>
+  </header>
+  <p style="margin: 0 20px; font-size: 14px; color: var(--ink2)">Meghana Foods · Wed 14 Oct · ₹1,620 · split by receipt</p>
+
+  <section style="padding: 14px 20px 0">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+      <label style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 56px; border-bottom: 1px solid var(--hair); cursor: pointer">
+        <input type="checkbox" checked="{{it.on}}" onChange="{{it.toggle}}" style="width: 20px; height: 20px; margin: 0; accent-color: var(--brand)">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px">{{it.name}}</span><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink3)"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--c-food)"></span>Food{{it.tagText}}</span></span>
+        <span style="font-size: 15px; font-weight: 500">{{it.amt}}</span>
+      </label>
+    </sc-for>
+  </section>
+
+  <section style="margin: 16px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 13px; color: var(--ink2)">Who pays it back</span>
+      <div style="display: flex; gap: 8px"><span style="min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--brand); color: var(--on-brand); font-size: 14px; display: flex; align-items: center">Office</span><span style="min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--field); font-size: 14px; display: flex; align-items: center">Someone else</span></div>
+    </div>
+    <dl style="margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--sunken); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px">
+      <dt style="color: var(--ink2)">Paid</dt><dd style="margin: 0; text-align: right">₹1,620</dd>
+      <dt style="color: var(--ink2)">Back from Office · {{count}}</dt><dd style="margin: 0; text-align: right">{{back}}</dd>
+      <dt style="font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">Yours</dt><dd style="margin: 0; text-align: right; font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">{{yours}}</dd>
+    </dl>
+  </section>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 24px; background: var(--card); border-top: 1px solid var(--rule)">
+    <a href="RbStatus.dc.html" style="min-height: 52px; border-radius: 12px; background: var(--btn); display: flex; align-items: center; justify-content: center; color: var(--on-btn); font-size: 15px; font-weight: 500; text-decoration: none">Mark {{back}} reimbursable</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { on: { 0: true, 1: true, 2: true } };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', btn: '#1C2230', 'on-btn': '#F6F4EE', 'c-food': '#B4572E' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', btn: '#ECE8DF', 'on-btn': '#12151C', 'c-food': '#E08A60' };
+    const t = this.props.dark ? D : L;
+    const base = [['Chicken biryani ×2', 520], ['Veg biryani', 240], ['Paneer 65', 240], ['Mutton biryani', 380], ['Gulab jamun ×2', 120], ['Packing and delivery', 120]];
+    const s = this.state;
+    const back = base.reduce((a, b, i) => a + (s.on[i] ? b[1] : 0), 0);
+    const n = base.filter((_, i) => s.on[i]).length;
+    const fmt = (x) => '₹' + x.toLocaleString('en-IN');
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      items: base.map(([name, a], i) => ({ name, amt: fmt(a), on: !!s.on[i], tagText: s.on[i] ? ' · goes back' : '', toggle: () => this.setState({ on: Object.assign({}, s.on, { [i]: !s.on[i] }) }) })),
+      back: fmt(back), yours: fmt(1620 - back), count: n + (n === 1 ? ' item' : ' items')
+    };
+  }
+}
+</script>
+</body>
+</html>

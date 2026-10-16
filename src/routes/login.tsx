@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const { next, error } = Route.useSearch();
   return (
-    <section className="mx-auto mt-16 max-w-sm rounded-2xl bg-white p-6 shadow-sm">
+    <section className="mx-auto mt-16 max-w-sm rounded-2xl bg-card p-6 shadow-sm">
       <h1 className="text-xl font-semibold">Kharcha</h1>
       {/* Plain form post: works before hydration and without JS. */}
       <form method="post" action="/api/login" className="mt-4 space-y-4">

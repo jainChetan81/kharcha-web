@@ -1,11 +1,15 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button, ErrorState, Field, PageHeader, SectionHead, Skeleton } from "../components/ui";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { Reorder, useDragControls } from "motion/react";
+import { Button, ErrorState, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
+import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
-import { saveFailed, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import {
+  deleteCategory,
+  getCategoryDeleteCounts,
   getSettings,
   removeRule,
   reorderCategories,
@@ -15,7 +19,9 @@ import {
   updateRule,
 } from "../server/daily/settings";
 import type { Category } from "../server/db/schema";
-import { ago, nowLocal, time, weekdayDate } from "../lib/format";
+import { ModelSelect } from "../components/model-select";
+import { SwatchPicker } from "../components/swatch-picker";
+import { SyncSection } from "../components/sync-section";
 
 export const Route = createFileRoute("/settings")({
   loader: () => getSettings(),
@@ -23,11 +29,6 @@ export const Route = createFileRoute("/settings")({
   errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load settings."} retry={() => void router.invalidate()} />; },
   component: Settings,
 });
-
-const categoryColors = [
-  "cat-food", "cat-shopping", "cat-transport", "cat-utilities", "cat-entertainment",
-  "cat-home", "cat-health", "cat-sports", "cat-work", "cat-other",
-] as const;
 
 type Rule = Awaited<ReturnType<typeof getSettings>>["rules"][number];
 
@@ -40,28 +41,46 @@ function Settings() {
   // Client-only check; SSR renders the button, then this swaps in "Installed".
   const [installed, setInstalled] = useState(false);
   useEffect(() => setInstalled(isStandalone()), []);
+  const [theme, setTheme] = useState<Theme>("system");
+  useEffect(() => setTheme(getTheme()), []);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
   const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
+  const [colorPicker, setColorPicker] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<(typeof data.categories)[number] | null>(null);
+  const [deleteCounts, setDeleteCounts] = useState<{ transactions: number; budgets: number; rules: number } | null>(null);
   const { used, cap } = data.ai;
-  const lastIngest = data.values.last_ingest_at;
-  const lastIngestDate = lastIngest ? new Date(lastIngest.replace(" ", "T")) : null;
-  const ageMinutes = lastIngestDate && !Number.isNaN(lastIngestDate.valueOf())
-    ? Math.max(0, Math.floor((Date.now() - lastIngestDate.valueOf()) / 60_000))
-    : null;
-  const ingestStatus = ageMinutes === null ? "No SMS received yet" : ageMinutes >= 360 ? `Mini quiet · ${Math.floor(ageMinutes / 60)} h` : "Healthy";
-  const ingestTime = lastIngestDate && !Number.isNaN(lastIngestDate.valueOf())
-    ? `${weekdayDate(nowLocal(lastIngestDate))}, ${time(lastIngestDate)} · ${ago(lastIngestDate.toISOString())}`
-    : "Not received yet";
 
   const refresh = () => void router.invalidate();
-  const save = async (key: "openrouter_model" | "openrouter_vision_model" | "openrouter_daily_cap", value: string) => {
+  const save = async (
+    key: "openrouter_model" | "openrouter_vision_model" | "openrouter_daily_cap",
+    value: string,
+  ) => {
     if (!online || value === (data.values[key] ?? "")) return;
     try {
-      await saveSettings({ data: { key, value } });
+      if (key === "openrouter_daily_cap") {
+        await saveSettings({ data: { key, value: value as "50" | "100" | "200" | "500" } });
+      } else {
+        await saveSettings({ data: { key, value } });
+      }
       snack("Saved settings.");
       refresh();
-    } catch { saveFailed(() => save(key, value)); }
+    } catch { saveFailed(() => void save(key, value)); }
+  };
+  const reorderGroup = async (groupType: "expense" | "income", nextGroup: (typeof data.categories)) => {
+    if (!online) return;
+    try {
+      await reorderCategories({
+        data: {
+          items: nextGroup.map((item, sortOrder) => ({
+            name: item.name,
+            type: groupType,
+            sortOrder,
+          })),
+        },
+      });
+      refresh();
+    } catch { saveFailed(() => void reorderGroup(groupType, nextGroup)); }
   };
   const moveCategory = async (item: Category, direction: -1 | 1) => {
     const group = data.categories.filter((x) => x.type === item.type).sort((a, b) => a.sortOrder - b.sortOrder);
@@ -85,6 +104,16 @@ function Settings() {
     } catch (error) {
       snack(error instanceof Error ? error.message : "Couldn't save category.");
     }
+  };
+  const deleteCategoryNow = async () => {
+    const item = deleteTarget;
+    if (!item || !online) return;
+    try {
+      await deleteCategory({ data: { name: item.name, type: item.type } });
+      setDeleteTarget(null);
+      snack(`Deleted ${item.name}; moved ${item.transactionCount} transactions to Other.`);
+      refresh();
+    } catch { saveFailed(() => void deleteCategoryNow()); }
   };
   const addCategory = async () => {
     const name = categoryDraft.name.trim();
@@ -129,17 +158,10 @@ function Settings() {
     <main>
       <PageHeader back="/" title="Settings" />
       <div className="space-y-7 px-5 pb-10 tablet:mx-auto tablet:max-w-[720px] desk:px-0">
+        <SyncSection />
+
         <section aria-labelledby="settings-app">
           <SectionHead id="settings-app" title="App" />
-          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[15px] font-medium">Last SMS from the mini</span>
-              <span className="text-[13px] text-ink-3">{ingestTime}</span>
-            </span>
-            <span className={`shrink-0 text-[13px] font-semibold ${ageMinutes !== null && ageMinutes < 360 ? "text-earn" : "text-ink-3"}`}>
-              <span aria-hidden className="mr-1.5 inline-block size-[7px] rounded-full bg-current" />{ingestStatus}
-            </span>
-          </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Install app</span>
             {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-10 text-sm" onClick={() => void promptInstall().then((result) => {
@@ -147,6 +169,10 @@ function Settings() {
               else if (result === "installed") setInstalled(true);
               else if (result === "unavailable") snack("Install is available from your browser menu.");
             })}>Install</Button>}
+          </div>
+          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
+            <span className="text-[15px] font-medium">Theme</span>
+            <Segmented label="Theme" className="w-[220px]" value={theme} onChange={(t) => { setTheme(t); applyTheme(t); }} options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "system", label: "System" }]} />
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Export CSV</span>
@@ -156,16 +182,16 @@ function Settings() {
 
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
-          {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. When the server sets KHARCHA_AI=on, Ask and the weekly digest send category totals and names to OpenRouter, never SMS text, card numbers or UPI IDs.</p>}
+          {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
           {data.aiOn && <div className="space-y-3 pt-3.5">
-            <Field id="model" label="Text model" defaultValue={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_model", event.currentTarget.value)} />
-            <Field id="vision" label="Vision model, for receipts" defaultValue={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_vision_model", event.currentTarget.value)} />
+            <ModelSelect id="model" label="Text model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
+            <ModelSelect id="vision" label="Vision model, for receipts" value={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} costs={data.costs.vision} onChange={(value) => void save("openrouter_vision_model", value)} />
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
-                <label htmlFor="cap" className="text-[13px] text-ink-2">Daily call cap</label>
+                <span className="text-[13px] text-ink-2">Daily call cap</span>
                 <span className="text-sm"><strong className="font-semibold">{used}</strong><span className="text-ink-3"> of {cap} used today</span></span>
               </div>
-              <input id="cap" className="field" inputMode="numeric" disabled={!online} defaultValue={data.values.openrouter_daily_cap ?? ""} placeholder={String(data.ai.cap)} onBlur={(event) => void save("openrouter_daily_cap", event.currentTarget.value)} />
+              <Segmented label="Daily call cap" className="w-full" options={[50, 100, 200, 500].map((n) => ({ value: String(n), label: String(n) }))} value={String(cap)} onChange={(value) => void save("openrouter_daily_cap", value)} />
               <div aria-label={`${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}% of daily AI call cap used`} role="img" className="h-1.5 overflow-hidden rounded-sm bg-sunken">
                 <div className="h-full rounded-sm bg-brand" style={{ width: `${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}%` }} />
               </div>
@@ -175,27 +201,40 @@ function Settings() {
 
         <section aria-labelledby="settings-categories">
           <SectionHead id="settings-categories" title="Categories" action={<button type="button" className="inline-flex min-h-8 items-center gap-1 text-sm font-medium text-brand" onClick={() => document.getElementById("new-category-name")?.focus()}><Plus size={16} />Add</button>} />
-          <div className="grid grid-cols-[24px_14px_minmax(0,1fr)_minmax(92px,auto)] gap-x-2.5">
-            {[...data.categories].sort((a, b) => a.type.localeCompare(b.type) || a.sortOrder - b.sortOrder).map((item) => (
-              <div key={`${item.type}-${item.name}`} className="col-span-4 grid min-h-12 grid-cols-subgrid items-center border-b border-hairline text-[15px]">
-                <span className="flex flex-col items-center">
-                  <button type="button" aria-label={`Move ${item.name} up`} className="flex size-6 items-center justify-center text-ink-3 disabled:opacity-30" disabled={!online || item.sortOrder === 0} onClick={() => void moveCategory(item, -1)}><ArrowUp size={14} /></button>
-                  <button type="button" aria-label={`Move ${item.name} down`} disabled={!online} className="flex size-6 items-center justify-center text-ink-3" onClick={() => void moveCategory(item, 1)}><ArrowDown size={14} /></button>
-                </span>
-                <span className="size-3 rounded-[3px]" style={{ background: `var(--color-${item.colorToken})` }} />
-                <input aria-label={`${item.name} category name`} className="min-w-0 bg-transparent py-2" defaultValue={item.name} disabled={!online} onBlur={(event) => event.currentTarget.value !== item.name && void updateCategory(item, { name: event.currentTarget.value })} />
-                <select aria-label={`${item.name} category colour`} className="field h-9 min-h-9 min-w-0 py-0 pl-2 pr-1 text-xs" value={item.colorToken} disabled={!online} onChange={(event) => void updateCategory(item, { colorToken: event.currentTarget.value })}>
-                  {categoryColors.map((color) => <option key={color} value={color}>{color.replace("cat-", "")}</option>)}
-                </select>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_100px_44px] gap-2">
+          <p className="mt-2 mb-0 text-[13px] leading-relaxed text-ink-2">Every transaction gets one. Budgets and Insights add them up.</p>
+          {(["expense", "income"] as const).map((type) => {
+            const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
+            return <div key={type} className="mt-4">
+              <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
+              <Reorder.Group axis="y" values={group} onReorder={(next) => void reorderGroup(type, next)} aria-label={`${type === "expense" ? "Spending" : "Income"} categories`} className="m-0 list-none p-0">
+                {group.map((item) => (
+                  <CategoryItem
+                    key={item.name}
+                    item={item}
+                    online={online}
+                    colorPickerOpen={colorPicker === item.name}
+                    onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
+                    onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
+                    onNameChange={(name) => void updateCategory(item, { name })}
+                    onMove={(dir) => void moveCategory(item, dir)}
+                    onDelete={() => { setDeleteTarget(item); setDeleteCounts(null); void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } }).then(setDeleteCounts).catch(() => setDeleteCounts(null)); }}
+                  />
+                ))}
+              </Reorder.Group>
+            </div>;
+          })}
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
             <label className="sr-only" htmlFor="new-category-name">New category name</label>
             <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
-            <select aria-label="New category colour" className="field min-w-0 px-2" value={categoryDraft.colorToken} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, colorToken: event.currentTarget.value })}>{categoryColors.map((color) => <option key={color} value={color}>{color.replace("cat-", "")}</option>)}</select>
+            <span className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} aria-hidden />
             <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
           </div>
+          {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
+            <div className="grid grid-cols-2 gap-2.5 pt-1.5">
+              <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
+              <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
+            </div>
+          </Sheet>}
         </section>
 
         <section aria-labelledby="settings-rules">
@@ -207,7 +246,7 @@ function Settings() {
               <div key={rule.id} className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline">
                 {ruleEdit === rule.id ? <RuleEditor rule={rule} categories={data.categories.map((x) => x.name)} onCancel={() => setRuleEdit(null)} onSave={(values) => void editMerchantRule(rule, values)} /> : (
                   <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                    <span className="truncate font-mono text-[13px] text-[#3E4352]">{rule.match}</span>
+                    <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
                     <span className="flex min-w-0 items-center gap-1.5 text-sm"><span aria-hidden className="text-ink-3">→</span><strong className="truncate font-semibold">{rule.displayMerchant}</strong><span className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }} /><span className="truncate">{rule.category}</span></span>
                   </span>
                 )}
@@ -223,6 +262,34 @@ function Settings() {
       {ios && <IosInstallSheet onClose={() => setIos(false)} />}
     </main>
   );
+}
+
+function CategoryItem({
+  item, online, colorPickerOpen, onToggleColorPicker, onColorChange, onNameChange, onMove, onDelete,
+}: {
+  item: Awaited<ReturnType<typeof getSettings>>["categories"][number];
+  online: boolean;
+  colorPickerOpen: boolean;
+  onToggleColorPicker: () => void;
+  onColorChange: (token: string) => void;
+  onNameChange: (name: string) => void;
+  onMove: (direction: -1 | 1) => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+  const isOther = item.name === "Other";
+  return <Reorder.Item value={item} dragListener={false} dragControls={controls} className="border-b border-hairline bg-paper">
+    <div className="flex min-h-14 items-center gap-1">
+      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => controls.start(event)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
+      <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
+        <span className="size-6 rounded-[7px]" style={{ background: `var(--color-${item.colorToken})` }} />
+      </button>
+      <input aria-label={`${item.name} category name`} className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-focus" defaultValue={item.name} disabled={!online} onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)} />
+      <span className="shrink-0 text-xs text-ink-3">{item.transactionCount} transactions</span>
+      {!isOther && <button type="button" aria-label={`Delete ${item.name}`} disabled={!online} className="flex size-11 shrink-0 items-center justify-center text-ink-3" onClick={onDelete}><Trash2 size={18} /></button>}
+    </div>
+    {colorPickerOpen && <div className="mb-3 ml-[88px] max-w-[300px]"><SwatchPicker label={`Colours for ${item.name}`} value={item.colorToken} onChange={onColorChange} /></div>}
+  </Reorder.Item>;
 }
 
 function RuleEditor({ rule, categories, onCancel, onSave }: { rule: Rule; categories: string[]; onCancel: () => void; onSave: (values: { match: string; displayMerchant: string; category: string }) => void }) {

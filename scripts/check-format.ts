@@ -1,7 +1,7 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, overOrLeft, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
+  ago, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -26,6 +26,9 @@ assert.equal(monthName("2026-10", "short"), "Oct");
 assert.equal(dayMonth("2026-09-24"), "24 Sept");
 assert.equal(navsOf("2026-10-15"), "NAVs of 15 Oct");
 assert.equal(shiftMonth("2026-12", 1), "2027-01");
+assert.equal(rangeLabel("2026-10-01", "2026-10-15"), "1–15 Oct");
+assert.equal(rangeLabel("2026-09-29", "2026-10-03"), "29 Sept–3 Oct");
+assert.equal(rangeLabel("2025-12-29", "2026-01-03"), "29 Dec 2025–3 Jan 2026");
 assert.equal(ago(new Date(Date.now() - 3 * 60000).toISOString()), "3 min ago");
 assert.equal(evalAmount("450+120"), 570);
 assert.equal(evalAmount("450+120-20.5"), 549.5);

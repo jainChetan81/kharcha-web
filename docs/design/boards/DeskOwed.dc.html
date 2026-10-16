@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kharcha desktop reimbursements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <aside style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; padding: 28px 16px; border-right: 1px solid var(--rule); background: var(--card); display: flex; flex-direction: column; gap: 24px">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; padding: 0 12px">Kharcha</span>
+    <nav aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="7">
+        <a href="{{n.href}}" aria-current="{{n.cur}}" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 15px; text-decoration: none; background: {{n.bg}}; color: var(--ink); font-weight: {{n.w}}">{{n.label}}</a>
+      </sc-for>
+    </nav>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 40px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <div style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 30px">Plan · owed to you</h1>
+        <nav aria-label="Plan sections" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken); min-width: 440px">
+          <a href="DeskPlan.dc.html" style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink2); text-decoration: none">Budgets</a>
+          <a href="Recurring.dc.html" style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink2); text-decoration: none">Recurring</a>
+          <a href="Trips.dc.html" style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink2); text-decoration: none">Trips</a>
+          <a href="DeskOwed.dc.html" aria-current="page" style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: var(--ink); background: var(--tab); text-decoration: none">Owed</a>
+        </nav>
+      </header>
+
+      <section style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; padding-bottom: 16px; border-bottom: 3px double var(--ink)">
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3)">Owed to you</span><span style="font-family: 'Newsreader', Georgia, serif; font-size: 52px; font-weight: 500; line-height: 1">₹8,450</span></div>
+        <div style="display: flex; gap: 32px; font-size: 13px; color: var(--ink2)">
+          <span style="display: flex; flex-direction: column; gap: 2px">Overdue<strong style="font-size: 18px; color: var(--over); font-weight: 600">₹1,820 · 2</strong></span>
+          <span style="display: flex; flex-direction: column; gap: 2px">Oldest<strong style="font-size: 18px; color: var(--ink); font-weight: 500">43 days</strong></span>
+          <span style="display: flex; flex-direction: column; gap: 2px">Back this month<strong style="font-size: 18px; color: var(--earn); font-weight: 500">+₹2,900</strong></span>
+        </div>
+      </section>
+
+      <div role="table" aria-label="Pending reimbursements" style="display: flex; flex-direction: column">
+        <div role="row" style="display: grid; grid-template-columns: 76px minmax(0, 1.4fr) 90px 96px 96px 96px 120px; gap: 14px; align-items: center; min-height: 36px; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3)">
+          <span role="columnheader">Date</span><span role="columnheader">Spend</span><span role="columnheader">From</span><span role="columnheader" style="text-align: right">Paid</span><span role="columnheader" style="text-align: right">Yours</span><span role="columnheader" style="text-align: right">Due</span><span role="columnheader">Status</span>
+        </div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+          <a href="RbStatus.dc.html" role="row" style="display: grid; grid-template-columns: 76px minmax(0, 1.4fr) 90px 96px 96px 96px 120px; gap: 14px; align-items: center; min-height: 48px; border-bottom: 1px solid var(--hair); font-size: 14px; color: var(--ink); text-decoration: none">
+            <span role="cell" style="color: var(--ink2)">{{r.d}}</span><span role="cell" style="font-weight: 500">{{r.m}}</span><span role="cell">{{r.who}}</span>
+            <span role="cell" style="text-align: right">{{r.paid}}</span><span role="cell" style="text-align: right; color: var(--ink2)">{{r.yours}}</span><span role="cell" style="text-align: right; font-weight: 600">{{r.due}}</span>
+            <span role="cell"><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{r.tagBg}}; color: {{r.tagFg}}">{{r.tag}}</span></span>
+          </a>
+        </sc-for>
+      </div>
+    </div>
+
+    <aside aria-label="Credits to match" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <section>
+        <h2 style="margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">By person</h2>
+        <div style="display: flex; justify-content: space-between; min-height: 44px; align-items: center; border-bottom: 1px solid var(--hair); font-size: 14px"><span>Office · 5</span><strong style="font-weight: 600">₹7,650</strong></div>
+        <div style="display: flex; justify-content: space-between; min-height: 44px; align-items: center; border-bottom: 1px solid var(--hair); font-size: 14px"><span>Rohan · 1</span><strong style="font-weight: 600">₹800</strong></div>
+      </section>
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Credits that might match</h2>
+        <sc-for list="{{credits}}" as="c" hint-placeholder-count="2">
+          <div style="padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--field); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center">
+            <span style="font-size: 14px; font-weight: 500">{{c.name}}</span><span style="font-size: 14px; font-weight: 600; color: var(--earn)">{{c.amt}}</span>
+            <span style="font-size: 12px; color: var(--ink2)">{{c.why}}</span>
+            <button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 8px; border: 0; background: var(--btn); color: var(--on-btn); font-size: 13px; font-weight: 500; cursor: pointer">Link</button>
+          </div>
+        </sc-for>
+      </section>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', tab: '#FBFAF6', btn: '#1C2230', 'on-btn': '#F6F4EE' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', tab: '#191D26', btn: '#ECE8DF', 'on-btn': '#12151C' };
+    const t = this.props.dark ? D : L;
+    const TAG = { Overdue: ['var(--over-soft)', 'var(--over)'], Pending: ['var(--brand-soft)', 'var(--brand)'], 'Partly back': ['var(--watch-soft)', 'var(--watch-text)'] };
+    const r = (d, m, who, paid, yours, due, tag) => ({ d, m, who, paid, yours, due, tag, tagBg: TAG[tag][0], tagFg: TAG[tag][1] });
+    const nav = ['Today', 'Review', 'Activity', 'Plan', 'Wealth', 'Insights', 'Ask'].map((label) => ({ label, href: label === 'Plan' ? 'DeskPlan.dc.html' : '#', cur: label === 'Plan' ? 'page' : 'false', bg: label === 'Plan' ? 'var(--brand-soft)' : 'transparent', w: label === 'Plan' ? '600' : '400' }));
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      nav,
+      rows: [
+        r('3 Sept', 'Uber · client visit', 'Office', '₹640', '₹0', '₹640', 'Overdue'),
+        r('9 Sept', 'Ola · airport', 'Office', '₹1,180', '₹0', '₹1,180', 'Overdue'),
+        r('21 Sept', 'PVR Orion', 'Rohan', '₹1,600', '₹800', '₹800', 'Pending'),
+        r('10 Oct', 'Toit, Indiranagar', 'Office', '₹3,000', '₹1,800', '₹600', 'Partly back'),
+        r('12 Oct', 'Hotel Mysore Regency', 'Office', '₹4,230', '₹0', '₹4,230', 'Pending'),
+        r('14 Oct', 'Meghana Foods · 3 items', 'Office', '₹1,620', '₹620', '₹1,000', 'Pending')
+      ],
+      credits: [
+        { name: 'NEFT · ACME TECH PVT LTD · 16 Oct', amt: '+₹600', why: 'Fits what’s left on Toit' },
+        { name: 'UPI · ROHAN K · 14 Oct', amt: '+₹650', why: 'Close to PVR Orion, ₹150 short' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

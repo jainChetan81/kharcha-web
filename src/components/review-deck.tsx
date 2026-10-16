@@ -68,7 +68,7 @@ export function ReviewDeck({
     <div className="flex min-h-[calc(100dvh-154px)] flex-col desk:hidden">
       <div className="relative mt-5 flex-1">
         <div className="absolute top-4 right-4 left-4 h-[520px] rounded-hero border border-rule bg-sunken" />
-        <div className="absolute top-2 right-2 left-2 h-[520px] rounded-hero border border-rule bg-[#F3F1EA]" />
+        <div className="absolute top-2 right-2 left-2 h-[520px] rounded-hero border border-rule bg-sunken" />
         <motion.article
           drag={disabled ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}

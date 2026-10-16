@@ -26,6 +26,7 @@ import { Route as ApiLoginRouteImport } from './routes/api.login'
 import { Route as ApiLogoutRouteImport } from './routes/api.logout'
 import { Route as PlanIndexRouteImport } from './routes/plan.index'
 import { Route as PlanBudgetsRouteImport } from './routes/plan.budgets'
+import { Route as PlanOwedRouteImport } from './routes/plan.owed'
 import { Route as PlanRecurringRouteImport } from './routes/plan.recurring'
 import { Route as PlanTripsRouteImport } from './routes/plan.trips'
 import { Route as TxnIdRouteImport } from './routes/txn.$id'
@@ -33,6 +34,7 @@ import { Route as WealthIdRouteImport } from './routes/wealth_.$id'
 import { Route as WealthNewRouteImport } from './routes/wealth_.new'
 import { Route as ApiAttachmentsIdRouteImport } from './routes/api.attachments.$id'
 import { Route as ApiJobsNameRouteImport } from './routes/api.jobs.$name'
+import { Route as ApiMiniPollRouteImport } from './routes/api.mini.poll'
 import { Route as PlanRecurringIdRouteImport } from './routes/plan.recurring_.$id'
 import { Route as PlanRecurringNewRouteImport } from './routes/plan.recurring_.new'
 import { Route as PlanTripsIdRouteImport } from './routes/plan.trips_.$id'
@@ -126,6 +128,11 @@ const PlanBudgetsRoute = PlanBudgetsRouteImport.update({
   path: '/plan/budgets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanOwedRoute = PlanOwedRouteImport.update({
+  id: '/plan/owed',
+  path: '/plan/owed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRecurringRoute = PlanRecurringRouteImport.update({
   id: '/plan/recurring',
   path: '/plan/recurring',
@@ -159,6 +166,11 @@ const ApiAttachmentsIdRoute = ApiAttachmentsIdRouteImport.update({
 const ApiJobsNameRoute = ApiJobsNameRouteImport.update({
   id: '/api/jobs/$name',
   path: '/api/jobs/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMiniPollRoute = ApiMiniPollRouteImport.update({
+  id: '/api/mini/poll',
+  path: '/api/mini/poll',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanRecurringIdRoute = PlanRecurringIdRouteImport.update({
@@ -214,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -222,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/plan/': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -247,6 +261,7 @@ export interface FileRoutesByTo {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -255,6 +270,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -281,6 +297,7 @@ export interface FileRoutesById {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -289,6 +306,7 @@ export interface FileRoutesById {
   '/plan/': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring_/$id': typeof PlanRecurringIdRoute
   '/plan/recurring_/new': typeof PlanRecurringNewRoute
   '/plan/trips_/$id': typeof PlanTripsIdRoute
@@ -316,6 +334,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -324,6 +343,7 @@ export interface FileRouteTypes {
     | '/plan/'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -349,6 +369,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -357,6 +378,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -382,6 +404,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -390,6 +413,7 @@ export interface FileRouteTypes {
     | '/plan/'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring_/$id'
     | '/plan/recurring_/new'
     | '/plan/trips_/$id'
@@ -416,6 +440,7 @@ export interface RootRouteChildren {
   ApiLoginRoute: typeof ApiLoginRoute
   ApiLogoutRoute: typeof ApiLogoutRoute
   PlanBudgetsRoute: typeof PlanBudgetsRoute
+  PlanOwedRoute: typeof PlanOwedRoute
   PlanRecurringRoute: typeof PlanRecurringRoute
   PlanTripsRoute: typeof PlanTripsRoute
   TxnIdRoute: typeof TxnIdRoute
@@ -424,6 +449,7 @@ export interface RootRouteChildren {
   PlanIndexRoute: typeof PlanIndexRoute
   ApiAttachmentsIdRoute: typeof ApiAttachmentsIdRoute
   ApiJobsNameRoute: typeof ApiJobsNameRoute
+  ApiMiniPollRoute: typeof ApiMiniPollRoute
   PlanRecurringIdRoute: typeof PlanRecurringIdRoute
   PlanRecurringNewRoute: typeof PlanRecurringNewRoute
   PlanTripsIdRoute: typeof PlanTripsIdRoute
@@ -554,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanBudgetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan/owed': {
+      id: '/plan/owed'
+      path: '/plan/owed'
+      fullPath: '/plan/owed'
+      preLoaderRoute: typeof PlanOwedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan/recurring': {
       id: '/plan/recurring'
       path: '/plan/recurring'
@@ -601,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/api/jobs/$name'
       fullPath: '/api/jobs/$name'
       preLoaderRoute: typeof ApiJobsNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mini/poll': {
+      id: '/api/mini/poll'
+      path: '/api/mini/poll'
+      fullPath: '/api/mini/poll'
+      preLoaderRoute: typeof ApiMiniPollRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plan/recurring_/$id': {
@@ -672,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLoginRoute: ApiLoginRoute,
   ApiLogoutRoute: ApiLogoutRoute,
   PlanBudgetsRoute: PlanBudgetsRoute,
+  PlanOwedRoute: PlanOwedRoute,
   PlanRecurringRoute: PlanRecurringRoute,
   PlanTripsRoute: PlanTripsRoute,
   TxnIdRoute: TxnIdRoute,
@@ -680,6 +721,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanIndexRoute: PlanIndexRoute,
   ApiAttachmentsIdRoute: ApiAttachmentsIdRoute,
   ApiJobsNameRoute: ApiJobsNameRoute,
+  ApiMiniPollRoute: ApiMiniPollRoute,
   PlanRecurringIdRoute: PlanRecurringIdRoute,
   PlanRecurringNewRoute: PlanRecurringNewRoute,
   PlanTripsIdRoute: PlanTripsIdRoute,

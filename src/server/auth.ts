@@ -67,3 +67,13 @@ export function sameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   return !origin || new URL(origin).host === request.headers.get("host");
 }
+
+/** Bearer check for the mini's machine endpoints. 503 when INGEST_TOKEN is unset or short, 401 on a wrong token. */
+export function ingestAuth(request: Request): Response | undefined {
+  const expected = process.env.INGEST_TOKEN;
+  const no = (error: string, status: number) => Response.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
+  if (!expected || expected.length < 32) return no("Disabled on this server.", 503);
+  const given = request.headers.get("authorization")?.replace(/^Bearer /i, "") ?? "";
+  const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
+  if (!given || !crypto.timingSafeEqual(digest(given), digest(expected))) return no("Wrong ingest token.", 401);
+}

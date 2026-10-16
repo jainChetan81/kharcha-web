@@ -5,6 +5,9 @@ import { askSpecSchema, figuresMatchRows, redact, scrub } from "../src/server/ai
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
 import { callOpenRouter } from "../src/server/ai/client.ts";
+import { categorize, receiptOutput, receiptSplitMatches, scrubItemName } from "../src/server/ai/receipt.ts";
+import { spendByCategory } from "../src/server/db/queries.ts";
+import { transactionSplits } from "../src/server/db/schema.ts";
 import { validDigestLines, runDetectors, runDigest } from "../src/server/insights/jobs.ts";
 
 const spec = askSpecSchema.safeParse({ metric: "sum", filters: { category: "Food" }, groupBy: "month", period: "last_3_months" });
@@ -61,4 +64,33 @@ try {
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
   if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
 }
+
+// Receipt reading: synthetic inputs only, no network.
+assert.equal(scrubItemName("Milk 1L 4111 1111 1111 1111"), "Milk 1L");
+assert.equal(scrubItemName("Bread 5612-3456-7890-1234 x"), "Bread x");
+assert.equal(scrubItemName("Refund ravi@okhdfc"), "Refund");
+assert.equal(scrubItemName("Eggs 12 pack"), "Eggs 12 pack");
+assert.equal(categorize("Mystery item", "Unknown", [], new Set(["Food", "Other"]), "Food", "Other"), "Food");
+assert.equal(categorize("Mystery item", "Unknown", [], new Set(["Shopping", "Other"]), "Shopping", "Other"), "Shopping");
+assert.equal(categorize("Milk", "BigBasket", [{ match: "bigbasket*", category: "Shopping" }], new Set(["Shopping", "Food"]), "Food", "Other"), "Shopping");
+assert.equal(categorize("Bread", "Shop", [], new Set(["Food"]), "Home", "Other"), "Food");
+const good = receiptOutput.safeParse({ isReceipt: true, total: 120, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] });
+assert.equal(good.success, true);
+assert.equal(receiptOutput.safeParse({ isReceipt: true, total: 1, currency: null, items: [{ name: "x", qty: null, amount: 1, confidence: 2 }] }).success, false);
+assert.equal(receiptOutput.safeParse({ isReceipt: "yes", total: null, currency: null, items: [] }).success, false);
+assert.equal(receiptSplitMatches(100, [{ amount: 60 }, { amount: 40 }]), true);
+assert.equal(receiptSplitMatches(100, [{ amount: 60 }, { amount: 30 }]), false);
+assert.equal(receiptSplitMatches(100, []), false);
+
+const splitDb = openDb(":memory:");
+await splitDb.insert(transactions).values([
+  { source: "manual", type: "expense", amount: 100, merchant: "Mart", category: "Shopping", date: "2026-10-05 10:00" },
+  { source: "manual", type: "expense", amount: 50, merchant: "Cafe", category: "Food", date: "2026-10-06 10:00" },
+]);
+await splitDb.insert(transactionSplits).values([{ transactionId: 1, category: "Food", amount: 70 }, { transactionId: 1, category: "Home", amount: 30 }]);
+const byCat = Object.fromEntries((await spendByCategory(splitDb, "2026-10-01", "2026-11-01")).map((row) => [row.category, row.total]));
+assert.equal(byCat.Food, 120, "split contributes split amounts, unsplit rows keep category");
+assert.equal(byCat.Home, 30);
+assert.equal(byCat.Shopping, undefined, "split replaces the single category");
+
 console.log("ai checks passed");

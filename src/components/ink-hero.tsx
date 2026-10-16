@@ -4,7 +4,7 @@ import { cn } from "../lib/cn";
 
 export function InkHero({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className={cn("flex flex-col gap-3 bg-ink px-5 pt-3 pb-[18px] text-on-ink desk:gap-3.5 desk:rounded-hero desk:p-6", className)}>
+    <section className={cn("flex flex-col gap-3 bg-hero px-5 pt-3 pb-[18px] text-on-ink desk:gap-3.5 desk:rounded-hero desk:p-6", className)}>
       {children}
     </section>
   );

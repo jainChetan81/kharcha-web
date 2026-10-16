@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt · low confidence</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1240px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 8px">
+    <div style="display: flex; align-items: center">
+      <a href="RcSaved.dc.html" aria-label="Back to transaction" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Receipt</h1>
+    </div>
+    <span style="font-size: 13px; color: var(--ink3)">Instamart · ₹2,340</span>
+  </header>
+
+  <sc-if value="{{unsure}}" hint-placeholder-val="{{ true }}">
+    <div role="status" style="margin: 8px 20px 0; padding: 12px 14px; border-radius: 12px; background: var(--watch-soft); border: 1px solid var(--watch); display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--watch-text); font-weight: 500">
+      <span style="flex: none; width: 24px; height: 24px; border-radius: 999px; border: 1.5px solid var(--watch-text); display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', Georgia, serif; font-size: 15px">?</span>
+      <span>{{bannerText}}</span>
+    </div>
+  </sc-if>
+
+  <section style="padding: 16px 20px 0">
+    <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 64px 104px; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3)"><span></span><span>Item</span><span style="text-align: right">₹</span><span style="text-align: right">Category</span></div>
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="8">
+      <div style="border-bottom: 1px solid var(--hair); background: {{it.rowBg}}; margin: 0 -8px; padding: 0 8px">
+        <button type="button" onClick="{{it.toggle}}" aria-expanded="{{it.open}}" style="width: 100%; border: 0; background: transparent; padding: 0; color: var(--ink); text-align: left; display: grid; grid-template-columns: 18px minmax(0, 1fr) 64px 104px; gap: 8px; align-items: center; min-height: 48px; font-size: 14px; cursor: pointer">
+          <span aria-label="{{it.flagLabel}}" style="width: 18px; height: 18px; border-radius: 999px; border: {{it.flagBorder}}; color: var(--watch-text); font-family: 'Newsreader', Georgia, serif; font-size: 12px; display: flex; align-items: center; justify-content: center">{{it.flag}}</span>
+          <span style="line-height: 1.3; overflow-wrap: anywhere; font-style: {{it.style}}">{{it.name}}</span>
+          <span style="text-align: right; font-weight: 500">{{it.amt}}</span>
+          <span style="justify-self: end; min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); font-size: 12px; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{it.color}}"></span>{{it.cat}}</span>
+        </button>
+        <sc-if value="{{it.open}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 4px 0 14px">
+            <span style="font-size: 12px; color: var(--watch-text)">{{it.why}}</span>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 56px 88px; gap: 8px">
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Name<input value="{{it.fixName}}" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px"></label>
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Qty<input value="1" inputmode="numeric" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px"></label>
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Amount<input value="{{it.amt}}" inputmode="decimal" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px; text-align: right"></label>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button type="button" onClick="{{it.confirm}}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--btn); color: var(--on-btn); font-size: 14px; font-weight: 500; cursor: pointer">Looks right</button>
+              <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--field); background: transparent; color: var(--ink); font-size: 14px; cursor: pointer">See on photo</button>
+              <button type="button" style="min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: var(--over); font-size: 14px; font-weight: 500; cursor: pointer">Delete</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <span style="display: block; padding: 12px 0; font-size: 14px; color: var(--ink2)">7 more lines read clearly</span>
+  </section>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 24px; background: var(--card); border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px">
+    <a href="RcSaved.dc.html" style="min-height: 52px; border-radius: 12px; background: var(--btn); display: flex; align-items: center; justify-content: center; color: var(--on-btn); font-size: 15px; font-weight: 500; text-decoration: none">{{saveLabel}}</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 5, ok: {} };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', over: '#A3402D', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', scrim: 'rgba(28,34,48,0.45)',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-health': '#3D8077', 'c-other': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', over: '#F08C76', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', scrim: 'rgba(0,0,0,0.6)',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-health': '#63BFB1', 'c-other': '#8F8B80' };
+    const t = this.props.dark ? D : L;
+    const col = (c) => 'var(--c-' + c.toLowerCase() + ')';
+    const base = [
+      { name: 'Amul Taaza milk, 1 L ×2', amt: '136', cat: 'Food' },
+      { name: 'Aashirvaad atta, 5 kg', amt: '289', cat: 'Food' },
+      { name: 'Onions, 1 kg', amt: '52', cat: 'Food' },
+      { name: 'Tomatoes, 1 kg', amt: '48', cat: 'Food' },
+      { name: 'Potatoes, 2 kg', amt: '70', cat: 'Food' },
+      { name: 'Pa… 200 g', fix: 'Paneer, 200 g', amt: '98', cat: 'Food', unsure: true, why: 'Blurry line. The name was partly unreadable.' },
+      { name: 'boAt wired earphones', amt: '649', cat: 'Shopping' },
+      { name: 'Face wash, 100 ml', amt: '178?', cat: 'Health', unsure: true, why: 'Amount could be ₹178 or ₹128.' }
+    ];
+    const s = this.state;
+    const items = base.map((b, i) => {
+      const unsure = !!b.unsure && !s.ok[i];
+      return {
+        name: b.name, amt: b.amt, cat: b.cat, color: col(b.cat), why: b.why || '', fixName: b.fix || b.name,
+        open: s.open === i,
+        flag: unsure ? '?' : '', flagBorder: unsure ? '1.5px solid var(--watch-text)' : '0',
+        flagLabel: unsure ? 'Not sure about this line' : '',
+        style: unsure ? 'italic' : 'normal',
+        rowBg: unsure ? 'var(--watch-soft)' : 'transparent',
+        toggle: () => this.setState({ open: s.open === i ? -1 : i }),
+        confirm: () => this.setState({ ok: Object.assign({}, s.ok, { [i]: true }), open: -1 })
+      };
+    });
+    const left = base.filter((b, i) => b.unsure && !s.ok[i]).length;
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      items,
+      unsure: left > 0,
+      bannerText: left === 1 ? '1 line needs a look before saving' : left + ' lines need a look before saving',
+      saveLabel: left ? 'Save anyway' : 'Save split'
+    };
+  }
+}
+</script>
+</body>
+</html>

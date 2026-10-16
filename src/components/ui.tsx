@@ -6,9 +6,9 @@ import { cn } from "../lib/cn";
 
 type Variant = "primary" | "outline" | "text" | "danger" | "brand";
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-on-ink px-[18px] rounded-button",
+  primary: "bg-ink text-paper px-[18px] rounded-button",
   outline: "border border-ink text-ink px-[18px] rounded-button bg-transparent",
-  brand: "bg-brand text-white px-[18px] rounded-button",
+  brand: "bg-brand text-on-brand px-[18px] rounded-button",
   text: "text-brand px-2.5 bg-transparent",
   danger: "text-over px-2.5 bg-transparent",
 };
@@ -30,8 +30,8 @@ export function Chip({ on, className, children, dot, type = "button", ...props }
       type={type}
       aria-pressed={on}
       className={cn(
-        "inline-flex min-h-[38px] items-center gap-1.5 rounded-chip border px-3.5 text-sm",
-        on ? "border-brand bg-brand text-white" : "border-field bg-card text-ink",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-3.5 text-sm transition-transform active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
+        on ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink",
         className,
       )}
       {...props}
@@ -56,8 +56,8 @@ export function Segmented<T extends string>({
           <label
             key={o.value}
             className={cn(
-              "flex min-h-9 cursor-pointer items-center justify-center rounded-[9px] text-sm font-medium has-focus-visible:outline-3 has-focus-visible:outline-brand",
-              on ? (dark ? "bg-paper text-ink" : "bg-card text-ink shadow-[0_1px_2px_rgba(28,34,48,0.12)]") : dark ? "text-on-ink-2" : "text-ink-2",
+              "flex min-h-11 cursor-pointer desk:min-h-9 items-center justify-center rounded-[9px] text-sm font-medium has-focus-visible:outline-3 has-focus-visible:outline-brand",
+              on ? (dark ? "bg-paper text-ink" : "bg-raised text-ink shadow-[0_1px_2px_rgba(28,34,48,0.12)]") : dark ? "text-on-ink-2" : "text-ink-2",
             )}
           >
             <input type="radio" name={name} value={o.value} checked={on} onChange={() => onChange(o.value)} className="sr-only" />
@@ -78,7 +78,7 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn("flex h-7 w-12 shrink-0 rounded-full p-[3px]", checked ? "justify-end bg-brand" : "justify-start bg-field")}
+      className={cn("flex h-7 w-12 shrink-0 rounded-full p-[3px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand", checked ? "justify-end bg-brand" : "justify-start bg-field")}
     >
       <motion.span layout transition={{ duration: 0.15 }} className="size-[22px] rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
     </button>
@@ -115,15 +115,20 @@ export function Suggestion({ className, ...props }: ComponentProps<"div">) {
 }
 
 const tagTones = {
-  unusual: "bg-watch-soft text-[#6E470C]",
+  unusual: "bg-watch-soft text-watch-text",
   check: "bg-brand-soft text-brand-deep",
-  neutral: "bg-[#E2DFD6] text-[#3E4352]",
+  neutral: "bg-sunken text-ink-2",
   ai: "bg-brand-soft text-brand-deep",
-  over: "bg-[#F3DDD7] text-over",
-  ok: "bg-[#DCEBE1] text-earn",
+  over: "bg-over-soft text-over",
+  ok: "bg-earn-soft text-earn",
+  pending: "bg-brand-soft text-brand",
+  partly: "bg-watch-soft text-watch-text",
+  reimbursed: "bg-earn-soft text-earn",
+  extra: "bg-earn-soft text-earn",
+  cancelled: "bg-sunken text-ink-2",
 } as const;
-export function StatusTag({ tone, children }: { tone: keyof typeof tagTones; children: ReactNode }) {
-  return <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-xs font-semibold", tagTones[tone])}>{children}</span>;
+export function StatusTag({ tone, children, className }: { tone: keyof typeof tagTones; children: ReactNode; className?: string }) {
+  return <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-xs font-semibold", tagTones[tone], className)}>{children}</span>;
 }
 
 /** Category swatch + label; colour never alone. */

@@ -67,6 +67,18 @@ export const monthName = (month: string, width: "short" | "long" = "long") =>
 export const monthLabel = (month: string) =>
   new Date(`${month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
+/** "1–15 Oct" or "29 Sept–3 Oct" for an inclusive date range. */
+export function rangeLabel(from: string, to: string): string {
+  const a = day(from);
+  const b = day(to);
+  const sameMonth = a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+  const sameYear = a.getFullYear() === b.getFullYear();
+  if (sameMonth) return `${a.getDate()}–${dm(b)}`;
+  const left = `${dm(a)}${sameYear ? "" : ` ${a.getFullYear()}`}`;
+  const right = `${dm(b)}${sameYear ? "" : ` ${b.getFullYear()}`}`;
+  return `${left}–${right}`;
+}
+
 /** Local "YYYY-MM" for this month. */
 export const thisMonth = () => nowLocal().slice(0, 7);
 

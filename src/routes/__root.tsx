@@ -11,6 +11,7 @@ import { Button } from "../components/ui";
 import { KEYS, useGlobalKeys } from "../keybindings";
 import { getShell } from "../server/fns";
 import stylesheet from "../styles.css?url";
+import { themeBoot, watchSystemTheme } from "../lib/theme";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -56,6 +57,7 @@ function Layout() {
   const openHelp = useCallback(() => setHelp(true), []);
   useGlobalKeys(openHelp);
   useEffect(() => setBadge(shell.reviewCount), [shell.reviewCount]);
+  useEffect(() => watchSystemTheme(), []);
   if (onLogin) return <Outlet />;
   return (
     <MotionConfig reducedMotion="user">
@@ -76,14 +78,14 @@ function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/45" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/45" />
         <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-sheet bg-card p-6 text-ink">
           <Dialog.Title className="m-0 font-serif text-[22px] font-medium">Shortcuts</Dialog.Title>
           <Dialog.Description className="sr-only">Keyboard shortcuts</Dialog.Description>
           <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
             {KEYS.map((k) => (
               <div key={k.key} className="contents">
-                <dt><kbd className="rounded border border-[#CFCABB] bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
+                <dt><kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
                 <dd className="m-0">{k.label}</dd>
               </div>
             ))}
@@ -108,8 +110,9 @@ function RootError({ error, reset }: ErrorComponentProps) {
 
 function Document({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-IN">
+    <html lang="en-IN" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
         <HeadContent />
       </head>
       <body>

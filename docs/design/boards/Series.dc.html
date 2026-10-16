@@ -39,7 +39,7 @@ button{font:inherit;cursor:pointer}
       <span style="font-size: 13px; color: #4A5163">Kind</span>
       <div role="radiogroup" aria-label="Kind" style="display: flex; flex-wrap: wrap; gap: 8px">
         <sc-for list="{{kinds}}" as="k" hint-placeholder-count="5">
-          <button type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}" style="min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{k.border}}; background: {{k.bg}}; color: {{k.fg}}">{{k.name}}</button>
+          <button type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}" style="min-height: 44px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{k.border}}; background: {{k.bg}}; color: {{k.fg}}">{{k.name}}</button>
         </sc-for>
       </div>
     </div>
@@ -69,7 +69,7 @@ button{font:inherit;cursor:pointer}
     </div>
     <div role="radiogroup" aria-label="Status" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
       <sc-for list="{{status}}" as="t" hint-placeholder-count="2">
-        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
+        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
       </sc-for>
     </div>
   </section>

@@ -193,7 +193,20 @@ export const transactionItems = sqliteTable("transaction_items", {
   qty: real("qty"),
   amount: real("amount").notNull(),
   category: text("category").notNull(),
-  source: text("source", { enum: ["ai", "manual"] }).notNull(),
+  source: text("source", { enum: ["ai", "manual", "adjustment"] }).notNull(),
+  // 0–1 from the model; null for manual rows. Low values show a "?" until "Looks right".
+  confidence: real("confidence"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const receiptJobs = sqliteTable("receipt_jobs", {
+  id: integer("id").primaryKey(),
+  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["queued", "reading", "done", "failed"] }).notNull().default("queued"),
+  error: text("error", { enum: ["unreadable", "not_receipt", "ai_unavailable"] }),
+  model: text("model"),
+  startedAt: text("started_at"),
+  finishedAt: text("finished_at"),
 });
 
 export const transactionSplits = sqliteTable(
@@ -227,6 +240,33 @@ export const digests = sqliteTable("digests", {
   model: text("model"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
+
+// Reimbursements (DESIGN.md §15). status is derived from links on every write, except cancelled and manual fully paid.
+export const REIMBURSEMENT_STATUSES = ["pending", "partly", "reimbursed", "extra", "cancelled"] as const;
+export const reimbursements = sqliteTable("reimbursements", {
+  id: integer("id").primaryKey(),
+  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  amount: real("amount").notNull(),
+  counterparty: text("counterparty").notNull(),
+  note: text("note"),
+  status: text("status", { enum: REIMBURSEMENT_STATUSES }).notNull().default("pending"),
+  // Category item ids when the claim covers only some receipt items; null for a whole or part claim.
+  itemIds: text("item_ids"),
+  // "Mark fully paid" without a credit. Derived statuses ignore it.
+  manualPaid: integer("manual_paid", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+  closedAt: text("closed_at"),
+});
+
+export const reimbursementLinks = sqliteTable(
+  "reimbursement_links",
+  {
+    reimbursementId: integer("reimbursement_id").notNull().references(() => reimbursements.id, { onDelete: "cascade" }),
+    creditTransactionId: integer("credit_transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+    amount: real("amount").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.reimbursementId, t.creditTransactionId] })],
+);
 
 export type Category = typeof categories.$inferSelect;
 export type MerchantRule = typeof merchantRules.$inferSelect;

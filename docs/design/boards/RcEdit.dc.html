@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt · edit items</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1180px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 20px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Edit items</h1>
+    <a href="RcResult.dc.html" style="min-height: 44px; padding: 0 10px; display: flex; align-items: center; color: var(--brand); font-size: 15px; font-weight: 600; text-decoration: none">Done</a>
+  </header>
+
+  <sc-if value="{{hasSel}}" hint-placeholder-val="{{ true }}">
+    <div role="toolbar" aria-label="Selected items" style="margin: 4px 20px 0; min-height: 52px; padding: 0 6px 0 14px; border-radius: 12px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: space-between; font-size: 14px">
+      <span>{{selLabel}}</span>
+      <span style="display: flex">
+        <button type="button" onClick="{{merge}}" disabled="{{cantMerge}}" style="min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--on-btn); font-weight: 600; opacity: {{mergeOpacity}}; cursor: pointer">Merge</button>
+        <button type="button" onClick="{{del}}" style="min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--on-btn); font-weight: 600; cursor: pointer">Delete</button>
+      </span>
+    </div>
+  </sc-if>
+
+  <section style="padding: 12px 20px 0">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="7">
+      <div style="position: relative; overflow: hidden; border-bottom: 1px solid var(--hair)">
+        <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 88px; background: var(--over); color: var(--on-over); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Delete</div>
+        <label style="position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr) 56px 26px; gap: 8px; align-items: center; min-height: 52px; background: var(--paper); transform: {{it.shift}}; font-size: 14px; cursor: pointer">
+          <input type="checkbox" checked="{{it.on}}" onChange="{{it.toggle}}" aria-label="{{it.selLabel}}" style="width: 20px; height: 20px; margin: 0; accent-color: var(--brand)">
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="line-height: 1.3; overflow-wrap: anywhere">{{it.name}}</span><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink3)"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{it.color}}"></span>{{it.cat}}{{it.qtyText}}</span></span>
+          <span style="text-align: right; font-weight: 500">{{it.amt}}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--ink3)" aria-hidden="true"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+        </label>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="margin: 20px 20px 0; padding: 16px; border-radius: 12px; border: 1px dashed var(--field); display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 15px; font-weight: 600">Add a missed item</span>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 56px 88px; gap: 8px">
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Name<input value="Curd, 400 g" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px"></label>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Qty<input value="1" inputmode="numeric" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px"></label>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Amount<input value="45" inputmode="decimal" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px; text-align: right"></label>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px">
+      <sc-for list="{{newCats}}" as="c" hint-placeholder-count="5">
+        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 44px; padding: 0 10px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{c.color}}"></span>{{c.name}}</button>
+      </sc-for>
+    </div>
+    <button type="button" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
+  </section>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 24px; background: var(--card); border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+    <span style="color: var(--ink2)">Items <strong style="color: var(--ink); font-weight: 600">{{total}}</strong> · bank ₹2,340</span>
+    <a href="RcResult.dc.html" style="min-height: 48px; padding: 0 20px; border-radius: 12px; background: var(--btn); display: flex; align-items: center; color: var(--on-btn); font-size: 15px; font-weight: 500; text-decoration: none">Done</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: { 0: true, 1: true }, merged: false, gone: {}, newCat: 'Food' };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', over: '#A3402D', 'on-over': '#FFFFFF', btn: '#1C2230', 'on-btn': '#F6F4EE',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-health': '#3D8077', 'c-home': '#4F7A4A', 'c-other': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', over: '#F08C76', 'on-over': '#12151C', btn: '#ECE8DF', 'on-btn': '#12151C',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-health': '#63BFB1', 'c-home': '#8CC487', 'c-other': '#8F8B80' };
+    const t = this.props.dark ? D : L;
+    const col = (c) => 'var(--c-' + c.toLowerCase() + ')';
+    const s = this.state;
+    let base = [
+      { name: 'Amul Taaza milk, 1 L', n: 68, cat: 'Food', qty: 1 },
+      { name: 'Amul Taaza milk, 1 L', n: 68, cat: 'Food', qty: 1 },
+      { name: 'Aashirvaad atta, 5 kg', n: 289, cat: 'Food', qty: 1 },
+      { name: 'boAt wired earphones', n: 649, cat: 'Shopping', qty: 1 },
+      { name: 'Phone charger, 20 W', n: 241, cat: 'Shopping', qty: 1, swiped: true },
+      { name: 'Dolo 650, 15 tablets', n: 32, cat: 'Health', qty: 1 },
+      { name: 'Delivery fee', n: 30, cat: 'Other', qty: 1 }
+    ].map((b, i) => Object.assign({ i }, b));
+    if (s.merged) base = [{ i: 0, name: 'Amul Taaza milk, 1 L', n: 136, cat: 'Food', qty: 2 }].concat(base.slice(2));
+    base = base.filter((b) => !s.gone[b.i]);
+    const selIds = Object.keys(s.sel).filter((k) => s.sel[k]).map(Number).filter((k) => base.some((b) => b.i === k));
+    const items = base.map((b) => ({
+      name: b.name, amt: '₹' + b.n, cat: b.cat, color: col(b.cat), qtyText: b.qty > 1 ? ' · ×' + b.qty : '',
+      on: !!s.sel[b.i], selLabel: 'Select ' + b.name,
+      shift: b.swiped && !s.sel[b.i] ? 'translateX(-88px)' : 'none',
+      toggle: () => this.setState({ sel: Object.assign({}, s.sel, { [b.i]: !s.sel[b.i] }) })
+    }));
+    const total = base.reduce((a, b) => a + b.n, 0) + 2385 - 1377;
+    const sameName = selIds.length === 2 && !s.merged && selIds.includes(0) && selIds.includes(1);
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      items,
+      hasSel: selIds.length > 0,
+      selLabel: selIds.length + ' selected' + (sameName ? ' · same item' : ''),
+      cantMerge: selIds.length < 2,
+      mergeOpacity: selIds.length < 2 ? '0.5' : '1',
+      merge: () => this.setState({ merged: true, sel: {} }),
+      del: () => { const g = Object.assign({}, s.gone); selIds.forEach((k) => { g[k] = true; }); this.setState({ gone: g, sel: {} }); },
+      total: '₹' + total.toLocaleString('en-IN'),
+      newCats: ['Food', 'Home', 'Health', 'Shopping', 'Other'].map((c) => {
+        const on = c === s.newCat;
+        return { name: c, on, color: col(c), bg: on ? 'var(--brand)' : 'var(--input)', fg: on ? 'var(--on-brand)' : 'var(--ink)', border: on ? 'var(--brand)' : 'var(--field)', pick: () => this.setState({ newCat: c }) };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

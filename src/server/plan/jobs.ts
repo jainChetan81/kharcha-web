@@ -119,7 +119,8 @@ export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySer
 export async function scheduleSeries(seriesId: number, db: Db = getDb()): Promise<void> {
   const s = await db.select().from(recurringSeries).where(eq(recurringSeries.id, seriesId)).get();
   if (!s) return;
-  await db.delete(recurringOccurrences).where(and(eq(recurringOccurrences.seriesId, seriesId), isNull(recurringOccurrences.transactionId)));
+  // Occurrences are derived from matches, so a cadence or usual-day edit rebuilds them all (linked ones too).
+  await db.delete(recurringOccurrences).where(eq(recurringOccurrences.seriesId, seriesId));
   const year = await db.select({ id: transactions.id, merchant: transactions.merchant }).from(transactions).where(and(isNull(transactions.deletedAt), sql`${transactions.date} >= date('now', '-13 months')`));
   await matchRecurring(year.filter((row) => ruleMatches(s, row.merchant)).map((row) => row.id), db, seriesId);
 }

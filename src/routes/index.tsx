@@ -37,6 +37,8 @@ function Today() {
   const month = Route.useSearch().month ?? thisMonth();
   const due = upcoming.reduce((sum, item) => sum + item.amount, 0);
   const colorOf = new Map(today.colors.map((item) => [item.name, item.colorToken]));
+  const budget = today.limit <= 0 ? "none" : today.spent > today.limit ? "over" : today.spent >= today.limit * 0.9 ? "near" : "under";
+  const tone = { none: "text-on-ink-2", under: "text-on-ink-gain", near: "text-on-ink-month", over: "text-on-ink-over" }[budget];
   const hero = <InkHero className="desk:gap-5">
     <header className="-ml-3 flex min-w-0 items-center justify-between gap-1 desk:ml-0">
       <MonthSwitcher month={month} compact />
@@ -49,14 +51,14 @@ function Today() {
     </header>
     <div className="flex items-end justify-between gap-2">
       <div className="min-w-0"><span className="text-xs tracking-[0.08em] text-on-ink-2 uppercase">Spent this month</span><div className="mt-1"><HeroAmount value={money(today.spent)} size="lg" /></div></div>
-      {today.limit > 0
-        ? <span className="pb-1 text-right text-[13px] whitespace-nowrap text-on-ink-2 desk:hidden">of {money(today.limit)}<br /><b className="text-on-ink-month">{overOrLeft(today.spent, today.limit)}</b></span>
-        : <Link to="/plan/budgets" className="pb-1 text-[13px] font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">Set a budget</Link>}
+      {budget !== "none"
+        ? <span className="pb-1 text-right text-[13px] whitespace-nowrap text-on-ink-2 desk:hidden">of {money(today.limit)}<br /><b className={tone}>{overOrLeft(today.spent, today.limit)}</b></span>
+        : <Link to="/plan/budgets" className="pb-1 text-[13px] font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">Set a monthly budget</Link>}
     </div>
     <div className="hidden grid-cols-3 border-t border-on-ink/20 pt-3 desk:grid">
-      <span className="text-sm text-on-ink-2">Budget {today.limit > 0 ? <b className="block font-serif text-2xl font-medium text-on-ink">{money(today.limit)}</b> : <Link to="/plan/budgets" className="block font-serif text-2xl font-medium text-on-ink hover:text-on-ink">Set one</Link>}</span>
-      <span className="text-sm text-on-ink-2">Left <b className="block font-serif text-2xl font-medium text-on-ink-month">{today.limit > 0 ? overOrLeft(today.spent, today.limit) : "—"}</b></span>
-      <span className="text-sm text-on-ink-2">Due in 10 days <Link to="/plan/recurring" className="block font-serif text-2xl font-medium text-on-ink hover:text-on-ink">{money(due)}</Link></span>
+      <span className="text-sm text-on-ink-2">Budget {today.limit > 0 ? <b className="block font-serif text-[22px] font-medium text-on-ink">{money(today.limit)}</b> : <Link to="/plan/budgets" className="block font-serif text-[22px] font-medium text-on-ink hover:text-on-ink">Set one</Link>}</span>
+      <span className="text-sm text-on-ink-2">Left <b className={`block font-serif text-[22px] font-medium ${tone}`}>{budget !== "none" ? overOrLeft(today.spent, today.limit) : "—"}</b></span>
+      <span className="text-sm text-on-ink-2">Due in 10 days <Link to="/plan/recurring" className="block font-serif text-[22px] font-medium text-on-ink hover:text-on-ink">{money(due)}</Link></span>
     </div>
     <PaceChart month={month} points={today.points} previous={today.previous} limit={today.limit} />
   </InkHero>;
@@ -65,7 +67,7 @@ function Today() {
     <div className="mt-3 grid grid-cols-3 gap-2">{upcoming.slice(0, 3).map((item) => <Card key={`${item.seriesId}-${item.date}`} className="flex min-w-0 flex-col gap-1 p-2.5"><span className="font-serif text-[22px] leading-none">{item.date.slice(-2)} <small className="font-sans text-[11px] text-ink-3">{weekday(item.date)}</small></span><span className="truncate text-[13px] font-medium">{item.name}</span><span className="text-[13px] text-ink-2">{money(item.amount)}</span></Card>)}</div>
   </section>;
   const review = today.reviewCount > 0 && <Link to="/review" className="flex min-h-[52px] items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-[15px] text-ink hover:text-ink"><span className="flex items-center gap-2"><i className="size-2 shrink-0 rounded-full bg-brand" /><strong>{today.reviewCount} to review</strong>{today.reviewOther > 0 && <span className="text-ink-2">· {money(today.reviewOther)} in Other</span>}</span><strong className="text-sm text-brand">Start</strong></Link>;
-  const wealthRow = wealth && <Link to="/wealth" className="grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-3 rounded-card border border-rule bg-card px-4 py-3.5 text-ink hover:text-ink"><span><small className="text-xs tracking-[0.08em] text-ink-3 uppercase">Wealth</small><strong className="block font-serif text-[26px] font-medium leading-tight">{money(wealth.value)}</strong>{wealth.navDate && <span className="text-xs text-ink-3">{navsOf(wealth.navDate)} · {signed(wealth.dayChange)} since previous NAV</span>}</span><span className="flex flex-col items-end gap-1"><Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" /><small className="text-[10px] text-ink-3">Contributions</small></span></Link>;
+  const wealthRow = wealth && <Link to="/wealth" className="grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-3 rounded-card border border-rule bg-card px-4 py-3.5 text-ink hover:text-ink"><span><small className="text-xs tracking-[0.08em] text-ink-3 uppercase">Wealth</small><strong className="block font-serif text-[26px] font-medium leading-tight">{money(wealth.value)}</strong>{wealth.navDate && <span className="text-xs text-ink-3">{navsOf(wealth.navDate)} · {signed(wealth.dayChange)} since previous NAV</span>}</span><span className="flex flex-col items-end gap-1"><Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" /><small className="text-[11px] text-ink-3">Contributions</small></span></Link>;
   return <DeskPage rail={<><DigestCard digest={digest} />{upcomingSection}</>}>
     {hero}
     {(shell.trip || digest.status !== "none") && <div className="mt-4 desk:hidden">{shell.trip && <div className="mb-4"><TripBand trip={shell.trip} /></div>}<DigestCard digest={digest} /></div>}

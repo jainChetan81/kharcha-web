@@ -25,7 +25,7 @@ button{font:inherit;cursor:pointer}
 
     <div role="radiogroup" aria-label="Type" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
       <sc-for list="{{types}}" as="t" hint-placeholder-count="3">
-        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
+        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
       </sc-for>
     </div>
 
@@ -45,16 +45,16 @@ button{font:inherit;cursor:pointer}
 
     <div style="display: flex; flex-wrap: wrap; gap: 8px">
       <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
-        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 44px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
       </sc-for>
     </div>
 
     <div style="display: flex; flex-wrap: wrap; gap: 8px">
-      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Today, 22:35</button>
-      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Card ••2047</button>
-      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Note</button>
-      <a href="Receipt.dc.html" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none">Receipt</a>
-      <a href="Paste.dc.html" style="min-height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none; margin-left: auto">Paste SMS</a>
+      <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Today, 10:35 PM</button>
+      <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Card ••2047</button>
+      <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Note</button>
+      <a href="RcCapture.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none">Receipt</a>
+      <a href="Paste.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none; margin-left: auto">Paste SMS</a>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: auto">

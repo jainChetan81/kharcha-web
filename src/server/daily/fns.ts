@@ -2,17 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { categoryList, getMeta } from "../db/queries";
-import { attachments, categories, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { categoryList } from "../db/queries";
+import { attachments, categories, reimbursements, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { receiptSplitMatches, scrubItemName } from "../ai/receipt";
 import { afterWrite } from "../jobs";
 import { parseMessage } from "../parsers/index.ts";
 
 const id = z.object({ id: z.number().int().positive() });
 const live = isNull(transactions.deletedAt);
-
-export const getLastIngestAt = createServerFn({ method: "GET" }).handler(async () => ({
-  lastIngestAt: (await getMeta(getDb(), "last_ingest_at")) ?? null,
-}));
 
 export const getReview = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
@@ -32,31 +29,51 @@ export const getDetail = createServerFn({ method: "GET" }).validator(id).handler
   const db = getDb();
   const txn = await db.select().from(transactions).where(and(eq(transactions.id, data.id), live)).get();
   if (!txn) return null;
-  const [more, files, items, splits] = await Promise.all([
+  const [more, files, items, splits, categoryRows] = await Promise.all([
     db.select().from(transactions).where(and(live, eq(transactions.merchant, txn.merchant), sql`${transactions.id} != ${txn.id}`)).orderBy(desc(transactions.date)).limit(5),
     db.select().from(attachments).where(eq(attachments.transactionId, txn.id)),
-    db.select().from(transactionItems).where(eq(transactionItems.transactionId, txn.id)),
+    db.select().from(transactionItems).where(eq(transactionItems.transactionId, txn.id)).orderBy(transactionItems.sortOrder),
     db.select().from(transactionSplits).where(eq(transactionSplits.transactionId, txn.id)),
+    db.select({ name: categories.name, colorToken: categories.colorToken }).from(categories).where(eq(categories.type, txn.type === "income" ? "income" : "expense")),
   ]);
-  return { txn, more, files, items, splits };
+  return { txn, more, files, items, splits, categoryColors: Object.fromEntries(categoryRows.map((row) => [row.name, row.colorToken])) };
 });
 
-const receiptSchema = z.object({ id: z.number().int().positive(), items: z.array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().positive().nullable(), amount: z.number().positive(), category: z.string().min(1).max(40) })).max(100), splits: z.array(z.object({ category: z.string().min(1).max(40), amount: z.number().positive() })).max(30) });
+const receiptSchema = z.object({ id: z.number().int().positive(), split: z.boolean(), items: z.array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().positive().nullable(), amount: z.number().positive(), category: z.string().min(1).max(40), source: z.enum(["ai", "manual", "adjustment"]).optional(), confidence: z.number().min(0).max(1).nullable().optional() })).max(100) });
 export const saveReceipt = createServerFn({ method: "POST" }).validator(receiptSchema).handler(async ({ data }) => {
   const db = getDb();
   const txn = await db.select({ amount: transactions.amount, type: transactions.type }).from(transactions).where(and(eq(transactions.id, data.id), live)).get();
   if (!txn) throw new Error("Transaction not found.");
+  // Item claims hold item IDs; replacing those rows would silently restore the
+  // claimed amount to split-category totals. Cancel claim before editing receipt.
+  const itemClaim = await db.select({ id: reimbursements.id }).from(reimbursements)
+    .where(and(eq(reimbursements.transactionId, data.id), sql`${reimbursements.itemIds} IS NOT NULL`, sql`${reimbursements.status} != 'cancelled'`)).get();
+  if (itemClaim) throw new Error("Cancel the item reimbursement claim before changing receipt items.");
   const known = new Set((await db.select({ name: categories.name }).from(categories).where(eq(categories.type, txn.type === "income" ? "income" : "expense"))).map((row) => row.name));
-  if ([...data.items, ...data.splits].some((row) => !known.has(row.category))) throw new Error("Unknown category.");
-  if (data.splits.length && Math.abs(data.splits.reduce((n, x) => n + x.amount, 0) - txn.amount) > 0.01) throw new Error("Splits must equal transaction amount.");
+  if (data.items.some((row) => !known.has(row.category))) throw new Error("Unknown category.");
+  const cleanItems = data.items.map((item, sortOrder) => ({ ...item, name: scrubItemName(item.name), transactionId: data.id, source: item.source ?? "manual" as const, confidence: item.confidence ?? null, sortOrder }));
+  if (cleanItems.some((item) => !item.name)) throw new Error("Item name is empty after private-data removal.");
+  // Splits are derived here, never trusted from the client.
+  const grouped = new Map<string, number>();
+  for (const item of cleanItems) grouped.set(item.category, (grouped.get(item.category) ?? 0) + item.amount);
+  const splits = data.split ? [...grouped].map(([category, amount]) => ({ category, amount: Math.round(amount * 100) / 100 })) : [];
+  if (data.split && !receiptSplitMatches(txn.amount, splits)) throw new Error("Splits must equal transaction amount.");
   const operations = [
     db.delete(transactionItems).where(eq(transactionItems.transactionId, data.id)),
     db.delete(transactionSplits).where(eq(transactionSplits.transactionId, data.id)),
-    ...(data.items.length ? [db.insert(transactionItems).values(data.items.map((item) => ({ ...item, transactionId: data.id, source: "manual" as const })))] : []),
-    ...(data.splits.length ? [db.insert(transactionSplits).values(data.splits.map((item) => ({ ...item, transactionId: data.id })))] : []),
+    ...(cleanItems.length ? [db.insert(transactionItems).values(cleanItems)] : []),
+    ...(splits.length ? [db.insert(transactionSplits).values(splits.map((item) => ({ ...item, transactionId: data.id })))] : []),
   ];
   await db.batch(operations as [typeof operations[number], ...typeof operations[number][]]);
 });
+
+export const removeSplit = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    await db.delete(transactionSplits).where(eq(transactionSplits.transactionId, data.id));
+    return { ok: true };
+  });
 
 const pastedSchema = z.object({ text: z.string().trim().min(1).max(2000), bank: z.enum(["axis", "hdfc", "indusind"]).optional() });
 function parseBankText(data: z.infer<typeof pastedSchema>) {

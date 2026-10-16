@@ -8,6 +8,27 @@ import {
 
 const db = openDb(":memory:");
 assert.deepEqual(await db.all(sql`SELECT ${250} AS amount, ${"Test store"} AS merchant`), [{ amount: 250, merchant: "Test store" }], "raw SQL returns named columns");
+// Deleting a category merges its split into an existing Other row without a PK collision.
+{
+  const sdb = openDb(":memory:");
+  const { transactionSplits } = await import("../src/server/db/schema.ts");
+  const withOther = await addTxn(sdb, { type: "expense", amount: 30, merchant: "Split merge", category: "Dining", date: "2026-10-16 09:00" });
+  const withoutOther = await addTxn(sdb, { type: "expense", amount: 40, merchant: "Split insert", category: "Dining", date: "2026-10-16 09:01" });
+  await sdb.insert(transactionSplits).values([
+    { transactionId: withOther, category: "Other", amount: 5 },
+    { transactionId: withOther, category: "Dining", amount: 7 },
+    { transactionId: withoutOther, category: "Dining", amount: 11 },
+  ]);
+  await sdb.run(sql`INSERT INTO transaction_splits (transaction_id, category, amount)
+    SELECT transaction_id, 'Other', amount FROM transaction_splits WHERE category = ${"Dining"}
+    ON CONFLICT (transaction_id, category) DO UPDATE SET amount = amount + excluded.amount`);
+  await sdb.delete(transactionSplits).where(sql`${transactionSplits.category} = ${"Dining"}`);
+  assert.deepEqual(
+    (await sdb.select().from(transactionSplits).where(sql`${transactionSplits.transactionId} IN (${withOther}, ${withoutOther})`).orderBy(transactionSplits.transactionId)).map(({ transactionId, category, amount }) => [transactionId, category, amount]),
+    [[withOther, "Other", 12], [withoutOther, "Other", 11]],
+    "category delete combines existing Other splits and renames lone splits",
+  );
+}
 assert.deepEqual(await db.all(sql`SELECT id FROM transactions WHERE 0`), [], "raw SQL empty result");
 assert.deepEqual(await db.batch([db.all(sql`SELECT ${250} AS amount`)]), [[{ amount: 250 }]], "batched raw SQL returns named columns");
 const row = miniRowSchema.parse({
@@ -100,6 +121,111 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   await db.run(sql.raw(readFileSync("drizzle/0003_hide_zero_rows.sql", "utf8")));
   assert.notEqual((await db.select().from(transactions).where(eq(transactions.id, 9901)).get())?.deletedAt, null, "₹0 row soft-deleted");
   assert.equal((await db.select().from(transactions).where(eq(transactions.id, 9902)).get())?.deletedAt, null, "real row untouched");
+}
+// List filters: date range inclusive, multi-category matches name AND type, min/max, transfer = excluded.
+{
+  const { listSchema, summarizeTxns } = await import("../src/server/db/queries.ts");
+  const fdb = openDb(":memory:");
+  const seed = (id: number, date: string, amount: number, type: "expense" | "income", category: string, excluded = false) =>
+    addTxn(fdb, { type, amount, merchant: `M${id}`, category, date }).then(async (newId) => {
+      if (excluded) await fdb.update((await import("../src/server/db/schema.ts")).transactions).set({ excluded: true }).where(sql`id = ${newId}`);
+      return newId;
+    });
+  await seed(1, "2026-10-01 09:00", 100, "expense", "Food");
+  await seed(2, "2026-10-15 23:59", 300, "expense", "Health");
+  await seed(3, "2026-10-16 00:00", 500, "expense", "Food");
+  await seed(4, "2026-10-10 12:00", 900, "income", "Food");
+  await seed(5, "2026-10-12 12:00", 700, "expense", "Food", true);
+  const ids = async (q: Partial<Parameters<typeof listTxns>[1]>) =>
+    (await listTxns(fdb, { limit: 50, ...q } as Parameters<typeof listTxns>[1])).map((t) => t.id).sort((a, b) => a - b);
+  assert.deepEqual(await ids({ from: "2026-10-01", to: "2026-10-15" }), [1, 2, 4, 5], "range inclusive of both ends, excludes 16th");
+  assert.deepEqual(await ids({ categories: ["Food"] }), [1, 3, 4, 5], "multi category, Food across types");
+  assert.deepEqual(await ids({ type: "transfer" }), [5], "transfer means excluded rows");
+  assert.deepEqual(await ids({ min: 200, max: 600 }), [2, 3], "amount bounds inclusive");
+  assert.deepEqual(await ids({ type: "expense", min: 0 }).then((r) => r.length), 4, "expense type filter");
+  assert.equal(listSchema.safeParse({ from: "2026-02-30" }).success, false, "impossible from rejected");
+  assert.equal(listSchema.safeParse({ from: "2026-10-15", to: "2026-10-01" }).success, false, "to before from rejected");
+  assert.equal(listSchema.safeParse({ min: 900, max: 100 }).success, false, "min above max rejected");
+  const sum = await summarizeTxns(fdb, { from: "2026-10-01", to: "2026-10-15", limit: 50 } as Parameters<typeof summarizeTxns>[1]);
+  assert.equal(sum.count, 4, "summary count matches list WHERE");
+  assert.equal(sum.spent, 400, "spent = expense, not excluded: 100 + 300");
+  assert.equal(sum.income, 900, "income summed");
+  assert.equal(sum.transferred, 700, "transferred = excluded rows in range");
+  assert.equal(sum.biggest?.merchant, "M2", "biggest counted spend");
+  assert.equal(sum.avgPerDay, 400 / 15, "avg/day over 15 inclusive days");
+  const empty = await summarizeTxns(fdb, { from: "2025-01-01", to: "2025-01-02", limit: 50 } as Parameters<typeof summarizeTxns>[1]);
+  assert.deepEqual([empty.count, empty.spent, empty.top, empty.biggest, empty.frequent], [0, 0, [], null, null], "empty range summary");
+}
+// Reimbursement accounting uses only synthetic transactions.
+{
+  const { transactions, reimbursements, reimbursementLinks, transactionItems, transactionSplits } = await import("../src/server/db/schema.ts");
+  const { spendByCategory, listTxns, monthSummary, summarizeTxns } = await import("../src/server/db/queries.ts");
+  const { deriveClaimStatus } = await import("../src/server/daily/reimburse.ts");
+  const rdb = openDb(":memory:");
+  const add = (id: number, type: "expense" | "income", amount: number, date: string, category: string) => rdb.insert(transactions).values({ id, source: "manual", type, amount, merchant: `Synthetic ${id}`, category, date });
+  await rdb.batch([
+    add(9601, "expense", 300, "2026-10-01 10:00", "Food"),
+    add(9602, "income", 120, "2026-10-05 10:00", ""),
+    add(9603, "income", 300, "2026-10-08 10:00", ""),
+    add(9604, "expense", 100, "2026-10-10 10:00", "Food"),
+    add(9605, "expense", 100, "2026-10-11 10:00", "Other"),
+    rdb.insert(transactionItems).values([
+      { id: 9601, transactionId: 9601, name: "Shared meal", qty: null, amount: 120, category: "Food", source: "manual", confidence: null, sortOrder: 0 },
+      { id: 9602, transactionId: 9601, name: "Personal meal", qty: null, amount: 180, category: "Food", source: "manual", confidence: null, sortOrder: 1 },
+    ]),
+    rdb.insert(transactionSplits).values([
+      { transactionId: 9601, category: "Food", amount: 300 },
+      { transactionId: 9605, category: "Food", amount: 70 },
+      { transactionId: 9605, category: "Home", amount: 30 },
+    ]),
+    rdb.insert(reimbursements).values([
+      { id: 9601, transactionId: 9601, amount: 120, counterparty: "Alex", status: "pending", itemIds: JSON.stringify([9601]) },
+      { id: 9602, transactionId: 9604, amount: 100, counterparty: "Sam", status: "cancelled" },
+    ]),
+    rdb.insert(reimbursementLinks).values([
+      { reimbursementId: 9601, creditTransactionId: 9602, amount: 120 },
+      { reimbursementId: 9601, creditTransactionId: 9603, amount: 200 },
+    ]),
+  ]);
+  assert.equal(await deriveClaimStatus(rdb, { id: 9601, amount: 120, status: "pending" }), "extra", "overpayment derives extra status");
+  assert.equal(await deriveClaimStatus(rdb, { id: 9601, amount: 120, status: "pending", manualPaid: true }), "reimbursed", "manual paid status persists");
+  assert.equal(await deriveClaimStatus(rdb, { id: 9601, amount: 120, status: "cancelled" }), "cancelled", "cancelled status persists");
+  const [category] = await spendByCategory(rdb, "2026-10-01", "2026-11-01");
+  assert.equal(category?.total, 350, "selected receipt item reduces its category share only");
+  const all = await summarizeTxns(rdb, { month: "2026-10" });
+  assert.equal(all.spent, 380, "summary expense excludes item claim, includes split rows");
+  assert.deepEqual(all.top.slice(0, 2), [{ category: "Food", total: 350 }, { category: "Home", total: 30 }], "top categories honor saved splits");
+  const food = await summarizeTxns(rdb, { month: "2026-10", categories: ["expense:Food"] });
+  assert.equal(food.spent, 350, "filtered summary subtracts item claim from selected category");
+  const two = await summarizeTxns(rdb, { month: "2026-10", categories: ["expense:Food", "expense:Home"] });
+  assert.equal(two.spent, 380, "multi-category summary counts only selected split parts");
+  const home = await summarizeTxns(rdb, { month: "2026-10", categories: ["expense:Home"] });
+  assert.deepEqual(home.top, [{ category: "Home", total: 30 }], "top excludes unselected split parts");
+  assert.equal(home.spent, 30, "home-only summary is the saved split part");
+  const counted = await listTxns(rdb, { month: "2026-10", limit: 20 });
+  assert.equal(counted.find((t) => t.id === 9601)?.yours, 180, "your share subtracts open or settled claim, never below zero");
+  assert.equal(counted.find((t) => t.id === 9604)?.yours, 100, "cancelled claim counts full expense");
+  assert.equal(counted.find((t) => t.id === 9602)?.amount, 120);
+  const summary = await monthSummary(rdb, "2026-10");
+  // Claim 120 linked 320 (extra 200). Extra split pro rata: 9602 gets 75, 9603 gets 125. Income = (120-120+75) + (300-200+125) = 300.
+  assert.equal(summary.totals.find((t) => t.type === "income")?.total, 300, "linked credit excludes claimed repayment; extra back counts as income");
+  // Cancel releases linked credits. Reused credit must not allow the old claim to revive.
+  const [release] = await rdb.all<{ id: number }>(sql`
+    INSERT INTO reimbursements (transaction_id, amount, counterparty, status)
+    SELECT ${9605}, ${80}, ${"Taylor"}, 'pending'
+    RETURNING id`);
+  assert.ok(release?.id, "second synthetic claim created");
+  await rdb.update(reimbursements).set({ status: "cancelled" }).where(sql`${reimbursements.id} = ${9601}`);
+  const used = await rdb.all<{ amount: number }>(sql`
+    INSERT INTO reimbursement_links (reimbursement_id, credit_transaction_id, amount)
+    SELECT ${release.id}, ${9602}, ${80}
+    WHERE (SELECT amount FROM transactions WHERE id = ${9602}) >= ${80} + COALESCE((
+      SELECT SUM(l.amount) FROM reimbursement_links l JOIN reimbursements r ON r.id=l.reimbursement_id
+      WHERE l.credit_transaction_id=${9602} AND r.status != 'cancelled'), 0)
+    RETURNING amount`);
+  assert.equal(used[0]?.amount, 80, "cancelled claim frees credit for another claim");
+  assert.equal((await monthSummary(rdb, "2026-10")).totals.find((t) => t.type === "income")?.total, 340, "reused credit is counted only once");
+  console.log("check-reimbursements: ok");
 }
 console.log("check-db: ok");
 
@@ -230,4 +356,23 @@ console.log("check-db: ok");
     mock.timers.reset();
   }
   console.log("check-recurring: ok");
+}
+
+{
+  // Mini presence and Sync now (§18).
+  const { minipoll, miniStatus, requestSync } = await import("../src/server/mini.ts");
+  const mdb = openDb(":memory:");
+  const t0 = new Date("2026-10-16T10:00:00Z");
+  assert.deepEqual(await minipoll(mdb, false, t0), { sync: false }, "no request, no sync");
+  let s = await miniStatus(mdb, t0.getTime() + 60_000);
+  assert.equal(s.online, true, "seen a minute ago is online");
+  assert.equal(s.sync, "idle");
+  assert.equal((await miniStatus(mdb, t0.getTime() + 3 * 60_000)).online, false, "3 min silent is offline");
+  await requestSync(mdb, new Date(t0.getTime() + 60_000));
+  assert.equal((await miniStatus(mdb, t0.getTime() + 61_000)).sync, "waiting");
+  assert.deepEqual(await minipoll(mdb, false, new Date(t0.getTime() + 90_000)), { sync: true }, "poll picks up the request");
+  assert.deepEqual(await minipoll(mdb, true, new Date(t0.getTime() + 120_000)), { sync: false }, "done clears it");
+  s = await miniStatus(mdb, t0.getTime() + 121_000);
+  assert.equal(s.sync, "synced");
+  console.log("check-mini: ok");
 }

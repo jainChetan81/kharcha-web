@@ -26,7 +26,7 @@ button{font:inherit;cursor:pointer}
 
   <div role="radiogroup" aria-label="Kind" style="margin: 8px 20px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
     <sc-for list="{{kinds}}" as="k" hint-placeholder-count="4">
-      <button type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{k.bg}}; color: {{k.fg}}; box-shadow: {{k.shadow}}">{{k.name}}</button>
+      <button type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{k.bg}}; color: {{k.fg}}; box-shadow: {{k.shadow}}">{{k.name}}</button>
     </sc-for>
   </div>
 
@@ -87,7 +87,7 @@ button{font:inherit;cursor:pointer}
   <section style="margin: 24px 20px 0; padding: 16px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; flex-direction: column; gap: 10px">
     <div style="display: flex; justify-content: space-between; align-items: center">
       <span style="font-size: 15px; font-weight: 600">Import history from CSV</span>
-      <button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 14px; font-weight: 500">Choose file</button>
+      <button type="button" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 14px; font-weight: 500">Choose file</button>
     </div>
     <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3E4352">date, fund, amount, units, nav</span>
     <div style="display: flex; flex-direction: column; border-top: 1px solid #E2DED3; font-size: 13px">
