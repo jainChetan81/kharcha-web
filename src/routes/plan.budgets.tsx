@@ -1,5 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "../components/ui";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { DeskPage } from "../components/app-shell";
+import { PlanBudgetBar } from "../components/plan-budget-bar";
+import { PlanError, PlanHeader, PlanPending } from "../components/plan-screen";
+import { Button, Field, Suggestion } from "../components/ui";
+import { money, monthLabel, overOrLeft, thisMonth } from "../lib/format";
+import { saveBudget } from "../server/fns";
+import { getPlanBudgets } from "../server/plan/fns";
 
-// STUB: replaced by the owning area.
-export const Route = createFileRoute("/plan/budgets")({ component: () => <PageHeader title="Budgets" /> });
+export const Route = createFileRoute("/plan/budgets")({ loader: () => getPlanBudgets({ data: { month: thisMonth() } }), pendingComponent: PlanPending, errorComponent: PlanError, component: Budgets });
+function Budgets() {
+  const rows = Route.useLoaderData(); const router = useRouter(); const [open, setOpen] = useState<string>(); const [limit, setLimit] = useState(""); const days = new Date().getDate(); const count = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); const pace = days / count;
+  const spent = rows.reduce((sum, row) => sum + row.spent, 0); const total = rows.reduce((sum, row) => sum + (row.limit ?? 0), 0);
+  const save = async (category: string, value: number) => { await saveBudget({ data: { category, monthlyLimit: value } }); setOpen(undefined); void router.invalidate(); };
+  return <DeskPage rail={<Suggestion><b>Other has no budget</b><p className="mt-1 text-sm text-ink-2">Review files most of it.</p><Link to="/review" className="text-sm font-medium text-brand">Review</Link></Suggestion>}><PlanHeader sub={`${monthLabel(thisMonth())} · day ${days} of ${count}`} /><section className="mx-5 mt-4 flex flex-col gap-2.5 border-b-[3px] border-double border-ink pb-5 desk:mx-0"><div className="flex items-baseline justify-between"><strong className="font-serif text-[34px] font-medium">{money(spent)}</strong><span className="text-[15px] text-ink-2">of {money(total)}</span></div><PlanBudgetBar spent={spent} limit={total} pacePct={pace} /><div className="flex justify-between text-[13px] text-ink-2"><span className="font-medium text-watch-text">{overOrLeft(spent, total)} for {count - days} days</span><span>Tick = where you should be today</span></div></section><section className="mx-5 desk:mx-0">{rows.map((row) => { const projected = pace ? row.spent / pace : row.spent; const tone = projected > (row.limit ?? Infinity) ? "text-over" : projected > (row.limit ?? Infinity) * .9 ? "text-watch-text" : "text-earn"; return <div key={row.name} className="border-b border-hairline"><button type="button" className="flex w-full flex-col gap-2 py-3.5 text-left" onClick={() => { setOpen(open === row.name ? undefined : row.name); setLimit(String(row.limit ?? "")); }}><span className="flex justify-between text-[15px]"><span className="font-medium"><i className="mr-2 inline-block size-2 rounded-[2px]" style={{ background: `var(--color-${row.colorToken})` }} />{row.name}</span><span className="font-medium">{money(row.spent)} <em className="not-italic text-ink-3">/ {row.limit ? money(row.limit) : "No budget"}</em></span></span>{row.limit && <PlanBudgetBar spent={row.spent} limit={row.limit} pacePct={pace} />}<span className={`text-[13px] font-medium ${tone}`}>{row.limit ? projected > row.limit ? `${money(projected)} projected` : `On track to end at ${money(projected)}` : "Add a budget"}</span></button>{open === row.name && <div className="flex items-end gap-2 pb-4"><Field id={`limit-${row.name}`} label="Monthly limit" inputMode="decimal" value={limit} onChange={(event) => setLimit(event.target.value)} className="flex-1" /><Button onClick={() => void save(row.name, Number(limit))}>Save</Button><Button variant="danger" onClick={() => void save(row.name, 0)}>Remove</Button></div>}</div>; })}</section><Suggestion className="mx-5 mt-5 flex items-center justify-between desk:mx-0"><div><b>Other</b><p className="m-0 text-sm text-ink-2">No budget. Review files most of it.</p></div><Link to="/review" className="min-h-11 content-center text-sm font-medium text-brand">Review</Link></Suggestion></DeskPage>;
+}

@@ -1,0 +1,7 @@
+[Unit]
+Description=Kharcha background job
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/kharcha-web
+ExecStart=/srv/kharcha-web/deploy/jobs.sh scheduled

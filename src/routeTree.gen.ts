@@ -30,6 +30,7 @@ import { Route as PlanTripsRouteImport } from './routes/plan.trips'
 import { Route as TxnIdRouteImport } from './routes/txn.$id'
 import { Route as WealthIdRouteImport } from './routes/wealth_.$id'
 import { Route as WealthNewRouteImport } from './routes/wealth_.new'
+import { Route as ApiJobsNameRouteImport } from './routes/api.jobs.$name'
 import { Route as PlanRecurringIdRouteImport } from './routes/plan.recurring_.$id'
 import { Route as PlanRecurringNewRouteImport } from './routes/plan.recurring_.new'
 import { Route as PlanTripsIdRouteImport } from './routes/plan.trips_.$id'
@@ -143,6 +144,11 @@ const WealthNewRoute = WealthNewRouteImport.update({
   path: '/wealth/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiJobsNameRoute = ApiJobsNameRouteImport.update({
+  id: '/api/jobs/$name',
+  path: '/api/jobs/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRecurringIdRoute = PlanRecurringIdRouteImport.update({
   id: '/plan/recurring_/$id',
   path: '/plan/recurring/$id',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/wealth/$id': typeof WealthIdRoute
   '/wealth/new': typeof WealthNewRoute
   '/plan/': typeof PlanIndexRoute
+  '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/wealth/$id': typeof WealthIdRoute
   '/wealth/new': typeof WealthNewRoute
   '/plan': typeof PlanIndexRoute
+  '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -262,6 +270,7 @@ export interface FileRoutesById {
   '/wealth_/$id': typeof WealthIdRoute
   '/wealth_/new': typeof WealthNewRoute
   '/plan/': typeof PlanIndexRoute
+  '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring_/$id': typeof PlanRecurringIdRoute
   '/plan/recurring_/new': typeof PlanRecurringNewRoute
   '/plan/trips_/$id': typeof PlanTripsIdRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/wealth/$id'
     | '/wealth/new'
     | '/plan/'
+    | '/api/jobs/$name'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/wealth/$id'
     | '/wealth/new'
     | '/plan'
+    | '/api/jobs/$name'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/wealth_/$id'
     | '/wealth_/new'
     | '/plan/'
+    | '/api/jobs/$name'
     | '/plan/recurring_/$id'
     | '/plan/recurring_/new'
     | '/plan/trips_/$id'
@@ -385,6 +397,7 @@ export interface RootRouteChildren {
   WealthIdRoute: typeof WealthIdRoute
   WealthNewRoute: typeof WealthNewRoute
   PlanIndexRoute: typeof PlanIndexRoute
+  ApiJobsNameRoute: typeof ApiJobsNameRoute
   PlanRecurringIdRoute: typeof PlanRecurringIdRoute
   PlanRecurringNewRoute: typeof PlanRecurringNewRoute
   PlanTripsIdRoute: typeof PlanTripsIdRoute
@@ -543,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WealthNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/jobs/$name': {
+      id: '/api/jobs/$name'
+      path: '/api/jobs/$name'
+      fullPath: '/api/jobs/$name'
+      preLoaderRoute: typeof ApiJobsNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan/recurring_/$id': {
       id: '/plan/recurring_/$id'
       path: '/plan/recurring/$id'
@@ -617,6 +637,7 @@ const rootRouteChildren: RootRouteChildren = {
   WealthIdRoute: WealthIdRoute,
   WealthNewRoute: WealthNewRoute,
   PlanIndexRoute: PlanIndexRoute,
+  ApiJobsNameRoute: ApiJobsNameRoute,
   PlanRecurringIdRoute: PlanRecurringIdRoute,
   PlanRecurringNewRoute: PlanRecurringNewRoute,
   PlanTripsIdRoute: PlanTripsIdRoute,
