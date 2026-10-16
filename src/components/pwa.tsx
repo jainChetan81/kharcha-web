@@ -10,7 +10,7 @@ const DISMISSED = "kharcha.install.dismissed";
 const IOS_SEEN = "kharcha.install.ios";
 const ADDS = "kharcha.adds";
 
-const isStandalone = () =>
+export const isStandalone = () =>
   matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !("MSStream" in window);
 

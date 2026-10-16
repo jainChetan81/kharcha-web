@@ -1,8 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button, ErrorState, Field, PageHeader, SectionHead, Skeleton } from "../components/ui";
-import { IosInstallSheet, promptInstall } from "../components/pwa";
+import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import {
@@ -15,6 +15,7 @@ import {
   updateRule,
 } from "../server/daily/settings";
 import type { Category } from "../server/db/schema";
+import { ago, nowLocal, time, weekdayDate } from "../lib/format";
 
 export const Route = createFileRoute("/settings")({
   loader: () => getSettings(),
@@ -36,6 +37,9 @@ function Settings() {
   const online = useOnline();
   useHoldsInput();
   const [ios, setIos] = useState(false);
+  // Client-only check; SSR renders the button, then this swaps in "Installed".
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => setInstalled(isStandalone()), []);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
   const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
@@ -47,7 +51,7 @@ function Settings() {
     : null;
   const ingestStatus = ageMinutes === null ? "No SMS received yet" : ageMinutes >= 360 ? `Mini quiet · ${Math.floor(ageMinutes / 60)} h` : "Healthy";
   const ingestTime = lastIngestDate && !Number.isNaN(lastIngestDate.valueOf())
-    ? `${lastIngestDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${lastIngestDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })} · ${ageMinutes! < 60 ? `${ageMinutes} min ago` : `${Math.floor(ageMinutes! / 60)} h ago`}`
+    ? `${weekdayDate(nowLocal(lastIngestDate))}, ${time(lastIngestDate)} · ${ago(lastIngestDate.toISOString())}`
     : "Not received yet";
 
   const refresh = () => void router.invalidate();
@@ -138,11 +142,11 @@ function Settings() {
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Install app</span>
-            <Button variant="outline" className="min-h-10 text-sm" onClick={() => void promptInstall().then((result) => {
+            {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-10 text-sm" onClick={() => void promptInstall().then((result) => {
               if (result === "ios") setIos(true);
-              else if (result === "installed") snack("Kharcha is already installed.");
+              else if (result === "installed") setInstalled(true);
               else if (result === "unavailable") snack("Install is available from your browser menu.");
-            })}>Install</Button>
+            })}>Install</Button>}
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Export CSV</span>
@@ -153,7 +157,7 @@ function Settings() {
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. When the server sets KHARCHA_AI=on, Ask and the weekly digest send category totals and names to OpenRouter, never SMS text, card numbers or UPI IDs.</p>}
-          <div className="space-y-3 pt-3.5">
+          {data.aiOn && <div className="space-y-3 pt-3.5">
             <Field id="model" label="Text model" defaultValue={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_model", event.currentTarget.value)} />
             <Field id="vision" label="Vision model, for receipts" defaultValue={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_vision_model", event.currentTarget.value)} />
             <div className="space-y-2">
@@ -166,7 +170,7 @@ function Settings() {
                 <div className="h-full rounded-sm bg-brand" style={{ width: `${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}%` }} />
               </div>
             </div>
-          </div>
+          </div>}
         </section>
 
         <section aria-labelledby="settings-categories">

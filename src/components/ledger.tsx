@@ -2,7 +2,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
-import { card, foreign, money, weekdayDate } from "../lib/format";
+import { card, foreign, money, shortDate, time, weekdayDate } from "../lib/format";
 
 export type LedgerTxn = {
   id: number;
@@ -18,24 +18,37 @@ export type LedgerTxn = {
   excluded?: boolean;
 };
 
-/** "14:44 · Food · ••2047" or "15 Oct, 14:44 · needs review". */
-export function rowMeta(t: LedgerTxn, withDate = false): string {
-  const when = withDate ? `${weekdayDate(t.date).split(" ").slice(1).join(" ")}, ${t.date.slice(11, 16)}` : t.date.slice(11, 16);
-  const what = t.needsReview ? "needs review" : t.excluded ? "not a spend" : t.type === "income" ? "Income" : t.type === "investment" ? "Investment" : (t.category ?? "Other");
-  return [when, what, card(t.accountLast4)].filter(Boolean).join(" · ");
+/** Excluded rows (card bills, own-account moves, anything marked "Not a spend") stay listed but don't count. Ingest files card bills as Other, so the tag can't tell them apart. */
+const label = (t: LedgerTxn) =>
+  t.excluded ? "Not counted" : t.type === "income" ? "Income" : t.type === "investment" ? "Investment" : (t.category ?? "Other");
+
+/** Row meta line with the category in its colour; "Other" and uncounted rows stay neutral. */
+export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boolean; color?: string }) {
+  const tone = t.excluded || t.type !== "expense" ? undefined : (color ?? "cat-other");
+  return (
+    <span className="flex min-w-0 items-center gap-1.5 truncate text-[13px] text-ink-3">
+      <span className="shrink-0">{withDate ? shortDate(t.date) : time(t.date)}</span>
+      <span aria-hidden>·</span>
+      <span className={cn("inline-flex min-w-0 items-center gap-1 truncate", t.excluded ? "rounded-[4px] bg-sunken px-1.5 text-ink-2" : "text-ink-2")}>
+        {tone && <i aria-hidden className="inline-block size-2 shrink-0 rounded-[2px]" style={{ background: `var(--color-${tone})` }} />}
+        <span className="truncate">{label(t)}</span>
+      </span>
+      {t.accountLast4 && <><span aria-hidden>·</span><span className="shrink-0">{card(t.accountLast4)}</span></>}
+    </span>
+  );
 }
 
 export function Amount({ t, className }: { t: LedgerTxn; className?: string }) {
   const value = foreign(t.currency, t.originalAmount, t.amount);
   return (
-    <span className={cn("shrink-0 text-[15px] font-medium whitespace-nowrap", t.type === "income" && "text-earn", t.excluded && "text-ink-3 line-through decoration-1", className)}>
+    <span className={cn("shrink-0 text-[15px] font-medium whitespace-nowrap", t.type === "income" && "text-earn", t.excluded && "font-normal text-ink-3", className)}>
       {t.type === "income" ? "+" : ""}
       {value}
     </span>
   );
 }
 
-export function LedgerRow({ t, withDate, trailing, className }: { t: LedgerTxn; withDate?: boolean; trailing?: ReactNode; className?: string }) {
+export function LedgerRow({ t, withDate, trailing, className, color }: { t: LedgerTxn; withDate?: boolean; trailing?: ReactNode; className?: string; color?: string }) {
   return (
     <Link
       to="/txn/$id"
@@ -47,7 +60,7 @@ export function LedgerRow({ t, withDate, trailing, className }: { t: LedgerTxn; 
           {t.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}
           <span className="truncate">{t.merchant}</span>
         </span>
-        <span className="truncate text-[13px] text-ink-3">{rowMeta(t, withDate)}</span>
+        <RowMeta t={t} withDate={withDate} color={color} />
       </span>
       {trailing ?? <Amount t={t} />}
     </Link>

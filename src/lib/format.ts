@@ -37,6 +37,7 @@ export function foreign(currency: string | null | undefined, original: number | 
 /** Card or account: "••2047". */
 export const card = (last4: string | null | undefined) => (last4 ? `••${last4}` : "");
 
+const p2 = (n: number) => String(n).padStart(2, "0");
 const day = (date: string) => new Date(`${date.slice(0, 10)}T00:00:00`);
 const dm = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
@@ -47,10 +48,21 @@ export const weekdayDate = (date: string) => {
   const d = day(date);
   return `${d.toLocaleDateString("en-IN", { weekday: "short" })} ${dm(d)}`;
 };
-/** "15 Oct, 14:44". */
-export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)}, ${date.slice(11, 16)}` : dayMonth(date));
+/** 12-hour clock from local "YYYY-MM-DD HH:mm" or a Date: "2:44 PM". Hand-built: en-IN Intl says "pm". */
+export function time(value: string | Date): string {
+  const [h, m] = typeof value === "string" ? value.slice(11, 16).split(":").map(Number) : [value.getHours(), value.getMinutes()];
+  return `${h % 12 || 12}:${p2(m)} ${h < 12 ? "AM" : "PM"}`;
+}
+/** "15 Oct, 2:44 PM". */
+export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)}, ${time(date)}` : dayMonth(date));
+/** "Thu". */
+export const weekday = (date: string) => day(date).toLocaleDateString("en-IN", { weekday: "short" });
 /** Prices carry their date: "NAVs of 15 Oct". */
 export const navsOf = (date: string) => `NAVs of ${dayMonth(date)}`;
+
+/** "Oct" · "October" for a "YYYY-MM". */
+export const monthName = (month: string, width: "short" | "long" = "long") =>
+  new Date(`${month}-01T00:00:00`).toLocaleDateString("en-IN", { month: width });
 
 export const monthLabel = (month: string) =>
   new Date(`${month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
@@ -63,7 +75,6 @@ export function shiftMonth(month: string, by: number): string {
   return new Date(Date.UTC(y, m - 1 + by, 1)).toISOString().slice(0, 7);
 }
 
-const p2 = (n: number) => String(n).padStart(2, "0");
 /** Local "YYYY-MM-DD HH:mm" for now. */
 export function nowLocal(d = new Date()): string {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;

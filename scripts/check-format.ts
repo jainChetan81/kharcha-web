@@ -1,7 +1,7 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, card, compact, dayMonth, evalAmount, foreign, money, navsOf, overOrLeft, shiftMonth, shortDate, signed, weekdayDate,
+  ago, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, overOrLeft, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -17,7 +17,12 @@ assert.equal(foreign("USD", 12.99, 1143), "$12.99 · ₹1,143");
 assert.equal(foreign(null, null, 1143), "₹1,143");
 assert.equal(card("2047"), "••2047");
 assert.equal(weekdayDate("2026-10-15"), "Thu 15 Oct");
-assert.equal(shortDate("2026-10-15 14:44"), "15 Oct, 14:44");
+assert.equal(shortDate("2026-10-15 14:44"), "15 Oct, 2:44 PM");
+assert.equal(time("2026-10-15 00:05"), "12:05 AM");
+assert.equal(time("2026-10-15 12:00"), "12:00 PM");
+assert.equal(time(new Date(2026, 9, 15, 23, 58)), "11:58 PM");
+assert.equal(weekday("2026-10-15"), "Thu");
+assert.equal(monthName("2026-10", "short"), "Oct");
 assert.equal(dayMonth("2026-09-24"), "24 Sept");
 assert.equal(navsOf("2026-10-15"), "NAVs of 15 Oct");
 assert.equal(shiftMonth("2026-12", 1), "2027-01");
@@ -26,4 +31,12 @@ assert.equal(evalAmount("450+120"), 570);
 assert.equal(evalAmount("450+120-20.5"), 549.5);
 assert.equal(evalAmount("4++5"), undefined);
 assert.equal(evalAmount(""), undefined);
+
+// Dates, times and numbers are formatted only in src/lib/format.ts.
+const { readdirSync, readFileSync } = await import("node:fs");
+const banned = /toLocale(Date|Time)?String\(|\.slice\(11, ?16\)/;
+const offenders = (readdirSync("src", { recursive: true }) as string[])
+  .filter((f) => /\.tsx?$/.test(f) && !f.endsWith("lib/format.ts"))
+  .filter((f) => banned.test(readFileSync(`src/${f}`, "utf8")));
+assert.deepEqual(offenders, [], "format dates, times and numbers via src/lib/format.ts");
 console.log("check-format: ok");

@@ -1,4 +1,4 @@
-import { compact, money, shiftMonth, thisMonth } from "../lib/format";
+import { compact, money, monthName, shiftMonth, thisMonth } from "../lib/format";
 
 type Point = { date: string; amount: number; merchant: string };
 type PreviousPoint = { date: string; amount: number };
@@ -37,16 +37,16 @@ export function PaceChart({ month, points, previous, limit }: { month: string; p
       <polygon points={`${current} ${x(currentDay)},130`} fill="var(--color-on-ink-month)" fillOpacity=".16" />
       <polyline points={current} fill="none" stroke="var(--color-on-ink-month)" strokeWidth="2.5" strokeLinejoin="round" />
       {currentDay > 0 && <circle cx={x(currentDay)} cy={y(currentTotal)} r="4.5" fill="var(--color-on-ink-month)" />}
-      {spike && <><line x1={spikeX} x2={spikeX} y1={spikeY} y2="75" stroke="var(--color-on-ink-month)" strokeDasharray="1 2" /><text x={Math.max(0, Math.min(210, spikeX - 65))} y="20" fill="var(--color-on-ink-month)" fontSize="10">{spike.merchant.slice(0, 18)} {compact(spike.amount)}</text></>}
+      {spike && <><line x1={spikeX} x2={spikeX} y1={spikeY} y2="75" stroke="var(--color-on-ink-month)" strokeDasharray="1 2" /><text x={Math.max(0, Math.min(326, spikeX))} y="20" textAnchor={spikeX < 110 ? "start" : spikeX > 220 ? "end" : "middle"} fill="var(--color-on-ink-month)" fontSize="10">{spike.merchant.length > 16 ? `${spike.merchant.slice(0, 15).trim()}…` : spike.merchant} {compact(spike.amount)}</text></>}
       {limit > 0 && currentDay > 0 && <text x={Math.min(220, x(currentDay) + 8)} y="31" fill="var(--color-on-ink)" fontSize="10">{money(Math.abs(ahead))} {ahead >= 0 ? "ahead" : "behind"} pace</text>}
-      <text x="0" y="143" fill="var(--color-on-ink-2)" fontSize="10">1 {new Date(`${month}-01T00:00:00`).toLocaleString("en-IN", { month: "short" })}</text>
+      <text x="0" y="143" fill="var(--color-on-ink-2)" fontSize="10">1 {monthName(month, "short")}</text>
       {currentDay > 1 && currentDay < days && <text x={Math.max(0, x(currentDay) - 12)} y="143" fill="var(--color-on-ink)" fontSize="10">Today</text>}
-      <text x="297" y="143" fill="var(--color-on-ink-2)" fontSize="10">{days} {new Date(`${month}-01T00:00:00`).toLocaleString("en-IN", { month: "short" })}</text>
+      <text x="297" y="143" fill="var(--color-on-ink-2)" fontSize="10">{days} {monthName(month, "short")}</text>
     </svg>
     <figcaption className="mt-1 flex gap-3 text-xs text-on-ink-2">
-      <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-month align-middle" />{new Date(`${month}-01T00:00:00`).toLocaleString("en-IN", { month: "long" })}</span>
+      <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-month align-middle" />{monthName(month)}</span>
       {limit > 0 && <span><i className="mr-1 inline-block w-3 border-t-2 border-dotted border-on-ink-pace align-middle" />Budget pace</span>}
-      <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-2 align-middle" />{new Date(`${lastMonth}-01T00:00:00`).toLocaleString("en-IN", { month: "long" })}</span>
+      <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-2 align-middle" />{monthName(lastMonth)}</span>
     </figcaption>
   </figure>;
 }
