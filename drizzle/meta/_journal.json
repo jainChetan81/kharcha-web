@@ -29,6 +29,13 @@
       "when": 1792164019375,
       "tag": "0003_hide_zero_rows",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792166267788,
+      "tag": "0004_sparkling_zombie",
+      "breakpoints": true
     }
   ]
 }

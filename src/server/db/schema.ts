@@ -193,7 +193,20 @@ export const transactionItems = sqliteTable("transaction_items", {
   qty: real("qty"),
   amount: real("amount").notNull(),
   category: text("category").notNull(),
-  source: text("source", { enum: ["ai", "manual"] }).notNull(),
+  source: text("source", { enum: ["ai", "manual", "adjustment"] }).notNull(),
+  // 0–1 from the model; null for manual rows. Low values show a "?" until "Looks right".
+  confidence: real("confidence"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const receiptJobs = sqliteTable("receipt_jobs", {
+  id: integer("id").primaryKey(),
+  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["queued", "reading", "done", "failed"] }).notNull().default("queued"),
+  error: text("error", { enum: ["unreadable", "not_receipt", "ai_unavailable"] }),
+  model: text("model"),
+  startedAt: text("started_at"),
+  finishedAt: text("finished_at"),
 });
 
 export const transactionSplits = sqliteTable(

@@ -220,7 +220,7 @@ export const spendable = and(live, eq(transactions.type, "expense"), eq(transact
  */
 export async function spendByCategory(db: Db, from: string, to: string): Promise<{ category: string; total: number; n: number }[]> {
   const rows = await db.all<{ category: string; total: number; n: number }>(sql`
-    SELECT COALESCE(s.category, t.category, 'Other') AS category, SUM(COALESCE(s.amount, t.amount)) AS total, COUNT(DISTINCT t.id) AS n
+    SELECT COALESCE(s.category, t.category, 'Other') AS category, SUM(CASE WHEN s.transaction_id IS NOT NULL THEN s.amount ELSE t.amount END) AS total, COUNT(DISTINCT t.id) AS n
     FROM transactions t LEFT JOIN transaction_splits s ON s.transaction_id = t.id
     WHERE t.deleted_at IS NULL AND t.type = 'expense' AND t.excluded = 0 AND t.duplicate_of IS NULL
       AND t.date >= ${from} AND t.date < ${to}

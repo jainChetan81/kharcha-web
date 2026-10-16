@@ -3,9 +3,10 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import path from "node:path";
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "../db/client";
-import { attachments, transactions } from "../db/schema";
+import { attachments, receiptJobs, transactions } from "../db/schema";
+import { runReceiptJob } from "../ai/receipt";
 
 const MAX_ATTACHMENTS = 5;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -74,4 +75,47 @@ export const uploadReceipt = createServerFn({ method: "POST" })
     const id = await storeReceiptFile(data.transactionId, data.mime, bytes);
     return { id };
   });
+
+export const deleteAttachment = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.number().int().positive() }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const row = await db.select({ path: attachments.path }).from(attachments).where(eq(attachments.id, data.id)).get();
+    if (!row) return { deleted: false };
+    await db.delete(attachments).where(eq(attachments.id, data.id));
+    await rm(row.path, { force: true });
+    return { deleted: true };
+  });
+
+export const startReceiptJob = createServerFn({ method: "POST" })
+  .validator(z.object({ transactionId: z.number().int().positive() }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const txn = await db.select({ id: transactions.id }).from(transactions).where(and(eq(transactions.id, data.transactionId), isNull(transactions.deletedAt))).get();
+    if (!txn) throw new Error("Transaction not found.");
+    const [row] = await db.insert(receiptJobs).values({ transactionId: data.transactionId, status: "queued" }).returning({ id: receiptJobs.id });
+    if (!row) throw new Error("Could not start receipt job.");
+    // Run job in background: let the request complete so the user can navigate away.
+    queueMicrotask(() => {
+      runReceiptJob(db, row.id, data.transactionId).catch(() =>
+        db.update(receiptJobs).set({ status: "failed", error: "unreadable", finishedAt: new Date().toISOString() }).where(eq(receiptJobs.id, row.id)).catch(() => {}),
+      );
+    });
+    return { jobId: row.id };
+  });
+
+export const getReceiptJob = createServerFn({ method: "GET" })
+  .validator(z.object({ transactionId: z.number().int().positive() }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const job = await db
+      .select()
+      .from(receiptJobs)
+      .where(eq(receiptJobs.transactionId, data.transactionId))
+      .orderBy(desc(receiptJobs.id))
+      .limit(1)
+      .get();
+    return { job: job ?? null };
+  });
+
 
