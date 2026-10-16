@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
-import { categoryList, getMeta, setMeta } from "../db/queries";
+import { getMeta, setMeta } from "../db/queries";
 import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
 
 const name = z.string().trim().min(1).max(40);
@@ -19,15 +19,22 @@ const settingKey = z.enum(["openrouter_model", "openrouter_vision_model", "openr
 const settingsSchema = z.discriminatedUnion("key", [
   z.object({ key: z.literal("openrouter_model"), value: z.string().trim().max(100) }),
   z.object({ key: z.literal("openrouter_vision_model"), value: z.string().trim().max(100) }),
-  z.object({ key: z.literal("openrouter_daily_cap"), value: z.string().regex(/^\d{0,3}$/).refine((value) => Number(value) <= 500, "Daily cap must be at most 500") }),
+  z.object({ key: z.literal("openrouter_daily_cap"), value: z.enum(["50", "100", "200", "500"]) }),
 ]);
 
 export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
   const keys = [...settingKey.options, "last_ingest_at"];
   const entries = await Promise.all(keys.map(async (key) => [key, await getMeta(db, key)] as const));
+  // Count is type-scoped: income categories count income rows, expense categories count the rest.
+  const transactionCount = count(transactions.id);
   return {
-    categories: await categoryList(db),
+    categories: await db.select({ name: categories.name, type: categories.type, colorToken: categories.colorToken, sortOrder: categories.sortOrder, transactionCount })
+      .from(categories)
+      .leftJoin(transactions, and(eq(transactions.category, categories.name), isNull(transactions.deletedAt), sql`((${categories.type} = 'income') = (${transactions.type} = 'income'))`))
+      .groupBy(categories.name, categories.type)
+      .orderBy(categories.type, categories.sortOrder),
+
     rules: await db.select().from(merchantRules).orderBy(desc(merchantRules.id)),
     values: Object.fromEntries(entries),
     aiOn: process.env.KHARCHA_AI === "on",
@@ -64,6 +71,27 @@ export const saveCategory = createServerFn({ method: "POST" })
       db.update(transactionSplits).set({ category: data.name }).where(and(eq(transactionSplits.category, data.oldName), inArray(transactionSplits.transactionId, owned))),
       ...(data.type === "expense" ? [db.update(budgets).set({ category: data.name }).where(eq(budgets.category, data.oldName))] : []),
       ...(data.type === "expense" || !shared ? [db.update(merchantRules).set({ category: data.name }).where(eq(merchantRules.category, data.oldName))] : []),
+    ];
+    await db.batch(ops as [(typeof ops)[number], ...(typeof ops)[number][]]);
+  });
+
+// Moves the category's rows to Other, drops its budget and rules, and removes it in one batch.
+// Other (expense and income) is the fallback, so it cannot be deleted.
+export const deleteCategory = createServerFn({ method: "POST" })
+  .validator(z.object({ name, type }))
+  .handler(async ({ data }) => {
+    if (data.name === "Other") throw new Error("Other can't be deleted.");
+    const db = getDb();
+    const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
+    const owned = db.select({ id: transactions.id }).from(transactions).where(ofType);
+    const shared = await db.select({ name: categories.name }).from(categories).where(and(eq(categories.name, data.name), ne(categories.type, data.type))).get();
+    const ops = [
+      db.update(transactions).set({ category: "Other" }).where(and(eq(transactions.category, data.name), ofType)),
+      db.update(transactionItems).set({ category: "Other" }).where(and(eq(transactionItems.category, data.name), inArray(transactionItems.transactionId, owned))),
+      db.update(transactionSplits).set({ category: "Other" }).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
+      ...(data.type === "expense" ? [db.delete(budgets).where(eq(budgets.category, data.name))] : []),
+      ...(data.type === "expense" || !shared ? [db.delete(merchantRules).where(eq(merchantRules.category, data.name))] : []),
+      db.delete(categories).where(and(eq(categories.name, data.name), eq(categories.type, data.type))),
     ];
     await db.batch(ops as [(typeof ops)[number], ...(typeof ops)[number][]]);
   });

@@ -37,6 +37,8 @@ function Today() {
   const month = Route.useSearch().month ?? thisMonth();
   const due = upcoming.reduce((sum, item) => sum + item.amount, 0);
   const colorOf = new Map(today.colors.map((item) => [item.name, item.colorToken]));
+  const budget = today.limit <= 0 ? "none" : today.spent > today.limit ? "over" : today.spent >= today.limit * 0.9 ? "near" : "under";
+  const tone = { none: "text-on-ink-2", under: "text-on-ink-gain", near: "text-on-ink-month", over: "text-on-ink-over" }[budget];
   const hero = <InkHero className="desk:gap-5">
     <header className="-ml-3 flex min-w-0 items-center justify-between gap-1 desk:ml-0">
       <MonthSwitcher month={month} compact />
@@ -49,13 +51,13 @@ function Today() {
     </header>
     <div className="flex items-end justify-between gap-2">
       <div className="min-w-0"><span className="text-xs tracking-[0.08em] text-on-ink-2 uppercase">Spent this month</span><div className="mt-1"><HeroAmount value={money(today.spent)} size="lg" /></div></div>
-      {today.limit > 0
-        ? <span className="pb-1 text-right text-[13px] whitespace-nowrap text-on-ink-2 desk:hidden">of {money(today.limit)}<br /><b className="text-on-ink-month">{overOrLeft(today.spent, today.limit)}</b></span>
-        : <Link to="/plan/budgets" className="pb-1 text-[13px] font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">Set a budget</Link>}
+      {budget !== "none"
+        ? <span className="pb-1 text-right text-[13px] whitespace-nowrap text-on-ink-2 desk:hidden">of {money(today.limit)}<br /><b className={tone}>{overOrLeft(today.spent, today.limit)}</b></span>
+        : <Link to="/plan/budgets" className="pb-1 text-[13px] font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">Set a monthly budget</Link>}
     </div>
     <div className="hidden grid-cols-3 border-t border-on-ink/20 pt-3 desk:grid">
       <span className="text-sm text-on-ink-2">Budget {today.limit > 0 ? <b className="block font-serif text-2xl font-medium text-on-ink">{money(today.limit)}</b> : <Link to="/plan/budgets" className="block font-serif text-2xl font-medium text-on-ink hover:text-on-ink">Set one</Link>}</span>
-      <span className="text-sm text-on-ink-2">Left <b className="block font-serif text-2xl font-medium text-on-ink-month">{today.limit > 0 ? overOrLeft(today.spent, today.limit) : "—"}</b></span>
+      <span className="text-sm text-on-ink-2">Left <b className={`block font-serif text-2xl font-medium ${tone}`}>{budget !== "none" ? overOrLeft(today.spent, today.limit) : "—"}</b></span>
       <span className="text-sm text-on-ink-2">Due in 10 days <Link to="/plan/recurring" className="block font-serif text-2xl font-medium text-on-ink hover:text-on-ink">{money(due)}</Link></span>
     </div>
     <PaceChart month={month} points={today.points} previous={today.previous} limit={today.limit} />
