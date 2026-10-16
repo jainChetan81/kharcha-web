@@ -19,6 +19,7 @@ import { Route as PasteRouteImport } from './routes/paste'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as WealthRouteImport } from './routes/wealth'
+import { Route as ApiExportRouteImport } from './routes/api.export'
 import { Route as ApiHealthRouteImport } from './routes/api.health'
 import { Route as ApiIngestRouteImport } from './routes/api.ingest'
 import { Route as ApiLoginRouteImport } from './routes/api.login'
@@ -86,6 +87,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const WealthRoute = WealthRouteImport.update({
   id: '/wealth',
   path: '/wealth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExportRoute = ApiExportRouteImport.update({
+  id: '/api/export',
+  path: '/api/export',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -190,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
+  '/api/export': typeof ApiExportRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
+  '/api/export': typeof ApiExportRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
+  '/api/export': typeof ApiExportRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/wealth'
+    | '/api/export'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/wealth'
+    | '/api/export'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/wealth'
+    | '/api/export'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
@@ -374,6 +386,7 @@ export interface RootRouteChildren {
   ReviewRoute: typeof ReviewRoute
   SettingsRoute: typeof SettingsRoute
   WealthRoute: typeof WealthRoute
+  ApiExportRoute: typeof ApiExportRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiIngestRoute: typeof ApiIngestRoute
   ApiLoginRoute: typeof ApiLoginRoute
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       path: '/wealth'
       fullPath: '/wealth'
       preLoaderRoute: typeof WealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/export': {
+      id: '/api/export'
+      path: '/api/export'
+      fullPath: '/api/export'
+      preLoaderRoute: typeof ApiExportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -606,6 +626,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewRoute: ReviewRoute,
   SettingsRoute: SettingsRoute,
   WealthRoute: WealthRoute,
+  ApiExportRoute: ApiExportRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiIngestRoute: ApiIngestRoute,
   ApiLoginRoute: ApiLoginRoute,

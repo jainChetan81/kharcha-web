@@ -1,5 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "../components/ui";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { MessageCircle, Settings } from "lucide-react";
+import { z } from "zod";
+import { DeskPage } from "../components/app-shell";
+import { InkHero, HeroAmount } from "../components/ink-hero";
+import { LedgerRow } from "../components/ledger";
+import { MonthSwitcher } from "../components/month-switcher";
+import { PaceChart } from "../components/pace-chart";
+import { Skeleton, ErrorState, SectionHead, Card } from "../components/ui";
+import { Treemap } from "../components/treemap";
+import { money, overOrLeft, thisMonth } from "../lib/format";
+import { getToday } from "../server/daily/fns";
+import { getDigest } from "../server/insights/fns";
+import { getUpcoming } from "../server/plan/fns";
+import { getWealthSummary } from "../server/wealth/fns";
 
-// STUB: replaced by the owning area.
-export const Route = createFileRoute("/")({ component: () => <PageHeader title="Today" /> });
+export const Route = createFileRoute("/")({ validateSearch: z.object({ month: z.string().optional() }), loaderDeps: ({ search }) => search, loader: ({ deps }) => Promise.all([getToday({ data: { month: deps.month ?? thisMonth() } }), getDigest(), getUpcoming({ data: { days: 10 } }), getWealthSummary()]), pendingComponent: () => <main className="px-5"><Skeleton rows={8} /></main>, errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load today."} retry={() => void router.invalidate()} />; }, component: Today });
+function Today() { const [today, digest, upcoming, wealth] = Route.useLoaderData(); const month = Route.useSearch().month ?? thisMonth(); const review = today.recent.filter((x) => x.needsReview); const hero = <InkHero><header className="flex items-center justify-between"><MonthSwitcher month={month} /><div className="flex items-center gap-1"><Link to="/settings" aria-label="Settings" className="flex size-10 items-center justify-center"><Settings size={20} strokeWidth={1.75} /></Link><Link to="/ask" className="flex min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-sm font-medium text-ink"><MessageCircle size={16} />Ask</Link></div></header><div className="flex items-end justify-between"><div><span className="label-caps text-on-ink-2">Spent this month</span><HeroAmount value={money(today.spent)} size="lg" /></div><span className="pb-1 text-right text-sm text-on-ink-2">of {money(today.limit)}<br /><b className="text-on-ink-month">{overOrLeft(today.spent, today.limit)}</b></span></div><PaceChart points={today.points} limit={today.limit} /></InkHero>;
+  const rail = digest.status === "ok" ? <Card className="p-4"><h2 className="font-serif text-xl italic">This week, in short</h2>{digest.lines.map((line, i) => <Link key={`${line.href}-${line.num}`} to="/ask" className="block border-t border-hairline py-3 text-sm text-ink"><i className="mr-2 font-serif text-brand">{["i", "ii", "iii"][i]}</i>{line.pre}<strong className="border-b border-brand">{line.num}</strong>{line.post}</Link>)}</Card> : null;
+  return <DeskPage rail={rail}>{hero}<div className="space-y-6 px-5 pt-6 desk:px-0">{upcoming.length > 0 && <section><SectionHead title="Next 10 days" action={<Link to="/plan/recurring">{money(upcoming.reduce((n, x) => n + x.amount, 0))} due</Link>} /><div className="mt-3 grid grid-cols-3 gap-2">{upcoming.slice(0, 3).map((x) => <Card key={x.seriesId} className="p-2.5"><b className="font-serif text-xl">{x.date.slice(-2)}</b><span className="block truncate text-sm font-medium">{x.name}</span><span className="text-sm text-ink-2">{money(x.amount)}</span></Card>)}</div></section>}{review.length > 0 && <Link to="/review" className="flex min-h-[52px] items-center justify-between rounded-card border border-brand px-4 text-[15px]"><span><b>{review.length} to review</b> <span className="text-ink-2">· {money(review.reduce((n, x) => n + x.amount, 0))} in Other</span></span><b className="text-brand">Start</b></Link>}<section><SectionHead title="Where it went" action={<Link to="/insights">Insights</Link>} /><div className="mt-3"><Treemap rows={today.categories} /></div></section>{wealth && <Link to="/wealth" className="flex items-center justify-between rounded-card border border-rule p-4"><span><small className="label-caps text-ink-3">Wealth</small><strong className="block font-serif text-2xl">{money(wealth.value)}</strong><span className="text-sm text-earn">+{money(wealth.dayChange)} today</span></span></Link>}<section><SectionHead title="Recent" action={<Link to="/activity">Activity</Link>} />{today.recent.map((x) => <LedgerRow key={x.id} t={x} />)}</section></div></DeskPage>; }
