@@ -1,0 +1,10 @@
+[Unit]
+Description=Kharcha job detectors
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 Asia/Kolkata
+Persistent=true
+Unit=kharcha-web-job@detectors.service
+
+[Install]
+WantedBy=timers.target
