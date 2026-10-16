@@ -50,12 +50,13 @@ export function PullRefresh() {
     window.addEventListener("touchstart", onStart, { passive: true });
     window.addEventListener("touchmove", onMove, { passive: true });
     window.addEventListener("touchend", onEnd);
-    window.addEventListener("touchcancel", onEnd);
+    const onCancel = () => { start = null; if (!running) settle(0); };
+    window.addEventListener("touchcancel", onCancel);
     return () => {
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
-      window.removeEventListener("touchcancel", onEnd);
+      window.removeEventListener("touchcancel", onCancel);
     };
   }, [pull, router, still]);
 

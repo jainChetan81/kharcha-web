@@ -81,7 +81,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           >
             <PlusIcon />
           </Link>
-          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(56px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
+          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
             {tabs.map((t) => {
               const on = t.match(path);
               const Icon = t.icon;

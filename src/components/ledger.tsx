@@ -57,7 +57,7 @@ export function LedgerRow({ t, withDate, trailing, className, color }: { t: Ledg
     >
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">
-          {t.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}
+          {t.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}
           <span className="truncate">{t.merchant}</span>
         </span>
         <RowMeta t={t} withDate={withDate} color={color} />

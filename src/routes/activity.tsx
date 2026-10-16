@@ -240,14 +240,14 @@ function ActivityRow({ row, color, active, swiped, canDelete, onSelect, onSwipe,
       >
         <Link to="/txn/$id" params={{ id: String(row.id) }} onClick={(event) => { if (dragged.current || swiped) { event.preventDefault(); if (swiped) onReset(); return; } onSelect(); }} className="flex min-h-[58px] items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken/50 hover:text-ink desk:hidden">
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span>
+            <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
             <RowMeta t={row} color={color} />
           </span>
           <Amount t={row} />
         </Link>
         <button type="button" onClick={onSelect} className="hidden min-h-10 w-full grid-cols-[56px_minmax(0,1fr)_120px_64px_84px] items-center gap-3 px-2 text-left text-sm text-ink desk:grid" style={active ? { background: "var(--color-brand-soft)" } : undefined}>
           <span className="text-ink-3">{time(row.date)}</span>
-          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
           <span className="flex items-center gap-1.5 truncate"><CategoryDot color={color} />{row.category ?? "Other"}</span>
           <span className="text-ink-3">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />
