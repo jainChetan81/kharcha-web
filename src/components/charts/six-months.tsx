@@ -1,0 +1,4 @@
+import { compact, monthLabel } from "../../lib/format";
+export function SixMonths({ rows }: { rows: { month: string; total: number; current: boolean }[] }) {
+  const max = Math.max(...rows.map((row) => row.total), 1); return <figure role="img" aria-label="Six months of spending on the same scale." className="m-0"><div className="flex h-32 items-end gap-3 border-b border-ink">{rows.map((row) => <span key={row.month} className={`min-w-0 flex-1 rounded-t-sm ${row.current ? "hatch bg-brand" : "bg-[var(--color-heat-3)]"}`} style={{ height: `${Math.max(3, (row.total / max) * 100)}%` }} />)}</div><div className="mt-1 grid grid-cols-6 gap-3 text-center text-[11px] text-ink-2">{rows.map((row) => <span key={row.month}>{monthLabel(row.month).slice(0, 3)}<strong className="block font-medium text-ink">{compact(row.total)}</strong></span>)}</div></figure>;
+}

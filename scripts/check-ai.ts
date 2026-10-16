@@ -1,0 +1,23 @@
+import assert from "node:assert/strict";
+import { eq } from "drizzle-orm";
+import { askSpecSchema, figuresMatchRows } from "../src/server/ai/ask.ts";
+import { openDb } from "../src/server/db/client.ts";
+import { insights, transactions } from "../src/server/db/schema.ts";
+import { validDigestLines, runDetectors } from "../src/server/insights/jobs.ts";
+
+const spec = askSpecSchema.safeParse({ metric: "sum", filters: { category: "Food" }, groupBy: "month", period: "last_3_months" });
+assert.equal(spec.success, true);
+assert.equal(askSpecSchema.safeParse({ metric: "sum", filters: { card: "2047" } }).success, false);
+assert.equal(figuresMatchRows("Total is ₹1,200.", [{ value: 1200 }]), true);
+assert.equal(figuresMatchRows("Total is ₹1,201.", [{ value: 1200 }]), false);
+assert.equal(validDigestLines([{ pre: "", num: "42 rows", post: "", factKey: "backlog" }, { pre: "", num: "Food ₹900", post: "", factKey: "category" }, { pre: "", num: "Shop at 40%", post: "", factKey: "merchant" }], { backlog: "42 rows", category: "Food ₹900", merchant: "Shop at 40%" }), true);
+
+const db = openDb(":memory:");
+const now = new Date();
+const date = (days: number) => new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
+for (let week = 1; week <= 8; week++) await db.insert(transactions).values({ source: "manual", type: "expense", amount: 100, merchant: "Test store", category: "Food", date: `${date(week * 7)} 12:00` });
+await db.insert(transactions).values({ source: "manual", type: "expense", amount: 300, merchant: "Test store", category: "Food", date: `${date(1)} 12:00` });
+await runDetectors(db);
+const unusual = await db.select().from(insights).where(eq(insights.detector, "unusual"));
+assert.ok(unusual.length >= 1);
+console.log("ai checks passed");
