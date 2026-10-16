@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edit recurring</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1260px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; padding: 16px 20px 8px 8px">
+    <a href="Recurring.dc.html" aria-label="Back to recurring" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 24px">Edit recurring</h1>
+  </header>
+
+  <section style="margin: 8px 20px 0; padding-bottom: 16px; border-bottom: 3px double #1C2230; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 30px; font-weight: 500">Netflix</span>
+      <span style="font-size: 14px; color: #4A5163">Next: <strong style="color: #1C2230; font-weight: 600">Mon 19 Oct</strong>, from the last 6 payments</span>
+    </div>
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px">₹649</span>
+  </section>
+
+  <section style="padding: 20px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="se-name" style="font-size: 13px; color: #4A5163">Name</label>
+      <input id="se-name" value="Netflix" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 13px; color: #4A5163">Kind</span>
+      <div role="radiogroup" aria-label="Kind" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{kinds}}" as="k" hint-placeholder-count="5">
+          <button type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}" style="min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{k.border}}; background: {{k.bg}}; color: {{k.fg}}">{{k.name}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="se-amt" style="font-size: 13px; color: #4A5163">Expected amount</label>
+        <input id="se-amt" value="₹649" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="se-tol" style="font-size: 13px; color: #4A5163">Allow change of</label>
+        <input id="se-tol" value="±10%" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="se-cad" style="font-size: 13px; color: #4A5163">Repeats</label>
+        <input id="se-cad" value="Monthly" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="se-day" style="font-size: 13px; color: #4A5163">Usual day</label>
+        <input id="se-day" value="19" inputmode="numeric" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="se-match" style="font-size: 13px; color: #4A5163">Match merchant</label>
+      <input id="se-match" value="NETFLIX" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #1C2230">
+    </div>
+    <div role="radiogroup" aria-label="Status" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+      <sc-for list="{{status}}" as="t" hint-placeholder-count="2">
+        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <h2 style="margin: 0; padding-bottom: 8px; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272">Last payments</h2>
+    <sc-for list="{{history}}" as="h" hint-placeholder-count="4">
+      <div style="display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 44px; border-bottom: 1px solid #E2DED3; font-size: 14px">
+        <span style="color: #4A5163">{{h.date}}</span>
+        <span style="font-size: 13px; font-weight: 500; color: {{h.color}}">{{h.status}}</span>
+        <span style="font-weight: 500">{{h.amount}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <div style="padding: 24px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <button type="button" style="min-height: 52px; border-radius: 12px; border: 1px solid #A3402D; background: transparent; color: #A3402D; font-size: 15px; font-weight: 500">Delete</button>
+    <a href="Recurring.dc.html" style="grid-column: span 2; min-height: 52px; border-radius: 12px; background: #1C2230; display: flex; align-items: center; justify-content: center; color: #F6F4EE; font-size: 15px; font-weight: 500; text-decoration: none">Save</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1260}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kind: 'Subscription', status: 'Active' };
+  }
+  renderVals() {
+    const s = this.state;
+    const kinds = ['Subscription', 'Bill', 'SIP', 'EMI', 'Insurance'].map((k) => {
+      const on = k === s.kind;
+      return { name: k, on, bg: on ? '#2F4A7A' : '#FBFAF6', fg: on ? '#FFFFFF' : '#1C2230', border: on ? '#2F4A7A' : '#8A8576', pick: () => this.setState({ kind: k }) };
+    });
+    const status = ['Active', 'Paused'].map((t) => {
+      const on = t === s.status;
+      return { name: t, on, bg: on ? '#FBFAF6' : 'transparent', fg: on ? '#1C2230' : '#4A5163', shadow: on ? '0 1px 2px rgba(28,34,48,0.12)' : 'none', pick: () => this.setState({ status: t }) };
+    });
+    return {
+      kinds, status,
+      history: [
+        { date: '19 Sept', status: 'Cleared', color: '#2D6B4A', amount: '₹649' },
+        { date: '21 Aug', status: 'Cleared late · 2 days', color: '#7A4F0E', amount: '₹649' },
+        { date: '19 Jul', status: 'Cleared · up ₹150', color: '#7A4F0E', amount: '₹649' },
+        { date: '19 Jun', status: 'Cleared', color: '#2D6B4A', amount: '₹499' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

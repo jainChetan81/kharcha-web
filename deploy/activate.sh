@@ -24,7 +24,8 @@ rollback() {
 }
 trap rollback ERR
 if test "$mode" != --app-only; then
-  sudo -n install -m 644 "$config/kharcha-web.service" "$config/kharcha-web-autodeploy.service" "$config/kharcha-web-autodeploy.timer" /etc/systemd/system/
+  sudo -n install -m 644 "$config/kharcha-web.service" "$config/kharcha-web-autodeploy.service" "$config/kharcha-web-autodeploy.timer" \
+    "$config/kharcha-web-job@.service" "$config"/kharcha-web-job-*.timer /etc/systemd/system/
   sudo -n install -d -m 755 /usr/local/lib/kharcha-web
   sudo -n install -m 755 "$config/activate.sh" /usr/local/lib/kharcha-web/activate.sh
   install -m 755 "$config/autodeploy.sh" /srv/kharcha-web/autodeploy.sh
@@ -44,4 +45,4 @@ curl --fail --silent --retry 5 --retry-connrefused --retry-delay 1 http://127.0.
 trap - ERR
 test "$mode" = --app-only || sudo -n systemctl reload caddy
 # Timer starts only after a good activation, so first install never races its own build.
-test "$mode" = --app-only || sudo -n systemctl enable --now kharcha-web-autodeploy.timer
+test "$mode" = --app-only || sudo -n systemctl enable --now kharcha-web-autodeploy.timer kharcha-web-job-{prices,detectors,digest}.timer

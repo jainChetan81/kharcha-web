@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nifty 50 Index SIP</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 0 8px">
+    <a href="Wealth.dc.html" aria-label="Back to wealth" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <span style="font-size: 13px; color: #4A5163">Kuvera · direct growth</span>
+  </header>
+
+  <section style="margin: 4px 20px 0; padding-bottom: 16px; border-bottom: 3px double #1C2230; display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 28px; line-height: 1.15">Nifty 50 Index</h1>
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 40px; font-weight: 500">₹3,58,400</span>
+      <span style="font-size: 14px; color: #2D6B4A; font-weight: 600">+₹48,400 · +15.6%</span>
+    </div>
+  </section>
+
+  <section style="padding: 16px 20px 0">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: #4A5163"><span>NAV, last 12 months</span><span>{{navLine}}</span></div>
+    <svg viewBox="0 0 340 150" width="350" height="155" role="img" aria-label="NAV over the last year with your monthly SIP purchases marked" style="display: block; margin: 8px -5px 0">
+      <line x1="0" y1="130" x2="340" y2="130" stroke="#D9D5C8"/>
+      <line x1="0" y1="118" x2="340" y2="118" stroke="#2F4A7A" stroke-dasharray="2 3"/>
+      <text x="0" y="113" font-size="9" fill="#2F4A7A" font-family="IBM Plex Sans">Your average cost ₹168.27</text>
+      <polyline points="0,96 28,90 57,99 85,84 113,76 142,70 170,78 198,64 227,58 255,66 283,52 312,44 340,38" fill="none" stroke="#1C2230" stroke-width="2" stroke-linejoin="round"/>
+      <g fill="#F6F4EE" stroke="#2F4A7A" stroke-width="1.5">
+        <circle cx="0" cy="96" r="4"/><circle cx="28.3" cy="90" r="4"/><circle cx="56.7" cy="99" r="4"/><circle cx="85" cy="84" r="4"/><circle cx="113.3" cy="76" r="4"/><circle cx="141.7" cy="70" r="4"/><circle cx="170" cy="78" r="4"/><circle cx="198.3" cy="64" r="4"/><circle cx="226.7" cy="58" r="4"/><circle cx="255" cy="66" r="4"/><circle cx="283.3" cy="52" r="4"/>
+      </g>
+      <circle cx="311.7" cy="44" r="6" fill="#2F4A7A"/>
+      <text x="0" y="145" font-size="9" fill="#5E6272" font-family="IBM Plex Sans">Oct 2025</text>
+      <text x="300" y="145" font-size="9" fill="#5E6272" font-family="IBM Plex Sans">Oct 2026</text>
+    </svg>
+  </section>
+
+  <dl style="margin: 16px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px">
+    <sc-for list="{{stats}}" as="s" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid #E2DED3"><dt style="font-size: 12px; color: #5E6272">{{s.k}}</dt><dd style="margin: 0; font-size: 16px; font-weight: 500">{{s.v}}</dd></div>
+    </sc-for>
+  </dl>
+
+  <section style="margin: 20px 20px 0; padding: 14px 16px; border-radius: 12px; background: #E3E8F1; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+    <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600; color: #1F3459">Next SIP · Tue 20 Oct</span><span style="font-size: 13px; color: #2F4A7A">₹10,000 · UPI autopay from ••0532</span></span>
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; color: #1F3459">32nd</span>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 70px 64px; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272"><span>Date</span><span style="text-align: right">Amount</span><span style="text-align: right">NAV</span><span style="text-align: right">Units</span></div>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+      <div style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 70px 64px; gap: 8px; min-height: 44px; align-items: center; border-bottom: 1px solid #E2DED3; font-size: 14px"><span style="color: #4A5163">{{r.d}}</span><span style="text-align: right; font-weight: 500">₹10,000</span><span style="text-align: right">{{r.nav}}</span><span style="text-align: right">{{r.u}}</span></div>
+    </sc-for>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 11 };
+  }
+  renderVals() {
+    const navs = [176.2, 178.4, 175.1, 180.6, 183.5, 185.8, 182.9, 188.0, 190.2, 187.3, 192.4, 195.3];
+    const ys = [96, 90, 99, 84, 76, 70, 78, 64, 58, 66, 52, 44];
+    const months = ['20 Oct 25', '20 Nov 25', '20 Dec 25', '20 Jan', '20 Feb', '20 Mar', '20 Apr', '20 May', '20 Jun', '20 Jul', '20 Aug', '20 Sept'];
+    const sel = this.state.sel;
+    return {
+      navLine: months[sel] + ' · NAV ₹' + navs[sel].toFixed(2) + ' · ' + (10000 / navs[sel]).toFixed(2) + ' units',
+      stats: [
+        { k: 'Units', v: '1,842.30' },
+        { k: 'NAV on 15 Oct', v: '₹194.54' },
+        { k: 'Invested', v: '₹3,10,000' },
+        { k: 'Average cost', v: '₹168.27' },
+        { k: 'XIRR', v: '13.2%' },
+        { k: 'Day change', v: '+₹1,010' }
+      ],
+      rows: [
+        { d: '20 Sept', nav: '₹195.30', u: '51.20' },
+        { d: '20 Aug', nav: '₹192.40', u: '51.98' },
+        { d: '20 Jul', nav: '₹187.30', u: '53.39' },
+        { d: '20 Jun', nav: '₹190.20', u: '52.58' },
+        { d: '20 May', nav: '₹188.00', u: '53.19' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

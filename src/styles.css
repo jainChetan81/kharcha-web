@@ -1,18 +1,122 @@
 @import "tailwindcss";
+@import "@fontsource/newsreader/400.css";
+@import "@fontsource/newsreader/500.css";
+@import "@fontsource/newsreader/400-italic.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
 
+/* Ledger tokens: DESIGN.md §3. Light only; every colour stays behind a token. */
 @theme {
-  --color-ink: #1d2433;
-  --color-paper: #f6f5f1;
-  --color-line: #e2e0d8;
-  --color-brand: #2f4a7a;
-  --color-spend: #a5402d;
-  --color-earn: #2d7a52;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #F6F4EE;
+  --color-card: #FBFAF6;
+  --color-sunken: #EEEBE2;
+  --color-rule: #D9D5C8;
+  --color-hairline: #E2DED3;
+  --color-field: #8A8576;
+  --color-ink: #1C2230;
+  --color-ink-2: #4A5163;
+  --color-ink-3: #5E6272;
+  --color-brand: #2F4A7A;
+  --color-brand-deep: #1F3459;
+  --color-brand-soft: #E3E8F1;
+  --color-earn: #2D6B4A;
+  --color-over: #A3402D;
+  --color-watch: #8A5A12;
+  --color-watch-text: #7A4F0E;
+  --color-watch-soft: #F4E9D2;
+  --color-trip: #1F3B4D;
+  --color-trip-muted: #C8D3DA;
+
+  --color-on-ink: #F6F4EE;
+  --color-on-ink-2: #A9AEBB;
+  --color-on-ink-month: #F2C879;
+  --color-on-ink-gain: #8FD1A8;
+  --color-on-ink-pace: #8FA6CF;
+
+  --color-cat-food: #B4572E;
+  --color-cat-shopping: #6B4C8A;
+  --color-cat-transport: #2F6F8F;
+  --color-cat-utilities: #8A6A1F;
+  --color-cat-entertainment: #9B3D5C;
+  --color-cat-home: #4F7A4A;
+  --color-cat-health: #3D8077;
+  --color-cat-sports: #6B7A2A;
+  --color-cat-work: #55606E;
+  --color-cat-other: #8A8576;
+
+  /* Day-ring and heat scale, light to dark. */
+  --color-heat-1: #CFD8E8;
+  --color-heat-2: #B9C6DD;
+  --color-heat-3: #8199BF;
+  --color-heat-4: #4C6A9C;
+  --color-heat-5: #1F3459;
+
+  --radius-chip: 999px;
+  --radius-button: 10px;
+  --radius-card: 12px;
+  --radius-hero: 14px;
+  --radius-sheet: 20px;
+
+  --breakpoint-tablet: 600px;
+  --breakpoint-desk: 840px;
 }
 
-/* ponytail: placeholder look until the Claude Design pass replaces it. */
-body { @apply bg-paper text-ink antialiased; font-family: system-ui, -apple-system, sans-serif; }
+/* shadcn variables mapped onto the ledger tokens. */
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-card);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-ink);
+  --primary-foreground: var(--color-on-ink);
+  --secondary: var(--color-sunken);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-sunken);
+  --muted-foreground: var(--color-ink-3);
+  --accent: var(--color-brand-soft);
+  --accent-foreground: var(--color-brand-deep);
+  --destructive: var(--color-over);
+  --border: var(--color-rule);
+  --input: var(--color-field);
+  --ring: var(--color-brand);
+  --radius: 10px;
+}
+
+html { background: var(--color-paper); }
+body {
+  @apply bg-paper text-ink antialiased font-sans;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+a { color: var(--color-brand); text-decoration: none; }
+a:hover { color: var(--color-brand-deep); }
 :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
-input, select, button { font: inherit; }
-.field { @apply w-full min-h-11 rounded-lg border border-line bg-white px-3; font-size: 16px; }
-.btn { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-brand px-4 font-semibold text-white disabled:opacity-50; }
-.btn-ghost { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-line px-4 font-semibold text-brand; }
+input, select, button, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+@utility label-caps {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+@utility field {
+  min-height: 44px;
+  width: 100%;
+  padding: 0 12px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--color-field);
+  background: #FFFFFF;
+  font-size: 16px;
+  color: var(--color-ink);
+}
+@utility hatch {
+  background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, #E6E2D7 6px 12px);
+}

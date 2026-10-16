@@ -1,57 +1,96 @@
+// Core server functions: shell, transactions, categories, budgets, rules. Feature areas live in
+// src/server/{plan,wealth,insights,ai}/fns.ts. Every function here is behind the auth middleware.
 import { createServerFn } from "@tanstack/react-start";
+import { and, count, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db/client";
 import {
-  addSchema,
-  addTxn,
-  budgetSchema,
-  categoryNames,
-  editSchema,
-  editTxn,
-  listSchema,
-  listTxns,
-  monthSchema,
-  monthSummary,
-  removeTxn,
-  setBudget,
+  addRule, addSchema, addTxn, budgetSchema, categoryList, editSchema, editTxn, flagSchema, flagTxn, getTxn, listSchema,
+  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget,
 } from "./db/queries";
+import { transactions, trips } from "./db/schema";
+import { afterWrite } from "./jobs";
 
-export const getOverview = createServerFn({ method: "GET" })
-  .validator(z.object({ month: monthSchema }))
-  .handler(async ({ data }) => {
-    const db = getDb();
-    const [summary, recent] = await Promise.all([
-      monthSummary(db, data.month),
-      listTxns(db, { month: data.month, limit: 15 }),
-    ]);
-    return { summary, recent };
-  });
+const id = z.object({ id: z.number().int().positive() });
+const localToday = () => {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+/** Shell data on every page: review count and the trip card (active, or starting within 7 days). */
+export const getShell = createServerFn({ method: "GET" }).handler(async () => {
+  const db = getDb();
+  const today = localToday();
+  const week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const [[review], trip] = await Promise.all([
+    db.select({ n: count() }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+    db
+      .select()
+      .from(trips)
+      .where(and(isNull(trips.endedAt), gte(trips.endDate, today), lte(trips.startDate, week)))
+      .orderBy(trips.startDate)
+      .get(),
+  ]);
+  return {
+    reviewCount: review?.n ?? 0,
+    trip: trip
+      ? { id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate, autoTag: trip.autoTag, active: trip.startDate <= today }
+      : null,
+  };
+});
 
 export const getTransactions = createServerFn({ method: "GET" })
-  .validator(listSchema)
-  .handler(async ({ data }) => {
-    const db = getDb();
-    const [transactions, categories] = await Promise.all([
-      listTxns(db, { ...data, limit: 500, withRaw: true }),
-      categoryNames(db),
-    ]);
-    return { transactions, categories };
-  });
+  .validator(listSchema.extend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
+  .handler(({ data }) => listTxns(getDb(), { ...data, limit: data.limit ?? 500 }));
 
-export const getCategories = createServerFn({ method: "GET" }).handler(() => categoryNames(getDb()));
+export const getTransaction = createServerFn({ method: "GET" })
+  .validator(id)
+  .handler(async ({ data }) => (await getTxn(getDb(), data.id)) ?? null);
+
+export const getCategories = createServerFn({ method: "GET" }).handler(() => categoryList(getDb()));
 
 export const saveEdit = createServerFn({ method: "POST" })
   .validator(editSchema)
-  .handler(({ data }) => editTxn(getDb(), data));
+  .handler(async ({ data }) => {
+    await editTxn(getDb(), data);
+    await afterWrite([data.id]);
+  });
+
+export const flagTransaction = createServerFn({ method: "POST" })
+  .validator(flagSchema)
+  .handler(({ data }) => flagTxn(getDb(), data));
 
 export const addTransaction = createServerFn({ method: "POST" })
   .validator(addSchema)
-  .handler(({ data }) => addTxn(getDb(), data));
+  .handler(async ({ data }) => {
+    const newId = await addTxn(getDb(), data);
+    await afterWrite([newId]);
+    return newId;
+  });
 
 export const deleteTransaction = createServerFn({ method: "POST" })
-  .validator(z.object({ id: z.number().int().positive() }))
+  .validator(id)
   .handler(({ data }) => removeTxn(getDb(), data.id));
+
+export const restoreTransaction = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(({ data }) => restoreTxn(getDb(), data.id));
 
 export const saveBudget = createServerFn({ method: "POST" })
   .validator(budgetSchema)
   .handler(({ data }) => setBudget(getDb(), data));
+
+/** "Always file X as Y" from Review/Edit: creates the rule and files the source row. */
+export const createRule = createServerFn({ method: "POST" })
+  .validator(ruleSchema)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const ruleId = await addRule(db, data);
+    if (data.createdFromTxnId)
+      await db
+        .update(transactions)
+        .set({ category: data.category, merchant: data.displayMerchant, needsReview: false, editedAt: sql`(datetime('now'))` })
+        .where(eq(transactions.id, data.createdFromTxnId));
+    return ruleId;
+  });

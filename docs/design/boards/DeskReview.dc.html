@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kharcha desktop review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <aside style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; padding: 28px 16px; border-right: 1px solid #D9D5C8; background: #FBFAF6; display: flex; flex-direction: column; gap: 24px">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; padding: 0 12px">Kharcha</span>
+    <nav aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+        <a href="{{n.href}}" aria-current="{{n.current}}" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: {{n.bg}}; color: {{n.fg}}; font-weight: {{n.weight}}"><span>{{n.label}}</span><span style="font-size: 13px; color: #2F4A7A; font-weight: 600">{{n.badge}}</span></a>
+      </sc-for>
+    </nav>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 12px"><span style="align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #EEEBE2; font-size: 12px; color: #4A5163"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2D6B4A"></span>Synced 3 min ago</span><a href="Settings.dc.html" style="align-self: flex-start; min-height: 40px; display: flex; align-items: center; color: #2F4A7A; font-size: 14px; font-weight: 500; text-decoration: none">Settings</a></div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 40px; display: flex; flex-direction: column; gap: 16px">
+    <header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between">
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 30px">Review <span style="color: #5E6272; font-size: 22px">{{remaining}}</span></h1>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #4A5163">
+        <sc-for list="{{keys}}" as="k" hint-placeholder-count="5">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="font-family: 'IBM Plex Mono', monospace; padding: 2px 6px; border-radius: 4px; border: 1px solid #CFCABB; background: #FBFAF6; color: #1C2230">{{k.key}}</span>{{k.label}}</span>
+        </sc-for>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 52px; padding: 0 12px; border-radius: 10px; background: {{barBg}}; border: 1px solid #D9D5C8">
+      <span style="font-size: 14px; color: #1C2230; font-weight: 500">{{selectedLabel}}</span>
+      <button type="button" onClick="{{confirmChecked}}" disabled="{{noneChecked}}" style="min-height: 36px; padding: 0 14px; border-radius: 8px; border: 0; background: {{bulkBg}}; color: #F6F4EE; font-size: 14px; font-weight: 500">Confirm suggested</button>
+      <button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230; font-size: 14px">Set category…</button>
+      <button type="button" onClick="{{checkAll}}" style="margin-left: auto; min-height: 36px; padding: 0 12px; border: 0; background: transparent; color: #2F4A7A; font-size: 14px; font-weight: 500">Select all</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 3 1 560px; min-width: 0; overflow-x: auto">
+        <div role="list" style="min-width: 560px">
+          <div style="display: grid; grid-template-columns: 36px 64px minmax(0, 1fr) 64px 120px 84px; gap: 12px; align-items: center; min-height: 36px; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272">
+            <span></span><span>Date</span><span>Merchant</span><span>Card</span><span>Suggested</span><span style="text-align: right">Amount</span>
+          </div>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+            <div role="listitem" style="display: grid; grid-template-columns: 36px 64px minmax(0, 1fr) 64px 120px 84px; gap: 12px; align-items: center; min-height: 40px; border-bottom: 1px solid #E2DED3; font-size: 14px; background: {{r.bg}}; box-shadow: {{r.ring}}; opacity: {{r.opacity}}">
+              <input type="checkbox" aria-label="{{r.aria}}" checked="{{r.checked}}" onChange="{{r.check}}" style="width: 18px; height: 18px; margin: 0 0 0 8px; accent-color: #2F4A7A">
+              <span style="color: #5E6272">{{r.date}}</span>
+              <button type="button" onClick="{{r.select}}" style="border: 0; background: transparent; padding: 0; min-height: 40px; text-align: left; font-weight: 500; color: #1C2230; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.merchant}}</button>
+              <span style="color: #5E6272">{{r.card}}</span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{r.color}}"></span>{{r.status}}</span>
+              <span style="text-align: right; font-weight: 500">{{r.amount}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <section aria-label="Selected transaction" style="flex: 1 1 320px; min-width: 0; padding: 20px; border-radius: 12px; background: #FBFAF6; border: 1px solid #CFCABB; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 3px double #1C2230; padding-bottom: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 500">{{cur.merchant}}</span><span style="font-size: 13px; color: #5E6272">{{cur.date}} · Card {{cur.card}}</span></div>
+          <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500">{{cur.amount}}</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{chips}}" as="c" hint-placeholder-count="9">
+            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; font-size: 13px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+          </sc-for>
+        </div>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px"><input type="checkbox" checked="{{true}}" style="width: 18px; height: 18px; margin: 0; accent-color: #2F4A7A">Always file this merchant as {{curCat}}</label>
+        <p style="margin: 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.5; color: #3E4352">{{cur.sms}}</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button type="button" onClick="{{confirmCur}}" style="flex: 1; min-height: 44px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 15px; font-weight: 500">Confirm · {{curCat}}</button>
+          <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: transparent; color: #1C2230; font-size: 14px">Not a spend</button>
+          <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: transparent; color: #1C2230; font-size: 14px">Duplicate</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 0, checked: {}, done: {}, picks: {} };
+  }
+  renderVals() {
+    const colors = { Food: '#B4572E', Shopping: '#6B4C8A', Transport: '#2F6F8F', Utilities: '#8A6A1F', Entertainment: '#9B3D5C', Home: '#4F7A4A', Health: '#3D8077', Work: '#55606E', Other: '#8A8576' };
+    const data = [
+      { date: '15 Oct', merchant: 'Swiggy Instamart', card: '••2047', amount: '₹219', suggest: 'Food', sms: 'Rs.219.00 spent on card xx2047 at SWIGGY INSTAMART on 15-10-26 14:44.' },
+      { date: '15 Oct', merchant: 'METAPAY* SZ9LV96VF4', card: '••2047', amount: '₹203', suggest: 'Other', sms: 'Rs.203.00 spent on card xx2047 at METAPAY* SZ9LV96VF4 on 15-10-26 14:32.' },
+      { date: '13 Oct', merchant: 'Swiggy Instamart', card: '••2047', amount: '₹510', suggest: 'Food', sms: 'Rs.510.00 spent on card xx2047 at SWIGGY INSTAMART on 13-10-26 22:50.' },
+      { date: '13 Oct', merchant: 'SWIGGY E COM', card: '••2047', amount: '₹458', suggest: 'Food', sms: 'Rs.458.00 spent on card xx2047 at SWIGGY E COM on 13-10-26 17:43.' },
+      { date: '13 Oct', merchant: 'GOOGLECLOUD', card: '••3266', amount: '₹2', suggest: 'Work', sms: 'Rs.2.00 spent on card xx3266 at GOOGLECLOUD on 13-10-26 13:52.' },
+      { date: '13 Oct', merchant: 'STAR BIKE SERVICE', card: '••0532', amount: '₹150', suggest: 'Transport', sms: 'Rs.150.00 debited from a/c xx0532 to STAR BIKE SERVICE on 13-10-26 12:51 via UPI.' },
+      { date: '12 Oct', merchant: 'IBIBO GROUP', card: '••3266', amount: '₹6,937', suggest: 'Transport', sms: 'Rs.6,937.00 spent on card xx3266 at IBIBO GROUP on 12-10-26 19:03.' },
+      { date: '12 Oct', merchant: 'Swiggy Instamart', card: '••2047', amount: '₹216', suggest: 'Food', sms: 'Rs.216.00 spent on card xx2047 at SWIGGY INSTAMART on 12-10-26 11:23.' },
+      { date: '24 Sept', merchant: 'Openrouter', card: '••3266', amount: '₹4,304', suggest: 'Work', sms: 'Txn of USD 48.90 on card xx3266 at OPENROUTER INC on 24-09-26 12:43.' }
+    ];
+    const s = this.state;
+    const catOf = (i) => s.picks[i] || data[i].suggest;
+    const checkedIdx = Object.keys(s.checked).filter((k) => s.checked[k] && !s.done[k]);
+    const doneCount = Object.keys(s.done).length;
+    const advance = (done) => {
+      let next = s.sel;
+      for (let j = 1; j <= data.length; j++) { const c = (s.sel + j) % data.length; if (!done[c]) { next = c; break; } }
+      return next;
+    };
+    const rows = data.map((d, i) => {
+      const isDone = !!s.done[i];
+      const isSel = i === s.sel;
+      return Object.assign({}, d, {
+        aria: 'Select ' + d.merchant + ' ' + d.amount,
+        checked: !!s.checked[i],
+        status: isDone ? 'Filed · ' + catOf(i) : catOf(i),
+        color: colors[catOf(i)],
+        bg: isSel ? '#E3E8F1' : 'transparent',
+        ring: isSel ? 'inset 3px 0 0 #2F4A7A' : 'none',
+        opacity: isDone ? '0.45' : '1',
+        check: () => this.setState({ checked: Object.assign({}, s.checked, { [i]: !s.checked[i] }) }),
+        select: () => this.setState({ sel: i })
+      });
+    });
+    const cur = data[s.sel];
+    const curCat = catOf(s.sel);
+    const nav = (label, href, on, badge) => ({ label, href, badge: badge || '', current: on ? 'page' : 'false', bg: on ? '#E3E8F1' : 'transparent', fg: on ? '#1F3459' : '#1C2230', weight: on ? '600' : '400' });
+    return {
+      nav: [nav('Today', 'DeskHome.dc.html', false), nav('Review', 'DeskReview.dc.html', true, String(115 - doneCount)), nav('Activity', 'DeskHistory.dc.html', false), nav('Plan', 'DeskPlan.dc.html', false), nav('Wealth', 'DeskWealth.dc.html', false), nav('Insights', 'DeskInsights.dc.html', false), nav('Ask', 'DeskAsk.dc.html', false)],
+      keys: [{ key: 'J K', label: 'move' }, { key: 'X', label: 'select' }, { key: 'R', label: 'confirm' }, { key: 'C', label: 'category' }, { key: 'E', label: 'not a spend' }],
+      remaining: String(115 - doneCount),
+      rows, cur, curCat,
+      selectedLabel: checkedIdx.length ? checkedIdx.length + ' selected' : 'Nothing selected',
+      noneChecked: checkedIdx.length === 0,
+      barBg: checkedIdx.length ? '#E3E8F1' : '#FBFAF6',
+      bulkBg: checkedIdx.length ? '#1C2230' : '#5E6272',
+      checkAll: () => { const c = {}; data.forEach((_, i) => { if (!s.done[i]) c[i] = true; }); this.setState({ checked: c }); },
+      confirmChecked: () => { const d = Object.assign({}, s.done); checkedIdx.forEach((k) => { d[k] = true; }); this.setState({ done: d, checked: {}, sel: advance(d) }); },
+      confirmCur: () => { const d = Object.assign({}, s.done, { [s.sel]: true }); this.setState({ done: d, sel: advance(d) }); },
+      chips: Object.keys(colors).map((c) => {
+        const on = c === curCat;
+        return { name: c, on, bg: on ? '#2F4A7A' : '#FBFAF6', fg: on ? '#FFFFFF' : '#1C2230', border: on ? '#2F4A7A' : '#8A8576', pick: () => this.setState({ picks: Object.assign({}, s.picks, { [s.sel]: c }) }) };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trip · Odisha</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1560px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <section style="background: #1F3B4D; color: #F6F4EE; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden">
+    <svg width="390" height="220" viewBox="0 0 390 220" aria-hidden="true" style="position: absolute; left: 0; top: 0; opacity: 0.16">
+      <path d="M0 150 Q 60 130 120 150 T 240 150 T 390 140" fill="none" stroke="#F6F4EE" stroke-width="1"/>
+      <path d="M0 165 Q 60 145 120 165 T 240 165 T 390 155" fill="none" stroke="#F6F4EE" stroke-width="1"/>
+      <path d="M0 180 Q 60 160 120 180 T 240 180 T 390 170" fill="none" stroke="#F6F4EE" stroke-width="1"/>
+      <path d="M0 195 Q 60 175 120 195 T 240 195 T 390 185" fill="none" stroke="#F6F4EE" stroke-width="1"/>
+      <circle cx="320" cy="60" r="34" fill="none" stroke="#F6F4EE" stroke-width="1"/>
+    </svg>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: center; margin-left: -12px">
+      <a href="Trips.dc.html" aria-label="Back to trips" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #F6F4EE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <span style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(246,244,238,0.14); font-size: 12px"><span style="width: 7px; height: 7px; border-radius: 999px; background: #8FD1A8"></span>Auto-tagging on</span>
+    </div>
+    <div style="position: relative; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #C8D3DA">Trip · day 4 of 6</span>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 44px; line-height: 1; letter-spacing: -0.01em">Odisha</h1>
+      <span style="font-size: 14px; color: #C8D3DA">Sun 18 – Fri 23 Oct · Puri, Konark, Chilika</span>
+    </div>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: flex-end">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #C8D3DA">Spent on the trip</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 40px; font-weight: 500; line-height: 1">₹14,860</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px; color: #C8D3DA">
+        <span>of ₹25,000</span>
+        <span style="color: #F6F4EE; font-weight: 600">₹5,070 / day left</span>
+      </div>
+    </div>
+    <div style="position: relative; height: 8px; border-radius: 4px; background: rgba(246,244,238,0.18)">
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 59.4%; border-radius: 4px; background: #F6F4EE"></div>
+      <div style="position: absolute; left: 66.7%; top: -4px; width: 2px; height: 16px; background: #8FD1A8"></div>
+    </div>
+  </section>
+
+  <section style="padding: 20px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1C2230; padding-bottom: 8px">
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">By day</h2>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5E6272"><span style="width: 14px; border-top: 2px dotted #2F4A7A"></span>₹4,167 daily budget</span>
+    </div>
+    <div style="position: relative; height: 150px; margin-top: 12px">
+      <div style="position: absolute; left: 0; right: 0; top: 66.7px; border-top: 2px dotted #2F4A7A"></div>
+      <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-items: end">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="6">
+          <button type="button" onClick="{{d.pick}}" aria-pressed="{{d.on}}" aria-label="{{d.aria}}" style="height: 100%; border: 0; padding: 0; background: transparent; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 4px">
+            <span style="font-size: 11px; color: #4A5163; text-align: center">{{d.short}}</span>
+            <span style="display: block; height: {{d.h}}; border-radius: 4px 4px 0 0; background: {{d.bg}}; border: {{d.border}}; box-sizing: border-box"></span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 6px">
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="6">
+        <span style="text-align: center; font-size: 12px; font-weight: {{d.weight}}; color: {{d.fg}}">{{d.label}}</span>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1C2230; padding-bottom: 8px">
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">{{dayTitle}}</h2>
+      <span style="font-size: 14px; font-weight: 600">{{dayTotal}}</span>
+    </div>
+    <sc-for list="{{rows}}" as="t" hint-placeholder-count="5">
+      <a href="Detail.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-bottom: 1px solid #E2DED3; color: #1C2230; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">{{t.m}}</span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5E6272"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{t.color}}"></span>{{t.meta}}</span></span>
+        <span style="font-size: 15px; font-weight: 500">{{t.a}}</span>
+      </a>
+    </sc-for>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="border-bottom: 1px solid #1C2230; padding-bottom: 8px"><h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Where it went</h2></div>
+    <div style="display: flex; height: 28px; margin-top: 12px; border-radius: 6px; overflow: hidden; gap: 2px">
+      <span style="flex: 5640; background: #2F6F8F"></span>
+      <span style="flex: 5630; background: #B4572E"></span>
+      <span style="flex: 1450; background: #9B3D5C"></span>
+      <span style="flex: 1320; background: #6B4C8A"></span>
+      <span style="flex: 820; background: #8A8576"></span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin-top: 12px; font-size: 14px">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+        <span style="display: flex; justify-content: space-between; gap: 8px"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{c.color}}"></span>{{c.name}}</span><span style="font-weight: 500">{{c.amount}}</span></span>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="margin: 24px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="padding: 14px 16px; border-radius: 12px; background: #FBFAF6; border: 1px solid #D9D5C8; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Getting there · ₹7,840</span><span style="font-size: 13px; color: #4A5163">IndiGo, booked 2 Oct. Tagged, not in the daily budget.</span></span>
+    </div>
+    <div style="padding: 14px 16px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 15px; font-weight: 500">Left out · 2 recurring payments</span>
+      <span style="font-size: 13px; line-height: 1.5; color: #4A5163">Nifty 50 SIP ₹10,000 on 20 Oct and Netflix ₹649 on 19 Oct ran during the trip. They stay out of Odisha.</span>
+    </div>
+  </section>
+
+  <div style="padding: 24px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <a href="TripStart.dc.html" style="min-height: 48px; border-radius: 12px; border: 1px solid #1C2230; display: flex; align-items: center; justify-content: center; color: #1C2230; font-size: 15px; font-weight: 500; text-decoration: none">Edit trip</a>
+    <button type="button" style="min-height: 48px; border-radius: 12px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 15px; font-weight: 500">End trip now</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { day: 3 };
+  }
+  renderVals() {
+    const C = { Food: '#B4572E', Transport: '#2F6F8F', Shopping: '#6B4C8A', Entertainment: '#9B3D5C', Other: '#8A8576' };
+    const t = (m, time, cat, a) => ({ m, meta: time + ' · ' + cat, a, color: C[cat] });
+    const data = [
+      { label: '18', short: '3.9K', name: 'Sun 18 Oct', total: 3920, rows: [t('Rapido to BLR airport', '05:10', 'Transport', '₹620'), t('Airport café', '06:40', 'Food', '₹480'), t('Prepaid taxi, BBI to Puri', '11:20', 'Transport', '₹1,900'), t('Wildgrass', '20:30', 'Food', '₹920')] },
+      { label: '19', short: '2.5K', name: 'Mon 19 Oct', total: 2480, rows: [t('Breakfast', '08:30', 'Food', '₹260'), t('Beach shack', '13:10', 'Food', '₹540'), t('Auto', '16:00', 'Transport', '₹240'), t('Shell craft stall', '17:45', 'Shopping', '₹620'), t('Dinner', '21:00', 'Food', '₹820')] },
+      { label: '20', short: '4.6K', name: 'Tue 20 Oct', total: 4610, rows: [t('Cab to Chilika', '07:30', 'Transport', '₹1,230'), t('Chilika boat ride', '10:00', 'Entertainment', '₹1,370'), t('Lunch at Satapada', '13:30', 'Food', '₹640'), t('Hotel laundry', '18:00', 'Other', '₹820'), t('Dinner', '21:15', 'Food', '₹550')] },
+      { label: '21', short: '3.9K', name: 'Today · Wed 21 Oct', total: 3850, rows: [t('Uber, Puri to Konark', '08:15', 'Transport', '₹1,650'), t('Sun Temple tickets', '09:30', 'Entertainment', '₹80'), t('Chai and snacks', '11:00', 'Food', '₹180'), t('Pipli applique work', '15:20', 'Shopping', '₹700'), t('Dalma', '20:40', 'Food', '₹1,240')] },
+      { label: '22', short: '', name: 'Thu 22 Oct', total: 0, rows: [] },
+      { label: '23', short: '', name: 'Fri 23 Oct', total: 0, rows: [] }
+    ];
+    const MAX = 6000, H = 120;
+    const sel = this.state.day;
+    const d = data[sel];
+    return {
+      days: data.map((x, i) => {
+        const on = i === sel;
+        const future = x.total === 0;
+        return {
+          label: x.label, short: future ? '' : x.short,
+          h: future ? '6px' : (x.total / MAX * H).toFixed(0) + 'px',
+          bg: future ? 'transparent' : on ? '#1C2230' : '#8199BF',
+          border: future ? '1px dashed #8A8576' : '0',
+          on, weight: on ? '600' : '400', fg: on ? '#1C2230' : '#5E6272',
+          aria: x.name + (future ? ', upcoming' : ', ₹' + x.total.toLocaleString('en-IN')),
+          pick: () => this.setState({ day: i })
+        };
+      }),
+      dayTitle: d.name,
+      dayTotal: d.total ? '₹' + d.total.toLocaleString('en-IN') : 'Not yet',
+      rows: d.rows,
+      cats: [
+        { name: 'Transport', color: C.Transport, amount: '₹5,640' },
+        { name: 'Food', color: C.Food, amount: '₹5,630' },
+        { name: 'Entertainment', color: C.Entertainment, amount: '₹1,450' },
+        { name: 'Shopping', color: C.Shopping, amount: '₹1,320' },
+        { name: 'Other', color: C.Other, amount: '₹820' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

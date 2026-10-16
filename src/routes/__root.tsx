@@ -1,13 +1,14 @@
-import {
-  createRootRoute,
-  HeadContent,
-  Link,
-  Outlet,
-  Scripts,
-  useRouterState,
-  type ErrorComponentProps,
-} from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
+import { Dialog } from "radix-ui";
+import { MotionConfig } from "motion/react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { AppShell } from "../components/app-shell";
+import { Pwa, setBadge } from "../components/pwa";
+import { Snackbars } from "../components/sheet";
+import { HealthProvider, useHealth } from "../components/sync-pill";
+import { Button } from "../components/ui";
+import { KEYS, useGlobalKeys } from "../keybindings";
+import { getShell } from "../server/fns";
 import stylesheet from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -16,7 +17,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Kharcha" },
-      { name: "theme-color", content: "#2f4a7a" },
+      { name: "theme-color", content: "#1C2230" },
       { name: "robots", content: "noindex" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -35,6 +36,7 @@ export const Route = createRootRoute({
     "Referrer-Policy": "no-referrer",
     "Content-Security-Policy": "frame-ancestors 'none'",
   }),
+  loader: () => getShell(),
   shellComponent: Document,
   component: Layout,
   errorComponent: RootError,
@@ -45,68 +47,59 @@ export const Route = createRootRoute({
   ),
 });
 
-const tabs = [
-  { to: "/", label: "Today" },
-  { to: "/history", label: "History" },
-  { to: "/budgets", label: "Budgets" },
-  { to: "/add", label: "Add" },
-] as const;
-
 function Layout() {
+  const shell = Route.useLoaderData();
   const onLogin = useRouterState({ select: (s) => s.location.pathname === "/login" });
-  useEffect(() => {
-    if ("serviceWorker" in navigator)
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-  }, []);
+  const health = useHealth();
+  const [help, setHelp] = useState(false);
+  const openHelp = useCallback(() => setHelp(true), []);
+  useGlobalKeys(openHelp);
+  useEffect(() => setBadge(shell.reviewCount), [shell.reviewCount]);
   if (onLogin) return <Outlet />;
   return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col">
-      <main className="flex-1 px-4 pt-6 pb-24">
-        <Outlet />
-        <form method="post" action="/api/logout" className="mt-10 text-center">
-          <button type="submit" className="text-sm text-ink/50 underline">Sign out</button>
-        </form>
-      </main>
-      <nav
-        aria-label="Main"
-        className="fixed inset-x-0 bottom-0 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)]"
-      >
-        <ul className="mx-auto flex max-w-xl">
-          {tabs.map((t) => (
-            <li key={t.to} className="flex-1">
-              <Link
-                to={t.to}
-                className="flex min-h-14 items-center justify-center text-sm font-semibold text-ink/60"
-                activeProps={{ className: "text-brand", "aria-current": "page" }}
-                activeOptions={{ exact: true }}
-              >
-                {t.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+    <MotionConfig reducedMotion="user">
+      <HealthProvider value={health}>
+        <AppShell data={shell}>
+          <Outlet />
+        </AppShell>
+        <Snackbars />
+        <Pwa />
+        <ShortcutsDialog open={help} onOpenChange={setHelp} />
+      </HealthProvider>
+    </MotionConfig>
+  );
+}
+
+function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/45" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-sheet bg-card p-6 text-ink">
+          <Dialog.Title className="m-0 font-serif text-[22px] font-medium">Shortcuts</Dialog.Title>
+          <Dialog.Description className="sr-only">Keyboard shortcuts</Dialog.Description>
+          <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
+            {KEYS.map((k) => (
+              <div key={k.key} className="contents">
+                <dt><kbd className="rounded border border-[#CFCABB] bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
+                <dd className="m-0">{k.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
 function RootError({ error, reset }: ErrorComponentProps) {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
-    <main className="p-6" role="alert">
-      <h1 className="text-xl font-semibold">Kharcha could not load</h1>
-      <p className="mt-2 text-ink/70">
-        {offline ? "You are offline." : error instanceof Error ? error.message : "Something went wrong."}
+    <main role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
+      <p className="m-0 font-serif text-2xl leading-snug">
+        {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
       </p>
-      <div className="mt-4 flex gap-2">
-        <button type="button" className="btn" onClick={reset}>
-          Try again
-        </button>
-        {/* A 401 from an expired session lands here; a full load hits the login redirect. */}
-        <a className="btn-ghost" href="/login">
-          Sign in
-        </a>
-      </div>
+      <Button onClick={reset} className="min-h-12 px-7 text-base">Retry</Button>
     </main>
   );
 }

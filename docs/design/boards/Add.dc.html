@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add transaction</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 880px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <div style="position: absolute; left: 0; right: 0; top: 0; height: 120px; padding: 24px 20px; box-sizing: border-box; font-family: 'Newsreader', Georgia, serif; font-size: 22px; color: #1C2230">October 2026</div>
+  <a href="Main.dc.html" aria-label="Close" style="position: absolute; inset: 0; background: rgba(28,34,48,0.45)"></a>
+
+  <section role="dialog" aria-label="Add transaction" style="position: absolute; left: 0; right: 0; bottom: 0; top: 64px; background: #FBFAF6; border-radius: 20px 20px 0 0; padding: 8px 16px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: #CFCABB; align-self: center"></div>
+
+    <div role="radiogroup" aria-label="Type" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="3">
+        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 4px 4px 0; border-bottom: 3px double #1C2230">
+      <span style="font-size: 14px; color: #5E6272; min-height: 20px; font-family: 'IBM Plex Mono', monospace">{{exprShown}}</span>
+      <div style="display: flex; align-items: baseline; gap: 2px; padding-bottom: 6px">
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; color: #5E6272">{{sign}}₹</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: -0.02em; color: {{amountColor}}">{{total}}</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="add-merchant" style="font-size: 13px; color: #4A5163">Merchant</label>
+      <input id="add-merchant" value="Swiggy Instamart" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      <span style="font-size: 13px; color: #4A5163">Last time: Food · Card ••2047</span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
+        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Today, 22:35</button>
+      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Card ••2047</button>
+      <button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: transparent; font-size: 13px; color: #1C2230">Note</button>
+      <a href="Receipt.dc.html" style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none">Receipt</a>
+      <a href="Paste.dc.html" style="min-height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 13px; font-weight: 500; text-decoration: none; margin-left: auto">Paste SMS</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: auto">
+      <sc-for list="{{keys}}" as="k" hint-placeholder-count="16">
+        <button type="button" aria-label="{{k.aria}}" onClick="{{k.press}}" style="min-height: 52px; border-radius: 12px; border: 0; font-size: {{k.size}}; font-weight: 500; background: {{k.bg}}; color: {{k.fg}}">{{k.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <sc-if value="{{saved}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 16px; right: 16px; top: 16px; min-height: 52px; border-radius: 12px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px; font-size: 14px">
+      <span>{{savedText}}</span>
+      <button type="button" onClick="{{undo}}" style="min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: #B9C6DD; font-weight: 600">Undo</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":880}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { expr: '450+120', cat: 'Food', type: 'Expense', saved: false, last: '' };
+  }
+  totalOf(expr) {
+    const parts = expr.match(/[+−]?[0-9.]+/g) || [];
+    return parts.reduce((sum, p) => {
+      const neg = p[0] === '−';
+      const n = parseFloat(p.replace(/[+−]/, '')) || 0;
+      return sum + (neg ? -n : n);
+    }, 0);
+  }
+  renderVals() {
+    const s = this.state;
+    const total = Math.max(this.totalOf(s.expr), 0);
+    const hasOp = /[+−]/.test(s.expr.slice(1));
+    const fmt = (n) => n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    const press = (k) => () => {
+      if (k === 'del') return this.setState({ expr: s.expr.slice(0, -1), saved: false });
+      if (k === 'save') {
+        if (total <= 0) return;
+        return this.setState({ saved: true, last: s.expr, expr: '', savedText: 'Saved ₹' + fmt(total) + ' · ' + s.cat });
+      }
+      const isOp = k === '+' || k === '−';
+      if (isOp && (s.expr === '' || /[+−]$/.test(s.expr))) return;
+      this.setState({ expr: s.expr + k, saved: false });
+    };
+    const ink = (label, k, aria) => ({ label, aria: aria || label, press: press(k), bg: '#EEEBE2', fg: '#1C2230', size: '20px' });
+    const op = (label, k, aria) => ({ label, aria, press: press(k), bg: '#E3E8F1', fg: '#2F4A7A', size: '20px' });
+    const keys = [
+      ink('1', '1'), ink('2', '2'), ink('3', '3'), op('⌫', 'del', 'Delete'),
+      ink('4', '4'), ink('5', '5'), ink('6', '6'), op('+', '+', 'Plus'),
+      ink('7', '7'), ink('8', '8'), ink('9', '9'), op('−', '−', 'Minus'),
+      ink('.', '.', 'Decimal point'), ink('0', '0'), ink('00', '00', 'Double zero'),
+      { label: 'Save', aria: 'Save', press: press('save'), bg: total > 0 ? '#1C2230' : '#D9D5C8', fg: total > 0 ? '#F6F4EE' : '#5E6272', size: '16px' }
+    ];
+    const cats = ['Food', 'Shopping', 'Transport', 'Utilities', 'Entertainment', 'Home', 'Health', 'Other'].map((c) => {
+      const on = c === s.cat;
+      return { name: c, on, bg: on ? '#2F4A7A' : '#FBFAF6', fg: on ? '#FFFFFF' : '#1C2230', border: on ? '#2F4A7A' : '#8A8576', pick: () => this.setState({ cat: c }) };
+    });
+    const types = ['Expense', 'Income', 'Investment'].map((t) => {
+      const on = t === s.type;
+      return { name: t, on, bg: on ? '#FBFAF6' : 'transparent', fg: on ? '#1C2230' : '#4A5163', shadow: on ? '0 1px 2px rgba(28,34,48,0.12)' : 'none', pick: () => this.setState({ type: t }) };
+    });
+    return {
+      keys, cats, types,
+      exprShown: hasOp ? s.expr.replace(/([+−])/g, ' $1 ') : ' ',
+      total: fmt(total),
+      sign: s.type === 'Income' ? '+' : '',
+      amountColor: s.type === 'Income' ? '#2D6B4A' : '#1C2230',
+      saved: s.saved,
+      savedText: s.savedText,
+      undo: () => this.setState({ saved: false, expr: s.last })
+    };
+  }
+}
+</script>
+</body>
+</html>

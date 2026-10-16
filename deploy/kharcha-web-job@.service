@@ -1,0 +1,10 @@
+[Unit]
+Description=Kharcha job %i
+After=kharcha-web.service
+
+[Service]
+Type=oneshot
+User=chetan
+EnvironmentFile=/etc/kharcha-web/env
+# Token goes through stdin, never argv.
+ExecStart=/bin/sh -c 'printf "Authorization: Bearer %%s\n" "$INGEST_TOKEN" | exec curl --fail --silent --show-error --max-time 120 -X POST -H @- http://127.0.0.1:8790/api/jobs/%i'

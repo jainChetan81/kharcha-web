@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan · trips</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 12px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Plan</h1>
+    <span style="font-size: 14px; color: #4A5163">October 2026</span>
+  </header>
+  <nav aria-label="Plan sections" style="margin: 0 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+    <a href="Budgets.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #4A5163; text-decoration: none">Budgets</a>
+    <a href="Recurring.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #4A5163; text-decoration: none">Recurring</a>
+    <a href="Trips.dc.html" aria-current="page" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #1C2230; background: #FBFAF6; box-shadow: 0 1px 2px rgba(28,34,48,0.12); text-decoration: none">Trips</a>
+  </nav>
+
+  <a href="Trip.dc.html" style="margin: 20px 20px 0; padding: 18px; border-radius: 14px; background: #1F3B4D; color: #F6F4EE; display: flex; flex-direction: column; gap: 10px; text-decoration: none">
+    <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #C8D3DA">Starts Sunday · auto-tag on</span>
+    <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-family: 'Newsreader', Georgia, serif; font-size: 32px; font-weight: 500">Odisha</span><span style="font-size: 14px; color: #C8D3DA">18–23 Oct</span></span>
+    <span style="display: flex; justify-content: space-between; font-size: 14px"><span style="color: #C8D3DA">Budget ₹25,000 · ₹4,167 a day</span><span>Flights ₹7,840 tagged</span></span>
+  </a>
+
+  <section style="padding: 28px 20px 0">
+    <h2 style="margin: 0; padding-bottom: 8px; border-bottom: 1px solid #1C2230; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Past trips</h2>
+    <sc-for list="{{past}}" as="t" hint-placeholder-count="3">
+      <a href="Trip.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-bottom: 1px solid #E2DED3; color: #1C2230; text-decoration: none">
+        <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 16px; font-weight: 500">{{t.name}}</span><span style="font-size: 15px; font-weight: 500">{{t.spent}}</span></span>
+        <span style="position: relative; height: 6px; background: #E6E2D7; border-radius: 3px"><span style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; width: {{t.fill}}; background: {{t.bar}}"></span></span>
+        <span style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #5E6272">{{t.meta}}</span><span style="font-weight: 500; color: {{t.noteColor}}">{{t.note}}</span></span>
+      </a>
+    </sc-for>
+  </section>
+
+  <div style="padding: 24px 20px 0">
+    <a href="TripStart.dc.html" style="min-height: 52px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; align-items: center; justify-content: center; gap: 8px; color: #1C2230; font-size: 15px; font-weight: 500; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Start a trip</a>
+  </div>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
+    <a href="Budgets.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: #2F4A7A; text-decoration: none; border-top: 2px solid #2F4A7A; margin-top: -1px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>
+    <a href="Wealth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Wealth</a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Insights</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      past: [
+        { name: 'Coorg', spent: '₹9,860', meta: '2–4 Aug · 3 days', fill: '82%', bar: '#2F4A7A', note: '₹2,140 under', noteColor: '#2D6B4A' },
+        { name: 'Goa', spent: '₹31,240', meta: '12–16 Mar · 5 days', fill: '100%', bar: '#A3402D', note: '₹1,240 over', noteColor: '#A3402D' },
+        { name: 'Pune, wedding', spent: '₹6,410', meta: '9–10 Jan · no budget', fill: '0%', bar: '#2F4A7A', note: '', noteColor: '#1C2230' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

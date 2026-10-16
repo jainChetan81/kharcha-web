@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Install on iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <div style="padding: 24px 20px; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 22px">October 2026</span>
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 56px; font-weight: 500">₹47,854</span>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(28,34,48,0.45)"></div>
+
+  <section role="dialog" aria-labelledby="ios-title" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FBFAF6; border-radius: 20px 20px 0 0; padding: 8px 24px 32px; display: flex; flex-direction: column; gap: 20px">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: #CFCABB; align-self: center"></div>
+    <div style="display: flex; align-items: center; gap: 14px">
+      <div style="width: 56px; height: 56px; border-radius: 14px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', Georgia, serif; font-size: 30px; font-weight: 500">₹</div>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h2 id="ios-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 24px">Put Kharcha on your home screen</h2>
+      </div>
+    </div>
+
+    <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+        <li style="display: flex; align-items: center; gap: 14px; min-height: 60px; border-bottom: 1px solid #E2DED3">
+          <span style="width: 28px; height: 28px; border-radius: 999px; border: 1px solid #1C2230; display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', Georgia, serif; font-size: 15px; flex: none">{{s.n}}</span>
+          <span style="flex: 1; font-size: 15px">{{s.text}} <strong style="font-weight: 600">{{s.bold}}</strong></span>
+          <span style="width: 36px; height: 36px; border-radius: 8px; background: #EEEBE2; display: flex; align-items: center; justify-content: center; color: #2F4A7A; flex: none">
+            <sc-if value="{{s.isDots}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></sc-if>
+            <sc-if value="{{s.isShare}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v7h14v-7"/></svg></sc-if>
+            <sc-if value="{{s.isAdd}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></sc-if>
+          </span>
+        </li>
+      </sc-for>
+    </ol>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <button type="button" style="min-height: 48px; border-radius: 12px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 15px; font-weight: 500">Not now</button>
+      <button type="button" style="min-height: 48px; border-radius: 12px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 15px; font-weight: 500">Done</button>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      steps: [
+        { n: '1', text: 'Tap', bold: '•••  in the address bar', isDots: true, isShare: false, isAdd: false },
+        { n: '2', text: 'Tap', bold: 'Share', isDots: false, isShare: true, isAdd: false },
+        { n: '3', text: 'Choose', bold: 'Add to Home Screen', isDots: false, isShare: false, isAdd: true }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

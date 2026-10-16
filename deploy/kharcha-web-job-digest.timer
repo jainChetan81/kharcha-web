@@ -1,0 +1,10 @@
+[Unit]
+Description=Kharcha job digest
+
+[Timer]
+OnCalendar=Mon *-*-* 07:00:00 Asia/Kolkata
+Persistent=true
+Unit=kharcha-web-job@digest.service
+
+[Install]
+WantedBy=timers.target

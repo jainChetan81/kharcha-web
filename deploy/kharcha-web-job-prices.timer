@@ -1,0 +1,11 @@
+[Unit]
+Description=Kharcha job prices
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 Asia/Kolkata
+OnCalendar=*-*-* 23:30:00 Asia/Kolkata
+Persistent=true
+Unit=kharcha-web-job@prices.service
+
+[Install]
+WantedBy=timers.target

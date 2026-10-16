@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review deck</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; display: flex; flex-direction: column">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 8px">
+    <a href="Main.dc.html" aria-label="Back to home" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Review</h1>
+    <span style="min-width: 44px; text-align: right; font-size: 14px; color: #4A5163">{{counter}}</span>
+  </header>
+  <div style="margin: 0 20px; height: 3px; background: #E2DED3; border-radius: 2px"><div style="height: 3px; border-radius: 2px; background: #2F4A7A; width: {{progress}}"></div></div>
+
+  <sc-if value="{{hasItem}}" hint-placeholder-val="{{ true }}">
+    <div style="position: relative; flex: 1; margin: 20px 20px 0">
+      <div style="position: absolute; left: 16px; right: 16px; top: 16px; height: 520px; border-radius: 16px; background: #EEEBE2; border: 1px solid #D9D5C8"></div>
+      <div style="position: absolute; left: 8px; right: 8px; top: 8px; height: 520px; border-radius: 16px; background: #F3F1EA; border: 1px solid #D9D5C8"></div>
+      <article style="position: relative; border-radius: 16px; background: #FBFAF6; border: 1px solid #CFCABB; box-shadow: 0 8px 24px rgba(28,34,48,0.08); padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 500; line-height: 1.15">{{item.merchant}}</span>
+            <span style="font-size: 13px; color: #5E6272">{{item.meta}}</span>
+          </div>
+          <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; white-space: nowrap">{{item.amount}}</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: #4A5163"><span>Category</span><span>{{item.why}}</span></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{chips}}" as="c" hint-placeholder-count="9">
+              <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: #1C2230; border-top: 1px solid #E2DED3; padding-top: 4px">
+          <input type="checkbox" checked="{{ruleOn}}" onChange="{{toggleRule}}" style="width: 20px; height: 20px; accent-color: #2F4A7A; margin: 0">
+          <span>Always file <strong style="font-weight: 600">{{item.ruleName}}</strong> as {{current}}</span>
+        </label>
+
+        <div style="border-top: 1px solid #E2DED3; padding-top: 4px">
+          <button type="button" onClick="{{toggleSms}}" aria-expanded="{{smsOpen}}" style="width: 100%; min-height: 44px; border: 0; background: transparent; padding: 0; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #2F4A7A; font-weight: 500"><span>Source SMS</span><span>{{smsLabel}}</span></button>
+          <sc-if value="{{smsOpen}}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 4px 0 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.5; color: #3E4352">{{item.sms}}</p>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; gap: 8px; border-top: 1px solid #E2DED3; padding-top: 4px">
+          <button type="button" onClick="{{notSpend}}" style="flex: 1; min-height: 44px; border: 0; background: transparent; color: #1C2230; font-size: 14px; font-weight: 500">Not a spend</button>
+          <button type="button" onClick="{{notSpend}}" style="flex: 1; min-height: 44px; border: 0; background: transparent; color: #1C2230; font-size: 14px; font-weight: 500">Duplicate</button>
+          <a href="Edit.dc.html" style="flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; text-decoration: none">Edit</a>
+        </div>
+      </article>
+    </div>
+
+    <div style="padding: 0 20px 28px; display: flex; flex-direction: column; gap: 10px">
+      <span style="text-align: center; font-size: 12px; color: #5E6272">Swipe right to confirm · left to skip</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+        <button type="button" onClick="{{skip}}" style="min-height: 52px; border-radius: 12px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 16px; font-weight: 500">Skip</button>
+        <button type="button" onClick="{{confirm}}" style="grid-column: span 2; min-height: 52px; border-radius: 12px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 16px; font-weight: 500">Confirm · {{current}}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{allDone}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 40px; text-align: center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2D6B4A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 26px; font-weight: 500">{{doneTitle}}</span>
+      <span style="font-size: 15px; color: #4A5163; line-height: 1.5">{{doneBody}}</span>
+      <div style="display: flex; gap: 10px; margin-top: 8px">
+        <button type="button" onClick="{{restart}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; font-size: 15px; font-weight: 500; color: #1C2230">Start over</button>
+        <a href="Main.dc.html" style="min-height: 44px; padding: 0 18px; border-radius: 10px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; font-size: 15px; font-weight: 500; text-decoration: none">Back to home</a>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { i: 0, picks: {}, smsOpen: true, ruleOn: true, confirmed: 0 };
+  }
+  renderVals() {
+    const cats = ['Food', 'Shopping', 'Transport', 'Utilities', 'Entertainment', 'Home', 'Health', 'Work', 'Other'];
+    const items = [
+      { merchant: 'Swiggy Instamart', ruleName: 'Swiggy Instamart', amount: '₹219', meta: 'Thu 15 Oct, 14:44 · Card ••2047', suggest: 'Food', why: 'Suggested from 14 past rows', sms: 'Rs.219.00 spent on card xx2047 at SWIGGY INSTAMART on 15-10-26 14:44. Not you? Call 1800-XXX.' },
+      { merchant: 'METAPAY* SZ9LV96VF4', ruleName: 'METAPAY*', amount: '₹203', meta: 'Thu 15 Oct, 14:32 · Card ••2047', suggest: 'Other', why: 'No match yet', sms: 'Rs.203.00 spent on card xx2047 at METAPAY* SZ9LV96VF4 on 15-10-26 14:32.' },
+      { merchant: 'IBIBO GROUP', ruleName: 'IBIBO GROUP', amount: '₹6,937', meta: 'Mon 12 Oct, 19:03 · Card ••3266', suggest: 'Transport', why: 'Suggested from merchant name', sms: 'Rs.6,937.00 spent on card xx3266 at IBIBO GROUP on 12-10-26 19:03.' }
+    ];
+    const s = this.state;
+    const hasItem = s.i < items.length;
+    const item = items[Math.min(s.i, items.length - 1)];
+    const current = s.picks[s.i] || item.suggest;
+    const next = (kind) => this.setState({ i: s.i + 1, smsOpen: false, confirmed: s.confirmed + (kind === 'ok' ? 1 : 0) });
+    return {
+      hasItem,
+      allDone: !hasItem,
+      item,
+      current,
+      counter: hasItem ? (s.i + 1) + ' of 115' : '',
+      progress: ((s.i / items.length) * 100).toFixed(0) + '%',
+      smsOpen: s.smsOpen,
+      smsLabel: s.smsOpen ? 'Hide' : 'Show',
+      ruleOn: s.ruleOn,
+      chips: cats.map((c) => {
+        const on = c === current;
+        return { name: c, on, bg: on ? '#2F4A7A' : '#FBFAF6', fg: on ? '#FFFFFF' : '#1C2230', border: on ? '#2F4A7A' : '#8A8576', pick: () => this.setState({ picks: Object.assign({}, s.picks, { [s.i]: c }) }) };
+      }),
+      toggleSms: () => this.setState({ smsOpen: !s.smsOpen }),
+      toggleRule: () => this.setState({ ruleOn: !s.ruleOn }),
+      confirm: () => next('ok'),
+      skip: () => next('skip'),
+      notSpend: () => next('skip'),
+      restart: () => this.setState({ i: 0, picks: {}, smsOpen: true, confirmed: 0 }),
+      doneTitle: 'Nice. ' + s.confirmed + ' filed.',
+      doneBody: '112 still waiting in this demo. Rules you saved will file the next ones on arrival.'
+    };
+  }
+}
+</script>
+</body>
+</html>
