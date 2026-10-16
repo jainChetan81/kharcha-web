@@ -21,13 +21,13 @@ button{font:inherit;cursor:pointer}
   <section role="dialog" aria-labelledby="ed-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 40px; background: #FBFAF6; border-radius: 20px 20px 0 0; padding: 8px 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
     <div style="width: 36px; height: 4px; border-radius: 2px; background: #D9D5C8; align-self: center"></div>
     <div style="display: flex; justify-content: space-between; align-items: baseline">
-      <h2 id="ed-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 24px">Edit transaction</h2>
+      <h2 id="ed-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Edit transaction</h2>
       <span style="font-size: 13px; color: #5E6272">From SMS · 13 Oct</span>
     </div>
 
     <div role="radiogroup" aria-label="Type" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
       <sc-for list="{{types}}" as="t" hint-placeholder-count="3">
-        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
+        <button type="button" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}">{{t.name}}</button>
       </sc-for>
     </div>
 
@@ -47,7 +47,7 @@ button{font:inherit;cursor:pointer}
       <span style="font-size: 13px; color: #4A5163">Category</span>
       <div style="display: flex; flex-wrap: wrap; gap: 8px">
         <sc-for list="{{cats}}" as="c" hint-placeholder-count="9">
-          <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+          <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 44px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
         </sc-for>
       </div>
     </div>

@@ -19,7 +19,7 @@ button{font:inherit;cursor:pointer}
 
   <header style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 12px">
     <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Insights</h1>
-    <a href="Ask.dc.html" style="min-height: 36px; padding: 0 12px; border-radius: 999px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Ask</a>
+    <a href="Ask.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 999px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Ask</a>
   </header>
 
   <section style="margin: 0 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #1C2230; border-bottom: 1px solid #1C2230">
@@ -42,7 +42,7 @@ button{font:inherit;cursor:pointer}
         <div style="display: flex; flex-direction: column; gap: 6px">
           <span style="align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{c.tagBg}}; color: {{c.tagFg}}">{{c.tag}}</span>
           <span style="font-size: 15px; line-height: 1.5">{{c.text}}</span>
-          <a href="{{c.href}}" style="font-size: 14px; font-weight: 500; text-decoration: none">{{c.action}}</a>
+          <a href="{{c.href}}" style="min-height: 44px; margin: -12px 0; display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none">{{c.action}}</a>
         </div>
         <button type="button" onClick="{{c.dismiss}}" aria-label="Dismiss" style="width: 44px; height: 44px; border: 0; background: transparent; color: #5E6272; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </article>
@@ -128,7 +128,7 @@ button{font:inherit;cursor:pointer}
     <a href="History.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; border-bottom: 1px solid #E2DED3; color: #1C2230; text-decoration: none; font-size: 15px"><span>Hostinger <span style="color: #5E6272; font-size: 13px">· 1 row</span></span><span style="font-weight: 500">₹2,477</span></a>
   </section>
 
-  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding-bottom: 34px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
     <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
     <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
     <a href="Budgets.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>

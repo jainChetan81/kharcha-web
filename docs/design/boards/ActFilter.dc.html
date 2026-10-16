@@ -35,7 +35,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
     <div style="flex: 1; min-height: 0; overflow: hidden; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 20px">
       <sc-for list="{{sections}}" as="g" hint-placeholder-count="7">
         <section aria-label="{{g.name}}">
-          <h3 style="margin: 0 0 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 500; display: flex; justify-content: space-between"><span>{{g.name}}</span><a href="{{g.href}}" style="color: var(--brand); text-transform: none; letter-spacing: 0; font-size: 13px; text-decoration: none">{{g.more}}</a></h3>
+          <h3 style="margin: 0 0 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 500; display: flex; justify-content: space-between"><span>{{g.name}}</span><a href="{{g.href}}" style="min-height: 44px; margin: -14px 0; display: flex; align-items: center; color: var(--brand); text-transform: none; letter-spacing: 0; font-size: 13px; text-decoration: none">{{g.more}}</a></h3>
           <div style="display: flex; flex-wrap: wrap; gap: 8px">
             <sc-for list="{{g.opts}}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{o.fn}}" aria-pressed="{{o.on}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; border: 1px solid {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font-weight: {{o.weight}}"><sc-if value="{{o.dot}}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{o.dot}}"></span></sc-if>{{o.label}}</button></sc-for>
           </div>
@@ -64,7 +64,7 @@ class Component extends DCLogic {
     const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
     const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
 
-    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--ink)' : 'var(--field)', bg: on ? 'var(--ink)' : 'var(--input)', fg: on ? 'var(--paper)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
+    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--brand)' : 'var(--field)', bg: on ? 'var(--brand)' : 'var(--input)', fg: on ? 'var(--on-brand)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
 
     const s = this.state;
     const tog = (key, v) => () => { const cur = s[key]; this.setState({ [key]: cur.indexOf(v) >= 0 ? cur.filter((x) => x !== v) : cur.concat([v]) }); };

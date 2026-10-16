@@ -48,7 +48,7 @@ button,input,textarea{font:inherit}
           <span style="width: 56px; height: 72px; border-radius: 6px; border: 1px solid var(--rule); background: var(--input)"></span>
           <button type="button" style="width: 56px; height: 72px; border-radius: 6px; border: 1px dashed var(--field); background: transparent; color: var(--brand); font-size: 20px; cursor: pointer" aria-label="Add image">+</button>
         </div>
-        <span style="font-size: 12px; color: var(--ink3)">Photos go to the AI service only to read the items. Card numbers and UPI IDs aren’t stored.</span>
+        <span style="font-size: 12px; color: var(--ink3)">Photos go to the AI service only to read the items. Kharcha removes card numbers and UPI IDs from what it saves. Crop out full card numbers before adding a photo.</span>
       </section>
 
       <section aria-label="Items" style="flex: 1.3 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
@@ -63,7 +63,7 @@ button,input,textarea{font:inherit}
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; background: var(--watch-soft); border: 1px solid var(--watch); font-size: 14px">
           <span style="color: var(--watch-text); font-weight: 600">Items ₹2,385 · bank ₹2,340 · ₹45 apart</span>
-          <button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 8px; border: 0; background: var(--btn); color: var(--on-btn); font-size: 13px; font-weight: 500; cursor: pointer">Add as adjustment</button>
+          <button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 8px; border: 0; background: var(--btn); color: var(--on-btn); font-size: 13px; font-weight: 500; cursor: pointer">Add as adjustment</button>
         </div>
         <div role="table" aria-label="Items" style="display: flex; flex-direction: column">
           <div role="row" style="display: grid; grid-template-columns: 20px minmax(0, 1fr) 44px 80px 140px; gap: 12px; align-items: center; min-height: 34px; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3)"><span></span><span role="columnheader">Item</span><span role="columnheader" style="text-align: right">Qty</span><span role="columnheader" style="text-align: right">₹</span><span role="columnheader">Category</span></div>

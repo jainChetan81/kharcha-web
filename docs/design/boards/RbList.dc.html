@@ -21,10 +21,10 @@ button,input,textarea{font:inherit}
     <span style="font-size: 14px; color: var(--ink2)">October 2026</span>
   </header>
   <nav aria-label="Plan sections" style="margin: 0 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
-    <a href="Budgets.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Budgets</a>
-    <a href="Recurring.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Recurring</a>
-    <a href="Trips.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Trips</a>
-    <a href="RbList.dc.html" aria-current="page" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink); background: var(--tab); box-shadow: 0 1px 2px rgba(0,0,0,0.12); text-decoration: none">Owed</a>
+    <a href="Budgets.dc.html" style="min-height: 44px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Budgets</a>
+    <a href="Recurring.dc.html" style="min-height: 44px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Recurring</a>
+    <a href="Trips.dc.html" style="min-height: 44px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Trips</a>
+    <a href="RbList.dc.html" aria-current="page" style="min-height: 44px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink); background: var(--tab); box-shadow: 0 1px 2px rgba(0,0,0,0.12); text-decoration: none">Owed</a>
   </nav>
 
   <section style="margin: 20px 20px 0; padding-bottom: 16px; border-bottom: 3px double var(--ink); display: flex; flex-direction: column; gap: 10px">
@@ -39,7 +39,7 @@ button,input,textarea{font:inherit}
 
   <div role="radiogroup" aria-label="View" style="margin: 16px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
     <sc-for list="{{views}}" as="v" hint-placeholder-count="2">
-      <button type="button" role="radio" aria-checked="{{v.on}}" onClick="{{v.pick}}" style="min-height: 36px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{v.bg}}; color: {{v.fg}}; cursor: pointer">{{v.name}}</button>
+      <button type="button" role="radio" aria-checked="{{v.on}}" onClick="{{v.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{v.bg}}; color: {{v.fg}}; cursor: pointer">{{v.name}}</button>
     </sc-for>
   </div>
 

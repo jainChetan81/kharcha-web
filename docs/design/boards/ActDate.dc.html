@@ -91,7 +91,7 @@ class Component extends DCLogic {
     const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
     const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
 
-    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--ink)' : 'var(--field)', bg: on ? 'var(--ink)' : 'var(--input)', fg: on ? 'var(--paper)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
+    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--brand)' : 'var(--field)', bg: on ? 'var(--brand)' : 'var(--input)', fg: on ? 'var(--on-brand)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
 
     const s = this.state;
     const P = ['Today', 'This week', 'Last 7 days', 'This month', 'Last month', 'This year', 'Custom'];

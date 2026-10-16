@@ -23,9 +23,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 12px">
     <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Activity</h1>
     <span style="flex: none; display: flex; align-items: center; border-radius: 999px; border: 1px solid var(--field); background: var(--card); color: var(--ink)">
-      <button type="button" onClick="{{prevMonth}}" aria-label="Previous month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <a href="ActDate.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: inherit; text-decoration: none; white-space: nowrap">{{month}}</a>
-      <button type="button" onClick="{{nextMonth}}" aria-label="Next month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+      <sc-if value="{{wholeMonth}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{prevMonth}}" aria-label="Previous month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button></sc-if>
+      <a href="ActDate.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: inherit; text-decoration: none; white-space: nowrap; padding: {{monthPad}}">{{month}}</a>
+      <sc-if value="{{wholeMonth}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{nextMonth}}" aria-label="Next month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></sc-if>
     </span>
   </header>
   <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px">
@@ -45,7 +45,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
     <sc-if value="{{filtered}}" hint-placeholder-val="{{ false }}">
       <div aria-label="Applied filters" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
         <sc-for list="{{applied}}" as="a" hint-placeholder-count="3">
-          <button type="button" onClick="{{a.remove}}" aria-label="{{a.aria}}" style="min-height: 36px; padding: 0 6px 0 12px; border-radius: 999px; border: 0; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; cursor: pointer">{{a.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+          <button type="button" onClick="{{a.remove}}" aria-label="{{a.aria}}" style="min-height: 44px; padding: 0 6px 0 12px; border-radius: 999px; border: 0; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; cursor: pointer">{{a.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
         </sc-for>
         <button type="button" onClick="{{clearAll}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--brand); font-size: 14px; font-weight: 500; cursor: pointer">Clear</button>
       </div>
@@ -89,7 +89,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
       </sc-if>
     </div>
   </div>
-  <div style="padding: 0 20px 120px">
+  <div style="padding: 0 20px 172px">
     <sc-for list="{{days}}" as="d" hint-placeholder-count="4">
       <section aria-label="{{d.aria}}">
         <div style="display: flex; justify-content: space-between; padding: 18px 0 6px; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)">
@@ -137,11 +137,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   </nav>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "filtered": {"editor": "boolean", "default": false}, "open": {"editor": "boolean", "default": false}, "$preview": {"width": 390, "height": 1400}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "filtered": {"editor": "boolean", "default": false}, "open": {"editor": "boolean", "default": false}, "custom": {"editor": "boolean", "default": false}, "$preview": {"width": 390, "height": 1400}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { reviewOnly: false, open: !!props.open, m: 2, applied: props.filtered ? ['food', 'card', 'amount'] : [], noteSeen: false };
+    this.state = { reviewOnly: false, open: !!props.open, m: 2, applied: props.custom ? ['range'] : props.filtered ? ['food', 'card', 'amount'] : [], noteSeen: false };
   }
   renderVals() {
     const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
@@ -170,8 +170,9 @@ class Component extends DCLogic {
       { label: 'Mon 5 Oct', rows: [cat('Swiggy Instamart', '6:40 PM', 'Food', '••2047', 1180, { m: 'Swiggy Instamart', cat: 'Food part of a split' })] },
       { label: 'Sat 3 Oct', rows: [cat('Swiggy', '1:15 PM', 'Food', '••2047', 298)] }
     ];
+    const custom = s.applied.indexOf('range') >= 0;
     const filtered = s.applied.length > 0;
-    const src = filtered ? foodSet : month;
+    const src = custom ? month.filter((d) => ['Wed 14 Oct', 'Tue 13 Oct', 'Mon 12 Oct'].indexOf(d.label) >= 0) : filtered ? foodSet : month;
     const days = src.map((d) => {
       let rows = s.reviewOnly ? d.rows.filter((r) => r.review) : d.rows;
       rows = rows.map((r) => Object.assign({}, r, {
@@ -189,15 +190,17 @@ class Component extends DCLogic {
     const F = { n: counted.length, spent, income: 0, moved };
     const S = filtered || s.reviewOnly ? F : M;
     const net = S.income - S.spent;
-    const topSrc = filtered ? [['Food', spent]] : [['Other', 26240], ['Shopping', 18088], ['Utilities', 1577], ['Food', 962]];
+    const byCat = {};
+    counted.filter((r) => !r.muted).forEach((r) => { const c = r.isSplit ? 'Other' : r.cat; byCat[c] = (byCat[c] || 0) + r.n; });
+    const topSrc = custom ? Object.keys(byCat).map((c) => [c, byCat[c]]).sort((x, y) => y[1] - x[1]).slice(0, 4) : filtered ? [['Food', spent]] : [['Other', 26240], ['Shopping', 18088], ['Utilities', 1577], ['Food', 962]];
     const max = topSrc[0][1];
     const months = ['August 2026', 'September 2026', 'October 2026'];
     const chip = (label, val, href) => val
-      ? { label: val, href, border: 'var(--ink)', bg: 'var(--ink)', fg: 'var(--paper)', weight: '500' }
+      ? { label: val, href, border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', weight: '500' }
       : { label, href, border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', weight: '400' };
     const has = (k) => s.applied.indexOf(k) >= 0;
     const remove = (k) => () => this.setState({ applied: s.applied.filter((x) => x !== k) });
-    const APPLIED = { food: 'Food', card: '••2047', amount: '₹100–2K' };
+    const APPLIED = { range: '12–14 Oct', food: 'Food', card: '••2047', amount: '₹100–2K' };
     return {
       vars,
       days,
@@ -208,14 +211,18 @@ class Component extends DCLogic {
       net: (net < 0 ? '−' : '+') + fmt(Math.abs(net)),
       netColor: net < 0 ? 'var(--over)' : 'var(--earn)',
       top: topSrc.map(([name, n]) => ({ name, color: col(name), amt: fmt(n), w: (n / max * 100).toFixed(1) + '%' })),
-      facts: filtered
+      facts: custom
+        ? [{ k: 'Biggest', v: '₹18,088', s: 'Flipkart' }, { k: 'Most frequent', v: 'No repeats', s: '7 merchants' }, { k: 'Avg/day', v: fmt(spent / 3), s: 'over 3 days' }]
+        : filtered
         ? [{ k: 'Biggest', v: '₹1,180', s: 'Swiggy Instamart' }, { k: 'Most frequent', v: 'Swiggy', s: '3 times' }, { k: 'Avg/day', v: fmt(spent / 15), s: 'over 15 days' }]
         : [{ k: 'Biggest', v: '₹18,088', s: 'Flipkart' }, { k: 'Most frequent', v: 'Swiggy Instamart', s: '23 times' }, { k: 'Avg/day', v: '₹3,190', s: 'over 15 days' }],
       reviewOnly: s.reviewOnly,
       toggleReview: () => this.setState({ reviewOnly: !s.reviewOnly }),
       rev: s.reviewOnly ? { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', dot: 'var(--on-brand)' } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', dot: 'var(--brand)' },
-      filt: filtered ? { border: 'var(--ink)', bg: 'var(--ink)', fg: 'var(--paper)', label: 'Filter · ' + s.applied.length } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', label: 'Filter' },
-      month: months[s.m],
+      filt: filtered ? { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', label: 'Filter · ' + s.applied.length } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', label: 'Filter' },
+      month: custom ? '12–14 Oct' : months[s.m],
+      wholeMonth: !custom,
+      monthPad: custom ? '0 16px' : '0',
       prevMonth: () => this.setState({ m: Math.max(0, s.m - 1) }),
       nextMonth: () => this.setState({ m: Math.min(2, s.m + 1) }),
       quick: [chip('Category', has('food') ? 'Food' : '', 'ActCategory.dc.html'), chip('Card', has('card') ? '••2047' : '', 'ActFilter.dc.html'), chip('Type', '', 'ActFilter.dc.html'), chip('Trip', '', 'ActFilter.dc.html'), chip('Amount', has('amount') ? '₹100–2K' : '', 'ActAmount.dc.html')],

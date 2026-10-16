@@ -41,7 +41,7 @@ button{font:inherit;cursor:pointer}
           <div style="display: flex; justify-content: space-between; font-size: 13px; color: #4A5163"><span>Category</span><span>{{item.why}}</span></div>
           <div style="display: flex; flex-wrap: wrap; gap: 8px">
             <sc-for list="{{chips}}" as="c" hint-placeholder-count="9">
-              <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+              <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
             </sc-for>
           </div>
         </div>
@@ -54,7 +54,7 @@ button{font:inherit;cursor:pointer}
         <div style="border-top: 1px solid #E2DED3; padding-top: 4px">
           <button type="button" onClick="{{toggleSms}}" aria-expanded="{{smsOpen}}" style="width: 100%; min-height: 44px; border: 0; background: transparent; padding: 0; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #2F4A7A; font-weight: 500"><span>Source SMS</span><span>{{smsLabel}}</span></button>
           <sc-if value="{{smsOpen}}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 4px 0 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.5; color: #3E4352">{{item.sms}}</p>
+            <p style="margin: 4px 0 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.5; color: #3E4352">{{item.sms}}</p>
           </sc-if>
         </div>
 

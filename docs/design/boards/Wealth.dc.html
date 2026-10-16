@@ -28,9 +28,9 @@ button{font:inherit;cursor:pointer}
       <span style="font-size: 14px; color: #8FD1A8; font-weight: 500">+₹2,140 today · +0.27%</span>
     </div>
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-top: 1px solid rgba(246,244,238,0.18); padding-top: 12px">
-      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Invested<strong style="font-size: 17px; color: #F6F4EE; font-weight: 500">₹6,81,000</strong></span>
-      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Gain<strong style="font-size: 17px; color: #8FD1A8; font-weight: 500">+₹1,00,900</strong></span>
-      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">XIRR<strong style="font-size: 17px; color: #F6F4EE; font-weight: 500">12.6%</strong></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Invested<strong style="font-size: 18px; color: #F6F4EE; font-weight: 500">₹6,81,000</strong></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Gain<strong style="font-size: 18px; color: #8FD1A8; font-weight: 500">+₹1,00,900</strong></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">XIRR<strong style="font-size: 18px; color: #F6F4EE; font-weight: 500">12.6%</strong></span>
     </div>
 
     <svg viewBox="0 0 340 160" width="350" height="165" role="img" aria-label="Portfolio value against money invested over two years" style="display: block; margin: 4px -5px 0">
@@ -52,7 +52,7 @@ button{font:inherit;cursor:pointer}
       </div>
       <div role="radiogroup" aria-label="Range" style="display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: rgba(246,244,238,0.1)">
         <sc-for list="{{ranges}}" as="r" hint-placeholder-count="3">
-          <button type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}" style="min-height: 30px; min-width: 40px; border: 0; border-radius: 6px; font-size: 12px; background: {{r.bg}}; color: {{r.fg}}">{{r.label}}</button>
+          <button type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}" style="min-height: 44px; min-width: 40px; border: 0; border-radius: 6px; font-size: 12px; background: {{r.bg}}; color: {{r.fg}}">{{r.label}}</button>
         </sc-for>
       </div>
     </div>
@@ -97,7 +97,7 @@ button{font:inherit;cursor:pointer}
     <span style="font-size: 13px; color: #4A5163">₹18,000 room left before 31 Mar.</span>
   </section>
 
-  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding-bottom: 34px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
     <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
     <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
     <a href="Budgets.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>

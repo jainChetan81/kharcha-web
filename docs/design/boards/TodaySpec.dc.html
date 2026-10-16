@@ -96,14 +96,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
           <div style="height: 90px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Tiles</div>
           <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
           <div style="height: 50px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Recent</div>
-          <div style="height: 172px; position: relative; background: repeating-linear-gradient(135deg, transparent 0 6px, var(--over-soft) 6px 8px); margin: 0 -16px; display: flex; align-items: flex-start; padding: 6px 16px; box-sizing: border-box; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">172 bottom padding</div>
+          <div style="height: 172px; position: relative; background: repeating-linear-gradient(135deg, transparent 0 6px, var(--over-soft) 6px 8px); margin: 0 -16px; display: flex; align-items: flex-start; padding: 6px 16px; box-sizing: border-box; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">138 + safe area</div>
         </div>
         <div style="position: absolute; right: 16px; bottom: 100px; width: 44px; height: 44px; border-radius: 12px; background: var(--btn)"></div>
         <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: var(--card); border-top: 1px solid var(--rule)"></div>
       </div>
       <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px">
         <dt style="font-family: 'IBM Plex Mono', monospace; color: var(--over)">24</dt><dd style="margin: 0">between every block on Today</dd>
-        <dt style="font-family: 'IBM Plex Mono', monospace; color: var(--over)">172</dt><dd style="margin: 0">84 tab bar + 16 + 56 add button + 16</dd>
+        <dt style="font-family: 'IBM Plex Mono', monospace; color: var(--over)">172</dt><dd style="margin: 0">50 tab bar + 34 safe area + 16 + 56 add button + 16. In code: calc(138px + env(safe-area-inset-bottom))</dd>
       </dl>
     </section>
 

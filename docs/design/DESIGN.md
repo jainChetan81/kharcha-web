@@ -4,7 +4,7 @@ Source of truth for the UI rebuild of `kharcha-web`. Read this whole file before
 
 - Canvas (visual reference): https://claude.ai/code/artifact/2342fd6d-ea07-4b0f-aa69-9b7d310a57b7
 - Board sources: `docs/design/boards/*.dc.html`. Each file is one screen with inline styles. Read exact values (sizes, colours, spacing) from these files, not from screenshots.
-- The boards run on a design runtime (`support.js`, `<x-dc>`, `<sc-for>`, `{{holes}}`). Do not copy that runtime into the app. Port the markup to React components.
+- The boards run on a design runtime (`<x-dc>`, `<sc-for>`, `{{holes}}`). `boards/support.js` is a small stand-in written for this handoff so a board opens on its own: run `npx serve docs/design/boards` and open any `Name.dc.html` (opening the file straight from disk blocks the `<dc-import>` fetches). Do not copy it into the app. Port the markup to React components.
 - All numbers are sample data. Real October 2026 figures were used where they existed (spend ₹47,854, categories, merchants, 115 to review). Fund values, targets, trips, income and multipliers like "2.8×" are invented.
 
 ## 0. Stack
@@ -132,6 +132,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 - **Day-ring and heat scale:** `#CFD8E8 → #B9C6DD → #8199BF → #4C6A9C → #1F3459`.
 - **Contrast:** measured on every board. Every text pair is 4.9:1 or better. Light text colours appear only on ink or trip surfaces. Field borders are 3.3:1 against paper.
 - **Categories:** Sports' colour sits close in lightness to Home and Utilities. Categories are always shown with their label, so this is acceptable.
+- **Type scale** (px): 11 tab labels and stat captions · 12 eyebrows, captions, tags · 13 meta lines and helper copy · 14 controls and chips · 15 rows and body · 16 inputs (stops iOS zoom) · 18 section headings · 22 sheet and dialog titles · 26 page titles (30 on desktop) · 34–64 hero figures in Newsreader. Chart labels may go to 10. Nothing else.
 - **Fonts:** self-host with `@fontsource/newsreader`, `@fontsource/ibm-plex-sans` and `@fontsource/ibm-plex-mono`. Weights used: Newsreader 400, 500 and 400 italic; Plex Sans 400, 500 and 600; Plex Mono 400.
 - **Dark mode:** follows `prefers-color-scheme`, with a Light / Dark / System choice in Settings. Override the same names under `.dark`. Every pair below is measured: text 6:1 or better, `field` 3.9:1, categories 4.96:1 or better on `card`.
 
@@ -173,12 +174,12 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 
 | Component | Notes |
 |---|---|
-| `AppShell` | Mobile: `TabBar` (80px, 5 tabs, active tab gets a 2px top rule) plus `Fab` (56px, radius 16). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail. |
+| `AppShell` | Mobile: `TabBar` (`calc(50px + env(safe-area-inset-bottom))`, so 84px on a phone with a home indicator; 5 tabs; active tab gets a 2px top rule) plus `Fab` (56px, radius 16, 16px above the tab bar). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail. |
 | `MonthStepper`, `SyncPill`, `SyncNow`, `StatusTag` | Pill and Sync now states: §18. Month stepper: §16. |
 | `InkHero` | Today and Wealth only. |
 | `PaceChart`, `GainChart`, `Waterfall`, `DayRings`, `Beeswarm`, `Treemap`, `Sparkline`, `BudgetBar` | Plain SVG or CSS. Rules are on the Style board, §6. |
 | `LedgerRow`, `DayHeader` | 56px rows, day total under a 1px ink rule. |
-| `Chip`, `FilterChip`, `Segmented`, `Switch`, `Field` | Built on shadcn. Borders use `field`. Targets 38–44px. |
+| `Chip`, `FilterChip`, `Segmented`, `Switch`, `Field` | Built on shadcn. Borders use `field`. 44px tall on phones. A chip or option sits on `card` when the page behind is `paper`, and on `input` when it is inside a card or sheet. **Selected, everywhere:** `brand` fill, `on-brand` text. The only other selected look is the segmented control (`raised` on `sunken`). A switch's whole row toggles it, so the 28px switch is not the target. |
 | `Sheet`, `Snackbar` | shadcn Sheet/Drawer and Sonner, restyled and animated with `motion`. |
 | `TxnForm` | One component with `mode="add" \| "edit"`. **Add:** keypad first, expressions like `450+120`. **Edit:** amount field, a "Not a spend" switch, Delete, and a note when the merchant was renamed. |
 | `DigestCard`, `InsightCard`, `AnswerCard`, `AiUnavailable` | Provenance lines stay visible. |
@@ -188,14 +189,14 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 | `SplitBar` | Stacked category segments, 2px gaps, legend below. Large (10px) on Result and Detail, small (4px) inside a ledger row. `role="img"` with the split in the label. |
 | `ReconcileLine` | Items total vs bank amount. Match: `earn` tick. Gap: `watch-text` with "Add as adjustment". |
 | `ReimbursableBadge` | U-turn arrow + "₹1,200 back" in `brand`. On ledger rows next to the amount. |
-| `StatusTag` (extended) | Pending (`sunken`), Partly back (`brand-soft`), Reimbursed and Extra back (`earn-soft`), Overdue (`over-soft`), Cancelled (`sunken`, struck amount). |
+| `StatusTag` (extended) | 12px, weight 600, radius 999. Pending (`brand-soft` / `brand`), Partly back (`watch-soft` / `watch-text`), Reimbursed and Extra back (`earn-soft` / `earn`), Overdue (`over-soft` / `over`), Cancelled (`sunken` / `ink-2`, struck amount). |
 | `ShareLedger` | Three lines: Paid, Back from X, Yours. Used on Mark reimbursable, Status and Plan › Owed. |
 
 All of these are on the `RcComponents` board in light and dark.
 
 | Activity and Settings | Notes (`ActComponents`, `PtrStates` boards) |
 |---|---|
-| `FilterChip` | 44px. Empty (field border), with a value (ink fill, shows the value), pressed (scale 0.96), focus (2px `focus` ring, 2px offset). Toggle variant for Needs review (brand fill). |
+| `FilterChip` | 44px. Empty (field border on `card`), with a value (`brand` fill, shows the value), pressed (scale 0.96), focus (2px `focus` ring, 2px offset). Toggle variant for Needs review (brand fill). |
 | `AppliedChip` | `brand-soft` pill with the value and ×. Row hidden when nothing is applied. |
 | `FilterSheet`, `ListSheet` | Bottom sheet on phones, popover anchored to the chip at ≥840px. Footer: Clear / Show N transactions. N is live. |
 | `RangeCalendar` | Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted and not selectable. Fallback: two `input type=date`. |
@@ -386,7 +387,7 @@ Jobs run on a systemd timer next to autodeploy.
 - Real `button` / `a` / `input` + `label`.
 - Icon-only buttons get `aria-label`.
 - Text 4.5:1 or better (measured, §3).
-- 44px targets.
+- Targets: 44px on phones; 36px minimum for desktop buttons. Inline text links on desktop may be shorter. Measured on every board.
 - Charts get `role="img"` with an `aria-label` stating the finding.
 - Swipe actions also exist as buttons.
 - Respect `prefers-reduced-motion`; `motion` handles it.
@@ -421,11 +422,12 @@ Remaining dependencies:
 
 ## 14. Receipt reading
 
-Read a receipt into items, give each item a category, and split the transaction by category. Boards: `RcCapture`, `RcReading`, `RcResult`, `RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`, `RcSaved`, `RcActivity`, `DeskReceipt`, `RcComponents`, and a `…Dark` board for each.
+Read a receipt into items, give each item a category, and split the transaction by category. Boards: `RcCapture`, `RcCrop`, `RcReading`, `RcResult`, `RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`, `RcSaved`, `RcActivity`, `DeskReceipt`, `RcComponents`, and a `…Dark` board for each.
 
 **Flow**
 
 1. **Capture** (`RcCapture`). Detail → Add receipt opens a sheet. Camera, Gallery, Files. Up to 5 images per transaction, treated as one order. Thumbnails can be removed. Privacy line above the buttons.
+   - **Crop** (`RcCrop`): every picked photo opens a crop and rotate step before it joins the strip. Drag the corners or edges; Rotate turns 90°; Reset restores the full frame. "Only the part inside the frame is uploaded." Cropping happens on the device (canvas), so the cut-off part never leaves it. Strip EXIF before upload. Retake goes back; Use photo adds it.
 2. **Reading** (`RcReading`). Per-image progress and skeleton rows. 5–15 seconds. The user can leave: the job runs on the server and the items appear on the transaction.
 3. **Result** (`RcResult`). Items with qty, amount and `CategoryChip`. Above them, the `SplitBar` and per-category subtotals. Below, the `ReconcileLine`.
    - Items total equals the bank amount: match tick, Save split.
@@ -441,7 +443,8 @@ Read a receipt into items, give each item a category, and split the transaction 
 - A split is saved only when splits sum to the transaction amount. Adjustment lines make that true.
 - Budgets, Insights and Activity totals use splits when they exist.
 - Editing the transaction amount after a split asks to re-check the split.
-- **Privacy line**, everywhere photos go to the AI: "Photos go to the AI service only to read the items. Card numbers and UPI IDs on them aren't stored." The server drops any digit run that looks like a card number or a UPI ID from the model output before saving.
+- **Privacy line**, everywhere photos go to the AI: "Photos go to the AI service only to read the items. Kharcha removes card numbers and UPI IDs from what it saves. Crop out full card numbers before adding a photo."
+  - What it means: the cropped photo goes to the AI service as it is. Kharcha drops any digit run that looks like a card number and any UPI ID from the model output before saving items, and stores the photo itself only on the VPS. It cannot stop the AI service from seeing what is in the photo, so the copy tells you to crop.
 - **Offline:** saved items and photos are viewable. Read, Save, Merge and Delete are disabled, with the standard offline line from §9. See §13 on this reading of the brief.
 - **Empty:** a transaction without a receipt shows only the Add receipt entry on Detail.
 
@@ -460,7 +463,7 @@ Mark part or all of a spend as money coming back, track it until it does, and co
 **Mark** (`RbMark`, `RbItems`)
 
 - From Detail → Mark reimbursable. Sheet with Full, Part, or Items.
-  - **Part:** amount field with quick chips (half, a round figure).
+  - **Part:** amount field with one quick chip, Half. The amount is all it sets: one claim, one counterparty. No splitting between several people, no contacts, no invites.
   - **Items:** only when the transaction has receipt items. Tick the items; the amount is their sum (`RbItems`).
 - **From:** Office, or a person. Recent names are chips. Free text for a new one.
 - Optional note.
@@ -500,9 +503,11 @@ Mark part or all of a spend as money coming back, track it until it does, and co
 
 ## 16. Activity
 
-Boards: `History`, `ActFiltered` (filters applied, summary open), `ActFilter`, `ActDate`, `ActDateNative`, `ActCategory`, `ActAmount`, `ActAmountError`, `ActSort`, `DeskHistory`, `DeskActDate`, each with a `…Dark` board.
+Boards: `History`, `ActFiltered` (filters applied, summary open), `ActCustomRange`, `ActFilter`, `ActDate`, `ActDateNative`, `ActCategory`, `ActAmount`, `ActAmountError`, `ActSort`, `DeskHistory`, `DeskActDate`, each with a `…Dark` board.
 
-**Header:** title, then the `MonthStepper` chip on the right ("October 2026", ‹ ›). Tapping the label opens the date sheet. A custom range replaces the label ("1–15 Oct") and drops the arrows.
+**Header:** title, then the `MonthStepper` chip on the right ("October 2026", ‹ ›). Tapping the label opens the date sheet.
+- Picking Custom (or Today, This week, Last 7 days, This year) replaces the chip with the range ("12–14 Oct") and drops ‹ ›. The range also shows as an applied chip in row 2 (`ActCustomRange`).
+- Picking This month or Last month, removing the range chip, or Clear brings back the month label and ‹ ›.
 
 **Filter bar**
 
@@ -527,7 +532,7 @@ Boards: `History`, `ActFiltered` (filters applied, summary open), `ActFilter`, `
 Boards: `Main`, `MainDark`, `TodayHero` (four budget states, light and dark), `TodaySpec`, `DeskHome`, `DeskHomeNoBudget`, each desktop one with a dark board.
 
 - **Budget states:** none (spend and "Set a monthly budget", no pace line, no "over"), under (`on-hero-gain` "₹18,760 left"), near (`on-hero-month` when 90% or more is spent), over (`on-hero-over` "₹3,120 over"). The hero never shows "of ₹0".
-- **Spacing:** 24px between every block. Scroll content ends with 172px bottom padding (84 tab bar + 16 + 56 add button + 16), so the add button never covers an amount.
+- **Spacing:** 24px between every block. Scroll content ends with `calc(138px + env(safe-area-inset-bottom))` bottom padding: 50 tab bar + 16 + 56 add button + 16, plus the safe area. The boards draw a 34px safe area, so 172px. The add button sits at `calc(66px + env(safe-area-inset-bottom))` from the bottom (100px on the boards). This applies to every screen with the add button (Today, Activity).
 - **Tab bar:** `height: calc(50px + env(safe-area-inset-bottom))`, `padding-bottom: env(safe-area-inset-bottom)`. No fixed extra padding on top, which caused the empty band in the installed app. `viewport-fit=cover` in the viewport meta.
 - **Chart labels:** see `TodaySpec`. Try the right of the spike, then the left. Never over the today dot or its label, never past the chart edge, always above the line. Still no room: shorten the amount (₹18.1K), then drop the merchant.
 - **Review card:** "115 to review · ₹26,240 in Other". The Other figure and the Other tile read the same query: this month's Other spend, excluding card bills and transfers.

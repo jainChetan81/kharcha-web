@@ -25,13 +25,13 @@ button,input,textarea{font:inherit}
 
   <section role="dialog" aria-labelledby="cap-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 150px; background: var(--card); border-radius: 20px 20px 0 0; padding: 8px 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
     <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--rule); align-self: center"></div>
-    <h2 id="cap-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 24px">Add receipt</h2>
+    <h2 id="cap-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Add receipt</h2>
 
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
       <sc-for list="{{sources}}" as="s" hint-placeholder-count="3">
-        <button type="button" style="min-height: 88px; border-radius: 12px; border: 1px solid var(--field); background: var(--input); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; cursor: pointer">
+        <a href="RcCrop.dc.html" style="min-height: 88px; border-radius: 12px; border: 1px solid var(--field); background: var(--input); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; text-decoration: none">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.icon}}"/></svg>{{s.label}}
-        </button>
+        </a>
       </sc-for>
     </div>
 
@@ -50,7 +50,7 @@ button,input,textarea{font:inherit}
               <span style="height: 5px; width: 64%; border-radius: 2px; background: var(--rule)"></span>
               <span style="height: 5px; width: 84%; border-radius: 2px; background: var(--rule)"></span>
               <span style="height: 5px; width: 72%; border-radius: 2px; background: var(--rule)"></span>
-              <button type="button" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 999px; border: 0; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              <button type="button" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="position: absolute; top: -16px; right: -16px; width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer"><span style="width: 28px; height: 28px; border-radius: 999px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button>
             </div>
             <figcaption style="font-size: 12px; color: var(--ink2); text-align: center">{{t.n}} of {{total}}</figcaption>
           </figure>
@@ -59,7 +59,7 @@ button,input,textarea{font:inherit}
       </div>
     </div>
 
-    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink2)">Photos go to the AI service only to read the items. Card numbers and UPI IDs on them aren’t stored.</p>
+    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink2)">Photos go to the AI service only to read the items. Kharcha removes card numbers and UPI IDs from what it saves. Crop out full card numbers before adding a photo.</p>
 
     <div style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
       <button type="button" style="min-height: 52px; border-radius: 12px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 15px; font-weight: 500; cursor: pointer">Cancel</button>

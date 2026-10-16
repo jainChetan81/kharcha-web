@@ -686,7 +686,7 @@
    "y": 31200,
    "w": 1640,
    "h": 2080,
-   "title": "Components · activity and settings"
+   "title": "Components · activity and settings · light and dark"
   },
   "TodayHero.dc.html": {
    "x": 0,
@@ -834,6 +834,46 @@
    "title": "Desktop · settings · dark",
    "expand": "fill",
    "is_interactive": true
+  },
+  "RcCrop.dc.html": {
+   "x": 4230,
+   "y": 15000,
+   "w": 390,
+   "h": 844,
+   "title": "Receipt · crop",
+   "is_interactive": true
+  },
+  "RcCropDark.dc.html": {
+   "x": 4230,
+   "y": 17100,
+   "w": 390,
+   "h": 844,
+   "title": "Receipt · crop · dark",
+   "is_interactive": true
+  },
+  "ActCustomRange.dc.html": {
+   "x": 4230,
+   "y": 25720,
+   "w": 390,
+   "h": 1400,
+   "title": "Activity · custom range",
+   "is_interactive": true
+  },
+  "ActAmountErrorDark.dc.html": {
+   "x": 3760,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Amount · error · dark",
+   "is_interactive": true
+  },
+  "ActCustomRangeDark.dc.html": {
+   "x": 4230,
+   "y": 27240,
+   "w": 390,
+   "h": 1400,
+   "title": "Custom range · dark",
+   "is_interactive": true
   }
  },
  "order": [
@@ -939,7 +979,12 @@
   "SetModelDark.dc.html",
   "SetCatDeleteDark.dc.html",
   "DeskSettings.dc.html",
-  "DeskSettingsDark.dc.html"
+  "DeskSettingsDark.dc.html",
+  "RcCrop.dc.html",
+  "RcCropDark.dc.html",
+  "ActCustomRange.dc.html",
+  "ActAmountErrorDark.dc.html",
+  "ActCustomRangeDark.dc.html"
  ],
  "notes": {
   "tSystem": {
@@ -982,14 +1027,14 @@
    "y": 13300,
    "text": "Receipt reading",
    "kind": "title1",
-   "maxW": 4150
+   "maxW": 4620
   },
   "tReceiptDark": {
    "x": 0,
    "y": 16800,
    "text": "Receipt reading · dark",
    "kind": "title1",
-   "maxW": 4150
+   "maxW": 4620
   },
   "tReimb": {
    "x": 0,
@@ -1017,7 +1062,7 @@
    "y": 25420,
    "text": "Activity",
    "kind": "title1",
-   "maxW": 4150
+   "maxW": 4620
   },
   "tToday": {
    "x": 0,

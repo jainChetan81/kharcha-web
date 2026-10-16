@@ -25,13 +25,13 @@ button,input,textarea{font:inherit}
   <section role="dialog" aria-labelledby="rb-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 70px; background: var(--card); border-radius: 20px 20px 0 0; padding: 8px 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
     <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--rule); align-self: center"></div>
     <div style="display: flex; justify-content: space-between; align-items: baseline">
-      <h2 id="rb-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 24px">Reimbursable</h2>
+      <h2 id="rb-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Reimbursable</h2>
       <span style="font-size: 14px; color: var(--ink2)">of ₹3,000</span>
     </div>
 
     <div role="radiogroup" aria-label="How much" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
       <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
-        <button type="button" role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}" disabled="{{m.off}}" style="min-height: 40px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{m.bg}}; color: {{m.fg}}; cursor: pointer">{{m.name}}</button>
+        <button type="button" role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}" disabled="{{m.off}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{m.bg}}; color: {{m.fg}}; cursor: pointer">{{m.name}}</button>
       </sc-for>
     </div>
 
@@ -40,8 +40,7 @@ button,input,textarea{font:inherit}
         <label for="rb-amt" style="font-size: 13px; color: var(--ink2)">Amount coming back</label>
         <input id="rb-amt" value="₹1,200" inputmode="decimal" style="min-height: 52px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-family: 'Newsreader', Georgia, serif; font-size: 24px">
         <div style="display: flex; gap: 8px">
-          <button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 13px; cursor: pointer">Half · ₹1,500</button>
-          <button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 13px; cursor: pointer">Split 5 ways · ₹600 each</button>
+          <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 13px; cursor: pointer">Half · ₹1,500</button>
         </div>
       </div>
     </sc-if>
@@ -53,7 +52,7 @@ button,input,textarea{font:inherit}
       <span style="font-size: 13px; color: var(--ink2)">Who pays it back</span>
       <div style="display: flex; flex-wrap: wrap; gap: 8px">
         <sc-for list="{{people}}" as="p" hint-placeholder-count="4">
-          <button type="button" aria-pressed="{{p.on}}" onClick="{{p.pick}}" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid {{p.border}}; background: {{p.bg}}; color: {{p.fg}}; font-size: 14px; cursor: pointer">{{p.name}}</button>
+          <button type="button" aria-pressed="{{p.on}}" onClick="{{p.pick}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid {{p.border}}; background: {{p.bg}}; color: {{p.fg}}; font-size: 14px; cursor: pointer">{{p.name}}</button>
         </sc-for>
       </div>
     </div>

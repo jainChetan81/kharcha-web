@@ -32,7 +32,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
       <a href="DeskAsk.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span>Ask</span></a>
     </nav>
     <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px">
-      <a href="DeskSettings.dc.html" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border-radius: 999px; background: var(--sunken); font-size: 12px; color: var(--ink2); text-decoration: none"><span style="width: 7px; height: 7px; border-radius: 999px; background: var(--earn)"></span>Mini online · 3 min ago</a>
+      <a href="DeskSettings.dc.html" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 999px; background: var(--sunken); font-size: 12px; color: var(--ink2); text-decoration: none"><span style="width: 7px; height: 7px; border-radius: 999px; background: var(--earn)"></span>Mini online · 3 min ago</a>
       <a href="DeskSettings.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 15px; text-decoration: none; color: var(--ink)">Settings</a>
     </div>
   </aside>
@@ -82,7 +82,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 
       <div role="toolbar" aria-label="Filters" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
         <button type="button" aria-pressed="false" style="flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid var(--field); background: var(--card); color: var(--ink)"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--brand)"></span>Needs review<span style="font-weight: 600">115</span></button>
-        <button type="button" style="flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: var(--paper)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter · 2</button>
+        <button type="button" style="flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid var(--brand); background: var(--brand); color: var(--on-brand)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter · 2</button>
         <button type="button" style="flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid var(--field); background: var(--card); color: var(--ink)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>Newest</button>
         <span aria-hidden="true" style="width: 1px; height: 24px; background: var(--rule); margin: 0 4px"></span>
         <sc-for list="{{quick}}" as="q" hint-placeholder-count="5">
@@ -91,9 +91,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
       </div>
       <div aria-label="Applied filters" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
         <sc-for list="{{applied}}" as="a" hint-placeholder-count="2">
-          <button type="button" aria-label="{{a.aria}}" style="min-height: 32px; padding: 0 6px 0 12px; border-radius: 999px; border: 0; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; cursor: pointer">{{a.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+          <button type="button" aria-label="{{a.aria}}" style="min-height: 36px; padding: 0 6px 0 12px; border-radius: 999px; border: 0; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; cursor: pointer">{{a.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
         </sc-for>
-        <button type="button" style="min-height: 32px; padding: 0 8px; border: 0; background: transparent; color: var(--brand); font-size: 14px; font-weight: 500; cursor: pointer">Clear</button>
+        <button type="button" style="min-height: 36px; padding: 0 8px; border: 0; background: transparent; color: var(--brand); font-size: 14px; font-weight: 500; cursor: pointer">Clear</button>
       </div>
 
       <div style="border-radius: 12px; background: var(--sunken)">
@@ -224,7 +224,7 @@ class Component extends DCLogic {
         fn: () => (!s.end && d >= s.start) ? this.setState({ end: d }) : this.setState({ start: d, end: 0 }) });
     }
     const off = { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', weight: '400', focus: 'none' };
-    const on = { border: 'var(--ink)', bg: 'var(--ink)', fg: 'var(--paper)', weight: '500', focus: 'none' };
+    const on = { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', weight: '500', focus: 'none' };
     return {
       vars, days,
       datepop: s.datepop,

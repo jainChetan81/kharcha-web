@@ -54,10 +54,10 @@ button,input,textarea{font:inherit}
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 6px">
       <sc-for list="{{newCats}}" as="c" hint-placeholder-count="5">
-        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{c.color}}"></span>{{c.name}}</button>
+        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="min-height: 44px; padding: 0 10px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{c.color}}"></span>{{c.name}}</button>
       </sc-for>
     </div>
-    <button type="button" style="align-self: flex-start; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
+    <button type="button" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
   </section>
 
   <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 24px; background: var(--card); border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-size: 14px">

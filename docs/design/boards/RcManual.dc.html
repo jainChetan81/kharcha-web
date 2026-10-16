@@ -37,7 +37,7 @@ button,input,textarea{font:inherit}
       <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 104px 28px; gap: 8px; align-items: center; min-height: 48px; border-bottom: 1px solid var(--hair); font-size: 14px">
         <span>{{r.name}}</span><span style="text-align: right; font-weight: 500">{{r.amt}}</span>
         <span style="justify-self: end; min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); font-size: 12px; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{r.color}}"></span>{{r.cat}}</span>
-        <button type="button" aria-label="{{r.delLabel}}" style="width: 28px; height: 28px; border: 0; background: transparent; color: var(--ink3); padding: 0; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button type="button" aria-label="{{r.delLabel}}" style="width: 44px; height: 44px; margin: -8px; border: 0; background: transparent; color: var(--ink3); padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
     </sc-for>
     <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 8px; padding-top: 12px">
@@ -46,7 +46,7 @@ button,input,textarea{font:inherit}
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px">
       <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2)"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{draftColor}}"></span>{{draftCat}}</span>
-      <button type="button" onClick="{{addRow}}" disabled="{{noMore}}" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
+      <button type="button" onClick="{{addRow}}" disabled="{{noMore}}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
     </div>
   </section>
 

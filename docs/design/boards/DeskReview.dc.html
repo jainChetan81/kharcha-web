@@ -70,11 +70,11 @@ button{font:inherit;cursor:pointer}
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px">
           <sc-for list="{{chips}}" as="c" hint-placeholder-count="9">
-            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; font-size: 13px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
+            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 13px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}">{{c.name}}</button>
           </sc-for>
         </div>
         <label style="display: flex; align-items: center; gap: 8px; font-size: 14px"><input type="checkbox" checked="{{true}}" style="width: 18px; height: 18px; margin: 0; accent-color: #2F4A7A">Always file this merchant as {{curCat}}</label>
-        <p style="margin: 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.5; color: #3E4352">{{cur.sms}}</p>
+        <p style="margin: 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.5; color: #3E4352">{{cur.sms}}</p>
         <div style="display: flex; gap: 8px; flex-wrap: wrap">
           <button type="button" onClick="{{confirmCur}}" style="flex: 1; min-height: 44px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 15px; font-weight: 500">Confirm · {{curCat}}</button>
           <button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: transparent; color: #1C2230; font-size: 14px">Not a spend</button>

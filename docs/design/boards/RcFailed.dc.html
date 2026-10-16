@@ -26,7 +26,7 @@ button,input,textarea{font:inherit}
 
   <div role="radiogroup" aria-label="Failure reason (prototype)" style="margin: 4px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
     <sc-for list="{{reasons}}" as="r" hint-placeholder-count="3">
-      <button type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}" style="min-height: 36px; border-radius: 9px; border: 0; font-size: 13px; font-weight: 500; background: {{r.bg}}; color: {{r.fg}}; cursor: pointer">{{r.label}}</button>
+      <button type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}" style="min-height: 44px; border-radius: 9px; border: 0; font-size: 13px; font-weight: 500; background: {{r.bg}}; color: {{r.fg}}; cursor: pointer">{{r.label}}</button>
     </sc-for>
   </div>
 
