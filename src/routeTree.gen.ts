@@ -31,6 +31,7 @@ import { Route as PlanTripsRouteImport } from './routes/plan.trips'
 import { Route as TxnIdRouteImport } from './routes/txn.$id'
 import { Route as WealthIdRouteImport } from './routes/wealth_.$id'
 import { Route as WealthNewRouteImport } from './routes/wealth_.new'
+import { Route as ApiAttachmentsIdRouteImport } from './routes/api.attachments.$id'
 import { Route as ApiJobsNameRouteImport } from './routes/api.jobs.$name'
 import { Route as PlanRecurringIdRouteImport } from './routes/plan.recurring_.$id'
 import { Route as PlanRecurringNewRouteImport } from './routes/plan.recurring_.new'
@@ -150,6 +151,11 @@ const WealthNewRoute = WealthNewRouteImport.update({
   path: '/wealth/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAttachmentsIdRoute = ApiAttachmentsIdRouteImport.update({
+  id: '/api/attachments/$id',
+  path: '/api/attachments/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiJobsNameRoute = ApiJobsNameRouteImport.update({
   id: '/api/jobs/$name',
   path: '/api/jobs/$name',
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/wealth/$id': typeof WealthIdRoute
   '/wealth/new': typeof WealthNewRoute
   '/plan/': typeof PlanIndexRoute
+  '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/wealth/$id': typeof WealthIdRoute
   '/wealth/new': typeof WealthNewRoute
   '/plan': typeof PlanIndexRoute
+  '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/wealth_/$id': typeof WealthIdRoute
   '/wealth_/new': typeof WealthNewRoute
   '/plan/': typeof PlanIndexRoute
+  '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
   '/plan/recurring_/$id': typeof PlanRecurringIdRoute
   '/plan/recurring_/new': typeof PlanRecurringNewRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/wealth/$id'
     | '/wealth/new'
     | '/plan/'
+    | '/api/attachments/$id'
     | '/api/jobs/$name'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/wealth/$id'
     | '/wealth/new'
     | '/plan'
+    | '/api/attachments/$id'
     | '/api/jobs/$name'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/wealth_/$id'
     | '/wealth_/new'
     | '/plan/'
+    | '/api/attachments/$id'
     | '/api/jobs/$name'
     | '/plan/recurring_/$id'
     | '/plan/recurring_/new'
@@ -410,6 +422,7 @@ export interface RootRouteChildren {
   WealthIdRoute: typeof WealthIdRoute
   WealthNewRoute: typeof WealthNewRoute
   PlanIndexRoute: typeof PlanIndexRoute
+  ApiAttachmentsIdRoute: typeof ApiAttachmentsIdRoute
   ApiJobsNameRoute: typeof ApiJobsNameRoute
   PlanRecurringIdRoute: typeof PlanRecurringIdRoute
   PlanRecurringNewRoute: typeof PlanRecurringNewRoute
@@ -576,6 +589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WealthNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/attachments/$id': {
+      id: '/api/attachments/$id'
+      path: '/api/attachments/$id'
+      fullPath: '/api/attachments/$id'
+      preLoaderRoute: typeof ApiAttachmentsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/jobs/$name': {
       id: '/api/jobs/$name'
       path: '/api/jobs/$name'
@@ -658,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
   WealthIdRoute: WealthIdRoute,
   WealthNewRoute: WealthNewRoute,
   PlanIndexRoute: PlanIndexRoute,
+  ApiAttachmentsIdRoute: ApiAttachmentsIdRoute,
   ApiJobsNameRoute: ApiJobsNameRoute,
   PlanRecurringIdRoute: PlanRecurringIdRoute,
   PlanRecurringNewRoute: PlanRecurringNewRoute,

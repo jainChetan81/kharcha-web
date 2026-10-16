@@ -9,7 +9,7 @@ export type AiConfig = { model: string; visionModel: string; cap: number; used: 
 export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
   const rows = await db.select().from(meta).where(sql`${meta.key} IN ('openrouter_model', 'openrouter_vision_model', 'openrouter_daily_cap', ${`ai_calls_${today()}`})`);
   const value = new Map(rows.map((row) => [row.key, row.value]));
-  const cap = Number(value.get("openrouter_daily_cap") ?? 200);
+  const raw = value.get("openrouter_daily_cap"); const cap = raw ? Number(raw) : 200; // "0" is a real cap: AI off.
   return {
     model: value.get("openrouter_model") || "google/gemini-3.5-flash",
     visionModel: value.get("openrouter_vision_model") || value.get("openrouter_model") || "google/gemini-3.5-flash",
@@ -49,4 +49,3 @@ export async function callOpenRouter(
   }
 }
 
-export const aiEnabled = () => process.env.KHARCHA_AI === "on";

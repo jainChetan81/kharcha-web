@@ -12,7 +12,7 @@ const variants: Record<Variant, string> = {
   text: "text-brand px-2.5 bg-transparent",
   danger: "text-over px-2.5 bg-transparent",
 };
-export const buttonClass = (variant: Variant = "primary", className?: string) =>
+const buttonClass = (variant: Variant = "primary", className?: string) =>
   cn("inline-flex min-h-11 items-center justify-center gap-2 text-[15px] font-medium", variants[variant], className);
 
 export function Button({ variant = "primary", className, type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {

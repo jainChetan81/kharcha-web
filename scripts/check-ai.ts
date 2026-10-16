@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { eq } from "drizzle-orm";
-import { askSpecSchema, figuresMatchRows } from "../src/server/ai/ask.ts";
+import { askSpecSchema, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { insights, transactions } from "../src/server/db/schema.ts";
 import { validDigestLines, runDetectors } from "../src/server/insights/jobs.ts";
@@ -10,7 +10,15 @@ assert.equal(spec.success, true);
 assert.equal(askSpecSchema.safeParse({ metric: "sum", filters: { card: "2047" } }).success, false);
 assert.equal(figuresMatchRows("Total is ₹1,200.", [{ value: 1200 }]), true);
 assert.equal(figuresMatchRows("Total is ₹1,201.", [{ value: 1200 }]), false);
+assert.equal(figuresMatchRows("About ₹1,200 so far.", [{ value: 1199.6 }]), true);
+assert.equal(scrub("swiggy@axisbank"), "[private payee]");
+assert.equal(scrub("A/c 123456789"), "[private payee]");
+assert.equal(scrub("Swiggy"), "Swiggy");
+assert.equal(redact("Paid ravi@okhdfc from card 4111 1111 1111 1111 on 12 Oct"), "Paid [private] from card [number] on 12 Oct");
+assert.equal(figuresMatchRows("You spent 120000 rupees", [{ value: 900 }]), false);
+assert.equal(figuresMatchRows("Rs. 900 and INR 900", [{ value: 900 }]), true);
 assert.equal(validDigestLines([{ pre: "", num: "42 rows", post: "", factKey: "backlog" }, { pre: "", num: "Food ₹900", post: "", factKey: "category" }, { pre: "", num: "Shop at 40%", post: "", factKey: "merchant" }], { backlog: "42 rows", category: "Food ₹900", merchant: "Shop at 40%" }), true);
+assert.equal(validDigestLines([{ pre: "Spent ₹5,000 ", num: "42 rows", post: "", factKey: "backlog" }, { pre: "", num: "Food ₹900", post: "", factKey: "category" }, { pre: "", num: "Shop at 40%", post: "", factKey: "merchant" }], { backlog: "42 rows", category: "Food ₹900", merchant: "Shop at 40%" }), false);
 
 const db = openDb(":memory:");
 const now = new Date();

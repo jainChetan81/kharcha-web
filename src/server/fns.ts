@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "./db/client";
 import {
   addRule, addSchema, addTxn, budgetSchema, categoryList, editSchema, editTxn, flagSchema, flagTxn, getTxn, listSchema,
-  listTxns, monthSchema, monthSummary, removeTxn, restoreTxn, ruleSchema, setBudget,
+  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget,
 } from "./db/queries";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
@@ -39,10 +39,6 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
       : null,
   };
 });
-
-export const getMonth = createServerFn({ method: "GET" })
-  .validator(z.object({ month: monthSchema }))
-  .handler(({ data }) => monthSummary(getDb(), data.month));
 
 export const getTransactions = createServerFn({ method: "GET" })
   .validator(listSchema.extend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))

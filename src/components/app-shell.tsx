@@ -27,7 +27,7 @@ const side = [
 ] as const;
 
 /** Full-screen routes on phones: no tab bar, no add button. */
-const bare = (p: string) => /^\/(add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
+const bare = (p: string) => /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
 
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -105,11 +105,11 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
 }
 
 /** Desktop page frame: main column plus a 300px right rail (§5). Rail stacks under main on phones. */
-export function DeskPage({ children, rail, className }: { children: ReactNode; rail?: ReactNode; className?: string }) {
+export function DeskPage({ children, rail, className, railClassName }: { children: ReactNode; rail?: ReactNode; className?: string; railClassName?: string }) {
   return (
     <div className={cn("desk:flex desk:items-start desk:gap-8 desk:px-[clamp(20px,3vw,40px)] desk:pt-7 desk:pb-10", className)}>
       <main className="min-w-0 desk:flex-1">{children}</main>
-      {rail && <aside className="flex flex-col gap-5 px-5 pt-6 desk:sticky desk:top-7 desk:w-[300px] desk:shrink-0 desk:px-0 desk:pt-0">{rail}</aside>}
+      {rail && <aside className={cn("flex flex-col gap-5 px-5 pt-6 desk:sticky desk:top-7 desk:w-[300px] desk:shrink-0 desk:px-0 desk:pt-0", railClassName)}>{rail}</aside>}
     </div>
   );
 }

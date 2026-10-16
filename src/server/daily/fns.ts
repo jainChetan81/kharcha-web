@@ -1,30 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, count, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { categoryList, getMeta, monthBounds, setMeta, spendByCategory } from "../db/queries";
-import { attachments, categories, merchantRules, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { categoryList } from "../db/queries";
+import { attachments, categories, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { afterWrite } from "../jobs";
+import { parseMessage } from "../parsers/index.ts";
 
 const id = z.object({ id: z.number().int().positive() });
-const month = z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) });
 const live = isNull(transactions.deletedAt);
-
-export const getToday = createServerFn({ method: "GET" }).validator(month).handler(async ({ data }) => {
-  const db = getDb();
-  const [from, to] = monthBounds(data.month);
-  const [summary, rows, lastRows] = await Promise.all([
-    spendByCategory(db, from, to),
-    db.select({ date: transactions.date, amount: transactions.amount, merchant: transactions.merchant }).from(transactions).where(and(live, eq(transactions.type, "expense"), eq(transactions.excluded, false), gte(transactions.date, from), lte(transactions.date, `${to} 00:00`))).orderBy(asc(transactions.date)),
-    db.select().from(transactions).where(live).orderBy(desc(transactions.date), desc(transactions.id)).limit(5),
-  ]);
-  const limits = await db.select({ total: sum(sql`monthly_limit`) }).from((await import("../db/schema")).budgets);
-  const spent = summary.reduce((n, x) => n + x.total, 0);
-  return { spent, limit: Number(limits[0]?.total ?? 0), categories: summary, points: rows, recent: lastRows };
-});
 
 export const getReview = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
-  const rows = await db.select().from(transactions).where(and(live, eq(transactions.needsReview, true))).orderBy(desc(transactions.date)).limit(100);
+  const rows = await db.select().from(transactions).where(and(live, eq(transactions.needsReview, true))).orderBy(desc(transactions.date)).limit(500); // ponytail: badge counts all; page past 500 if a backlog ever gets that big.
   const reviewed = await db.select({ merchant: transactions.merchant, category: transactions.category, n: count() }).from(transactions).where(and(live, eq(transactions.needsReview, false), sql`${transactions.category} IS NOT NULL`)).groupBy(transactions.merchant, transactions.category).orderBy(desc(count()));
   const suggestion = new Map<string, string>();
   for (const x of reviewed) if (x.category && !suggestion.has(x.merchant)) suggestion.set(x.merchant, x.category);
@@ -49,40 +37,54 @@ export const getDetail = createServerFn({ method: "GET" }).validator(id).handler
   return { txn, more, files, items, splits };
 });
 
-export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
-  const db = getDb();
-  const keys = ["openrouter_model", "openrouter_vision_model", "openrouter_daily_cap", `ai_calls_${new Date().toISOString().slice(0, 10)}`, "last_ingest_at"];
-  const values = Object.fromEntries(await Promise.all(keys.map(async (key) => [key, await getMeta(db, key)])));
-  return { categories: await categoryList(db), rules: await db.select().from(merchantRules).orderBy(desc(merchantRules.id)), values, aiOn: process.env.KHARCHA_AI === "on" };
-});
-
-export const saveSettings = createServerFn({ method: "POST" }).validator(z.object({ key: z.enum(["openrouter_model", "openrouter_vision_model", "openrouter_daily_cap"]), value: z.string().max(100) })).handler(({ data }) => setMeta(getDb(), data.key, data.value));
-export const saveCategory = createServerFn({ method: "POST" }).validator(z.object({ oldName: z.string().max(40).optional(), name: z.string().trim().min(1).max(40), type: z.enum(["expense", "income"]), colorToken: z.string().regex(/^cat-[a-z-]+$/), sortOrder: z.number().int().min(0).max(99) })).handler(async ({ data }) => {
-  const db = getDb();
-  if (data.oldName && data.oldName !== data.name) {
-    await db.update(categories).set({ name: data.name, colorToken: data.colorToken, sortOrder: data.sortOrder }).where(and(eq(categories.name, data.oldName), eq(categories.type, data.type)));
-    await db.update(transactions).set({ category: data.name }).where(eq(transactions.category, data.oldName));
-    await db.update(merchantRules).set({ category: data.name }).where(eq(merchantRules.category, data.oldName));
-  } else await db.insert(categories).values({ name: data.name, type: data.type, colorToken: data.colorToken, sortOrder: data.sortOrder }).onConflictDoUpdate({ target: [categories.name, categories.type], set: { colorToken: data.colorToken, sortOrder: data.sortOrder } });
-});
-export const deleteRule = createServerFn({ method: "POST" }).validator(z.object({ id: z.number().int().positive() })).handler(async ({ data }) => { await getDb().delete(merchantRules).where(eq(merchantRules.id, data.id)); });
-
 const receiptSchema = z.object({ id: z.number().int().positive(), items: z.array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().positive().nullable(), amount: z.number().positive(), category: z.string().min(1).max(40) })).max(100), splits: z.array(z.object({ category: z.string().min(1).max(40), amount: z.number().positive() })).max(30) });
 export const saveReceipt = createServerFn({ method: "POST" }).validator(receiptSchema).handler(async ({ data }) => {
   const db = getDb();
-  const txn = await db.select({ amount: transactions.amount }).from(transactions).where(eq(transactions.id, data.id)).get();
+  const txn = await db.select({ amount: transactions.amount, type: transactions.type }).from(transactions).where(and(eq(transactions.id, data.id), live)).get();
   if (!txn) throw new Error("Transaction not found.");
+  const known = new Set((await db.select({ name: categories.name }).from(categories).where(eq(categories.type, txn.type === "income" ? "income" : "expense"))).map((row) => row.name));
+  if ([...data.items, ...data.splits].some((row) => !known.has(row.category))) throw new Error("Unknown category.");
   if (data.splits.length && Math.abs(data.splits.reduce((n, x) => n + x.amount, 0) - txn.amount) > 0.01) throw new Error("Splits must equal transaction amount.");
-  await db.delete(transactionItems).where(eq(transactionItems.transactionId, data.id));
-  await db.delete(transactionSplits).where(eq(transactionSplits.transactionId, data.id));
-  if (data.items.length) await db.insert(transactionItems).values(data.items.map((x) => ({ ...x, transactionId: data.id, source: "manual" as const })));
-  if (data.splits.length) await db.insert(transactionSplits).values(data.splits.map((x) => ({ ...x, transactionId: data.id })));
+  const operations = [
+    db.delete(transactionItems).where(eq(transactionItems.transactionId, data.id)),
+    db.delete(transactionSplits).where(eq(transactionSplits.transactionId, data.id)),
+    ...(data.items.length ? [db.insert(transactionItems).values(data.items.map((item) => ({ ...item, transactionId: data.id, source: "manual" as const })))] : []),
+    ...(data.splits.length ? [db.insert(transactionSplits).values(data.splits.map((item) => ({ ...item, transactionId: data.id })))] : []),
+  ];
+  await db.batch(operations as [typeof operations[number], ...typeof operations[number][]]);
 });
 
-export const parsePasted = createServerFn({ method: "POST" }).validator(z.object({ text: z.string().trim().min(1).max(2000) })).handler(({ data }) => {
-  const amount = data.text.match(/(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d{1,2})?)/i)?.[1]?.replaceAll(",", "");
-  const merchant = data.text.match(/(?:at|to)\s+([A-Z][A-Z .&'-]{2,}?)(?:\s+on|\.|,)/i)?.[1]?.trim();
-  if (!amount || !merchant) return null;
-  const card = data.text.match(/(?:xx|\*{2,})\s?(\d{4})/i)?.[1];
-  return { amount: Number(amount), merchant: merchant.replace(/\s+/g, " "), accountLast4: card, type: "expense" as const, category: "Other", rawText: data.text };
+const pastedSchema = z.object({ text: z.string().trim().min(1).max(2000), bank: z.enum(["axis", "hdfc", "indusind"]).optional() });
+function parseBankText(data: z.infer<typeof pastedSchema>) {
+  const keys = data.bank ? [data.bank] : ["axis", "hdfc", "indusind"] as const;
+  for (const key of keys) {
+    const outcome = parseMessage(key, data.text);
+    if (!outcome.parsed) continue;
+    const row = outcome.parsed;
+    // Foreign-only SMS has no verified INR amount. Never book its foreign figure as rupees.
+    if (row.currency && row.currency !== "INR") return { status: "foreign" as const, ...row, bankName: outcome.bankName };
+    if (!Number.isFinite(row.amount) || row.amount <= 0) return null;
+    return { status: "parsed" as const, type: row.type, amount: row.amount, merchant: row.merchant, category: row.category ?? "Other", date: row.date, accountLast4: row.accountLast4, bankName: outcome.bankName };
+  }
+  return null;
+}
+export const parsePasted = createServerFn({ method: "POST" }).validator(pastedSchema).handler(({ data }) => parseBankText(data));
+
+export const savePasted = createServerFn({ method: "POST" }).validator(pastedSchema).handler(async ({ data }) => {
+  const parsed = parseBankText(data);
+  if (!parsed || parsed.status !== "parsed") throw new Error("Message needs manual entry.");
+  const db = getDb();
+  const known = await db.select({ name: categories.name }).from(categories).where(eq(categories.type, parsed.type === "income" ? "income" : "expense"));
+  const isTransfer = parsed.category === "Credit Card Payment";
+  const category = known.some((item) => item.name === parsed.category) ? parsed.category : "Other";
+  const [row] = await db.insert(transactions).values({
+    source: "paste", type: parsed.type, amount: parsed.amount, merchant: parsed.merchant,
+    rawMerchant: parsed.merchant, category, date: parsed.date ?? new Date().toISOString().slice(0, 16).replace("T", " "),
+    rawText: data.text, bankName: parsed.bankName, accountLast4: parsed.accountLast4 ?? null,
+    needsReview: !isTransfer && category === "Other", excluded: isTransfer,
+    editedAt: sql`datetime('now')`,
+  }).returning({ id: transactions.id });
+  if (!row) throw new Error("Could not save transaction.");
+  await afterWrite([row.id], db);
+  return row.id;
 });

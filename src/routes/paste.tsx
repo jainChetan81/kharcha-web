@@ -1,20 +1,71 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { Button, Card, PageHeader, StatusTag } from "../components/ui";
-import { money, nowLocal } from "../lib/format";
-import { addTransaction } from "../server/fns";
-import { parsePasted } from "../server/daily/fns";
-import { saveFailed } from "../components/sheet";
+import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-export const Route = createFileRoute("/paste")({ validateSearch: z.object({ text: z.string().optional() }), component: Paste });
+import { Button, Card, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { foreign, money } from "../lib/format";
+import { parsePasted, savePasted } from "../server/daily/fns";
+
+export const Route = createFileRoute("/paste")({
+  validateSearch: z.object({ text: z.string().max(2000).optional() }),
+  pendingComponent: () => <Skeleton rows={4} />,
+  errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load Paste."} retry={() => void router.invalidate()} />; },
+  component: Paste,
+});
+
+type Result = Awaited<ReturnType<typeof parsePasted>>;
+
 function Paste() {
-  const initial = Route.useSearch().text ?? ""; const [text, setText] = useState(initial); const [parsed, setParsed] = useState<Awaited<ReturnType<typeof parsePasted>> | undefined>(); const [failed, setFailed] = useState(false); const navigate = useNavigate(); const online = useOnline();
-  const parse = async () => { if (!online || !text.trim()) return; try { const result = await parsePasted({ data: { text } }); setParsed(result); setFailed(result === null); } catch { setParsed(undefined); setFailed(true); } };
-  const copy = async () => { try { setText(await navigator.clipboard.readText()); setParsed(undefined); setFailed(false); } catch { setFailed(true); } };
-  const save = async () => { if (!parsed || !online) return; try { await addTransaction({ data: { ...parsed, date: nowLocal(), source: "paste" } }); void navigate({ to: "/" }); } catch { saveFailed(save); } };
-  const parsedCurrency = parsed && "currency" in parsed ? (parsed as { currency?: unknown }).currency : undefined;
-  const isForeign = typeof parsedCurrency === "string" && parsedCurrency !== "INR";
-  return <main className="flex min-h-dvh flex-col"><PageHeader back="/add" title="Paste SMS" /><div className="flex flex-1 flex-col px-5 pb-7 tablet:mx-auto tablet:w-full tablet:max-w-[640px]"><div className="flex flex-col gap-2"><label htmlFor="paste-sms" className="text-[13px] text-ink-2">Message</label><textarea id="paste-sms" value={text} onChange={(e) => { setText(e.target.value); setParsed(undefined); setFailed(false); }} rows={4} className="field min-h-32 resize-none font-mono text-[13px] leading-relaxed text-ink" /><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void copy()}>Paste from clipboard</Button><Button variant="text" onClick={() => { setText(""); setParsed(undefined); setFailed(false); }}>Clear</Button><Button variant="text" onClick={() => void parse()} disabled={!online || !text.trim()}>Parse</Button></div></div>{failed && <Card className="mt-6 flex items-center justify-between gap-3 p-4 text-[15px]">Couldn’t parse this SMS.<Button variant="text" onClick={() => void navigate({ to: "/add" })}>Add manually</Button></Card>}{parsed && <Card className="mt-6 flex flex-col gap-3.5 rounded-[16px] border-[#CFCABB] p-5"><div className="flex items-center justify-between gap-3"><span className="label-caps text-ink-3">Parsed on server</span>{isForeign && <StatusTag tone="unusual">Check the rate</StatusTag>}</div><div className="flex justify-between gap-3 border-b-[3px] border-double border-ink pb-3"><span className="min-w-0"><b className="block truncate font-serif text-2xl font-medium">{parsed.merchant}</b><small className="text-[13px] text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small></span><b className="shrink-0 font-serif text-[28px] font-medium">{money(parsed.amount)}</b></div><dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm"><ParseField label="Type" value={parsed.type} /><ParseField label="Category" value={parsed.category} /><ParseField label="Raw merchant" value={parsed.merchant} mono /><ParseField label="Status" value="Needs review" /></dl><p className="m-0 text-[13px] leading-relaxed text-ink-2">{isForeign ? "Rupee amount uses your saved FX rate. It stays flagged for review until you match it to the card statement." : "Saved rows stay flagged for review."}</p></Card>}<div className="mt-auto grid grid-cols-2 gap-2.5 pt-7"><Button variant="outline" onClick={() => void navigate({ to: "/add" })}>Edit first</Button><Button onClick={() => void save()} disabled={!online || !parsed}>Save</Button></div></div></main>;
+  const [text, setText] = useState(Route.useSearch().text ?? "");
+  const [bank, setBank] = useState<"axis" | "hdfc" | "indusind" | "">("");
+  const [result, setResult] = useState<{ key: string; parsed: Result }>();
+  const key = `${bank}\n${text}`;
+  // A late response for edited text is ignored: only the result for the current text shows or saves.
+  const parsed = result?.key === key ? result.parsed : undefined;
+  const failed = result?.key === key && !result.parsed;
+  const navigate = useNavigate();
+  const online = useOnline();
+  useHoldsInput();
+  const reset = () => setResult(undefined);
+  const parse = async () => {
+    if (!online || !text.trim()) return;
+    try {
+      setResult({ key, parsed: await parsePasted({ data: { text, bank: bank || undefined } }) });
+    } catch { saveFailed(parse); }
+  };
+  const paste = async () => {
+    try { setText(await navigator.clipboard.readText()); reset(); }
+    catch { snack("Couldn't read clipboard. Paste into message field instead."); }
+  };
+  const save = async () => {
+    if (!parsed || parsed.status !== "parsed" || !online) return;
+    try {
+      await savePasted({ data: { text, bank: bank || undefined } });
+      snack(`Saved ${money(parsed.amount)} · ${parsed.category}`);
+      void navigate({ to: "/" });
+    } catch { saveFailed(save); }
+  };
+  return <main className="flex min-h-dvh flex-col">
+    <PageHeader back="/add" title="Paste SMS" />
+    <div className="flex flex-1 flex-col gap-4 px-5 pb-7 tablet:mx-auto tablet:w-full tablet:max-w-[640px]">
+      <label htmlFor="paste-bank" className="flex flex-col gap-1.5 text-[13px] text-ink-2">Bank (optional)
+        <select id="paste-bank" className="field" value={bank} onChange={(event) => { setBank(event.target.value as typeof bank); reset(); }}>
+          <option value="">Detect from message</option><option value="axis">Axis</option><option value="hdfc">HDFC</option><option value="indusind">IndusInd</option>
+        </select>
+      </label>
+      <label htmlFor="paste-sms" className="flex flex-col gap-1.5 text-[13px] text-ink-2">Message
+        <textarea id="paste-sms" value={text} onChange={(event) => { setText(event.target.value); reset(); }} rows={5} maxLength={2000} className="field min-h-32 resize-y font-mono text-[13px] leading-relaxed text-ink" />
+      </label>
+      <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void paste()}>Paste from clipboard</Button><Button variant="text" onClick={() => { setText(""); reset(); }}>Clear</Button><Button onClick={() => void parse()} disabled={!online || !text.trim()}>Parse</Button></div>
+      {failed && <Card className="flex items-center justify-between gap-3 p-4 text-[15px]">Couldn’t parse this SMS.<Button variant="text" onClick={() => void navigate({ to: "/add" })}>Add manually</Button></Card>}
+      {parsed && <Card className="mt-2 flex flex-col gap-3.5 p-5">
+        <span className="label-caps text-ink-3">Parsed on server · {parsed.bankName}</span>
+        <div className="flex justify-between gap-3 border-b-[3px] border-double border-ink pb-3"><span className="min-w-0"><b className="block truncate font-serif text-2xl font-medium">{parsed.merchant}</b><small className="text-[13px] text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small></span><b className="shrink-0 font-serif text-[28px] font-medium">{parsed.status === "foreign" ? foreign(parsed.currency, parsed.originalAmount, parsed.amount) : money(parsed.amount)}</b></div>
+        <div className="flex justify-between text-sm"><span>{parsed.type} · {parsed.category ?? "Other"}</span><span>{parsed.date ?? "Date unavailable"}</span></div>
+        <p className="m-0 text-[13px] text-ink-2">{parsed.status === "foreign" ? "Foreign amount has no verified rupee conversion. Add it manually after checking the card statement." : "Check details before saving. The original message stays on your server."}</p>
+      </Card>}
+      <div className="mt-auto grid grid-cols-2 gap-2.5 pt-5"><Button variant="outline" onClick={() => void navigate({ to: "/add" })}>Add manually</Button><Button onClick={() => void save()} disabled={!online || parsed?.status !== "parsed"}>Save</Button></div>
+    </div>
+  </main>;
 }
-function ParseField({ label, value, mono }: { label: string; value: string; mono?: boolean }) { return <div className="flex min-w-0 flex-col gap-0.5"><dt className="text-xs text-ink-3">{label}</dt><dd className={`m-0 truncate font-medium ${mono ? "font-mono text-[13px]" : ""}`}>{value}</dd></div>; }

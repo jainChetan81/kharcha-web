@@ -68,8 +68,6 @@ const p2 = (n: number) => String(n).padStart(2, "0");
 export function nowLocal(d = new Date()): string {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 }
-/** Local "YYYY-MM-DD". */
-export const today = () => nowLocal().slice(0, 10);
 
 /** "3 min ago" · "6 h ago" · "2 d ago". */
 export function ago(iso: string, now = Date.now()): string {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb, type Db } from "../db/client.ts";
 import { spendByCategory } from "../db/queries.ts";
 import { budgets, digests, holdings, holdingTxns, insights, recurringSeries, transactions } from "../db/schema.ts";
+import { scrub } from "../ai/ask.ts";
 import { callOpenRouter } from "../ai/client.ts";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -14,6 +15,7 @@ const weekStart = (d = localDate()) => {
   const out = new Date(d); out.setDate(out.getDate() - ((out.getDay() + 6) % 7)); return out;
 };
 const monthEnd = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 1);
+const daysIn = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 
 async function addInsight(db: Db, detector: string, key: string, payload: object) {
   await db.insert(insights).values({ detector, key, payloadJson: JSON.stringify(payload) }).onConflictDoNothing();
@@ -56,7 +58,7 @@ export async function runDetectors(db: Db = getDb()): Promise<{ found: number }>
     if (!paid) { await addInsight(db, "missing_sip", `${holding.id}:${now.getFullYear()}-${now.getMonth() + 1}`, { holding: holding.name, href: `/wealth/${holding.id}` }); found++; }
   }
   const limits = await db.select().from(budgets); const start = new Date(now.getFullYear(), now.getMonth(), 1); const spend = await spendByCategory(db, iso(start), iso(monthEnd(now)));
-  for (const budget of limits) { const value = spend.find((row) => row.category === budget.category)?.total ?? 0; const pace = value / Math.max(1, now.getDate()); if (pace * monthEnd(now).getDate() > budget.monthlyLimit) { const crossing = Math.ceil(budget.monthlyLimit / Math.max(pace, 1)); await addInsight(db, "budget", `${now.getFullYear()}-${now.getMonth() + 1}:${budget.category}`, { category: budget.category, crossing, href: "/plan/budgets" }); found++; } }
+  for (const budget of limits) { const value = spend.find((row) => row.category === budget.category)?.total ?? 0; const pace = value / Math.max(1, now.getDate()); if (pace * daysIn(now) > budget.monthlyLimit) { const crossing = Math.ceil(budget.monthlyLimit / Math.max(pace, 1)); await addInsight(db, "budget", `${now.getFullYear()}-${now.getMonth() + 1}:${budget.category}`, { category: budget.category, crossing, href: "/plan/budgets" }); found++; } }
   return { found };
 }
 
@@ -64,7 +66,7 @@ export async function runDetectors(db: Db = getDb()): Promise<{ found: number }>
 const lineSchema = z.array(z.object({ pre: z.string(), num: z.string(), post: z.string(), factKey: z.string() })).length(3);
 const parseJson = (value: string): unknown => { try { return JSON.parse(value); } catch { return undefined; } };
 export function validDigestLines(value: unknown, facts: Record<string, string>): value is z.infer<typeof lineSchema> {
-  const parsed = lineSchema.safeParse(value); return parsed.success && parsed.data.every((line) => facts[line.factKey] === line.num);
+  const parsed = lineSchema.safeParse(value); return parsed.success && parsed.data.every((line) => facts[line.factKey] === line.num && !/\d/.test(line.pre + line.post));
 }
 
 export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }> {
@@ -76,15 +78,19 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
   const total = monthSpend.reduce((sum, row) => sum + row.total, 0); const top = monthRows[0];
   const cat = weeklySpend.map((row) => ({ ...row, change: row.total - (usualSpend.find((usual) => usual.category === row.category)?.total ?? 0) / 4 })).sort((a, b) => b.change - a.change)[0]; const reviews = await db.all<{ n: number }>(sql`SELECT COUNT(*) n FROM transactions WHERE deleted_at IS NULL AND needs_review = 1 AND category = 'Other'`);
   const limits = await db.select().from(budgets); const day = Math.max(1, now.getDate());
-  const crossing = limits.map((limit) => ({ category: limit.category, day: Math.ceil(limit.monthlyLimit / Math.max(1, (monthSpend.find((row) => row.category === limit.category)?.total ?? 0) / day)) })).filter((item) => item.day <= monthEnd(now).getDate()).sort((a, b) => a.day - b.day)[0];
+  const crossing = limits.map((limit) => ({ category: limit.category, day: Math.ceil(limit.monthlyLimit / Math.max(1, (monthSpend.find((row) => row.category === limit.category)?.total ?? 0) / day)) })).filter((item) => item.day <= daysIn(now)).sort((a, b) => a.day - b.day)[0];
   const facts = {
-    topMerchant: top ? `${top.merchant} at ${Math.round((top.total / Math.max(1, total)) * 100)}%` : "No merchant data",
+    topMerchant: top ? `${scrub(top.merchant)} at ${Math.round((top.total / Math.max(1, total)) * 100)}%` : "No merchant data",
     category: cat ? `${cat.category} ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(cat.total)}` : "No category data",
     budgetForecast: crossing ? `${crossing.category} around day ${crossing.day}` : "No budget crossing forecast",
     reviewBacklog: `${reviews[0]?.n ?? 0} rows`,
   };
   const links = { topMerchant: top ? `/activity?merchant=${encodeURIComponent(top.merchant)}` : "/activity", category: cat ? `/activity?category=${encodeURIComponent(cat.category)}` : "/activity", budgetForecast: "/plan/budgets", reviewBacklog: "/review" };
-  const response = await callOpenRouter([{ role: "system", content: "Return JSON only: array is unavailable; wrap as {lines:[{pre,num,post,factKey}]}. Exactly 3 short lines. num must equal a facts value verbatim. Use only facts." }, { role: "user", content: JSON.stringify(facts) }], { db });
+  // Context lets the model judge which facts matter; only facts values may appear as figures.
+  const context = { dayOfMonth: day, daysInMonth: daysIn(now), weekCategory: cat ? { category: cat.category, thisWeek: Math.round(cat.total), usualWeek: Math.round(cat.total - cat.change) } : null, budgets: limits.map((limit) => ({ category: limit.category, limit: limit.monthlyLimit, spent: Math.round(monthSpend.find((row) => row.category === limit.category)?.total ?? 0) })) };
+  const response = await callOpenRouter([{ role: "system", content: `You write a Monday money digest for one person in India. Return JSON only: {"lines":[{"pre","num","post","factKey"}]} with exactly 3 lines.
+Pick the 3 facts that matter most this week, most important first, using context to judge (a category well above its usual week, a budget about to be crossed, a big review backlog). Each line reads pre + num + post as one short sentence (under 14 words) that says what happened and, where useful, what to do next, e.g. "Review " + "12 rows" + " so Other stops hiding spend."
+num must be copied verbatim from the chosen facts value, and factKey must be that fact's key. Use each fact at most once. No other figures in pre or post.` }, { role: "user", content: JSON.stringify({ facts, context }) }], { db });
   let text: string | null = null; let model: string | null = null;
   if (response.ok) { const parsed = z.object({ lines: z.unknown() }).safeParse(parseJson(response.content)); if (parsed.success && validDigestLines(parsed.data.lines, facts)) { text = JSON.stringify(parsed.data.lines); model = response.model; } }
   await db.insert(digests).values({ weekStart: iso(week), factsJson: JSON.stringify({ ...facts, links }), text, model }).onConflictDoUpdate({ target: digests.weekStart, set: { factsJson: JSON.stringify({ ...facts, links }), text, model } });

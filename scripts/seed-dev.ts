@@ -1,12 +1,19 @@
-// Synthetic dev data for .data/kharcha.db (never real exports). Run: npm run seed:dev
-import { rmSync } from "node:fs";
+// Synthetic dev data (never real exports). Run: npm run seed:dev
+// Writes $STATE_DIRECTORY/kharcha.db (default .data). Refuses to replace an existing DB unless SEED_REPLACE=1.
+import { existsSync, mkdirSync, rmSync } from "node:fs";
+import path from "node:path";
 import { openDb } from "../src/server/db/client.ts";
 import { ingest, setBudget } from "../src/server/db/queries.ts";
 
-rmSync(".data/kharcha.db", { force: true });
-rmSync(".data/kharcha.db-wal", { force: true });
-rmSync(".data/kharcha.db-shm", { force: true });
-const db = openDb(".data/kharcha.db");
+const dir = process.env.STATE_DIRECTORY ?? ".data";
+const file = path.join(dir, "kharcha.db");
+if (existsSync(file) && process.env.SEED_REPLACE !== "1") {
+  console.error(`seed-dev: ${file} exists; refusing to replace it. Set SEED_REPLACE=1 to wipe it.`);
+  process.exit(1);
+}
+mkdirSync(dir, { recursive: true, mode: 0o700 });
+for (const suffix of ["", "-wal", "-shm"]) rmSync(file + suffix, { force: true });
+const db = openDb(file);
 
 const merchants: [string, string | null, number, string, string][] = [
   ["SWIGGY INSTAMART", "Swiggy Instamart", 220, "Food", "2047"],
@@ -45,4 +52,4 @@ for (let back = 0; back < 180; back++) {
 for (let i = 0; i < rows.length; i += 500) await ingest(db, rows.slice(i, i + 500));
 for (const [category, monthlyLimit] of [["Food", 8000], ["Utilities", 2000], ["Shopping", 15000], ["Transport", 5000], ["Entertainment", 2000]] as const)
   await setBudget(db, { category, monthlyLimit });
-console.log(`seeded ${rows.length} synthetic rows into .data/kharcha.db`);
+console.log(`seeded ${rows.length} synthetic rows into ${file}`);

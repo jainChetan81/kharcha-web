@@ -38,7 +38,7 @@ export function useHealth(): Health {
 
 const HealthContext = createContext<Health>({ state: "unknown", lastIngestAt: null });
 export const HealthProvider = HealthContext.Provider;
-export const useSync = () => useContext(HealthContext);
+const useSync = () => useContext(HealthContext);
 /** False while offline or the server is unreachable; write controls disable on it (§9). */
 export const useOnline = () => {
   const s = useSync().state;

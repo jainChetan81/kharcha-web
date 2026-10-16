@@ -308,7 +308,7 @@ export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boole
     .orderBy(desc(transactions.date), desc(transactions.id))
     .limit(q.limit);
 }
-export type TxnRow = Awaited<ReturnType<typeof listTxns>>[number];
+
 
 export async function getTxn(db: Db, id: number) {
   const [row] = await listTxns(db, { ids: [id], limit: 1, withRaw: true });
