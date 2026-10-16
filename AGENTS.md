@@ -7,3 +7,7 @@
 - Pages must stay `no-store` and the service worker must never cache HTML or `/_serverFn`/`/api` responses; the device holds no finance data.
 - The ingest contract (`miniRowSchema` in `src/server/db/queries.ts`) must match `kharcha-mini/src/sync/push-vps.ts`. Change both together.
 - Changes do not authorize push, merge, or deploy. Keep unrelated VPS services and port 20128 running.
+- `src/server/parsers/` is a copy of the mini's regex parsers, used by Paste. A parser fix in `kharcha-mini/src/parsers/` must be copied over.
+- UI follows `docs/design/DESIGN.md` and its boards. Tokens live in `src/styles.css`; formatting in `src/lib/format.ts` (`npm run check:format`).
+- AI: OpenRouter only from `src/server/ai/`. Never send raw SMS, card numbers or UPI IDs. Ask and Receipts stay off unless `KHARCHA_AI=on`.
+- `/api/jobs/*` are bearer-token endpoints for the systemd timer; keep them blocked in `deploy/kharcha.caddy`.

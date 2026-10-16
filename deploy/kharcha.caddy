@@ -11,10 +11,11 @@ kharcha.chetan-vps.tech {
         -Server
     }
     # Machine endpoints stay tailnet-only (the Mac mini pushes over Tailscale).
-    @internal path /api/ingest /api/ingest/* /api/health
+    @internal path /api/ingest /api/ingest/* /api/health /api/jobs /api/jobs/*
     respond @internal 404
+    # Receipts upload up to 5 images or PDFs.
     request_body {
-        max_size 64KB
+        max_size 25MB
     }
     reverse_proxy 127.0.0.1:8790
 }

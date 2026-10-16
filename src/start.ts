@@ -5,8 +5,9 @@ import { isSignedIn } from "./server/auth";
 const csrf = createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === "serverFn" });
 
 // Reachable without a session: the login flow, plus endpoints with their own guard
-// (ingest: bearer token; both ingest and health are also 404 on the public Caddy site).
+// (ingest and jobs: bearer token; ingest, jobs and health are also 404 on the public Caddy site).
 const PUBLIC = new Set(["/login", "/api/login", "/api/logout", "/api/ingest", "/api/health"]);
+const isPublic = (path: string) => PUBLIC.has(path) || path.startsWith("/api/jobs/");
 
 // ponytail: KHARCHA_AUTH=off opens the whole app (owner's choice while data is low-stakes).
 // Remove that line from /etc/kharcha-web/env and restart to require the login again.
@@ -14,7 +15,7 @@ const authOff = process.env.KHARCHA_AUTH === "off";
 
 const auth = createMiddleware().server(async ({ request, pathname, handlerType, next }) => {
   if (authOff) return next();
-  if (handlerType === "router" && PUBLIC.has(pathname)) return next();
+  if (handlerType === "router" && isPublic(pathname)) return next();
   if (isSignedIn(request)) return next();
   if (handlerType === "serverFn") return new Response("Sign in again.", { status: 401 });
   const target = encodeURIComponent(pathname + new URL(request.url).search);
