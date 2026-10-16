@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
@@ -12,7 +13,7 @@ import { compact, money, monthLabel } from "../lib/format";
 import { dismissInsight, getInsights } from "../server/insights/fns";
 
 export const Route = createFileRoute("/insights")({
-  validateSearch: (search: Record<string, unknown>) => ({ month: typeof search.month === "string" && /^\d{4}-\d{2}$/.test(search.month) ? search.month : undefined }),
+  validateSearch: z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).optional() }),
   loaderDeps: ({ search }) => search,
   loader: ({ deps }) => getInsights({ data: deps }),
   pendingComponent: () => <div className="p-5"><Skeleton rows={8} /></div>,
