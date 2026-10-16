@@ -36,7 +36,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
   return (
     <div className="min-h-dvh desk:flex">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-rule bg-card px-4 py-7 desk:flex">
-        <span className="px-3 font-serif text-[28px] font-medium">Kharcha</span>
+        <span className="px-3 font-serif text-[26px] font-medium">Kharcha</span>
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           {side.map((n) => {
             const on = n.match(path);
@@ -55,7 +55,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
         </nav>
         {trip && (
           <Link to="/plan/trips/$id" params={{ id: String(trip.id) }} className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink hover:text-on-ink">
-            <span className="font-serif text-[17px]">{trip.name}</span>
+            <span className="font-serif text-[18px]">{trip.name}</span>
             <span className="text-xs text-trip-muted">
               {trip.active ? `Until ${dayMonth(trip.endDate)}` : `Starts ${dayMonth(trip.startDate)}`}
               {trip.autoTag ? " · auto-tag on" : ""}

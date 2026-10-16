@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
 import { ActivityFilters } from "../components/activity-filters";
-import { Amount, byDay, DayHeader, RowMeta } from "../components/ledger";
+import { Amount, byDay, DayHeader, RowMeta, SplitMeta } from "../components/ledger";
 import { MonthStepper } from "../components/month-stepper";
 import { SummaryStrip } from "../components/summary-strip";
 import { saveFailed, snack } from "../components/sheet";
@@ -21,8 +21,8 @@ const activitySearch = z.object({
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   search: z.string().max(60).optional(),
   review: z.boolean().optional(),
-  category: z.string().max(40).optional(),
-  categories: z.array(z.string().min(1).max(40)).max(40).optional(),
+  category: z.string().max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40).optional(),
+  categories: z.array(z.string().min(1).max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)).max(40).optional(),
   merchant: z.string().max(120).optional(),
   card: z.string().regex(/^\d{4}$/).optional(),
   type: z.enum(["income", "expense", "investment", "transfer"]).optional(),
@@ -72,7 +72,15 @@ function Activity() {
   const active = rows.find((row) => row.id === activeId) ?? rows[0];
   const month = search.month ?? thisMonth();
   const cards = [...new Set(rows.map((row) => row.accountLast4).filter((value): value is string => Boolean(value)))];
-  const groups = useMemo(() => byDay(rows), [rows]);
+  const activeCategories = search.categories ?? (search.category ? [search.category] : []);
+  const splitOnly = activeCategories.length === 1 ? activeCategories[0].split(":").at(-1) : undefined;
+  // With one category filter, a split row counts only that category's part (day totals follow).
+  const viewRows = useMemo(() => rows.map((r) => {
+    if (!splitOnly || !r.splits.length) return r;
+    const part = r.splits.filter((x) => x.category === splitOnly).reduce((sum, x) => sum + x.amount, 0);
+    return { ...r, amount: part, originalTotal: r.amount };
+  }), [rows, splitOnly]);
+  const groups = useMemo(() => byDay(viewRows), [viewRows]);
   const merchantRows = active ? rows.filter((row) => row.merchant === active.merchant) : [];
   const merchantTotal = merchantRows.reduce((sum, row) => sum + (row.type === "expense" && !row.excluded ? row.amount : 0), 0);
   const colors = Object.fromEntries(meta.categories.map((item) => [item.name, item.colorToken]));
@@ -127,6 +135,7 @@ function Activity() {
   const reviewCount = rows.filter((row) => row.needsReview).length;
   const customRange = search.from && search.to ? rangeLabel(search.from, search.to) : undefined;
 
+
   return (
     <DeskPage
       railClassName="hidden desk:flex"
@@ -138,7 +147,7 @@ function Activity() {
           </div>
           <div className="flex items-baseline justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
             <span className="min-w-0 truncate font-serif text-[26px] font-medium">{active.merchant}</span>
-            <Amount t={active} className="font-serif text-[30px]" />
+            <Amount t={active} className="font-serif text-[34px]" />
           </div>
           <dl className="m-0 flex flex-col">
             {[
@@ -149,20 +158,20 @@ function Activity() {
               ["Status", active.needsReview ? "Needs review" : active.excluded ? "Not counted" : "Reviewed"],
             ].map(([label, value]) => <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-sm"><dt className="text-ink-2">{label}</dt><dd className="m-0 truncate text-right font-medium">{value}</dd></div>)}
           </dl>
-          {active.rawText && <p className="m-0 rounded-[8px] bg-sunken p-3 font-mono text-[12.5px] leading-5 text-ink-2">{active.rawText}</p>}
+          {active.rawText && <p className="m-0 rounded-[8px] bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2">{active.rawText}</p>}
           <div className="flex items-center justify-between gap-3 text-[13px] text-ink-2"><span className="truncate">{active.merchant} this month</span><strong className="shrink-0 text-ink">{money(merchantTotal)} · {merchantRows.length} {merchantRows.length === 1 ? "row" : "rows"}</strong></div>
           <Button variant="danger" disabled={!online} onClick={() => remove(active)}>Delete</Button>
         </section>
       ) : null}
     >
-      <div className="space-y-4 px-5 pt-5 pb-5 desk:px-0 desk:pt-7">
+      <div className="space-y-6 px-5 pt-5 pb-5 desk:px-0 desk:pt-7">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="m-0 font-serif text-[26px] font-medium">Activity</h1>
           <div className="flex w-full items-center gap-2 desk:w-auto">
             <label className="field flex min-h-11 min-w-0 flex-1 items-center gap-2 bg-card px-3 desk:w-[min(360px,35vw)] desk:flex-none">
               <Search className="size-[18px] shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
               <span className="sr-only">Search transactions</span>
-              <input ref={searchRef} aria-label="Search transactions" placeholder="Merchant, category, SMS text" value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3" />
+              <input ref={searchRef} aria-label="Search transactions" placeholder="Merchant, category, SMS text" value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-3" />
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="flex size-9 shrink-0 items-center justify-center text-ink-3"><X size={16} /></button>}
               <kbd className="hidden rounded-[4px] border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
             </label>
@@ -189,10 +198,12 @@ function Activity() {
 
         {rows.length ? (
           <div className="space-y-0">
-            {groups.map((group) => <section key={group.date}>
-              <DayHeader date={group.date} total={group.total} />
-              {group.rows.map((row) => <ActivityRow key={row.id} row={row} color={meta.categories.find((item) => item.name === row.category && item.type === row.type)?.colorToken ?? "cat-other"} active={row.id === active?.id} swiped={row.id === swipedId} canDelete={online} onSelect={() => setActiveId(row.id)} onSwipe={() => setSwipedId(row.id)} onReset={() => setSwipedId(null)} onDelete={() => remove(row)} />)}
-            </section>)}
+            {search.sort === "amount-asc" || search.sort === "amount-desc"
+              ? viewRows.map((row) => <ActivityRow key={row.id} row={row} color={meta.categories.find((item) => item.name === row.category && item.type === row.type)?.colorToken ?? "cat-other"} splitOnly={splitOnly} active={row.id === active?.id} swiped={row.id === swipedId} canDelete={online} onSelect={() => setActiveId(row.id)} onSwipe={() => setSwipedId(row.id)} onReset={() => setSwipedId(null)} onDelete={() => remove(row)} />)
+              : groups.map((group) => <section key={group.date}>
+                <DayHeader date={group.date} total={group.total} />
+                {group.rows.map((row) => <ActivityRow key={row.id} row={row} color={meta.categories.find((item) => item.name === row.category && item.type === row.type)?.colorToken ?? "cat-other"} splitOnly={splitOnly} active={row.id === active?.id} swiped={row.id === swipedId} canDelete={online} onSelect={() => setActiveId(row.id)} onSwipe={() => setSwipedId(row.id)} onReset={() => setSwipedId(null)} onDelete={() => remove(row)} />)}
+              </section>)}
           </div>
         ) : (
           <Empty text="Nothing matches these filters." action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
@@ -202,11 +213,11 @@ function Activity() {
   );
 }
 
-function ActivityRow({ row, color, active, swiped, canDelete, onSelect, onSwipe, onReset, onDelete }: { row: Row; color: string; active: boolean; swiped: boolean; canDelete: boolean; onSelect: () => void; onSwipe: () => void; onReset: () => void; onDelete: () => void }) {
+function ActivityRow({ row, color, splitOnly, active, swiped, canDelete, onSelect, onSwipe, onReset, onDelete }: { row: Row; color: string; splitOnly?: string; active: boolean; swiped: boolean; canDelete: boolean; onSelect: () => void; onSwipe: () => void; onReset: () => void; onDelete: () => void }) {
   const dragged = useRef(false);
   const x = useMotionValue(0);
-  const reveal = useTransform(x, [-88, -8, 0], [1, 0, 0]);
-  const scale = useTransform(x, [-88, -24], [1, 0.8]);
+  const reveal = useTransform(x, [-88, 0], [1, 0]);
+  const scale = useTransform(x, [-88, 0], [1, 0.8]);
   const reduced = useReducedMotion();
   const snap = (open: boolean) => animate(x, open ? -88 : 0, reduced ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 22, mass: 0.8, velocity: x.getVelocity() });
   useEffect(() => {
@@ -234,12 +245,12 @@ function ActivityRow({ row, color, active, swiped, canDelete, onSelect, onSwipe,
         className="relative bg-paper desk:bg-transparent"
       >
         <Link to="/txn/$id" params={{ id: String(row.id) }} onClick={(event) => { if (dragged.current || swiped) { event.preventDefault(); if (swiped) onReset(); return; } onSelect(); }} className="flex min-h-[58px] items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken/50 hover:text-ink desk:hidden">
-          <span className="flex min-w-0 flex-col gap-0.5"><span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span><RowMeta t={row} color={color} /></span>
+          <span className="flex min-w-0 flex-col gap-0.5"><span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>{row.splits.length ? <SplitMeta splits={row.splits} only={splitOnly} ofTotal={splitOnly ? (row as typeof row & { originalTotal?: number }).originalTotal : undefined} /> : <RowMeta t={row} color={color} />}</span>
           <Amount t={row} />
         </Link>
         <button type="button" onClick={onSelect} className="hidden min-h-11 w-full grid-cols-[56px_minmax(0,1fr)_120px_64px_84px] items-center gap-3 px-2 text-left text-sm text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid" style={active ? { background: "var(--color-brand-soft)" } : undefined}>
           <span className="text-ink-3">{time(row.date)}</span>
-          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
           <span className="flex min-w-0 items-center gap-1.5 truncate"><CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />{row.category ?? "Other"}</span>
           <span className="text-ink-3">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />

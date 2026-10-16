@@ -153,10 +153,10 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   padding: 0 12px;
   border-radius: var(--radius-button);
   border: 1px solid var(--color-field);
-  background: #FFFFFF;
+  background: var(--color-input);
   font-size: 16px;
   color: var(--color-ink);
 }
 @utility hatch {
-  background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, #E6E2D7 6px 12px);
+  background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, var(--color-track) 6px 12px);
 }

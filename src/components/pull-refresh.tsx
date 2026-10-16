@@ -12,7 +12,7 @@ export function PullRefresh() {
   const pull = useMotionValue(0);
   const still = useReducedMotion();
   const [busy, setBusy] = useState(false);
-  const rotate = useTransform(pull, [0, TRIGGER], [0, 270]);
+  const rotate = useTransform(pull, [0, TRIGGER - 0.5, TRIGGER], [0, 0, 180]);
   const opacity = useTransform(pull, [0, 24, TRIGGER], [0, 0.4, 1]);
   const y = useTransform(pull, (v) => v - 40);
 
@@ -29,7 +29,9 @@ export function PullRefresh() {
       const dy = e.touches[0].clientY - start;
       if (dy <= 0 || window.scrollY > 0) return pull.set(0);
       // Rubber band: resistance grows the further you pull.
-      pull.set(Math.min(120, dy * 0.5));
+      const next = Math.min(120, dy * 0.5);
+      if (next >= TRIGGER && pull.get() < TRIGGER) navigator.vibrate?.(10);
+      pull.set(next);
     };
     const onEnd = () => {
       if (start === null) return;
@@ -37,7 +39,7 @@ export function PullRefresh() {
       if (pull.get() < TRIGGER) return void settle(0);
       running = true;
       setBusy(true);
-      settle(48);
+      settle(56);
       void router
         .invalidate()
         .catch(() => snack(navigator.onLine ? "Couldn’t refresh." : "You’re offline."))
@@ -50,12 +52,16 @@ export function PullRefresh() {
     window.addEventListener("touchstart", onStart, { passive: true });
     window.addEventListener("touchmove", onMove, { passive: true });
     window.addEventListener("touchend", onEnd);
-    window.addEventListener("touchcancel", onEnd);
+    const onCancel = () => {
+      start = null;
+      if (!running) settle(0);
+    };
+    window.addEventListener("touchcancel", onCancel);
     return () => {
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
-      window.removeEventListener("touchcancel", onEnd);
+      window.removeEventListener("touchcancel", onCancel);
     };
   }, [pull, router, still]);
 

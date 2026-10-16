@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "./client.ts";
-import { budgets, categories, merchantRules, meta, TXN_TYPES, transactions, type MerchantRule } from "./schema.ts";
+import { budgets, categories, merchantRules, meta, TXN_TYPES, transactions, transactionSplits, type MerchantRule } from "./schema.ts";
 
 /** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
 function realDate(value: string): boolean {
@@ -262,8 +262,8 @@ export const listSchema = z.object({
   to: daySchema.optional(),
   search: z.string().trim().max(60).optional(),
   review: z.boolean().optional(),
-  category: z.string().trim().max(40).optional(),
-  categories: z.array(z.string().trim().min(1).max(40)).max(40).optional(),
+  category: z.string().trim().max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40).optional(),
+  categories: z.array(z.string().trim().min(1).max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)).max(40).optional(),
   card: z.string().regex(/^\d{4}$/).optional(),
   type: z.enum([...TXN_TYPES, "transfer"]).optional(),
   min: z.number().finite().min(0).max(1e9).optional(),
@@ -285,9 +285,14 @@ function listWhere(q: ListQuery) {
   if (selectedCategories.length) {
     const matches = selectedCategories.map((value) => {
       const split = value.lastIndexOf(":");
-      return split > 0 && ["expense", "income", "investment"].includes(value.slice(0, split))
-        ? and(eq(transactions.type, value.slice(0, split) as typeof TXN_TYPES[number]), eq(transactions.category, value.slice(split + 1)))
-        : eq(transactions.category, value);
+      const type = split > 0 && ["expense", "income", "investment"].includes(value.slice(0, split)) ? value.slice(0, split) : undefined;
+      const category = split > 0 ? value.slice(split + 1) : value;
+      const splitMatch = sql`EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id} AND fs.category = ${category}${type ? sql` AND ${transactions.type} = ${type}` : sql``})`;
+      const noSplits = sql`NOT EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id})`;
+      const rowMatch = type
+        ? and(eq(transactions.type, type as typeof TXN_TYPES[number]), eq(transactions.category, category), noSplits)
+        : and(eq(transactions.category, category), noSplits);
+      return or(rowMatch, splitMatch);
     });
     const match = or(...matches);
     if (match) where.push(match);
@@ -356,17 +361,28 @@ function dayCount(q: ListQuery): number | null {
 /** One query, same WHERE as listTxns. Spend excludes excluded and duplicate rows; transferred is the excluded rows. */
 export async function summarizeTxns(db: Db, q: ListQuery) {
   const where = and(...listWhere(q)) ?? sql`1 = 1`;
+  const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
+  const splitNames = selectedCategories.map((value) => {
+    const i = value.lastIndexOf(":");
+    return i > 0 ? value.slice(i + 1) : value;
+  });
+  const splitSum = splitNames.length
+    ? sql`CASE WHEN EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = transactions.id)
+        THEN COALESCE((SELECT SUM(fs.amount) FROM transaction_splits fs WHERE fs.transaction_id = transactions.id AND fs.category IN (${sql.join(splitNames.map((name) => sql`${name}`), sql`, `)})), 0)
+        ELSE transactions.amount END`
+    : sql`transactions.amount`;
+  const categoryLabel = splitNames.length === 1 ? sql`${splitNames[0]}` : sql`category`;
   const [row] = await db.all<{ n: number; spent: number; income: number; transferred: number; top: string; biggest: string | null; frequent: string | null }>(sql`
-    WITH m AS (SELECT * FROM transactions WHERE ${where}),
+    WITH m AS (SELECT transactions.*, ${splitSum} AS counted_amount FROM transactions WHERE ${where}),
     s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)
     SELECT
       (SELECT COUNT(*) FROM m) AS n,
-      (SELECT COALESCE(SUM(amount), 0) FROM s) AS spent,
-      (SELECT COALESCE(SUM(amount), 0) FROM m WHERE type = 'income') AS income,
+      (SELECT COALESCE(SUM(counted_amount), 0) FROM s) AS spent,
+      (SELECT COALESCE(SUM(counted_amount), 0) FROM m WHERE type = 'income') AS income,
       (SELECT COALESCE(SUM(amount), 0) FROM m WHERE excluded = 1) AS transferred,
       (SELECT COALESCE(json_group_array(json_object('category', c, 'total', t)), '[]')
-         FROM (SELECT COALESCE(category, 'Other') AS c, SUM(amount) AS t FROM s GROUP BY c ORDER BY t DESC LIMIT 4)) AS top,
-      (SELECT json_object('merchant', merchant, 'amount', amount, 'date', date) FROM s ORDER BY amount DESC LIMIT 1) AS biggest,
+         FROM (SELECT COALESCE(${categoryLabel}, 'Other') AS c, SUM(counted_amount) AS t FROM s GROUP BY c ORDER BY t DESC LIMIT 4)) AS top,
+      (SELECT json_object('merchant', merchant, 'amount', counted_amount, 'date', date) FROM s ORDER BY counted_amount DESC LIMIT 1) AS biggest,
       (SELECT json_object('merchant', merchant, 'n', n)
          FROM (SELECT merchant, COUNT(*) AS n FROM s GROUP BY merchant ORDER BY n DESC LIMIT 1)) AS frequent`);
   const spent = Number(row?.spent ?? 0);
@@ -383,6 +399,18 @@ export async function summarizeTxns(db: Db, q: ListQuery) {
     frequent: row?.frequent ? (JSON.parse(row.frequent) as { merchant: string; n: number }) : null,
     avgPerDay: days ? spent / days : null,
   };
+}
+
+export async function splitsByTxnIds(db: Db, txnIds: number[]): Promise<Record<number, { transactionId: number; category: string; amount: number }[]>> {
+  if (!txnIds.length) return {};
+  const rows = await db.select().from(transactionSplits).where(inArray(transactionSplits.transactionId, txnIds));
+  const map: Record<number, { transactionId: number; category: string; amount: number }[]> = {};
+  for (const r of rows) {
+    const list = map[r.transactionId] ?? [];
+    list.push(r);
+    map[r.transactionId] = list;
+  }
+  return map;
 }
 
 export async function getTxn(db: Db, id: number) {
