@@ -69,7 +69,10 @@ export function byDay<T extends LedgerTxn>(rows: T[]): { date: string; total: nu
   for (const r of rows) {
     const d = r.date.slice(0, 10);
     let g = out.at(-1);
-    if (!g || g.date !== d) out.push((g = { date: d, total: 0, rows: [] }));
+    if (!g || g.date !== d) {
+      g = { date: d, total: 0, rows: [] };
+      out.push(g);
+    }
     g.rows.push(r);
     if (r.type === "expense" && !r.excluded) g.total += r.amount;
   }
