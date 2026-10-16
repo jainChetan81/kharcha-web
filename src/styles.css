@@ -50,13 +50,6 @@
   --color-cat-work: #55606E;
   --color-cat-other: #8A8576;
 
-  /* Day-ring and heat scale, light to dark. */
-  --color-heat-1: #CFD8E8;
-  --color-heat-2: #B9C6DD;
-  --color-heat-3: #8199BF;
-  --color-heat-4: #4C6A9C;
-  --color-heat-5: #1F3459;
-
   --radius-chip: 999px;
   --radius-button: 10px;
   --radius-card: 12px;
@@ -65,6 +58,15 @@
 
   --breakpoint-tablet: 600px;
   --breakpoint-desk: 840px;
+}
+
+/* Heat vars are built at runtime (var(--color-heat-${n})), so keep them out of tree-shaking. */
+@theme static {
+  --color-heat-1: #CFD8E8;
+  --color-heat-2: #B9C6DD;
+  --color-heat-3: #8199BF;
+  --color-heat-4: #4C6A9C;
+  --color-heat-5: #1F3459;
 }
 
 /* shadcn variables mapped onto the ledger tokens. */
@@ -94,8 +96,10 @@ body {
   @apply bg-paper text-ink antialiased font-sans;
   font-variant-numeric: tabular-nums lining-nums;
 }
-a { color: var(--color-brand); text-decoration: none; }
-a:hover { color: var(--color-brand-deep); }
+@layer base {
+  a { color: var(--color-brand); text-decoration: none; }
+  a:hover { color: var(--color-brand-deep); }
+}
 :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
 input, select, button, textarea { font: inherit; }
 button { cursor: pointer; }

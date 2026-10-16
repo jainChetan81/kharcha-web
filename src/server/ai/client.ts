@@ -20,9 +20,10 @@ export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
 
 export async function callOpenRouter(
   messages: unknown[],
-  options: { db?: Db; vision?: boolean; requireEnabled?: boolean } = {},
+  options: { db?: Db; vision?: boolean } = {},
 ): Promise<{ ok: true; content: string; model: string } | { ok: false; reason: string }> {
-  if (options.requireEnabled && process.env.KHARCHA_AI !== "on") return { ok: false, reason: "disabled" };
+  // One switch for every outbound call: Ask, digest, receipts.
+  if (process.env.KHARCHA_AI !== "on") return { ok: false, reason: "disabled" };
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return { ok: false, reason: "unavailable" };
   const db = options.db ?? getDb();

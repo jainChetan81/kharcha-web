@@ -4,7 +4,8 @@ import { isSignedIn } from "../server/auth";
 import { getDb } from "../server/db/client";
 import { transactions } from "../server/db/schema";
 
-const quote = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+// Leading = + - @ tab or CR makes spreadsheets run the cell as a formula; a ' prefix keeps it text. Numbers stay numbers.
+const quote = (value: unknown) => { const text = typeof value === "number" ? String(value) : String(value ?? "").replace(/^[=+\-@\t\r]/, "'$&"); return `"${text.replaceAll('"', '""')}"`; };
 export const Route = createFileRoute("/api/export")({
   server: {
     handlers: {

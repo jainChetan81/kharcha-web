@@ -152,7 +152,7 @@ function Settings() {
 
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
-          {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">Ask and Receipts stay off until login is turned on. They send data to OpenRouter.</p>}
+          {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. When the server sets KHARCHA_AI=on, Ask and the weekly digest send category totals and names to OpenRouter, never SMS text, card numbers or UPI IDs.</p>}
           <div className="space-y-3 pt-3.5">
             <Field id="model" label="Text model" defaultValue={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_model", event.currentTarget.value)} />
             <Field id="vision" label="Vision model, for receipts" defaultValue={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} className="font-mono" onBlur={(event) => void save("openrouter_vision_model", event.currentTarget.value)} />

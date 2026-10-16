@@ -120,8 +120,8 @@ function Activity() {
               {[
                 ["Date", weekdayDate(active.date)],
                 ["Card", card(active.accountLast4) || "Manual"],
-                ["Source", active.source === "paste" ? "Pasted text" : "SMS via Mac mini"],
-                ["Parsed by", active.source === "paste" ? "Paste" : "Regex"],
+                ["Source", active.source === "sms" ? "SMS via Mac mini" : active.source === "paste" ? "Pasted text" : "Added by hand"],
+                ["Parsed by", active.source === "sms" ? "Regex" : active.source === "paste" ? "Paste" : "Manual"],
                 ["Status", active.needsReview ? "Needs review" : active.excluded ? "Not a spend" : "Reviewed"],
               ].map(([label, value]) => (
                 <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-sm">

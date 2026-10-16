@@ -91,17 +91,17 @@ async function ledgerContext(db: Db) {
   return {
     today,
     dayOfMonth: `${day} of ${daysInMonth}`,
-    expenseCategories: cats.filter((c) => c.type === "expense").map((c) => c.name),
-    incomeCategories: cats.filter((c) => c.type === "income").map((c) => c.name),
+    expenseCategories: cats.filter((c) => c.type === "expense").map((c) => scrub(c.name)),
+    incomeCategories: cats.filter((c) => c.type === "income").map((c) => scrub(c.name)),
     monthlySpend: months.map((m) => ({ month: m.month, total: r(m.total) })),
     // Deltas are precomputed so the model can cite them without doing arithmetic.
     thisMonthByCategory: thisMonth.map((c) => {
       const spent = r(c.total);
       const usualMonth = r((lastThree.find((u) => u.category === c.category)?.total ?? 0) / 3);
       const budget = limits.find((b) => b.category === c.category)?.monthlyLimit ?? null;
-      return { category: c.category, spent, usualMonth, vsUsual: spent - usualMonth, onPaceFor: r((c.total / day) * daysInMonth), budget, budgetLeft: budget == null ? null : r(budget - c.total) };
+      return { category: scrub(c.category), spent, usualMonth, vsUsual: spent - usualMonth, onPaceFor: r((c.total / day) * daysInMonth), budget, budgetLeft: budget == null ? null : r(budget - c.total) };
     }),
-    budgetsWithoutSpend: limits.filter((b) => !thisMonth.some((c) => c.category === b.category)).map((b) => ({ category: b.category, budget: b.monthlyLimit })),
+    budgetsWithoutSpend: limits.filter((b) => !thisMonth.some((c) => c.category === b.category)).map((b) => ({ category: scrub(b.category), budget: b.monthlyLimit })),
     topMerchantsLast3Months: merchants.map((m) => ({ merchant: scrub(m.merchant), total: r(m.total), count: m.n })),
     recurring: series.map((s) => ({ ...s, name: scrub(s.name), amount: r(s.amount) })),
     trips: tripRows.map((t) => ({ ...t, name: scrub(t.name) })),
@@ -137,7 +137,7 @@ followUps: up to 3 short next questions this ledger can answer (totals, counts o
 export async function askLedger(db: Db, question: string): Promise<AskResult> {
   const context = await ledgerContext(db);
   const asked = redact(question);
-  const planned = await callOpenRouter([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db, requireEnabled: true });
+  const planned = await callOpenRouter([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
   if (!planned.ok) return planned;
   const raw = dropNulls(parseJson(planned.content));
   const parsed = plan.safeParse(raw);
@@ -148,7 +148,7 @@ export async function askLedger(db: Db, question: string): Promise<AskResult> {
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
   const shown = results.map((list, index) => ({ spec: queries[index], rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })) }));
-  const narrated = await callOpenRouter([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, results: shown, context }) }], { db, requireEnabled: true });
+  const narrated = await callOpenRouter([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, results: shown, context }) }], { db });
   const answerData = narrated.ok ? z.object({ answer: z.string().max(700), followUps: z.array(z.string().trim().min(3).max(120)).max(3).default([]) }).safeParse(parseJson(narrated.content)) : null;
   const ok = answerData?.success && figuresMatchRows(answerData.data.answer, [...results.flat(), ...contextFigures(context)]);
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";

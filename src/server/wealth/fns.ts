@@ -4,17 +4,17 @@ import { z } from "zod";
 import { holdingCsvRows } from "../../lib/csv";
 import { getDb } from "../db/client";
 import { holdingTxns, holdings, prices } from "../db/schema";
-import { xirr } from "./xirr";
+import { realDay, xirr } from "./xirr";
 
 export type WealthSummary = { value: number; dayChange: number; navDate: string | null; spark: number[] };
 const id = z.object({ id: z.number().int().positive() });
 const holdingSchema = z.object({
   id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(120), kind: z.enum(["fund", "gold", "nps", "other"]), assetClass: z.string().trim().min(1).max(80), schemeCode: z.string().trim().max(30).nullable(),
-  targetPct: z.number().min(0).max(100).nullable(), manualValue: z.number().min(0).max(1e10).nullable(), manualValueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(), sipAmount: z.number().positive().max(1e8).nullable(), sipDay: z.number().int().min(1).max(31).nullable(), smsMatch: z.string().trim().max(120).nullable(),
+  targetPct: z.number().min(0).max(100).nullable(), manualValue: z.number().min(0).max(1e10).nullable(), manualValueDate: z.string().refine(realDay).nullable(), sipAmount: z.number().positive().max(1e8).nullable(), sipDay: z.number().int().min(1).max(31).nullable(), smsMatch: z.string().trim().max(120).nullable(),
 });
 
 async function latestPrices() {
-  return getDb().all<{ scheme_code: string; date: string; nav: number }>(sql`select p.scheme_code, p.date, p.nav from prices p join (select scheme_code, max(date) date from prices group by scheme_code) last on p.scheme_code=last.scheme_code and p.date=last.date`);
+  return getDb().all<{ scheme_code: string; date: string; nav: number; prev: number | null }>(sql`select p.scheme_code, p.date, p.nav, (select nav from prices q where q.scheme_code=p.scheme_code and q.date<p.date order by q.date desc limit 1) prev from prices p join (select scheme_code, max(date) date from prices group by scheme_code) last on p.scheme_code=last.scheme_code and p.date=last.date`);
 }
 // ponytail: invested-over-time with today's value as the final point; past values need per-date NAV, add when price history covers every holding.
 function investedSeries(txns: { date: string; amount: number }[], value: number) {
@@ -28,7 +28,9 @@ async function holdingsWithValue() {
   return all.map((holding) => {
     const txns = buys.filter((txn) => txn.holdingId === holding.id); const units = txns.reduce((sum, txn) => sum + (txn.units ?? 0), 0); const invested = txns.reduce((sum, txn) => sum + txn.amount, 0); const price = holding.schemeCode ? nav.get(holding.schemeCode) : undefined;
     const value = holding.manualValue ?? (price ? units * Number(price.nav) : invested);
-    return { ...holding, txns, units, invested, price, value, gain: value - invested };
+    // Day change: units times the move since the previous NAV. Manual values have no daily price.
+    const dayChange = holding.manualValue == null && price?.prev ? units * (Number(price.nav) - Number(price.prev)) : 0;
+    return { ...holding, txns, units, invested, price, value, gain: value - invested, dayChange };
   });
 }
 
@@ -36,7 +38,7 @@ async function holdingsWithValue() {
 export const getWealthSummary = createServerFn({ method: "GET" }).handler(async (): Promise<WealthSummary | null> => {
   const rows = await holdingsWithValue(); if (!rows.length) return null;
   const value = rows.reduce((sum, row) => sum + row.value, 0); const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
-  return { value, dayChange: 0, navDate: dates.sort().at(-1) ?? null, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
+  return { value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), navDate: dates.sort().at(-1) ?? null, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
 });
 
 export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
@@ -67,7 +69,7 @@ export const searchFund = createServerFn({ method: "GET" }).validator(z.object({
   try { const response = await fetch(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(data.query)}`, { signal: AbortSignal.timeout(10_000) }); if (!response.ok) return []; const rows = await response.json() as { schemeCode: string | number; schemeName: string }[]; return rows.slice(0, 10).map((row) => ({ code: String(row.schemeCode), name: row.schemeName })); } catch { return []; }
 });
 
-const csvRow = z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), fund: z.string().trim().min(1), amount: z.coerce.number().refine((n) => n !== 0), units: z.coerce.number().refine((n) => n !== 0), nav: z.coerce.number().positive() }).refine((row) => Math.sign(row.amount) === Math.sign(row.units)); // negative amount + units = redemption
+const csvRow = z.object({ date: z.string().refine(realDay, "not a real date").refine((d) => d <= new Date().toISOString().slice(0, 10), "future date"), fund: z.string().trim().min(1), amount: z.coerce.number().refine((n) => n !== 0), units: z.coerce.number().refine((n) => n !== 0), nav: z.coerce.number().positive() }).refine((row) => Math.sign(row.amount) === Math.sign(row.units)); // negative amount + units = redemption
 export const importHoldingCsv = createServerFn({ method: "POST" }).validator(z.object({ csv: z.string().max(1_000_000) })).handler(async ({ data }) => {
   const values = holdingCsvRows(data.csv); const db = getDb(); const all = await db.select().from(holdings); const seen = new Set((await db.select().from(holdingTxns)).map((row) => `${row.holdingId}|${row.date}|${row.amount}|${row.units}`)); let imported = 0; let errors = 0; let skipped = 0;
   for (const [date, fund, amount, units, nav] of values) { const parsed = csvRow.safeParse({ date, fund, amount, units, nav }); const holding = parsed.success ? all.find((row) => row.name.toLowerCase() === parsed.data.fund.toLowerCase()) : undefined; if (!parsed.success || !holding) { errors++; continue; } const key = `${holding.id}|${parsed.data.date}|${parsed.data.amount}|${parsed.data.units}`; if (seen.has(key)) { skipped++; continue; } seen.add(key); await db.insert(holdingTxns).values({ holdingId: holding.id, date: parsed.data.date, amount: parsed.data.amount, units: parsed.data.units, nav: parsed.data.nav, source: "csv" }); imported++; }

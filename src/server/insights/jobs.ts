@@ -70,7 +70,8 @@ export function validDigestLines(value: unknown, facts: Record<string, string>):
 }
 
 export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }> {
-  const now = localDate(); const week = weekStart(now); const month = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Runs Monday morning, so report the last full Monday-to-Sunday week.
+  const now = localDate(); const week = new Date(weekStart(now).getTime() - 7 * 864e5); const month = new Date(now.getFullYear(), now.getMonth(), 1);
   const weeklySpend = await spendByCategory(db, iso(week), iso(new Date(week.getTime() + 7 * 864e5)));
   const usualSpend = await spendByCategory(db, iso(new Date(week.getTime() - 28 * 864e5)), iso(week));
   const monthSpend = await spendByCategory(db, iso(month), iso(monthEnd(now)));
@@ -81,13 +82,13 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
   const crossing = limits.map((limit) => ({ category: limit.category, day: Math.ceil(limit.monthlyLimit / Math.max(1, (monthSpend.find((row) => row.category === limit.category)?.total ?? 0) / day)) })).filter((item) => item.day <= daysIn(now)).sort((a, b) => a.day - b.day)[0];
   const facts = {
     topMerchant: top ? `${scrub(top.merchant)} at ${Math.round((top.total / Math.max(1, total)) * 100)}%` : "No merchant data",
-    category: cat ? `${cat.category} ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(cat.total)}` : "No category data",
-    budgetForecast: crossing ? `${crossing.category} around day ${crossing.day}` : "No budget crossing forecast",
+    category: cat ? `${scrub(cat.category)} ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(cat.total)}` : "No category data",
+    budgetForecast: crossing ? `${scrub(crossing.category)} around day ${crossing.day}` : "No budget crossing forecast",
     reviewBacklog: `${reviews[0]?.n ?? 0} rows`,
   };
   const links = { topMerchant: top ? `/activity?merchant=${encodeURIComponent(top.merchant)}` : "/activity", category: cat ? `/activity?category=${encodeURIComponent(cat.category)}` : "/activity", budgetForecast: "/plan/budgets", reviewBacklog: "/review" };
   // Context lets the model judge which facts matter; only facts values may appear as figures.
-  const context = { dayOfMonth: day, daysInMonth: daysIn(now), weekCategory: cat ? { category: cat.category, thisWeek: Math.round(cat.total), usualWeek: Math.round(cat.total - cat.change) } : null, budgets: limits.map((limit) => ({ category: limit.category, limit: limit.monthlyLimit, spent: Math.round(monthSpend.find((row) => row.category === limit.category)?.total ?? 0) })) };
+  const context = { dayOfMonth: day, daysInMonth: daysIn(now), weekCategory: cat ? { category: scrub(cat.category), thisWeek: Math.round(cat.total), usualWeek: Math.round(cat.total - cat.change) } : null, budgets: limits.map((limit) => ({ category: scrub(limit.category), limit: limit.monthlyLimit, spent: Math.round(monthSpend.find((row) => row.category === limit.category)?.total ?? 0) })) };
   const response = await callOpenRouter([{ role: "system", content: `You write a Monday money digest for one person in India. Return JSON only: {"lines":[{"pre","num","post","factKey"}]} with exactly 3 lines.
 Pick the 3 facts that matter most this week, most important first, using context to judge (a category well above its usual week, a budget about to be crossed, a big review backlog). Each line reads pre + num + post as one short sentence (under 14 words) that says what happened and, where useful, what to do next, e.g. "Review " + "12 rows" + " so Other stops hiding spend."
 num must be copied verbatim from the chosen facts value, and factKey must be that fact's key. Use each fact at most once. No other figures in pre or post.` }, { role: "user", content: JSON.stringify({ facts, context }) }], { db });
