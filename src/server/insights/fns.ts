@@ -4,6 +4,7 @@ import { desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client.ts";
 import { monthBounds, spendByCategory } from "../db/queries.ts";
+import { dayMonth } from "../../lib/format.ts";
 import { digests, insights } from "../db/schema.ts";
 
 export type DigestLine = { pre: string; num: string; post: string; href: string };
@@ -23,7 +24,7 @@ export const getDigest = createServerFn({ method: "GET" }).handler(async (): Pro
     if (!Array.isArray(lines) || lines.length !== 3) return { status: "unavailable" };
     return {
       status: "ok", weekStart: digest.weekStart,
-      label: `Week of ${new Date(`${digest.weekStart}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`,
+      label: `Week of ${dayMonth(digest.weekStart)}`,
       lines: lines.map((line) => ({ pre: line.pre, num: line.num, post: line.post, href: facts.links?.[line.factKey ?? ""] ?? "/insights" })),
     };
   } catch { return { status: "unavailable" }; }

@@ -1,15 +1,15 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { motion } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
-import { Amount, byDay, DayHeader, rowMeta } from "../components/ledger";
+import { Amount, byDay, DayHeader, RowMeta } from "../components/ledger";
 import { MonthSwitcher } from "../components/month-switcher";
 import { saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, Chip, Empty, ErrorState, Skeleton } from "../components/ui";
-import { card, money, thisMonth, weekdayDate } from "../lib/format";
+import { card, money, thisMonth, time, weekdayDate } from "../lib/format";
 import { getActivityMeta } from "../server/daily/fns";
 import { deleteTransaction, getTransactions, restoreTransaction } from "../server/fns";
 
@@ -206,20 +206,48 @@ function Activity() {
 function ActivityRow({ row, color, active, swiped, canDelete, onSelect, onSwipe, onReset, onDelete }: { row: Row; color: string; active: boolean; swiped: boolean; canDelete: boolean; onSelect: () => void; onSwipe: () => void; onReset: () => void; onDelete: () => void }) {
   // A drag ends with a click on the Link; swallow it so swiping never opens the row.
   const dragged = useRef(false);
+  // Delete grows in with the pull and is invisible at rest, so no red sliver shows behind the row.
+  const x = useMotionValue(0);
+  const reveal = useTransform(x, [-96, -8, 0], [1, 0, 0]);
+  const scale = useTransform(x, [-96, -24], [1, 0.6]);
+  const still = useReducedMotion();
+  // Snap imperatively: a drag released inside the constraints would otherwise stay half-open.
+  const snap = (open: boolean) => animate(x, open ? -96 : 0, still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 30, mass: 0.8, velocity: x.getVelocity() });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: follow the parent's open row; snap reads only stable refs.
+  useEffect(() => {
+    const anim = snap(swiped);
+    return () => anim.stop();
+  }, [swiped]);
   return (
     <div className="relative overflow-hidden border-b border-hairline desk:border-0">
-      <button type="button" disabled={!canDelete} onClick={onDelete} className="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-over text-sm font-semibold text-white disabled:opacity-50 desk:hidden">Delete</button>
-      <motion.div drag={canDelete ? "x" : false} dragConstraints={{ left: -96, right: 0 }} dragElastic={0.08} animate={{ x: swiped ? -96 : 0 }} onDragStart={() => { dragged.current = true; }} onDragEnd={(_, info) => { setTimeout(() => { dragged.current = false; });  if (info.offset.x < -48) onSwipe(); else onReset(); }} className="relative bg-paper desk:bg-transparent">
+      <motion.button type="button" disabled={!canDelete} onClick={onDelete} style={{ opacity: reveal }} className="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-over text-sm font-semibold text-white disabled:opacity-50 desk:hidden"><motion.span style={{ scale }}>Delete</motion.span></motion.button>
+      <motion.div
+        drag={canDelete ? "x" : false}
+        dragDirectionLock
+        dragConstraints={{ left: -96, right: 0 }}
+        dragElastic={{ left: 0.25, right: 0.05 }}
+        dragTransition={{ bounceStiffness: 500, bounceDamping: 28 }}
+        style={{ x }}
+        onDragStart={() => { dragged.current = true; }}
+        onDragEnd={(_, info) => {
+          setTimeout(() => { dragged.current = false; });
+          // A quick flick counts even when the row barely moved.
+          const open = info.offset.x < -48 || info.velocity.x < -400;
+          snap(open);
+          if (open) onSwipe(); else onReset();
+        }}
+        className="relative bg-paper desk:bg-transparent"
+      >
         <Link to="/txn/$id" params={{ id: String(row.id) }} onClick={(event) => { if (dragged.current || swiped) { event.preventDefault(); if (swiped) onReset(); return; } onSelect(); }} className="flex min-h-[58px] items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken/50 hover:text-ink desk:hidden">
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span>
-            <span className="truncate text-[13px] text-ink-3">{rowMeta(row)}</span>
+            <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
+            <RowMeta t={row} color={color} />
           </span>
           <Amount t={row} />
         </Link>
         <button type="button" onClick={onSelect} className="hidden min-h-10 w-full grid-cols-[56px_minmax(0,1fr)_120px_64px_84px] items-center gap-3 px-2 text-left text-sm text-ink desk:grid" style={active ? { background: "var(--color-brand-soft)" } : undefined}>
-          <span className="text-ink-3">{row.date.slice(11, 16)}</span>
-          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />}<span className="truncate">{row.merchant}</span></span>
+          <span className="text-ink-3">{time(row.date)}</span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
           <span className="flex items-center gap-1.5 truncate"><CategoryDot color={color} />{row.category ?? "Other"}</span>
           <span className="text-ink-3">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />

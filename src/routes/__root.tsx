@@ -1,3 +1,4 @@
+import { PullRefresh } from "../components/pull-refresh";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
 import { Dialog } from "radix-ui";
 import { MotionConfig } from "motion/react";
@@ -62,6 +63,7 @@ function Layout() {
         <AppShell data={shell}>
           <Outlet />
         </AppShell>
+        <PullRefresh />
         <Snackbars />
         <Pwa />
         <ShortcutsDialog open={help} onOpenChange={setHelp} />

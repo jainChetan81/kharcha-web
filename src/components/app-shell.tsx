@@ -68,7 +68,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
         </div>
       </aside>
 
-      <div className={cn("mx-auto w-full min-w-0 tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1", !hideChrome && "pb-28 desk:pb-0")}>
+      <div className={cn("mx-auto w-full min-w-0 tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1", !hideChrome && "pb-[calc(136px+env(safe-area-inset-bottom))] desk:pb-0")}>
         {children}
       </div>
 
@@ -77,11 +77,11 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(96px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-2xl bg-ink text-on-ink shadow-[0_6px_16px_rgba(28,34,48,0.22)] hover:text-on-ink desk:hidden"
+            className="fixed right-5 bottom-[calc(68px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-2xl bg-ink text-on-ink shadow-[0_6px_16px_rgba(28,34,48,0.22)] hover:text-on-ink desk:hidden"
           >
             <PlusIcon />
           </Link>
-          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(80px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-rule bg-card pb-[calc(16px+env(safe-area-inset-bottom))] desk:hidden">
+          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
             {tabs.map((t) => {
               const on = t.match(path);
               const Icon = t.icon;

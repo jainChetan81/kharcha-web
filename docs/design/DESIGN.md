@@ -134,7 +134,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 
 | Component | Notes |
 |---|---|
-| `AppShell` | Mobile: `TabBar` (80px, 5 tabs, active tab gets a 2px top rule) plus `Fab` (56px, radius 16). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail. |
+| `AppShell` | Mobile: `TabBar` (`calc(50px + env(safe-area-inset-bottom))`, 5 tabs, active tab gets a 2px top rule) plus `Fab` (56px, radius 16). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail. |
 | `MonthSwitcher`, `SyncPill`, `StatusTag` | Sync pill states are listed in §9. |
 | `InkHero` | Today and Wealth only. |
 | `PaceChart`, `GainChart`, `Waterfall`, `DayRings`, `Beeswarm`, `Treemap`, `Sparkline`, `BudgetBar` | Plain SVG or CSS. Rules are on the Style board, §6. |

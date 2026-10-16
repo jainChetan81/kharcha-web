@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
+import { money } from "../lib/format";
 import { StatusTag, Card, IconButton } from "./ui";
 
 export type InsightView = { id: number; detector: string; payload: Record<string, unknown> };
 const words: Record<string, { tag: "unusual" | "check" | "neutral"; text: (p: Record<string, unknown>) => string; href: (p: Record<string, unknown>) => string }> = {
   unusual: { tag: "unusual", text: (p) => `${p.merchant} is ${Math.round(Number(p.current) / Math.max(1, Number(p.median)))}× its usual weekly spend.`, href: (p) => String(p.href ?? "/activity") },
   repeat: { tag: "check", text: (p) => `${p.merchant} has repeat charges on ${p.date}.`, href: () => "/activity" },
-  recurring: { tag: "neutral", text: (p) => `${p.merchant} looks recurring at about ₹${Math.round(Number(p.average)).toLocaleString("en-IN")}.`, href: (p) => String(p.href ?? "/activity") },
+  recurring: { tag: "neutral", text: (p) => `${p.merchant} looks recurring at about ${money(Math.round(Number(p.average)))}.`, href: (p) => String(p.href ?? "/activity") },
   missing_sip: { tag: "check", text: (p) => `No SIP debit found for ${p.holding}.`, href: (p) => String(p.href ?? "/wealth") },
   budget: { tag: "unusual", text: (p) => `${p.category} may cross its budget around day ${p.crossing}.`, href: () => "/plan/budgets" },
 };

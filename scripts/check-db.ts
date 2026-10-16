@@ -88,6 +88,19 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   await ingest(db, [{ ...base, id: 102, category: "Credit Card Payment", merchant: "CC BILL", merchantCanonical: null }]);
   assert.equal((await list(db, { search: "CC BILL", limit: 1 }))[0]?.excluded, true, "card bill is not a spend");
 }
+// 0003 soft-deletes stored ₹0 parser misses; real rows stay.
+{
+  const { readFileSync } = await import("node:fs");
+  const { transactions } = await import("../src/server/db/schema.ts");
+  const { eq } = await import("drizzle-orm");
+  await db.insert(transactions).values([
+    { id: 9901, source: "sms", type: "expense", amount: 0, merchant: "Unknown", date: "2026-10-15 14:44" },
+    { id: 9902, source: "sms", type: "expense", amount: 219, merchant: "Swiggy Instamart", date: "2026-10-15 14:44" },
+  ]);
+  await db.run(sql.raw(readFileSync("drizzle/0003_hide_zero_rows.sql", "utf8")));
+  assert.notEqual((await db.select().from(transactions).where(eq(transactions.id, 9901)).get())?.deletedAt, null, "₹0 row soft-deleted");
+  assert.equal((await db.select().from(transactions).where(eq(transactions.id, 9902)).get())?.deletedAt, null, "real row untouched");
+}
 console.log("check-db: ok");
 
 // Auth helpers: session signing, expiry, tamper, password hash, redirect safety.
