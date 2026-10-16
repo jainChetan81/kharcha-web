@@ -214,17 +214,46 @@ export async function restoreTxn(db: Db, id: number): Promise<void> {
 /** Rows that count as spend: live, expense, not excluded, not a duplicate. */
 export const spendable = and(live, eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf));
 
+// DESIGN.md §15. Correlated subqueries, so joins never multiply ledger rows. Cancelled claims and their links are ignored.
+const claimedOf = (t: string) =>
+  `COALESCE((SELECT SUM(r.amount) FROM reimbursements r WHERE r.transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
+const linkedOf = (t: string) =>
+  `COALESCE((SELECT SUM(l.amount) FROM reimbursement_links l JOIN reimbursements r ON r.id = l.reimbursement_id WHERE l.credit_transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
+/** Links beyond their claim, split across the links pro rata. Counts as income in the month the credit arrived. */
+const extraOf = (t: string) =>
+  `COALESCE((SELECT SUM(l.amount * MAX(0, (SELECT SUM(l2.amount) FROM reimbursement_links l2 WHERE l2.reimbursement_id = r.id) - r.amount) / (SELECT SUM(l2.amount) FROM reimbursement_links l2 WHERE l2.reimbursement_id = r.id)) FROM reimbursement_links l JOIN reimbursements r ON r.id = l.reimbursement_id WHERE l.credit_transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
+/** Your share of a spend: amount minus open and settled claims, never below zero. */
+const shareOf = (t: string) => `MAX(0, ${t}.amount - ${claimedOf(t)})`;
+export const shareSql = (t = "transactions") => sql<number>`${sql.raw(shareOf(t))}`.mapWith(Number);
+/** Per-row counted amount: spend → your share; income → unlinked part plus extra back. */
+const countedOf = (t: string) =>
+  `CASE WHEN ${t}.type = 'income' THEN ${t}.amount - ${linkedOf(t)} + ${extraOf(t)} WHEN ${t}.type = 'expense' THEN ${shareOf(t)} ELSE ${t}.amount END`;
+const countedSql = (t = "transactions") => sql.raw(countedOf(t));
+
 /**
  * Spend per category for a period. Rows with splits count per split (§7: budgets use splits).
  * from/to are "YYYY-MM-DD", half-open.
  */
-export async function spendByCategory(db: Db, from: string, to: string): Promise<{ category: string; total: number; n: number }[]> {
+/** `gross`: spend before claims (used to size the reimbursable hatch on budgets). */
+export async function spendByCategory(db: Db, from: string, to: string, gross = false): Promise<{ category: string; total: number; n: number }[]> {
+  // Unsplit spend: the row's share. Split spend: each split less the claim on its items, plus its pro rata part of any whole/part claim.
+  const filter = sql`t.deleted_at IS NULL AND t.type = 'expense' AND t.excluded = 0 AND t.duplicate_of IS NULL AND t.date >= ${from} AND t.date < ${to}`;
+  const unsplitAmt = gross ? "t.amount" : `MAX(0, t.amount - ${claimedOf("t")})`;
+  const splitAmt = gross ? "s.amount" : `MAX(0, s.amount
+          - (SELECT COALESCE(SUM(i.amount), 0) FROM reimbursements r JOIN json_each(r.item_ids) j JOIN transaction_items i ON i.id = CAST(j.value AS INTEGER)
+             WHERE r.transaction_id = t.id AND r.status != 'cancelled' AND r.item_ids IS NOT NULL AND i.category = s.category)
+          - (SELECT COALESCE(SUM(r.amount), 0) FROM reimbursements r
+             WHERE r.transaction_id = t.id AND r.status != 'cancelled' AND r.item_ids IS NULL) * s.amount / NULLIF(t.amount, 0))`;
   const rows = await db.all<{ category: string; total: number; n: number }>(sql`
-    SELECT COALESCE(s.category, t.category, 'Other') AS category, SUM(CASE WHEN s.transaction_id IS NOT NULL THEN s.amount ELSE t.amount END) AS total, COUNT(DISTINCT t.id) AS n
-    FROM transactions t LEFT JOIN transaction_splits s ON s.transaction_id = t.id
-    WHERE t.deleted_at IS NULL AND t.type = 'expense' AND t.excluded = 0 AND t.duplicate_of IS NULL
-      AND t.date >= ${from} AND t.date < ${to}
-    GROUP BY 1 ORDER BY 2 DESC`);
+    SELECT category, SUM(amt) AS total, COUNT(DISTINCT id) AS n FROM (
+      SELECT t.id AS id, COALESCE(t.category, 'Other') AS category, ${sql.raw(unsplitAmt)} AS amt
+      FROM transactions t
+      WHERE ${filter} AND NOT EXISTS (SELECT 1 FROM transaction_splits x WHERE x.transaction_id = t.id)
+      UNION ALL
+      SELECT t.id, s.category, ${sql.raw(splitAmt)}
+      FROM transactions t JOIN transaction_splits s ON s.transaction_id = t.id
+      WHERE ${filter}
+    ) GROUP BY category ORDER BY total DESC`);
   return rows.map((r) => (Array.isArray(r) ? { category: String(r[0]), total: Number(r[1]), n: Number(r[2]) } : r));
 }
 
@@ -237,7 +266,7 @@ export async function monthSummary(db: Db, month: string) {
   const [from, to] = monthBounds(month);
   const [totals, byCategory, [review], [last], limits] = await Promise.all([
     db
-      .select({ type: transactions.type, total: sum(transactions.amount).mapWith(Number), n: count() })
+      .select({ type: transactions.type, total: sum(countedSql()).mapWith(Number), n: count() })
       .from(transactions)
       .where(and(live, eq(transactions.excluded, false), isNull(transactions.duplicateOf), inMonth(month)))
       .groupBy(transactions.type),
@@ -334,6 +363,8 @@ export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boole
       needsReview: transactions.needsReview,
       excluded: transactions.excluded,
       duplicateOf: transactions.duplicateOf,
+      reimbursable: sql<number>`CASE WHEN ${transactions.type}='expense' THEN ${claimedOf('transactions')} ELSE 0 END`.mapWith(Number),
+      yours: sql<number>`${shareSql('transactions')}`.mapWith(Number),
     })
     .from(transactions)
     .where(and(...where))
@@ -361,8 +392,8 @@ export async function summarizeTxns(db: Db, q: ListQuery) {
     s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)
     SELECT
       (SELECT COUNT(*) FROM m) AS n,
-      (SELECT COALESCE(SUM(amount), 0) FROM s) AS spent,
-      (SELECT COALESCE(SUM(amount), 0) FROM m WHERE type = 'income') AS income,
+      (SELECT COALESCE(SUM(MAX(0, amount - ${sql.raw(claimedOf("s"))})), 0) FROM s) AS spent,
+      (SELECT COALESCE(SUM(${sql.raw(countedOf("m"))}), 0) FROM m WHERE type = 'income') AS income,
       (SELECT COALESCE(SUM(amount), 0) FROM m WHERE excluded = 1) AS transferred,
       (SELECT COALESCE(json_group_array(json_object('category', c, 'total', t)), '[]')
          FROM (SELECT COALESCE(category, 'Other') AS c, SUM(amount) AS t FROM s GROUP BY c ORDER BY t DESC LIMIT 4)) AS top,
