@@ -77,7 +77,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(68px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-2xl bg-ink text-on-ink shadow-[0_6px_16px_rgba(28,34,48,0.22)] hover:text-on-ink desk:hidden"
+            className="fixed right-5 bottom-[calc(68px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-2xl bg-ink text-paper shadow-[0_6px_16px_rgba(28,34,48,0.22)] hover:text-paper desk:hidden"
           >
             <PlusIcon />
           </Link>

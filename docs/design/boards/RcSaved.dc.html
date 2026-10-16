@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transaction with split</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1260px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 8px">
+    <a href="RcActivity.dc.html" aria-label="Back to activity" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <a href="Edit.dc.html" style="min-height: 44px; padding: 0 12px; display: flex; align-items: center; color: var(--brand); font-size: 15px; font-weight: 500; text-decoration: none">Edit</a>
+  </header>
+
+  <section style="margin: 0 20px; padding: 4px 0 18px; border-bottom: 3px double var(--ink); display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3)">Expense · split in 4</span>
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 30px">Swiggy Instamart</h1>
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 48px; line-height: 1; font-weight: 500"><span style="font-size: 26px; color: var(--ink3)">₹</span>2,340</span>
+    <div role="img" aria-label="Split: Food ₹1,180, Shopping ₹890, Health ₹210, Other ₹60" style="display: flex; height: 10px; gap: 2px; border-radius: 5px; overflow: hidden; margin-top: 6px">
+      <span style="flex: 1180; background: var(--c-food)"></span><span style="flex: 890; background: var(--c-shopping)"></span><span style="flex: 210; background: var(--c-health)"></span><span style="flex: 60; background: var(--c-other)"></span>
+    </div>
+  </section>
+
+  <section style="padding: 8px 20px 0">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+      <div style="border-bottom: 1px solid var(--hair)">
+        <button type="button" onClick="{{g.toggle}}" aria-expanded="{{g.open}}" style="width: 100%; min-height: 52px; border: 0; background: transparent; padding: 0; color: var(--ink); display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 18px; gap: 10px; align-items: center; text-align: left; cursor: pointer">
+          <span style="width: 10px; height: 10px; border-radius: 2px; background: {{g.color}}"></span>
+          <span style="font-size: 15px; font-weight: 500">{{g.cat}} <span style="font-weight: 400; color: var(--ink3); font-size: 13px">· {{g.count}}</span></span>
+          <span style="font-size: 15px; font-weight: 600">{{g.amt}}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: {{g.rot}}"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <sc-if value="{{g.open}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 0 0 10px 22px; display: flex; flex-direction: column">
+            <sc-for list="{{g.items}}" as="i" hint-placeholder-count="3">
+              <div style="display: flex; justify-content: space-between; min-height: 34px; align-items: center; font-size: 14px; color: var(--ink2)"><span>{{i.name}}</span><span>{{i.amt}}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </section>
+
+  <dl style="margin: 8px 20px 0">
+    <sc-for list="{{fields}}" as="f" hint-placeholder-count="4">
+      <div style="display: flex; justify-content: space-between; min-height: 46px; align-items: center; border-bottom: 1px solid var(--hair); font-size: 15px"><dt style="color: var(--ink2)">{{f.k}}</dt><dd style="margin: 0; font-weight: 500">{{f.v}}</dd></div>
+    </sc-for>
+  </dl>
+
+  <section style="padding: 18px 20px 0; display: flex; gap: 10px; align-items: center">
+    <a href="RcResult.dc.html" style="display: flex; gap: 6px; text-decoration: none">
+      <span style="width: 44px; height: 58px; border-radius: 6px; border: 1px solid var(--rule); background: var(--input)"></span>
+      <span style="width: 44px; height: 58px; border-radius: 6px; border: 1px solid var(--rule); background: var(--input)"></span>
+      <span style="width: 44px; height: 58px; border-radius: 6px; border: 1px solid var(--rule); background: var(--input)"></span>
+    </a>
+    <span style="font-size: 14px; color: var(--ink2)">3 receipt images</span>
+  </section>
+
+  <div style="padding: 20px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <a href="RbMark.dc.html" style="min-height: 48px; border-radius: 12px; border: 1px solid var(--ink); display: flex; align-items: center; justify-content: center; color: var(--ink); font-size: 15px; font-weight: 500; text-decoration: none">Reimbursable…</a>
+    <button type="button" style="min-height: 48px; border-radius: 12px; border: 1px solid var(--over); background: transparent; color: var(--over); font-size: 15px; font-weight: 500; cursor: pointer">Remove split</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1260}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'Shopping' };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', over: '#A3402D', btn: '#1C2230', 'on-btn': '#F6F4EE',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-health': '#3D8077', 'c-other': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', over: '#F08C76', btn: '#ECE8DF', 'on-btn': '#12151C',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-health': '#63BFB1', 'c-other': '#8F8B80' };
+    const t = this.props.dark ? D : L;
+    const G = [
+      { cat: 'Food', amt: '₹1,180', count: '9 items · after ₹45 coupon', items: [['Aashirvaad atta, 5 kg', '₹289'], ['Almonds, 250 g', '₹300'], ['Basmati rice, 1 kg', '₹178'], ['6 more', '₹458'], ['Coupon', '−₹45']] },
+      { cat: 'Shopping', amt: '₹890', count: '2 items', items: [['boAt wired earphones', '₹649'], ['Phone charger, 20 W', '₹241']] },
+      { cat: 'Health', amt: '₹210', count: '2 items', items: [['Face wash, 100 ml', '₹178'], ['Dolo 650, 15 tablets', '₹32']] },
+      { cat: 'Other', amt: '₹60', count: 'fees', items: [['Delivery fee', '₹30'], ['Handling fee', '₹30']] }
+    ];
+    const open = this.state.open;
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      groups: G.map((g) => ({
+        cat: g.cat, amt: g.amt, count: g.count, color: 'var(--c-' + g.cat.toLowerCase() + ')',
+        open: open === g.cat, rot: open === g.cat ? 'rotate(180deg)' : 'none',
+        items: g.items.map(([name, amt]) => ({ name, amt })),
+        toggle: () => this.setState({ open: open === g.cat ? '' : g.cat })
+      })),
+      fields: [
+        { k: 'Date', v: 'Tue 13 Oct, 7:42 PM' },
+        { k: 'Card', v: '••2047' },
+        { k: 'Source', v: 'SMS via Mac mini' },
+        { k: 'Status', v: 'Reviewed' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

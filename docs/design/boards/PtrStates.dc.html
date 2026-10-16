@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pull to refresh</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+</style>
+</helmet>
+<div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 1440px; height: 960px">
+
+  <div style="padding: 40px; display: flex; flex-direction: column; gap: 40px">
+    <sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+      <section aria-label="{{th.name}}" style="{{th.vars}} padding: 28px; border-radius: 20px; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; gap: 20px">
+        <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 500">{{th.name}}</h2>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px">
+          <sc-for list="{{states}}" as="s" hint-placeholder-count="6">
+            <figure style="margin: 0; display: flex; flex-direction: column; gap: 10px">
+              <div style="height: 300px; border-radius: 16px; border: 1px solid var(--rule); background: var(--paper); overflow: hidden; position: relative">
+                <div style="height: {{s.pull}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding-bottom: 10px; box-sizing: border-box; background: var(--sunken)">
+                  <span role="img" aria-label="{{s.aria}}" style="width: 36px; height: 36px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); box-shadow: 0 2px 6px var(--shadow); display: flex; align-items: center; justify-content: center; color: {{s.tone}}">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                      <circle cx="14" cy="14" r="11" stroke="var(--track)" stroke-width="2.5"></circle>
+                      <circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="{{s.dash}}" transform="rotate(-90 14 14)" style="opacity: {{s.ringOn}}"></circle>
+                      <path d="{{s.icon}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="{{s.iconTurn}}"></path>
+                    </svg>
+                  </span>
+                  <span style="font-size: 12px; font-weight: 500; color: {{s.labelTone}}; text-align: center; padding: 0 8px">{{s.label}}</span>
+                </div>
+                <div aria-hidden="true" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+                  <span style="font-family: 'Newsreader', Georgia, serif; font-size: 20px">Activity</span>
+                  <span style="height: 1px; background: var(--ink)"></span>
+                  <span style="display: flex; justify-content: space-between; font-size: 13px"><span>Swiggy Instamart</span><span>₹219</span></span>
+                  <span style="height: 1px; background: var(--hair)"></span>
+                  <span style="display: flex; justify-content: space-between; font-size: 13px"><span>Swish</span><span>₹321</span></span>
+                </div>
+              </div>
+              <figcaption style="font-size: 13px; color: var(--ink2)">{{s.name}}</figcaption>
+            </figure>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1440, "height": 960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
+    const T = this.props.dark ? D : L;
+    const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
+    const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
+
+    const v = (m) => Object.keys(m).map((k) => '--' + k + ': ' + m[k] + ';').join(' ');
+    const C = 2 * Math.PI * 11;
+    const ARROW = 'M14 8v12M9 15l5 5 5-5';
+    const st = (name, pull, label, aria, o) => Object.assign({ name, pull, label, aria, dash: C + ' ' + C, ringOn: '1', icon: ARROW, iconTurn: '', tone: 'var(--brand)', labelTone: 'var(--ink2)' }, o);
+    return {
+      vars,
+      themes: [{ name: 'Light', vars: v(L) }, { name: 'Dark', vars: v(D) }],
+      states: [
+        st('Pulling · 60%', '84px', 'Pull to refresh', 'Pulling, 60 percent', { dash: (C * 0.6).toFixed(1) + ' ' + C }),
+        st('Past the threshold', '120px', 'Release to refresh', 'Release to refresh', { iconTurn: 'rotate(180 14 14)' }),
+        st('Refreshing', '84px', 'Refreshing', 'Refreshing', { dash: (C * 0.28).toFixed(1) + ' ' + C, icon: '' }),
+        st('Done', '84px', 'Up to date · 2 new', 'Up to date, 2 new', { icon: 'M8.5 14.5l3.5 3.5 7.5-8', tone: 'var(--earn)', ringOn: '0' }),
+        st('Failed', '84px', 'Couldn’t reach your server', 'Refresh failed', { icon: 'M14 8v7M14 19.5v.01', tone: 'var(--over)', labelTone: 'var(--over)', ringOn: '0' }),
+        st('Offline', '84px', 'You’re offline', 'Offline', { icon: 'M5 10a13 13 0 0 1 18 0M8.5 13.5a8 8 0 0 1 11 0M12 17a3 3 0 0 1 4 0M5 5l18 18', tone: 'var(--ink2)', ringOn: '0' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

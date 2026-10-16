@@ -83,7 +83,7 @@ class Component extends DCLogic {
   renderVals() {
     return {
       pills: [
-        { label: 'Synced 3 min ago', bg: '#EEEBE2', fg: '#4A5163', dot: '#2D6B4A', when: 'Default. Time of the last SMS push from the mini.' },
+        { label: 'Mini online · 3 min ago', bg: '#EEEBE2', fg: '#4A5163', dot: '#2D6B4A', when: 'Default. Time of the last SMS push from the mini.' },
         { label: 'Offline', bg: '#E2DFD6', fg: '#3E4352', dot: '#5E6272', when: 'No network. The page shows the last render; actions are disabled until it comes back.' },
         { label: 'Server unreachable', bg: '#E2DFD6', fg: '#3E4352', dot: '#5E6272', when: 'Network is up but the VPS is not answering /api/health.' },
         { label: 'Mini quiet · 6 h', bg: '#F4E9D2', fg: '#6E470C', dot: '#8A5A12', when: 'No push from the mini in 6 hours. New SMS may be missing.' }

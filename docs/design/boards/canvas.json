@@ -1,85 +1,1038 @@
 {
-  "v": 3,
-  "createdOnFiles": {"v": 1, "at": "2026-10-15T18:37:53Z"},
-  "title": "Kharcha",
-  "launch": {"view": "canvas"},
-  "pages": [],
-  "boards": {
-    "Style.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 2680, "title": "Ledger system"},
-    "States.dc.html": {"x": 1360, "y": 0, "w": 1320, "h": 820, "title": "System states"},
-
-    "Main.dc.html": {"x": 0, "y": 3100, "w": 390, "h": 1780, "title": "Today", "is_interactive": true},
-    "Review.dc.html": {"x": 470, "y": 3100, "w": 390, "h": 844, "title": "Review deck", "is_interactive": true},
-    "Add.dc.html": {"x": 940, "y": 3100, "w": 390, "h": 880, "title": "Add", "is_interactive": true},
-    "Edit.dc.html": {"x": 1410, "y": 3100, "w": 390, "h": 940, "title": "Edit transaction", "is_interactive": true},
-    "Receipt.dc.html": {"x": 1880, "y": 3100, "w": 390, "h": 1320, "title": "Receipt", "is_interactive": true},
-    "Paste.dc.html": {"x": 2350, "y": 3100, "w": 390, "h": 844, "title": "Paste SMS"},
-    "History.dc.html": {"x": 2820, "y": 3100, "w": 390, "h": 1300, "title": "Activity", "is_interactive": true},
-    "Detail.dc.html": {"x": 3290, "y": 3100, "w": 390, "h": 1100, "title": "Transaction"},
-
-    "Budgets.dc.html": {"x": 0, "y": 5300, "w": 390, "h": 1260, "title": "Plan · budgets", "is_interactive": true},
-    "Recurring.dc.html": {"x": 470, "y": 5300, "w": 390, "h": 1580, "title": "Plan · recurring", "is_interactive": true},
-    "Series.dc.html": {"x": 940, "y": 5300, "w": 390, "h": 1260, "title": "Edit recurring", "is_interactive": true},
-    "Trips.dc.html": {"x": 1410, "y": 5300, "w": 390, "h": 1000, "title": "Plan · trips", "is_interactive": true},
-    "Trip.dc.html": {"x": 1880, "y": 5300, "w": 390, "h": 1560, "title": "Trip · Odisha", "is_interactive": true},
-    "TripStart.dc.html": {"x": 2350, "y": 5300, "w": 390, "h": 900, "title": "Start a trip", "is_interactive": true},
-    "Wealth.dc.html": {"x": 2820, "y": 5300, "w": 390, "h": 1560, "title": "Wealth", "is_interactive": true},
-    "Holding.dc.html": {"x": 3290, "y": 5300, "w": 390, "h": 1380, "title": "Add holding", "is_interactive": true},
-    "Fund.dc.html": {"x": 3760, "y": 5300, "w": 390, "h": 1300, "title": "SIP · fund"},
-    "Insights.dc.html": {"x": 4230, "y": 5300, "w": 390, "h": 2440, "title": "Insights", "is_interactive": true},
-    "Ask.dc.html": {"x": 4700, "y": 5300, "w": 390, "h": 1180, "title": "Ask", "is_interactive": true},
-
-    "Settings.dc.html": {"x": 0, "y": 8160, "w": 390, "h": 1720, "title": "Settings", "is_interactive": true},
-    "Offline.dc.html": {"x": 470, "y": 8160, "w": 390, "h": 844, "title": "Offline"},
-    "InstallIOS.dc.html": {"x": 940, "y": 8160, "w": 390, "h": 844, "title": "Install on iOS"},
-
-    "DeskHome.dc.html": {"x": 0, "y": 10300, "w": 1440, "h": 1000, "title": "Desktop · today", "expand": "fill", "is_interactive": true},
-    "DeskReview.dc.html": {"x": 1520, "y": 10300, "w": 1440, "h": 900, "title": "Desktop · review", "expand": "fill", "is_interactive": true},
-    "DeskHistory.dc.html": {"x": 3040, "y": 10300, "w": 1440, "h": 900, "title": "Desktop · activity", "expand": "fill", "is_interactive": true},
-    "DeskPlan.dc.html": {"x": 0, "y": 11420, "w": 1440, "h": 1000, "title": "Desktop · plan", "expand": "fill", "is_interactive": true},
-    "DeskWealth.dc.html": {"x": 1520, "y": 11420, "w": 1440, "h": 1000, "title": "Desktop · wealth", "expand": "fill", "is_interactive": true},
-    "DeskInsights.dc.html": {"x": 3040, "y": 11420, "w": 1440, "h": 1100, "title": "Desktop · insights", "expand": "fill", "is_interactive": true},
-    "DeskAsk.dc.html": {"x": 4560, "y": 11420, "w": 1440, "h": 900, "title": "Desktop · ask", "expand": "fill", "is_interactive": true}
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-15T18:37:53Z"
+ },
+ "title": "Kharcha",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Style.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1280,
+   "h": 2680,
+   "title": "Ledger system"
   },
-  "order": [
-    "Main.dc.html",
-    "Style.dc.html",
-    "States.dc.html",
-    "Review.dc.html",
-    "Add.dc.html",
-    "Edit.dc.html",
-    "Receipt.dc.html",
-    "Paste.dc.html",
-    "History.dc.html",
-    "Detail.dc.html",
-    "Budgets.dc.html",
-    "Recurring.dc.html",
-    "Series.dc.html",
-    "Trips.dc.html",
-    "Trip.dc.html",
-    "TripStart.dc.html",
-    "Wealth.dc.html",
-    "Holding.dc.html",
-    "Fund.dc.html",
-    "Insights.dc.html",
-    "Ask.dc.html",
-    "Settings.dc.html",
-    "Offline.dc.html",
-    "InstallIOS.dc.html",
-    "DeskHome.dc.html",
-    "DeskReview.dc.html",
-    "DeskHistory.dc.html",
-    "DeskPlan.dc.html",
-    "DeskWealth.dc.html",
-    "DeskInsights.dc.html",
-    "DeskAsk.dc.html"
-  ],
-  "notes": {
-    "tSystem": {"x": 0, "y": -300, "text": "Kharcha · ledger system", "kind": "title1", "maxW": 2680},
-    "tDaily": {"x": 0, "y": 2800, "text": "Daily loop · capture, review, fix, look up", "kind": "title1", "maxW": 3680},
-    "tPlan": {"x": 0, "y": 5000, "text": "Plan, wealth, insights", "kind": "title1", "maxW": 5090},
-    "tPwa": {"x": 0, "y": 7860, "text": "Settings and PWA states", "kind": "title1", "maxW": 1330},
-    "tDesk": {"x": 0, "y": 10000, "text": "Desktop", "kind": "title1", "maxW": 6000}
+  "States.dc.html": {
+   "x": 1360,
+   "y": 0,
+   "w": 1320,
+   "h": 820,
+   "title": "System states"
   },
-  "designSystems": []
+  "Main.dc.html": {
+   "x": 0,
+   "y": 3140,
+   "w": 390,
+   "h": 1960,
+   "title": "Today",
+   "is_interactive": true
+  },
+  "Review.dc.html": {
+   "x": 470,
+   "y": 3140,
+   "w": 390,
+   "h": 844,
+   "title": "Review deck",
+   "is_interactive": true
+  },
+  "Add.dc.html": {
+   "x": 940,
+   "y": 3140,
+   "w": 390,
+   "h": 880,
+   "title": "Add",
+   "is_interactive": true
+  },
+  "Edit.dc.html": {
+   "x": 1410,
+   "y": 3140,
+   "w": 390,
+   "h": 940,
+   "title": "Edit transaction",
+   "is_interactive": true
+  },
+  "Paste.dc.html": {
+   "x": 1880,
+   "y": 3140,
+   "w": 390,
+   "h": 844,
+   "title": "Paste SMS"
+  },
+  "Detail.dc.html": {
+   "x": 2350,
+   "y": 3140,
+   "w": 390,
+   "h": 1100,
+   "title": "Transaction"
+  },
+  "Budgets.dc.html": {
+   "x": 0,
+   "y": 5560,
+   "w": 390,
+   "h": 1260,
+   "title": "Plan · budgets",
+   "is_interactive": true
+  },
+  "Recurring.dc.html": {
+   "x": 470,
+   "y": 5560,
+   "w": 390,
+   "h": 1580,
+   "title": "Plan · recurring",
+   "is_interactive": true
+  },
+  "Series.dc.html": {
+   "x": 940,
+   "y": 5560,
+   "w": 390,
+   "h": 1260,
+   "title": "Edit recurring",
+   "is_interactive": true
+  },
+  "Trips.dc.html": {
+   "x": 1410,
+   "y": 5560,
+   "w": 390,
+   "h": 1000,
+   "title": "Plan · trips",
+   "is_interactive": true
+  },
+  "Trip.dc.html": {
+   "x": 1880,
+   "y": 5560,
+   "w": 390,
+   "h": 1560,
+   "title": "Trip · Odisha",
+   "is_interactive": true
+  },
+  "TripStart.dc.html": {
+   "x": 2350,
+   "y": 5560,
+   "w": 390,
+   "h": 900,
+   "title": "Start a trip",
+   "is_interactive": true
+  },
+  "Wealth.dc.html": {
+   "x": 2820,
+   "y": 5560,
+   "w": 390,
+   "h": 1560,
+   "title": "Wealth",
+   "is_interactive": true
+  },
+  "Holding.dc.html": {
+   "x": 3290,
+   "y": 5560,
+   "w": 390,
+   "h": 1380,
+   "title": "Add holding",
+   "is_interactive": true
+  },
+  "Fund.dc.html": {
+   "x": 3760,
+   "y": 5560,
+   "w": 390,
+   "h": 1300,
+   "title": "SIP · fund"
+  },
+  "Insights.dc.html": {
+   "x": 4230,
+   "y": 5560,
+   "w": 390,
+   "h": 2440,
+   "title": "Insights",
+   "is_interactive": true
+  },
+  "Ask.dc.html": {
+   "x": 4700,
+   "y": 5560,
+   "w": 390,
+   "h": 1180,
+   "title": "Ask",
+   "is_interactive": true
+  },
+  "Offline.dc.html": {
+   "x": 470,
+   "y": 8460,
+   "w": 390,
+   "h": 844,
+   "title": "Offline"
+  },
+  "InstallIOS.dc.html": {
+   "x": 940,
+   "y": 8460,
+   "w": 390,
+   "h": 844,
+   "title": "Install on iOS"
+  },
+  "DeskHome.dc.html": {
+   "x": 0,
+   "y": 10600,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · today",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskReview.dc.html": {
+   "x": 1520,
+   "y": 10600,
+   "w": 1440,
+   "h": 900,
+   "title": "Desktop · review",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskPlan.dc.html": {
+   "x": 0,
+   "y": 11720,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · plan",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskWealth.dc.html": {
+   "x": 1520,
+   "y": 11720,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · wealth",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskInsights.dc.html": {
+   "x": 3040,
+   "y": 11720,
+   "w": 1440,
+   "h": 1100,
+   "title": "Desktop · insights",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskAsk.dc.html": {
+   "x": 4560,
+   "y": 11720,
+   "w": 1440,
+   "h": 900,
+   "title": "Desktop · ask",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "RcComponents.dc.html": {
+   "x": 0,
+   "y": 13600,
+   "w": 1320,
+   "h": 1180,
+   "title": "Components · light and dark"
+  },
+  "RcCapture.dc.html": {
+   "x": 0,
+   "y": 15000,
+   "w": 390,
+   "h": 900,
+   "title": "Receipt · capture",
+   "is_interactive": true
+  },
+  "RcReading.dc.html": {
+   "x": 470,
+   "y": 15000,
+   "w": 390,
+   "h": 900,
+   "title": "Receipt · reading"
+  },
+  "RcResult.dc.html": {
+   "x": 940,
+   "y": 15000,
+   "w": 390,
+   "h": 1640,
+   "title": "Receipt · result",
+   "is_interactive": true
+  },
+  "RcLowConf.dc.html": {
+   "x": 1410,
+   "y": 15000,
+   "w": 390,
+   "h": 1240,
+   "title": "Receipt · low confidence",
+   "is_interactive": true
+  },
+  "RcEdit.dc.html": {
+   "x": 1880,
+   "y": 15000,
+   "w": 390,
+   "h": 1180,
+   "title": "Receipt · edit items",
+   "is_interactive": true
+  },
+  "RcFailed.dc.html": {
+   "x": 2350,
+   "y": 15000,
+   "w": 390,
+   "h": 844,
+   "title": "Receipt · failed",
+   "is_interactive": true
+  },
+  "RcManual.dc.html": {
+   "x": 2820,
+   "y": 15000,
+   "w": 390,
+   "h": 1100,
+   "title": "Receipt · AI off",
+   "is_interactive": true
+  },
+  "RcSaved.dc.html": {
+   "x": 3290,
+   "y": 15000,
+   "w": 390,
+   "h": 1260,
+   "title": "Receipt · saved",
+   "is_interactive": true
+  },
+  "RcActivity.dc.html": {
+   "x": 3760,
+   "y": 15000,
+   "w": 390,
+   "h": 860,
+   "title": "Activity · split rows",
+   "is_interactive": true
+  },
+  "RcCaptureDark.dc.html": {
+   "x": 0,
+   "y": 17100,
+   "w": 390,
+   "h": 900,
+   "title": "Receipt · capture · dark",
+   "is_interactive": true
+  },
+  "RcReadingDark.dc.html": {
+   "x": 470,
+   "y": 17100,
+   "w": 390,
+   "h": 900,
+   "title": "Receipt · reading · dark"
+  },
+  "RcResultDark.dc.html": {
+   "x": 940,
+   "y": 17100,
+   "w": 390,
+   "h": 1640,
+   "title": "Receipt · result · dark",
+   "is_interactive": true
+  },
+  "RcLowConfDark.dc.html": {
+   "x": 1410,
+   "y": 17100,
+   "w": 390,
+   "h": 1240,
+   "title": "Receipt · low confidence · dark",
+   "is_interactive": true
+  },
+  "RcEditDark.dc.html": {
+   "x": 1880,
+   "y": 17100,
+   "w": 390,
+   "h": 1180,
+   "title": "Receipt · edit items · dark",
+   "is_interactive": true
+  },
+  "RcFailedDark.dc.html": {
+   "x": 2350,
+   "y": 17100,
+   "w": 390,
+   "h": 844,
+   "title": "Receipt · failed · dark",
+   "is_interactive": true
+  },
+  "RcManualDark.dc.html": {
+   "x": 2820,
+   "y": 17100,
+   "w": 390,
+   "h": 1100,
+   "title": "Receipt · AI off · dark",
+   "is_interactive": true
+  },
+  "RcSavedDark.dc.html": {
+   "x": 3290,
+   "y": 17100,
+   "w": 390,
+   "h": 1260,
+   "title": "Receipt · saved · dark",
+   "is_interactive": true
+  },
+  "RcActivityDark.dc.html": {
+   "x": 3760,
+   "y": 17100,
+   "w": 390,
+   "h": 860,
+   "title": "Activity · split rows · dark",
+   "is_interactive": true
+  },
+  "RbMark.dc.html": {
+   "x": 0,
+   "y": 19300,
+   "w": 390,
+   "h": 960,
+   "title": "Mark reimbursable",
+   "is_interactive": true
+  },
+  "RbStatus.dc.html": {
+   "x": 470,
+   "y": 19300,
+   "w": 390,
+   "h": 1240,
+   "title": "Reimbursement status",
+   "is_interactive": true
+  },
+  "RbShare.dc.html": {
+   "x": 940,
+   "y": 19300,
+   "w": 390,
+   "h": 1000,
+   "title": "Your share in totals"
+  },
+  "RbList.dc.html": {
+   "x": 1410,
+   "y": 19300,
+   "w": 390,
+   "h": 1300,
+   "title": "Plan · owed",
+   "is_interactive": true
+  },
+  "RbItems.dc.html": {
+   "x": 1880,
+   "y": 19300,
+   "w": 390,
+   "h": 1000,
+   "title": "Reimburse some items",
+   "is_interactive": true
+  },
+  "RbCases.dc.html": {
+   "x": 2350,
+   "y": 19300,
+   "w": 390,
+   "h": 1120,
+   "title": "Edge cases",
+   "is_interactive": true
+  },
+  "RbMarkDark.dc.html": {
+   "x": 0,
+   "y": 21100,
+   "w": 390,
+   "h": 960,
+   "title": "Mark reimbursable · dark",
+   "is_interactive": true
+  },
+  "RbStatusDark.dc.html": {
+   "x": 470,
+   "y": 21100,
+   "w": 390,
+   "h": 1240,
+   "title": "Reimbursement status · dark",
+   "is_interactive": true
+  },
+  "RbShareDark.dc.html": {
+   "x": 940,
+   "y": 21100,
+   "w": 390,
+   "h": 1000,
+   "title": "Your share in totals · dark"
+  },
+  "RbListDark.dc.html": {
+   "x": 1410,
+   "y": 21100,
+   "w": 390,
+   "h": 1300,
+   "title": "Plan · owed · dark",
+   "is_interactive": true
+  },
+  "RbItemsDark.dc.html": {
+   "x": 1880,
+   "y": 21100,
+   "w": 390,
+   "h": 1000,
+   "title": "Reimburse some items · dark",
+   "is_interactive": true
+  },
+  "RbCasesDark.dc.html": {
+   "x": 2350,
+   "y": 21100,
+   "w": 390,
+   "h": 1120,
+   "title": "Edge cases · dark",
+   "is_interactive": true
+  },
+  "DeskReceipt.dc.html": {
+   "x": 0,
+   "y": 23000,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · receipt",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskOwed.dc.html": {
+   "x": 1520,
+   "y": 23000,
+   "w": 1440,
+   "h": 900,
+   "title": "Desktop · plan › owed",
+   "expand": "fill"
+  },
+  "DeskReceiptDark.dc.html": {
+   "x": 0,
+   "y": 24120,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · receipt · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskOwedDark.dc.html": {
+   "x": 1520,
+   "y": 24120,
+   "w": 1440,
+   "h": 900,
+   "title": "Desktop · plan › owed · dark",
+   "expand": "fill"
+  },
+  "History.dc.html": {
+   "x": 0,
+   "y": 25720,
+   "w": 390,
+   "h": 1400,
+   "title": "Activity",
+   "is_interactive": true
+  },
+  "ActFiltered.dc.html": {
+   "x": 470,
+   "y": 25720,
+   "w": 390,
+   "h": 1400,
+   "title": "Activity · filtered, summary open",
+   "is_interactive": true
+  },
+  "ActFilter.dc.html": {
+   "x": 940,
+   "y": 25720,
+   "w": 390,
+   "h": 1160,
+   "title": "Filter · all",
+   "is_interactive": true
+  },
+  "ActDate.dc.html": {
+   "x": 1410,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Date range",
+   "is_interactive": true
+  },
+  "ActDateNative.dc.html": {
+   "x": 1880,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Date fields fallback",
+   "is_interactive": true
+  },
+  "ActCategory.dc.html": {
+   "x": 2350,
+   "y": 25720,
+   "w": 390,
+   "h": 1100,
+   "title": "Category",
+   "is_interactive": true
+  },
+  "ActAmount.dc.html": {
+   "x": 2820,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Amount",
+   "is_interactive": true
+  },
+  "ActAmountError.dc.html": {
+   "x": 3290,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Amount · error",
+   "is_interactive": true
+  },
+  "ActSort.dc.html": {
+   "x": 3760,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Sort",
+   "is_interactive": true
+  },
+  "HistoryDark.dc.html": {
+   "x": 0,
+   "y": 27240,
+   "w": 390,
+   "h": 1400,
+   "title": "Activity · dark",
+   "is_interactive": true
+  },
+  "ActFilteredDark.dc.html": {
+   "x": 470,
+   "y": 27240,
+   "w": 390,
+   "h": 1400,
+   "title": "Filtered · dark",
+   "is_interactive": true
+  },
+  "ActFilterDark.dc.html": {
+   "x": 940,
+   "y": 27240,
+   "w": 390,
+   "h": 1160,
+   "title": "Filter · dark",
+   "is_interactive": true
+  },
+  "ActDateDark.dc.html": {
+   "x": 1410,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Date range · dark",
+   "is_interactive": true
+  },
+  "ActDateNativeDark.dc.html": {
+   "x": 1880,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Date fields · dark",
+   "is_interactive": true
+  },
+  "ActCategoryDark.dc.html": {
+   "x": 2350,
+   "y": 27240,
+   "w": 390,
+   "h": 1100,
+   "title": "Category · dark",
+   "is_interactive": true
+  },
+  "ActAmountDark.dc.html": {
+   "x": 2820,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Amount · dark",
+   "is_interactive": true
+  },
+  "ActSortDark.dc.html": {
+   "x": 3290,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Sort · dark",
+   "is_interactive": true
+  },
+  "DeskHistory.dc.html": {
+   "x": 0,
+   "y": 28760,
+   "w": 1440,
+   "h": 1100,
+   "title": "Desktop · activity",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskActDate.dc.html": {
+   "x": 1520,
+   "y": 28760,
+   "w": 1440,
+   "h": 1100,
+   "title": "Desktop · date popover",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskHistoryDark.dc.html": {
+   "x": 0,
+   "y": 29980,
+   "w": 1440,
+   "h": 1100,
+   "title": "Desktop · activity · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskActDateDark.dc.html": {
+   "x": 1520,
+   "y": 29980,
+   "w": 1440,
+   "h": 1100,
+   "title": "Desktop · date popover · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "PtrStates.dc.html": {
+   "x": 0,
+   "y": 31200,
+   "w": 1440,
+   "h": 960,
+   "title": "Pull to refresh"
+  },
+  "ActComponents.dc.html": {
+   "x": 1520,
+   "y": 31200,
+   "w": 1640,
+   "h": 2080,
+   "title": "Components · activity and settings"
+  },
+  "TodayHero.dc.html": {
+   "x": 0,
+   "y": 33880,
+   "w": 1740,
+   "h": 960,
+   "title": "Hero · budget states"
+  },
+  "TodaySpec.dc.html": {
+   "x": 1820,
+   "y": 33880,
+   "w": 1640,
+   "h": 1000,
+   "title": "Labels, spacing, safe area"
+  },
+  "MainDark.dc.html": {
+   "x": 3540,
+   "y": 33880,
+   "w": 390,
+   "h": 1960,
+   "title": "Today · dark",
+   "is_interactive": true
+  },
+  "DeskHomeNoBudget.dc.html": {
+   "x": 0,
+   "y": 35960,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · no budget",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskHomeDark.dc.html": {
+   "x": 1520,
+   "y": 35960,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · today · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskHomeNoBudgetDark.dc.html": {
+   "x": 3040,
+   "y": 35960,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop · no budget · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Settings.dc.html": {
+   "x": 0,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "Settings",
+   "is_interactive": true
+  },
+  "SettingsOff.dc.html": {
+   "x": 470,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "AI off · not installed · mini offline",
+   "is_interactive": true
+  },
+  "SettingsPicker.dc.html": {
+   "x": 940,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "Colour picker",
+   "is_interactive": true
+  },
+  "SetModel.dc.html": {
+   "x": 1410,
+   "y": 37560,
+   "w": 390,
+   "h": 844,
+   "title": "Model picker",
+   "is_interactive": true
+  },
+  "SetCatDelete.dc.html": {
+   "x": 1880,
+   "y": 37560,
+   "w": 390,
+   "h": 844,
+   "title": "Delete category",
+   "is_interactive": true
+  },
+  "SettingsDark.dc.html": {
+   "x": 2350,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "Settings · dark",
+   "is_interactive": true
+  },
+  "SettingsOffDark.dc.html": {
+   "x": 2820,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "AI off · dark",
+   "is_interactive": true
+  },
+  "SettingsPickerDark.dc.html": {
+   "x": 3290,
+   "y": 37560,
+   "w": 390,
+   "h": 2300,
+   "title": "Colour picker · dark",
+   "is_interactive": true
+  },
+  "SetModelDark.dc.html": {
+   "x": 3760,
+   "y": 37560,
+   "w": 390,
+   "h": 844,
+   "title": "Model picker · dark",
+   "is_interactive": true
+  },
+  "SetCatDeleteDark.dc.html": {
+   "x": 4230,
+   "y": 37560,
+   "w": 390,
+   "h": 844,
+   "title": "Delete category · dark",
+   "is_interactive": true
+  },
+  "DeskSettings.dc.html": {
+   "x": 0,
+   "y": 39980,
+   "w": 1440,
+   "h": 2200,
+   "title": "Desktop · settings",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskSettingsDark.dc.html": {
+   "x": 1520,
+   "y": 39980,
+   "w": 1440,
+   "h": 2200,
+   "title": "Desktop · settings · dark",
+   "expand": "fill",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Style.dc.html",
+  "States.dc.html",
+  "Review.dc.html",
+  "Add.dc.html",
+  "Edit.dc.html",
+  "Paste.dc.html",
+  "Detail.dc.html",
+  "Budgets.dc.html",
+  "Recurring.dc.html",
+  "Series.dc.html",
+  "Trips.dc.html",
+  "Trip.dc.html",
+  "TripStart.dc.html",
+  "Wealth.dc.html",
+  "Holding.dc.html",
+  "Fund.dc.html",
+  "Insights.dc.html",
+  "Ask.dc.html",
+  "Offline.dc.html",
+  "InstallIOS.dc.html",
+  "DeskHome.dc.html",
+  "DeskReview.dc.html",
+  "DeskPlan.dc.html",
+  "DeskWealth.dc.html",
+  "DeskInsights.dc.html",
+  "DeskAsk.dc.html",
+  "RcComponents.dc.html",
+  "RcCapture.dc.html",
+  "RcReading.dc.html",
+  "RcResult.dc.html",
+  "RcLowConf.dc.html",
+  "RcEdit.dc.html",
+  "RcFailed.dc.html",
+  "RcManual.dc.html",
+  "RcSaved.dc.html",
+  "RcActivity.dc.html",
+  "RcCaptureDark.dc.html",
+  "RcReadingDark.dc.html",
+  "RcResultDark.dc.html",
+  "RcLowConfDark.dc.html",
+  "RcEditDark.dc.html",
+  "RcFailedDark.dc.html",
+  "RcManualDark.dc.html",
+  "RcSavedDark.dc.html",
+  "RcActivityDark.dc.html",
+  "RbMark.dc.html",
+  "RbStatus.dc.html",
+  "RbShare.dc.html",
+  "RbList.dc.html",
+  "RbItems.dc.html",
+  "RbCases.dc.html",
+  "RbMarkDark.dc.html",
+  "RbStatusDark.dc.html",
+  "RbShareDark.dc.html",
+  "RbListDark.dc.html",
+  "RbItemsDark.dc.html",
+  "RbCasesDark.dc.html",
+  "DeskReceipt.dc.html",
+  "DeskOwed.dc.html",
+  "DeskReceiptDark.dc.html",
+  "DeskOwedDark.dc.html",
+  "History.dc.html",
+  "ActFiltered.dc.html",
+  "ActFilter.dc.html",
+  "ActDate.dc.html",
+  "ActDateNative.dc.html",
+  "ActCategory.dc.html",
+  "ActAmount.dc.html",
+  "ActAmountError.dc.html",
+  "ActSort.dc.html",
+  "HistoryDark.dc.html",
+  "ActFilteredDark.dc.html",
+  "ActFilterDark.dc.html",
+  "ActDateDark.dc.html",
+  "ActDateNativeDark.dc.html",
+  "ActCategoryDark.dc.html",
+  "ActAmountDark.dc.html",
+  "ActSortDark.dc.html",
+  "DeskHistory.dc.html",
+  "DeskActDate.dc.html",
+  "DeskHistoryDark.dc.html",
+  "DeskActDateDark.dc.html",
+  "PtrStates.dc.html",
+  "ActComponents.dc.html",
+  "TodayHero.dc.html",
+  "TodaySpec.dc.html",
+  "MainDark.dc.html",
+  "DeskHomeNoBudget.dc.html",
+  "DeskHomeDark.dc.html",
+  "DeskHomeNoBudgetDark.dc.html",
+  "Settings.dc.html",
+  "SettingsOff.dc.html",
+  "SettingsPicker.dc.html",
+  "SetModel.dc.html",
+  "SetCatDelete.dc.html",
+  "SettingsDark.dc.html",
+  "SettingsOffDark.dc.html",
+  "SettingsPickerDark.dc.html",
+  "SetModelDark.dc.html",
+  "SetCatDeleteDark.dc.html",
+  "DeskSettings.dc.html",
+  "DeskSettingsDark.dc.html"
+ ],
+ "notes": {
+  "tSystem": {
+   "x": 0,
+   "y": -300,
+   "text": "Kharcha · ledger system",
+   "kind": "title1",
+   "maxW": 2680
+  },
+  "tDaily": {
+   "x": 0,
+   "y": 2840,
+   "text": "Daily loop · capture, review, fix, look up",
+   "kind": "title1",
+   "maxW": 3680
+  },
+  "tPlan": {
+   "x": 0,
+   "y": 5260,
+   "text": "Plan, wealth, insights",
+   "kind": "title1",
+   "maxW": 5090
+  },
+  "tPwa": {
+   "x": 0,
+   "y": 8160,
+   "text": "Settings and PWA states",
+   "kind": "title1",
+   "maxW": 1330
+  },
+  "tDesk": {
+   "x": 0,
+   "y": 10300,
+   "text": "Desktop",
+   "kind": "title1",
+   "maxW": 6000
+  },
+  "tReceipt": {
+   "x": 0,
+   "y": 13300,
+   "text": "Receipt reading",
+   "kind": "title1",
+   "maxW": 4150
+  },
+  "tReceiptDark": {
+   "x": 0,
+   "y": 16800,
+   "text": "Receipt reading · dark",
+   "kind": "title1",
+   "maxW": 4150
+  },
+  "tReimb": {
+   "x": 0,
+   "y": 19000,
+   "text": "Reimbursements",
+   "kind": "title1",
+   "maxW": 2740
+  },
+  "tReimbDark": {
+   "x": 0,
+   "y": 20800,
+   "text": "Reimbursements · dark",
+   "kind": "title1",
+   "maxW": 2740
+  },
+  "tDesk2": {
+   "x": 0,
+   "y": 22700,
+   "text": "Desktop · receipt and owed",
+   "kind": "title1",
+   "maxW": 2960
+  },
+  "tAct": {
+   "x": 0,
+   "y": 25420,
+   "text": "Activity",
+   "kind": "title1",
+   "maxW": 4150
+  },
+  "tToday": {
+   "x": 0,
+   "y": 33580,
+   "text": "Today fixes",
+   "kind": "title1",
+   "maxW": 4480
+  },
+  "tSet": {
+   "x": 0,
+   "y": 37260,
+   "text": "Settings",
+   "kind": "title1",
+   "maxW": 4620
+  }
+ },
+ "designSystems": []
 }

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today · fixes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+</style>
+</helmet>
+<div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 1640px; height: 1000px">
+
+  <div style="padding: 48px; display: grid; grid-template-columns: minmax(0, 1fr) 320px 330px; gap: 48px; align-items: start">
+    <section aria-labelledby="t-lab" style="display: flex; flex-direction: column; gap: 20px">
+      <h2 id="t-lab" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 28px">Chart labels</h2>
+      <ol style="margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.6; color: var(--ink)">
+        <li>Try the right of the spike.</li>
+        <li>Else the left.</li>
+        <li>Never over the today dot or its label, never past the chart edge.</li>
+        <li>Still no room: ₹18,088 → ₹18.1K, then drop the merchant.</li>
+      </ol>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="border-radius: 14px; background: var(--hero); padding: 16px; width: 262px; box-sizing: border-box">
+          <svg viewBox="-4 -6 238 150" width="230" height="150" role="img" aria-label="Room on the right" style="display: block">
+            <line x1="0" y1="130" x2="230" y2="130" stroke="rgba(246,244,238,0.2)"></line>
+            <rect x="0" y="-6" width="230" height="140" fill="none" stroke="rgba(246,244,238,0.25)" stroke-dasharray="3 3"></rect>
+            <polyline points="0.0,130.0 15.3,120.0 30.7,110.0 46.0,100.0 61.3,35 76.7,32 92.0,29 107.3,26 122.7,23 138.0,20 153.3,17 168.7,14 184.0,11 199.3,8 214.7,5 230.0,2" fill="none" stroke="#F2C879" stroke-width="2.5" stroke-linejoin="round"></polyline>
+            <circle cx="230.0" cy="2" r="4.5" fill="#F2C879"></circle>
+            <text x="67.3" y="8" text-anchor="start" font-size="11" fill="#F2C879" font-family="IBM Plex Sans">Flipkart ₹18,088</text>
+            <text x="222.0" y="5.85" text-anchor="end" font-size="11" fill="#F6F4EE" font-family="IBM Plex Sans"></text>
+          </svg>
+        </div>
+        <figcaption style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">Room on the right</strong><span style="font-size: 13px; color: var(--ink2)">Label sits right of the spike.</span></figcaption>
+      </figure>
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="border-radius: 14px; background: var(--hero); padding: 16px; width: 262px; box-sizing: border-box">
+          <svg viewBox="-4 -6 238 150" width="230" height="150" role="img" aria-label="Spike at the edge" style="display: block">
+            <line x1="0" y1="130" x2="230" y2="130" stroke="rgba(246,244,238,0.2)"></line>
+            <rect x="0" y="-6" width="230" height="140" fill="none" stroke="rgba(246,244,238,0.25)" stroke-dasharray="3 3"></rect>
+            <polyline points="0.0,130.0 15.3,127.1 30.7,124.3 46.0,121.4 61.3,118.6 76.7,115.7 92.0,112.9 107.3,110.0 122.7,107.1 138.0,104.3 153.3,101.4 168.7,98.6 184.0,95.7 199.3,92.9 214.7,35 230.0,32" fill="none" stroke="#F2C879" stroke-width="2.5" stroke-linejoin="round"></polyline>
+            <circle cx="230.0" cy="32" r="4.5" fill="#F2C879"></circle>
+            <text x="208.7" y="29" text-anchor="end" font-size="11" fill="#F2C879" font-family="IBM Plex Sans">Flipkart ₹18,088</text>
+            <text x="222.0" y="35.85" text-anchor="end" font-size="11" fill="#F6F4EE" font-family="IBM Plex Sans"></text>
+          </svg>
+        </div>
+        <figcaption style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">Spike at the edge</strong><span style="font-size: 13px; color: var(--ink2)">No room on the right, so it flips left.</span></figcaption>
+      </figure>
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="border-radius: 14px; background: var(--hero); padding: 16px; width: 182px; box-sizing: border-box">
+          <svg viewBox="-4 -6 158 150" width="150" height="150" role="img" aria-label="Both sides tight" style="display: block">
+            <line x1="0" y1="130" x2="150" y2="130" stroke="rgba(246,244,238,0.2)"></line>
+            <rect x="0" y="-6" width="150" height="140" fill="none" stroke="rgba(246,244,238,0.25)" stroke-dasharray="3 3"></rect>
+            <polyline points="0.0,130.0 21.4,116.7 42.9,103.3 64.3,35 85.7,32 107.1,29 128.6,26 150.0,23" fill="none" stroke="#F2C879" stroke-width="2.5" stroke-linejoin="round"></polyline>
+            <circle cx="150.0" cy="23" r="4.5" fill="#F2C879"></circle>
+            <text x="70.3" y="23" text-anchor="start" font-size="11" fill="#F2C879" font-family="IBM Plex Sans">₹18.1K</text>
+            <text x="142.0" y="26.85" text-anchor="end" font-size="11" fill="#F6F4EE" font-family="IBM Plex Sans"></text>
+          </svg>
+        </div>
+        <figcaption style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">Both sides tight</strong><span style="font-size: 13px; color: var(--ink2)">Amount shortens to ₹18.1K, then the name drops.</span></figcaption>
+      </figure>
+      </div>
+      <section aria-labelledby="t-rev" style="display: flex; flex-direction: column; gap: 12px; padding-top: 12px">
+        <h2 id="t-rev" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 28px">Review card total</h2>
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+          <span style="min-height: 52px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--brand); display: flex; align-items: center; gap: 10px; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--brand)"></span><strong style="font-weight: 600">115 to review</strong><span style="color: var(--ink2)">· <mark style="background: var(--watch-soft); color: var(--ink); padding: 0 2px">₹26,240</mark> in Other</span></span>
+          <span style="font-size: 22px; color: var(--ink2)">=</span>
+          <span style="width: 150px; height: 80px; border-radius: 8px; background: repeating-linear-gradient(135deg, var(--rule) 0 6px, var(--track) 6px 12px); padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between"><span style="font-size: 13px; font-weight: 600">Other</span><mark style="align-self: flex-start; background: var(--watch-soft); color: var(--ink); font-family: 'Newsreader', Georgia, serif; font-size: 20px; padding: 0 2px">₹26,240</mark></span>
+        </div>
+        <p style="margin: 0; font-size: 14px; color: var(--ink2)">Both read one query: Other's spend this month, excluding card bills and transfers.</p>
+      </section>
+    </section>
+
+    <section aria-labelledby="t-sp" style="display: flex; flex-direction: column; gap: 16px">
+      <h2 id="t-sp" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 28px">Spacing</h2>
+      <div style="width: 300px; border-radius: 20px; border: 1px solid var(--rule); background: var(--paper); padding: 0 0 0; overflow: hidden; position: relative">
+        <div style="height: 120px; background: var(--hero); color: var(--on-hero-2); display: flex; align-items: center; justify-content: center; font-size: 12px">Hero</div>
+        <div style="padding: 0 16px">
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
+          <div style="height: 44px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Trip band</div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
+          <div style="height: 40px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Review card</div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
+          <div style="height: 70px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Digest</div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
+          <div style="height: 90px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Tiles</div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding-left: 8px; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">24</div>
+          <div style="height: 50px; border: 1px dashed var(--field); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink2)">Recent</div>
+          <div style="height: 172px; position: relative; background: repeating-linear-gradient(135deg, transparent 0 6px, var(--over-soft) 6px 8px); margin: 0 -16px; display: flex; align-items: flex-start; padding: 6px 16px; box-sizing: border-box; font-size: 12px; font-weight: 600; color: var(--over); font-family: 'IBM Plex Mono', monospace">172 bottom padding</div>
+        </div>
+        <div style="position: absolute; right: 16px; bottom: 100px; width: 44px; height: 44px; border-radius: 12px; background: var(--btn)"></div>
+        <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: var(--card); border-top: 1px solid var(--rule)"></div>
+      </div>
+      <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px">
+        <dt style="font-family: 'IBM Plex Mono', monospace; color: var(--over)">24</dt><dd style="margin: 0">between every block on Today</dd>
+        <dt style="font-family: 'IBM Plex Mono', monospace; color: var(--over)">172</dt><dd style="margin: 0">84 tab bar + 16 + 56 add button + 16</dd>
+      </dl>
+    </section>
+
+    <section aria-labelledby="t-sa" style="display: flex; flex-direction: column; gap: 16px">
+      <h2 id="t-sa" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 28px">Tab bar, installed</h2>
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+        <div style="width: 300px; border: 1px solid var(--rule); border-radius: 0 0 28px 28px; overflow: hidden; background: var(--card)">
+          <div style="height: 50px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; justify-items: center; font-size: 11px; color: var(--ink3); border-bottom: 1px dashed var(--field)"><span style="color: var(--brand); font-weight: 600">Today</span><span>Activity</span><span>Plan</span><span>Wealth</span><span>Insights</span></div>
+          <div style="height: 34px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; box-sizing: border-box"><span style="width: 120px; height: 5px; border-radius: 3px; background: var(--ink)"></span></div>
+        </div>
+        <figcaption style="font-size: 14px; display: flex; flex-direction: column; gap: 2px"><strong style="font-weight: 600; color: var(--earn)">Right</strong><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink2)">height: calc(50px + env(safe-area-inset-bottom))</span></figcaption>
+      </figure>
+      <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+        <div style="width: 300px; border: 1px solid var(--rule); border-radius: 0 0 28px 28px; overflow: hidden; background: var(--card)">
+          <div style="height: 50px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; justify-items: center; font-size: 11px; color: var(--ink3)"><span style="color: var(--brand); font-weight: 600">Today</span><span>Activity</span><span>Plan</span><span>Wealth</span><span>Insights</span></div>
+          <div style="height: 30px; background: repeating-linear-gradient(135deg, transparent 0 6px, var(--over-soft) 6px 8px)"></div>
+          <div style="height: 34px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; box-sizing: border-box"><span style="width: 120px; height: 5px; border-radius: 3px; background: var(--ink)"></span></div>
+        </div>
+        <figcaption style="font-size: 14px; display: flex; flex-direction: column; gap: 2px"><strong style="font-weight: 600; color: var(--over)">Wrong</strong><span style="font-size: 13px; color: var(--ink2)">A fixed bottom padding added on top of the safe area leaves the empty band.</span></figcaption>
+      </figure>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1640, "height": 1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
+    const T = this.props.dark ? D : L;
+    const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
+    const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
+
+    return { vars };
+  }
+}
+</script>
+</body>
+</html>

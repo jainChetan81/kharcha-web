@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Activity · amount</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+</style>
+</helmet>
+<div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 390px; height: 844px">
+
+  <div aria-hidden="true" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 26px">Activity</span>
+    <span style="height: 44px; border-radius: 10px; border: 1px solid var(--field)"></span>
+    <span style="display: flex; gap: 8px"><span style="width: 150px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span><span style="width: 90px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span><span style="width: 100px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span></span>
+  </div>
+  <div style="position: absolute; inset: 0; background: var(--scrim)"></div>
+  <section role="dialog" aria-modal="true" aria-labelledby="amt-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 360px; background: var(--card); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 24px var(--shadow)">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--rule); align-self: center; margin-top: 8px"></div>
+    <header style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 20px">
+      <h2 id="amt-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Amount</h2>
+      <a href="History.dc.html" aria-label="Close" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+    </header>
+    <div style="flex: 1; min-height: 0; overflow: hidden; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{presets}}" as="o" hint-placeholder-count="5"><button type="button" onClick="{{o.fn}}" aria-pressed="{{o.on}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; border: 1px solid {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font-weight: {{o.weight}}">{{o.label}}</button></sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: end">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink2)">Minimum
+          <span style="display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid {{minBorder}}; background: var(--input)"><span style="color: var(--ink3)">₹</span><input inputmode="numeric" value="{{min}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)"></span>
+        </label>
+        <span aria-hidden="true" style="height: 48px; display: flex; align-items: center; color: var(--ink3)">–</span>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink2)">Maximum
+          <span style="display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid {{maxBorder}}; background: var(--input)"><span style="color: var(--ink3)">₹</span><input inputmode="numeric" value="{{max}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)"></span>
+        </label>
+      </div>
+      <sc-if value="{{bad}}" hint-placeholder-val="{{ false }}"><span role="alert" style="font-size: 13px; color: var(--over); font-weight: 500">Minimum is more than maximum.</span></sc-if>
+    </div>
+    <footer style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px; padding: 12px 20px 34px; border-top: 1px solid var(--hair); background: var(--card)">
+      <button type="button" onClick="{{clear}}" style="min-height: 52px; border-radius: 12px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 15px; font-weight: 500; cursor: pointer">{{clearLabel}}</button>
+      <a href="ActFiltered.dc.html" aria-disabled="{{showDis}}" style="opacity: {{showOp}}; min-height: 52px; border-radius: 12px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">{{showLabel}}</a>
+    </footer>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "bad": {"editor": "boolean", "default": false}, "$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { p: 'Custom', min: '100', max: '2,000' };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
+    const T = this.props.dark ? D : L;
+    const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
+    const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
+
+    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--ink)' : 'var(--field)', bg: on ? 'var(--ink)' : 'var(--input)', fg: on ? 'var(--paper)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
+
+    const s = this.state;
+    const P = [['Under ₹500', '', '499'], ['₹500–5K', '500', '5,000'], ['₹5K–25K', '5,000', '25,000'], ['Over ₹25K', '25,000', ''], ['Custom', s.min, s.max]];
+    const bad = this.props.bad;
+    return {
+      vars,
+      presets: P.map(([p, a, b]) => pick(p, s.p === p, () => this.setState({ p, min: a, max: b }))),
+      min: bad ? '5,000' : s.min, max: bad ? '2,000' : s.max,
+      bad: !!bad,
+      minBorder: bad ? 'var(--over)' : 'var(--field)', maxBorder: bad ? 'var(--over)' : 'var(--field)',
+      clear: () => this.setState({ p: '', min: '', max: '' }),
+      clearLabel: 'Clear',
+      showLabel: bad ? 'Show 0 transactions' : 'Show 41 transactions', showOp: bad ? '0.45' : '1', showDis: bad ? 'true' : 'false'
+    };
+  }
+}
+</script>
+</body>
+</html>

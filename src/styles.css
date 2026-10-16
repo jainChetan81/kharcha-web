@@ -7,7 +7,8 @@
 @import "@fontsource/ibm-plex-sans/600.css";
 @import "@fontsource/ibm-plex-mono/400.css";
 
-/* Ledger tokens: DESIGN.md §3. Light only; every colour stays behind a token. */
+/* Ledger tokens: DESIGN.md §3. Light here, dark under .dark below; every colour stays behind a token. */
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
   --font-serif: "Newsreader", Georgia, serif;
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
@@ -19,6 +20,7 @@
   --color-rule: #D9D5C8;
   --color-hairline: #E2DED3;
   --color-field: #8A8576;
+  --color-input: #FFFFFF;
   --color-ink: #1C2230;
   --color-ink-2: #4A5163;
   --color-ink-3: #5E6272;
@@ -32,6 +34,17 @@
   --color-watch-soft: #F4E9D2;
   --color-trip: #1F3B4D;
   --color-trip-muted: #C8D3DA;
+  --color-earn-soft: #E2EFE6;
+  --color-over-soft: #F6E3DE;
+  --color-on-over: #FFFFFF;
+  --color-on-brand: #FFFFFF;
+  --color-raised: #FBFAF6;
+  --color-track: #E6E2D7;
+  --color-on-cat: #FFFFFF;
+
+  /* Hero surface: stays dark in both modes. on-ink-* names kept for the hero text. */
+  --color-hero: #1C2230;
+  --color-on-ink-over: #F2A08C;
 
   --color-on-ink: #F6F4EE;
   --color-on-ink-2: #A9AEBB;
@@ -49,6 +62,10 @@
   --color-cat-sports: #6B7A2A;
   --color-cat-work: #55606E;
   --color-cat-other: #8A8576;
+  --color-cat-salary: #2D6B4A;
+  --color-cat-refunds: #1F7A63;
+  --color-cat-interest: #4B7432;
+  --color-cat-other-income: #8A8576;
 
   --radius-chip: 999px;
   --radius-button: 10px;
@@ -89,6 +106,25 @@
   --input: var(--color-field);
   --ring: var(--color-brand);
   --radius: 10px;
+}
+
+.dark {
+  --color-paper: #12151C; --color-card: #191D26; --color-sunken: #222733;
+  --color-rule: #323848; --color-hairline: #282E3B; --color-field: #737A8C;
+  --color-input: #12151C;
+  --color-ink: #ECE8DF; --color-ink-2: #BFC2CC; --color-ink-3: #A0A4B0;
+  --color-brand: #9DB3DA; --color-on-brand: #12151C; --color-brand-soft: #243149;
+  --color-earn: #74C595; --color-earn-soft: #1D3326;
+  --color-over: #F08C76; --color-over-soft: #3A1F1A; --color-on-over: #12151C;
+  --color-watch: #C99A3A; --color-watch-text: #E6B864; --color-watch-soft: #3A2F18;
+  --color-cat-food: #E08A60; --color-cat-shopping: #B497D6; --color-cat-transport: #66AFD0;
+  --color-cat-utilities: #D2AE55; --color-cat-entertainment: #DB86A2; --color-cat-home: #8CC487;
+  --color-cat-health: #63BFB1; --color-cat-sports: #B2C46A; --color-cat-work: #A3ACBC;
+  --color-cat-other: #8F8B80;
+  --color-cat-salary: #74C595; --color-cat-refunds: #5FC4A6; --color-cat-interest: #A4C97E;
+  --color-cat-other-income: #8F8B80;
+  --color-hero: #232937; --color-raised: #363D4D; --color-track: #2A303D; --color-on-cat: #12151C;
+  color-scheme: dark;
 }
 
 html { background: var(--color-paper); }

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan · reimbursements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1300px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 12px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Plan</h1>
+    <span style="font-size: 14px; color: var(--ink2)">October 2026</span>
+  </header>
+  <nav aria-label="Plan sections" style="margin: 0 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
+    <a href="Budgets.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Budgets</a>
+    <a href="Recurring.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Recurring</a>
+    <a href="Trips.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink2); text-decoration: none">Trips</a>
+    <a href="RbList.dc.html" aria-current="page" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink); background: var(--tab); box-shadow: 0 1px 2px rgba(0,0,0,0.12); text-decoration: none">Owed</a>
+  </nav>
+
+  <section style="margin: 20px 20px 0; padding-bottom: 16px; border-bottom: 3px double var(--ink); display: flex; flex-direction: column; gap: 10px">
+    <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3)">Owed to you</span>
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 44px; font-weight: 500; line-height: 1">₹8,450</span>
+    <div style="display: flex; height: 10px; gap: 2px; border-radius: 5px; overflow: hidden"><span style="flex: 7650; background: var(--brand)"></span><span style="flex: 800; background: var(--c-entertainment)"></span></div>
+    <div style="display: flex; gap: 16px; font-size: 14px">
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--brand)"></span>Office <strong style="font-weight: 600">₹7,650</strong></span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--c-entertainment)"></span>Rohan <strong style="font-weight: 600">₹800</strong></span>
+    </div>
+  </section>
+
+  <div role="radiogroup" aria-label="View" style="margin: 16px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken)">
+    <sc-for list="{{views}}" as="v" hint-placeholder-count="2">
+      <button type="button" role="radio" aria-checked="{{v.on}}" onClick="{{v.pick}}" style="min-height: 36px; border-radius: 9px; border: 0; font-size: 14px; font-weight: 500; background: {{v.bg}}; color: {{v.fg}}; cursor: pointer">{{v.name}}</button>
+    </sc-for>
+  </div>
+
+  <section style="padding: 8px 20px 0">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+      <a href="{{r.href}}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--hair); color: var(--ink); text-decoration: none">
+        <span style="font-size: 15px; font-weight: 500">{{r.m}}</span>
+        <span style="font-size: 15px; font-weight: 600; text-align: right">{{r.due}}</span>
+        <span style="font-size: 13px; color: var(--ink3)">{{r.meta}}</span>
+        <span style="justify-self: end; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{r.tagBg}}; color: {{r.tagFg}}">{{r.tag}}</span>
+      </a>
+    </sc-for>
+  </section>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: var(--card); border-top: 1px solid var(--rule); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+      <a href="{{t.href}}" aria-current="{{t.cur}}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: {{t.w}}; color: {{t.fg}}; text-decoration: none; border-top: {{t.bt}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"/></svg>{{t.name}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { v: 'Pending' };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', tab: '#FBFAF6', 'c-entertainment': '#9B3D5C' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', tab: '#191D26', 'c-entertainment': '#DB86A2' };
+    const t = this.props.dark ? D : L;
+    const TAG = { Overdue: ['var(--over-soft)', 'var(--over)'], Pending: ['var(--brand-soft)', 'var(--brand)'], 'Partly back': ['var(--watch-soft)', 'var(--watch-text)'], Reimbursed: ['var(--earn-soft)', 'var(--earn)'], Cancelled: ['var(--sunken)', 'var(--ink2)'], 'Extra back': ['var(--earn-soft)', 'var(--earn)'] };
+    const r = (m, meta, due, tag, href) => ({ m, meta, due, tag, href: href || 'RbStatus.dc.html', tagBg: TAG[tag][0], tagFg: TAG[tag][1] });
+    const pending = [
+      r('Uber · client visit', '3 Sept · Office · 43 days', '₹640', 'Overdue'),
+      r('Ola · airport', '9 Sept · Office · 37 days', '₹1,180', 'Overdue'),
+      r('PVR Orion', '21 Sept · Rohan · 25 days', '₹800', 'Pending'),
+      r('Toit, Indiranagar', '10 Oct · Office · ₹600 of ₹1,200 back', '₹600', 'Partly back'),
+      r('Hotel Mysore Regency', '12 Oct · Office · work trip', '₹4,230', 'Pending'),
+      r('Meghana Foods', '14 Oct · Office · 3 items of 6', '₹1,000', 'Pending', 'RbItems.dc.html')
+    ];
+    const done = [
+      r('Starbucks · team', '28 Sept · Office · back on 1 Oct', '₹2,300', 'Reimbursed'),
+      r('Swiggy · meal allowance', '22 Sept · Office · paid ₹499, got ₹550', '+₹51', 'Extra back', 'RbCases.dc.html'),
+      r('Ola · airport', '2 Sept · Office · claim rejected', '₹1,180', 'Cancelled', 'RbCases.dc.html')
+    ];
+    const v = this.state.v;
+    const tabs = [
+      ['Today', 'Main.dc.html', 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z'],
+      ['Activity', 'History.dc.html', 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01'],
+      ['Plan', 'Budgets.dc.html', 'M3.5 5h17v15h-17zM3.5 10h17M8 3v4M16 3v4'],
+      ['Wealth', 'Wealth.dc.html', 'M3 17l6-6 4 4 8-8M15 7h6v6'],
+      ['Insights', 'Insights.dc.html', 'M5 20V10M12 20V4M19 20v-7']
+    ].map(([name, href, icon]) => ({ name, href, icon, cur: name === 'Plan' ? 'page' : 'false', fg: name === 'Plan' ? 'var(--brand)' : 'var(--ink3)', w: name === 'Plan' ? '600' : '400', bt: name === 'Plan' ? '2px solid var(--brand)' : '2px solid transparent' }));
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      views: ['Pending', 'Done'].map((n) => ({ name: n === 'Pending' ? 'Pending · 6' : 'Done', on: n === v, bg: n === v ? 'var(--tab)' : 'transparent', fg: n === v ? 'var(--ink)' : 'var(--ink2)', pick: () => this.setState({ v: n }) })),
+      rows: v === 'Pending' ? pending : done,
+      tabs
+    };
+  }
+}
+</script>
+</body>
+</html>

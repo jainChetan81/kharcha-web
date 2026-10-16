@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your share in totals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1000px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="padding: 20px 20px 12px"><h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Activity</h1></header>
+
+  <section style="padding: 0 20px">
+    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)"><span>Sat 10 Oct</span><span style="color: var(--ink); font-weight: 600">₹2,600 yours</span></div>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+      <a href="RbStatus.dc.html" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hair); color: var(--ink); text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+          <span style="font-size: 15px; font-weight: 500">{{r.m}}</span>
+          <span style="font-size: 13px; color: var(--ink3)">{{r.meta}}</span>
+          <span style="align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--brand); color: var(--brand); font-size: 12px; font-weight: 500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></svg>{{r.badge}}</span>
+        </span>
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none">
+          <span style="font-size: 15px; font-weight: 600">{{r.yours}}</span>
+          <span style="font-size: 12px; color: var(--ink3)">{{r.paid}}</span>
+        </span>
+      </a>
+    </sc-for>
+  </section>
+
+  <section style="padding: 28px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 8px"><h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Budgets count your share</h2></div>
+    <div style="padding: 14px 0; border-bottom: 1px solid var(--hair); display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; font-size: 15px"><span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--c-food)"></span>Food</span><span><strong style="font-weight: 600">₹2,762</strong><span style="color: var(--ink3)"> / ₹12,000</span></span></div>
+      <div style="position: relative; height: 6px; background: var(--sunken); border-radius: 3px">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 23%; border-radius: 3px; background: var(--brand)"></div>
+        <div style="position: absolute; left: 23%; top: 0; bottom: 0; width: 10%; border-radius: 0 3px 3px 0; background: repeating-linear-gradient(135deg, var(--field) 0 2px, transparent 2px 5px)"></div>
+        <div style="position: absolute; left: 48.4%; top: -4px; width: 2px; height: 14px; background: var(--ink)"></div>
+      </div>
+      <span style="font-size: 13px; color: var(--ink2)">Hatched: ₹1,200 paid for Office, not counted.</span>
+    </div>
+    <div style="padding: 14px 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px">
+      <span style="color: var(--ink2)">Spent this month, paid out</span><span style="text-align: right">₹56,304</span>
+      <span style="color: var(--ink2)">Coming back to you</span><span style="text-align: right">−₹8,450</span>
+      <span style="font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">Your spend</span><span style="text-align: right; font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">₹47,854</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#E6E2D7', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'c-food': '#B4572E' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#2A3040', rule: '#323848', hair: '#282E3B', field: '#737A8C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'c-food': '#E08A60' };
+    const t = this.props.dark ? D : L;
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      rows: [
+        { m: 'Toit, Indiranagar', meta: '9:40 PM · Food · ••3266', badge: '₹1,200 back · Office · partly', yours: '₹1,800', paid: '₹3,000 paid' },
+        { m: 'PVR Orion', meta: '6:10 PM · Entertainment · ••2047', badge: '₹800 back · Rohan', yours: '₹800', paid: '₹1,600 paid' },
+        { m: 'Uber · client visit', meta: '9:15 AM · Transport · ••0532', badge: 'All back · Office', yours: '₹0', paid: '₹640 paid' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

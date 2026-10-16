@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt · reading</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+@keyframes kh-slide{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+@keyframes kh-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.kh-anim{animation:none!important}}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 900px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 8px">
+    <div style="display: flex; align-items: center">
+      <a href="RcSaved.dc.html" aria-label="Back to transaction" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Receipt</h1>
+    </div>
+    <span style="font-size: 13px; color: var(--ink3)">Instamart · ₹2,340</span>
+  </header>
+
+  <section style="padding: 12px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; gap: 10px">
+      <sc-for list="{{shots}}" as="s" hint-placeholder-count="3">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+          <div style="height: 96px; border-radius: 10px; border: 1px solid var(--rule); background: var(--input); opacity: {{s.opacity}}; display: flex; align-items: center; justify-content: center; color: var(--earn)">
+            <sc-if value="{{s.done}}" hint-placeholder-val="{{ false }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg></sc-if>
+          </div>
+          <span style="font-size: 12px; text-align: center; color: var(--ink2)">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div role="status" aria-live="polite" style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 22px">Reading image 2 of 3…</span>
+      <div style="position: relative; height: 4px; border-radius: 2px; background: var(--sunken); overflow: hidden"><span class="kh-anim" style="position: absolute; top: 0; bottom: 0; width: 40%; border-radius: 2px; background: var(--brand); animation: kh-slide 1.4s ease-in-out infinite"></span></div>
+      <span style="font-size: 13px; color: var(--ink2)">Usually 5–15 seconds.</span>
+    </div>
+  </section>
+
+  <section aria-hidden="true" style="padding: 24px 20px 0">
+    <div style="border-bottom: 1px solid var(--ink); padding-bottom: 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3)">Items</div>
+    <sc-for list="{{skeleton}}" as="k" hint-placeholder-count="6">
+      <div class="kh-anim" style="display: grid; grid-template-columns: minmax(0, 1fr) 56px 84px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid var(--hair); animation: kh-pulse 1.6s ease-in-out infinite">
+        <span style="height: 10px; width: {{k.w}}; border-radius: 3px; background: var(--sunken)"></span>
+        <span style="height: 10px; border-radius: 3px; background: var(--sunken)"></span>
+        <span style="height: 26px; border-radius: 999px; background: var(--sunken)"></span>
+      </div>
+    </sc-for>
+  </section>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 28px; display: flex; flex-direction: column; gap: 10px">
+    <a href="RcSaved.dc.html" style="min-height: 52px; border-radius: 12px; border: 1px solid var(--ink); display: flex; align-items: center; justify-content: center; color: var(--ink); font-size: 15px; font-weight: 500; text-decoration: none">Leave, and come back later</a>
+    <span style="font-size: 13px; color: var(--ink2); text-align: center">The items will be waiting on this transaction.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', over: '#A3402D', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', scrim: 'rgba(28,34,48,0.45)' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', over: '#F08C76', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', scrim: 'rgba(0,0,0,0.6)' };
+    const t = this.props.dark ? D : L;
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      shots: [
+        { label: 'Read', done: true, opacity: '1' },
+        { label: 'Reading', done: false, opacity: '1' },
+        { label: 'Waiting', done: false, opacity: '0.5' }
+      ],
+      skeleton: [{ w: '70%' }, { w: '55%' }, { w: '80%' }, { w: '62%' }, { w: '74%' }, { w: '50%' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

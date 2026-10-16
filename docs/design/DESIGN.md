@@ -32,8 +32,8 @@ Mobile has a bottom tab bar with 5 tabs, plus the add button. Desktop (≥840px)
 |---|---|---|---|
 | Today | Today | `/` | `Main`, `DeskHome` |
 | card on Today | Review | `/review` | `Review`, `DeskReview` |
-| Activity | Activity | `/activity` | `History`, `DeskHistory` |
-| Plan | Plan | `/plan/budgets` · `/plan/recurring` · `/plan/trips` | `Budgets` `Recurring` `Trips`, `DeskPlan` |
+| Activity | Activity | `/activity?…` (filters in the address, §16) | `History` + sheets `ActFilter` `ActDate` `ActCategory` `ActAmount` `ActSort`, `DeskHistory` `DeskActDate` |
+| Plan | Plan | `/plan/budgets` · `/plan/recurring` · `/plan/trips` · `/plan/owed` | `Budgets` `Recurring` `Trips` `RbList`, `DeskPlan` `DeskOwed` |
 | Wealth | Wealth | `/wealth` | `Wealth`, `DeskWealth` |
 | Insights | Insights | `/insights` | `Insights`, `DeskInsights` |
 | header button | Ask | `/ask` | `Ask`, `DeskAsk` |
@@ -45,7 +45,9 @@ Detail and form routes:
 |---|---|
 | `/txn/$id` | `Detail` |
 | `/txn/$id/edit` | `Edit` |
-| `/txn/$id/receipt` | `Receipt` |
+| `/txn/$id/receipt` | `RcCapture` → `RcReading` → `RcResult` (`RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`), desktop `DeskReceipt` |
+| `/txn/$id/reimburse` | `RbMark`, `RbItems` (sheet) |
+| `/settings` | `Settings`, `SetModel`, `SetCatDelete`, `DeskSettings` (§18) |
 | `/add` | `Add` |
 | `/paste?text=` | `Paste` |
 | `/plan/recurring/$id` and `/plan/recurring/new` | `Series` |
@@ -54,7 +56,7 @@ Detail and form routes:
 | `/wealth/$id` | `Fund` |
 | `/wealth/new` and `/wealth/$id/edit` | `Holding` |
 
-Sheets (Add, Edit, TripStart) are bottom sheets on phones and dialogs at ≥600px.
+Sheets (Add, Edit, TripStart, receipt capture, Mark reimbursable) are bottom sheets on phones and dialogs at ≥600px.
 
 Rename `/history` to `/activity` and `/budgets` to `/plan/budgets`. Delete the old routes; do not keep redirects.
 
@@ -74,6 +76,7 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-rule: #D9D5C8;       /* card borders (decorative) */
   --color-hairline: #E2DED3;   /* row separators */
   --color-field: #8A8576;      /* input, chip, switch-off, dashed suggestion borders: 3.3:1 */
+  --color-input: #FFFFFF;      /* field fill */
   --color-ink: #1C2230;
   --color-ink-2: #4A5163;
   --color-ink-3: #5E6272;      /* lowest text colour; do not go lighter */
@@ -87,12 +90,20 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-watch-soft: #F4E9D2;
   --color-trip: #1F3B4D;
   --color-trip-muted: #C8D3DA;
+  --color-earn-soft: #E2EFE6;  /* Reimbursed, Extra back tags */
+  --color-over-soft: #F6E3DE;  /* Overdue tag */
+  --color-on-over: #FFFFFF;    /* text on an over fill (swipe Delete) */
 
-  --color-on-ink: #F6F4EE;
-  --color-on-ink-2: #A9AEBB;
-  --color-on-ink-month: #F2C879;
-  --color-on-ink-gain: #8FD1A8;
-  --color-on-ink-pace: #8FA6CF;
+  --color-hero: #1C2230;       /* Today and Wealth hero; stays dark in dark mode */
+  --color-on-hero: #F6F4EE;
+  --color-on-hero-2: #A9AEBB;
+  --color-on-hero-month: #F2C879;
+  --color-on-hero-gain: #8FD1A8;
+  --color-on-hero-pace: #8FA6CF;
+  --color-on-hero-over: #F2A08C; /* over-budget figure on the hero: 7.7:1 */
+  --color-raised: #FBFAF6;     /* selected segment */
+  --color-track: #E6E2D7;      /* bar and ring tracks */
+  --color-on-cat: #FFFFFF;     /* text on a category fill (treemap) */
 
   --color-cat-food: #B4572E;
   --color-cat-shopping: #6B4C8A;
@@ -104,6 +115,10 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-cat-sports: #6B7A2A;
   --color-cat-work: #55606E;
   --color-cat-other: #8A8576;
+  --color-cat-salary: #2D6B4A;   /* income categories: greens */
+  --color-cat-refunds: #1F7A63;
+  --color-cat-interest: #4B7432;
+  --color-cat-other-income: #8A8576;
 
   --radius-chip: 999px;
   --radius-button: 10px;
@@ -118,15 +133,39 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 - **Contrast:** measured on every board. Every text pair is 4.9:1 or better. Light text colours appear only on ink or trip surfaces. Field borders are 3.3:1 against paper.
 - **Categories:** Sports' colour sits close in lightness to Home and Utilities. Categories are always shown with their label, so this is acceptable.
 - **Fonts:** self-host with `@fontsource/newsreader`, `@fontsource/ibm-plex-sans` and `@fontsource/ibm-plex-mono`. Weights used: Newsreader 400, 500 and 400 italic; Plex Sans 400, 500 and 600; Plex Mono 400.
-- **Dark mode:** not designed. Ship light only, with every colour behind a token.
+- **Dark mode:** follows `prefers-color-scheme`, with a Light / Dark / System choice in Settings. Override the same names under `.dark`. Every pair below is measured: text 6:1 or better, `field` 3.9:1, categories 4.96:1 or better on `card`.
+
+```css
+.dark {
+  --color-paper: #12151C;  --color-card: #191D26;  --color-sunken: #222733;
+  --color-rule: #323848;   --color-hairline: #282E3B; --color-field: #737A8C;
+  --color-input: #12151C;
+  --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;  --color-ink-3: #A0A4B0;
+  --color-brand: #9DB3DA;  --color-on-brand: #12151C; --color-brand-soft: #243149;
+  --color-earn: #74C595;   --color-earn-soft: #1D3326;
+  --color-over: #F08C76;   --color-over-soft: #3A1F1A; --color-on-over: #12151C;
+  --color-watch: #C99A3A;  --color-watch-text: #E6B864; --color-watch-soft: #3A2F18;
+  --color-cat-food: #E08A60; --color-cat-shopping: #B497D6; --color-cat-transport: #66AFD0;
+  --color-cat-utilities: #D2AE55; --color-cat-entertainment: #DB86A2; --color-cat-home: #8CC487;
+  --color-cat-health: #63BFB1; --color-cat-sports: #B2C46A; --color-cat-work: #A3ACBC;
+  --color-cat-other: #8F8B80;
+  --color-cat-salary: #74C595; --color-cat-refunds: #5FC4A6; --color-cat-interest: #A4C97E;
+  --color-cat-other-income: #8F8B80;
+  --color-hero: #232937; --color-raised: #363D4D; --color-track: #2A303D; --color-on-cat: #12151C;
+}
+```
+
+  - Primary buttons use `ink` fill with `paper` text in both modes, so they invert in dark.
+  - Drawn in dark: Today, Activity, Settings, receipt reading and reimbursements (the `…Dark` boards). Port the rest with the same tokens; no screen hard-codes a hex.
+  - The hero stays dark in both modes (`hero` lifts to #232937 in dark so it separates from the page).
 
 ## 4. Formatting (`src/lib/format.ts`, unit-tested)
 
 - **Money:** `Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 })` → `₹1,23,450`, `₹219.50`. Without the minimum, the default prints `.00`.
-- **Compact (axes, tiles):** `notation: "compact"` → `1.2L`, `45K`.
+- **Compact:** `notation: "compact"` → `₹1.6L`, `₹18.1K`. Only on chart labels and amount filter chips (`₹500–5K`). Everywhere else, full Indian grouping.
 - **Signs:** income and gains get `+` in `earn`. Expenses carry no sign. Over budget is written in words: `₹3,088 over`.
 - **Foreign currency:** `$12.99 · ₹1,143`.
-- **Dates:** `Thu 15 Oct`, `15 Oct, 14:44`, `24 Sept` (four-letter September, as `en-IN` prints it).
+- **Dates and times:** `Thu 15 Oct`, `15 Oct, 2:44 PM`, `2:44 PM`, `24 Sept` (four-letter September, as `en-IN` prints it). Always 12-hour: `hour: "numeric", minute: "2-digit", hour12: true`. Raw SMS text keeps what the bank sent.
 - **Prices:** always dated: `NAVs of 15 Oct`.
 - **Cards:** `••2047`.
 
@@ -135,7 +174,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 | Component | Notes |
 |---|---|
 | `AppShell` | Mobile: `TabBar` (80px, 5 tabs, active tab gets a 2px top rule) plus `Fab` (56px, radius 16). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail. |
-| `MonthSwitcher`, `SyncPill`, `StatusTag` | Sync pill states are listed in §9. |
+| `MonthStepper`, `SyncPill`, `SyncNow`, `StatusTag` | Pill and Sync now states: §18. Month stepper: §16. |
 | `InkHero` | Today and Wealth only. |
 | `PaceChart`, `GainChart`, `Waterfall`, `DayRings`, `Beeswarm`, `Treemap`, `Sparkline`, `BudgetBar` | Plain SVG or CSS. Rules are on the Style board, §6. |
 | `LedgerRow`, `DayHeader` | 56px rows, day total under a 1px ink rule. |
@@ -143,14 +182,37 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 | `Sheet`, `Snackbar` | shadcn Sheet/Drawer and Sonner, restyled and animated with `motion`. |
 | `TxnForm` | One component with `mode="add" \| "edit"`. **Add:** keypad first, expressions like `450+120`. **Edit:** amount field, a "Not a spend" switch, Delete, and a note when the merchant was renamed. |
 | `DigestCard`, `InsightCard`, `AnswerCard`, `AiUnavailable` | Provenance lines stay visible. |
-| `TripBand`, `ReceiptItems`, `RuleRow`, `CategoryRow` | |
+| `TripBand`, `RuleRow`, `CategoryRow` | |
+| `ItemRow` | Receipt line: name, qty, amount, `CategoryChip`. Unsure state: `watch-soft` fill and a "?" mark. Selectable in edit mode. Swipe reveals Delete (`over` fill, `on-over` text). |
+| `CategoryChip` | Category dot + name, 36px tall, `field` border. Tap opens the category list inline. Selected: `brand` fill. |
+| `SplitBar` | Stacked category segments, 2px gaps, legend below. Large (10px) on Result and Detail, small (4px) inside a ledger row. `role="img"` with the split in the label. |
+| `ReconcileLine` | Items total vs bank amount. Match: `earn` tick. Gap: `watch-text` with "Add as adjustment". |
+| `ReimbursableBadge` | U-turn arrow + "₹1,200 back" in `brand`. On ledger rows next to the amount. |
+| `StatusTag` (extended) | Pending (`sunken`), Partly back (`brand-soft`), Reimbursed and Extra back (`earn-soft`), Overdue (`over-soft`), Cancelled (`sunken`, struck amount). |
+| `ShareLedger` | Three lines: Paid, Back from X, Yours. Used on Mark reimbursable, Status and Plan › Owed. |
+
+All of these are on the `RcComponents` board in light and dark.
+
+| Activity and Settings | Notes (`ActComponents`, `PtrStates` boards) |
+|---|---|
+| `FilterChip` | 44px. Empty (field border), with a value (ink fill, shows the value), pressed (scale 0.96), focus (2px `focus` ring, 2px offset). Toggle variant for Needs review (brand fill). |
+| `AppliedChip` | `brand-soft` pill with the value and ×. Row hidden when nothing is applied. |
+| `FilterSheet`, `ListSheet` | Bottom sheet on phones, popover anchored to the chip at ≥840px. Footer: Clear / Show N transactions. N is live. |
+| `RangeCalendar` | Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted and not selectable. Fallback: two `input type=date`. |
+| `SummaryStrip` | Collapsed: one row of stats (count, spent, income, transferred; zero figures hidden except spent). Expanded: net, top 4 categories, biggest, most frequent, avg/day, See insights. |
+| `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-3`, weight 400, never struck through. |
+| `SwipeRow` | §19. |
+| `PullToRefresh` | 36px ring: pulling (ring fills with distance), past threshold (arrow flips), refreshing (spinning arc), done (tick, "Up to date · N new"), failed (`over`), offline. |
+| `SwatchPicker` | 7-column grid of 44px targets, 28px swatches, selected has a 2px ink ring and a tick. Category and income colours only; no free hex. |
+| `ModelSelect` | Combobox: name, provider, rough cost per call; search filters presets. |
+| `Segmented` | `sunken` track, selected segment on `raised`. Used for Theme and Daily cap. |
 
 ## 6. Screens
 
 Every list screen needs an empty state (one line plus one action), a loading skeleton, and an error state with retry.
 
-- **Today**
-  - Ink hero: spend, ₹ left, pace chart.
+- **Today** (§17)
+  - Ink hero: spend, budget state, pace chart.
   - Gear (Settings) and Ask in the header.
   - Trip band, when a trip is upcoming within 7 days or active.
   - Digest card.
@@ -162,17 +224,15 @@ Every list screen needs an empty state (one line plus one action), a loading ske
 - **Review**
   - Mobile: card deck. Right confirms, left skips. Not a spend, Duplicate, Edit (`/txn/$id/edit`). An "Always file X as Y" checkbox creates a rule.
   - Desktop: table plus detail pane, with J/K/X/R/C/E shortcuts and bulk confirm.
-- **Activity**
-  - Search across merchant, category and SMS text.
-  - Filter chips: needs review, month, category, card, type, trip. A summary bar for the filtered set.
-  - Day groups. Swipe to delete with undo; the same action is on Detail.
+- **Activity:** §16.
 - **Detail**
   - Amount, fields, source SMS, rename note, receipt entry, more rows from this merchant.
-  - Not a spend / Delete. Edit opens `Edit`.
+  - Mark reimbursable, Not a spend, Delete. Edit opens `Edit`.
+  - With a split: "Expense · split in N", `SplitBar`, item groups by category, receipt thumbnails, Remove split (`RcSaved`).
+  - With a claim: header reads "₹3,000 paid · ₹1,800 yours" and the claim card sits under the amount (`RbStatus`).
 - **Edit:** `TxnForm` in edit mode, prefilled. Delete asks once, then shows an undo snackbar.
-- **Receipt**
-  - Up to 5 images or PDFs. AI extracts items, checks the total against the matched transaction, assigns a category per item, and offers an optional split.
-  - When AI is unavailable, the images are kept and items are added by hand.
+- **Receipt reading:** §14.
+- **Reimbursements:** §15.
 - **Paste:** text goes to the VPS, which parses it with the server copy of the mini's regex parsers (§8). The card shows "Parsed on server" and the FX note.
 - **Plan · Budgets**
   - Month bar with a pace tick.
@@ -208,11 +268,7 @@ Every list screen needs an empty state (one line plus one action), a loading ske
   - Fig. 1 waterfall, Fig. 2 day rings, Fig. 3 beeswarm, Fig. 4 six months.
   - Table 1: top merchants.
 - **Ask:** thread of AnswerCards, follow-ups, input, privacy line.
-- **Settings**
-  - **App:** last SMS from the mini with health, Install app, Export CSV.
-  - **AI:** off notice while login is off, text model, vision model, daily cap with today's usage.
-  - **Categories:** reorder, rename, colour, add.
-  - **Merchant rules:** list with edit and delete (undo), search, "All N rules".
+- **Settings:** §18.
 - **Offline:** one line, "Can't reach your server right now.", and Retry. Nothing else.
 
 **Desktop** (boards exist for all of these):
@@ -221,8 +277,11 @@ Every list screen needs an empty state (one line plus one action), a loading ske
 |---|---|---|
 | Today | ink hero + pace, then review / next 10 days / wealth, treemap, recent | digest card next to the hero |
 | Review | table | detail pane for the selected row |
-| Activity | day-grouped table + filters | detail pane |
-| Plan | segmented Budgets/Recurring/Trips; budgets table (category, spent, limit, pace bar, status, edit) | trip card, next 10 days, "Other has no budget" |
+| Activity | filter bar (one row, wraps), applied chips, summary strip, day-grouped table; chips open popovers | detail pane |
+| Settings | one 680px column of the same sections | — |
+| Plan | segmented Budgets/Recurring/Trips/Owed; budgets table (category, spent, limit, pace bar, status, edit) | trip card, next 10 days, "Other has no budget" |
+| Plan › Owed | KPI row (owed, overdue, oldest, back this month); table (date, spend, from, paid, yours, due, status) | owed by person, credits that might match |
+| Receipt | photo viewer (hovered row highlights its line on the image) and items table side by side | — |
 | Wealth | ink hero with wide GainChart; holdings table with XIRR bars | Add holding / Import CSV, allocation vs target, NPS cap, price sources with dates |
 | Insights | KPI row; Fig. 1 + Fig. 2 side by side; Fig. 3 full width | worth-a-look cards, top merchants |
 | Ask | thread at max 760px, input pinned at the bottom | suggested questions, earlier questions, AI usage and privacy note |
@@ -252,11 +311,12 @@ Keep `transactions` and the ingest contract (`miniRowSchema` ↔ `kharcha-mini/s
   - `sip_amount`, `sip_day`, `sms_match`.
 - **`holding_txns`**: `id`, `holding_id`, `transaction_id`, `date`, `amount`, `units`, `nav`, `source` (sms/csv/manual).
 - **`prices`**: `scheme_code`, `date`, `nav`, `source` (mfapi/amfi). Primary key on `scheme_code` and `date`.
-- **`attachments`**, **`transaction_items`**, **`transaction_splits`**: as on the Receipt board. Splits must sum to the transaction amount, and budgets use splits when they exist.
+- **`attachments`**, **`transaction_items`**, **`transaction_splits`**: §14.
+- **`reimbursements`**, **`reimbursement_links`**: §15.
 - **`insights`**: `detector`, `key`, `payload_json`, `dismissed_at`.
 - **`digests`**: `week_start`, `facts_json`, `text`, `model`.
 
-Run `npm run db:generate` after each schema edit. Extend `scripts/check-db.ts` with these checks: unknown category maps to Other, rules apply on ingest, trip auto-tag, splits sum.
+Run `npm run db:generate` after each schema edit. Extend `scripts/check-db.ts` with these checks: unknown category maps to Other, rules apply on ingest, trip auto-tag, splits sum, your share never below zero.
 
 ## 8. Server work
 
@@ -277,12 +337,12 @@ Jobs run on a systemd timer next to autodeploy.
 **OpenRouter** (`src/server/ai/`):
 
 1. **Ask:** the model returns a query spec only, `{metric, filters, groupBy, period, compareTo}`, validated with zod. The server runs it. The model narrates the returned rows. Reject the answer if it contains a ₹ figure that is not in the result. Return `transactionIds` for the "Based on N" link.
-2. **Receipts:** vision model. Blur card-number and phone-number regions first where possible. Output is validated with zod. Match to a transaction by amount ±₹1 and date ±1 day.
+2. **Receipts:** vision model, one call per transaction with all its images. Output is validated with zod (§14). The receipt is always read from a transaction's Detail, so there is no matching step.
 3. **Never send** raw SMS, card numbers or UPI IDs.
 4. **Config** lives in `meta` and is editable in Settings: `openrouter_model`, `openrouter_vision_model`, `openrouter_daily_cap`.
 5. **Unavailable** (cap reached, OpenRouter down, or AI off):
    - Ask: "AI is unavailable right now. Filters still work."
-   - Receipt: "Couldn't read the images. They're saved; add items by hand or try later."
+   - Receipt: see `RcFailed` and `RcManual`.
    - Digest: "This week's summary will be back tomorrow."
    - See the States board.
 
@@ -299,11 +359,12 @@ Jobs run on a systemd timer next to autodeploy.
 - **No offline writes.** The service worker caches the shell and `offline.html` only, and never HTML, `/_serverFn` or `/api`.
   - When offline, every write control is disabled.
   - A failed write shows "Couldn't save. Check the connection. · Retry", and the form keeps its values.
-- **Sync pill** reads `/api/health`:
-  - `Synced N min ago`: time of the last mini push.
+- **Sync pill** reads `/api/health` (states in §18):
+  - `Mini online · checked N min ago`, `Mini offline since 6:10 PM`, `Mini quiet · N h` (online, but no new row for 6 hours).
   - `Offline`: `navigator.onLine` is false.
   - `Server unreachable`: online, but the health check fails.
-  - `Mini quiet · N h`: no push for 6 hours.
+- **Installed:** `matchMedia('(display-mode: standalone)')` or `navigator.standalone` on iOS. Settings shows "Installed ✓" and no instructions.
+- **Pull to refresh:** Today, Activity, Detail and the Plan lists. It refetches from the VPS; it does not ask the mini (Sync now does).
 - **Badge:** `navigator.setAppBadge(reviewCount)` when supported.
 
 ## 10. Keyboard (`src/keybindings.ts`, the single entry point)
@@ -341,12 +402,160 @@ Remaining dependencies:
 | `OPENROUTER_API_KEY` in `/etc/kharcha-web/env` | Ask, Receipts, digest | you |
 | AMFI scheme codes for your funds (or pick them in Add holding) | Wealth prices, SIP units | you |
 | CSV of past SIP buys (`date, fund, amount, units, nav`), optional | Wealth history before SMS | you |
-| Login (auth) | Ask and Receipts are off until it exists. Settings shows why. The digest runs (server-side, aggregates only). | deferred, §13 |
+| Login (auth) | Ask, receipt reading and the weekly digest are off until it exists. Settings shows one quiet line. | deferred, §13 |
 | kharcha-mini fix for "Unknown ₹0" rows | clean Activity and Review | kharcha-mini, in parallel |
+| kharcha-mini polls `/api/mini/poll` every 30 s | Sync now, mini online/offline | kharcha-mini |
 
 ## 13. Open items
 
 - **Auth:** deferred to the ChatGPT connector work. Until then, `KHARCHA_AUTH=off` stays as it is, and Ask and Receipts stay disabled behind `KHARCHA_AI=off`.
-- **"Unknown ₹0" rows:** skipped SMS leaking through as transactions. Fix in kharcha-mini (do not push non-transactions). This runs in parallel and is the only change in the mini.
+- **"Unknown ₹0" rows:** skipped SMS leaking through as transactions. Fix in kharcha-mini (do not push non-transactions). This runs in parallel.
 - **NPS:** NAVs are not in AMFI data, so mfapi does not have them. NPS stays a typed-in value unless you hold it through a fund that has an AMFI code.
-- **Not designed:** dark mode, reimbursements.
+- **Offline and receipts:** the brief says "reading works but saving is disabled". Reading needs the server, so the boards treat "reading" as viewing saved items and photos. Read and Save are disabled offline. Confirm before building.
+- **Reimbursement sync:** reimbursements are typed in. Nothing arrives from an office expense tool.
+- **Sync now needs a second mini change.** The VPS cannot call the mini, so the mini polls for a sync request (§18). Without it, drop the button and keep the pill.
+- **Summary strip format:** the brief shows one text line with `₹1.6L`. At 390px that line truncates, and the rules allow compact amounts on charts only. The boards use one row of stats with full figures instead.
+- **Month stepper placement:** it sits in the Activity header, not in the scrolling chip row, so the month stays visible.
+- **Model costs** in Settings are estimates from OpenRouter prices × a typical call (§18). The figures on the boards are placeholders.
+- **Sample "today"** on every board is Thu 15 Oct 2026.
+
+## 14. Receipt reading
+
+Read a receipt into items, give each item a category, and split the transaction by category. Boards: `RcCapture`, `RcReading`, `RcResult`, `RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`, `RcSaved`, `RcActivity`, `DeskReceipt`, `RcComponents`, and a `…Dark` board for each.
+
+**Flow**
+
+1. **Capture** (`RcCapture`). Detail → Add receipt opens a sheet. Camera, Gallery, Files. Up to 5 images per transaction, treated as one order. Thumbnails can be removed. Privacy line above the buttons.
+2. **Reading** (`RcReading`). Per-image progress and skeleton rows. 5–15 seconds. The user can leave: the job runs on the server and the items appear on the transaction.
+3. **Result** (`RcResult`). Items with qty, amount and `CategoryChip`. Above them, the `SplitBar` and per-category subtotals. Below, the `ReconcileLine`.
+   - Items total equals the bank amount: match tick, Save split.
+   - Gap (coupon, delivery fee, rounding): "Add as adjustment" adds one line for the gap to the largest category. The user can change its category.
+4. **Low confidence** (`RcLowConf`). Lines under the confidence threshold get a "?" and a `watch-soft` fill. A banner counts them. Tap a line to fix name, qty or amount inline; "Looks right" clears the flag. Save stays enabled and reads "Save anyway" while flags remain.
+5. **Edit** (`RcEdit`). Select lines, then Merge (sums amounts, keeps the first name) or Delete. Swipe a line to delete it, with undo. Add a missed item: name, amount, category.
+6. **Failed** (`RcFailed`). Three causes with one line each: unreadable, not a receipt, AI busy or over the daily cap. Primary action "Enter items by hand" opens `RcManual`. Retry stays available. The images are kept.
+7. **AI off** (`RcManual`). Same screen as Result with manual rows only, and one quiet line: "Receipt reading is off on this server. Add items by hand." Photos can still be attached. Un-itemised money stays in the transaction's own category ("₹X not itemised · Stays in Food").
+8. **Saved** (`RcSaved`, `RcActivity`). Detail shows the split bar and item groups. Activity filtered by a category shows only that category's part of a split row ("₹210 of ₹2,340"), with a small split bar. Remove split puts the full amount back in one category.
+
+**Rules**
+
+- A split is saved only when splits sum to the transaction amount. Adjustment lines make that true.
+- Budgets, Insights and Activity totals use splits when they exist.
+- Editing the transaction amount after a split asks to re-check the split.
+- **Privacy line**, everywhere photos go to the AI: "Photos go to the AI service only to read the items. Card numbers and UPI IDs on them aren't stored." The server drops any digit run that looks like a card number or a UPI ID from the model output before saving.
+- **Offline:** saved items and photos are viewable. Read, Save, Merge and Delete are disabled, with the standard offline line from §9. See §13 on this reading of the brief.
+- **Empty:** a transaction without a receipt shows only the Add receipt entry on Detail.
+
+**Data**
+
+- **`attachments`**: `id`, `transaction_id`, `path`, `mime`, `bytes`, `created_at`. Files live on the VPS disk, outside `public/`, served only through a server function.
+- **`receipt_jobs`**: `id`, `transaction_id`, `status` (queued/reading/done/failed), `error` (unreadable/not_receipt/ai_unavailable), `model`, `started_at`, `finished_at`.
+- **`transaction_items`**: `id`, `transaction_id`, `name`, `qty`, `amount`, `category`, `confidence` (0–1), `source` (ai/manual/adjustment), `sort_order`.
+- **`transaction_splits`**: `transaction_id`, `category`, `amount`. Derived from items on save. Unique on `transaction_id` and `category`.
+- **Model output schema:** `{ items: [{ name, qty, amount, confidence }], total, currency, isReceipt }`. Categories are assigned on the server from merchant rules and item names, then by the model only when no rule fits.
+
+## 15. Reimbursements
+
+Mark part or all of a spend as money coming back, track it until it does, and count only your share. Boards: `RbMark`, `RbStatus`, `RbShare`, `RbList`, `RbItems`, `RbCases`, `DeskOwed`, and a `…Dark` board for each.
+
+**Mark** (`RbMark`, `RbItems`)
+
+- From Detail → Mark reimbursable. Sheet with Full, Part, or Items.
+  - **Part:** amount field with quick chips (half, a round figure).
+  - **Items:** only when the transaction has receipt items. Tick the items; the amount is their sum (`RbItems`).
+- **From:** Office, or a person. Recent names are chips. Free text for a new one.
+- Optional note.
+- `ShareLedger` updates live: Paid, Back from X, Yours.
+
+**Status** (`RbStatus`)
+
+- Pending → Partly back → Reimbursed. Cancelled at any point.
+- **Link a credit:** incoming transactions can be linked to a claim, in full or part. Suggestions rank credits by amount, date after the spend, and sender name matching From. Start with amount within 10% and date within 45 days; tune these on real data.
+- **Extra back:** linked credits exceed the claim. The excess counts as income in the month it arrived.
+- **Mark fully paid** closes a claim without a linked credit (cash, adjusted salary).
+- Unlinking a credit or undoing Cancel moves the status back.
+
+**Totals** (`RbShare`)
+
+- Budgets, Today's spend, Insights and Activity day totals count **your share**: amount minus the open or settled claim.
+- Ledger rows show "₹1,800 yours · ₹3,000 paid" and the `ReimbursableBadge`.
+- Budget bars hatch the reimbursable part and do not count it.
+- **Cancelled:** the full amount counts again.
+- **Split + reimbursable:** the claim comes off the categories of the chosen items only.
+
+**Plan › Owed** (`RbList`, mobile; `DeskOwed`, desktop)
+
+- Header: total owed to you, by person.
+- Pending / Done toggle. Pending rows sort by age. Overdue after 30 days: `over-soft` tag with "Overdue · N days".
+- Done shows Reimbursed, Extra back and Cancelled.
+- **Empty:** "Nothing owed to you." with "Mark a transaction" (opens Activity).
+- **Offline:** list is viewable. Mark, Link, Cancel and Mark fully paid are disabled.
+
+**Data**
+
+- **`reimbursements`**: `id`, `transaction_id`, `amount`, `counterparty`, `note`, `status` (pending/partly/reimbursed/extra/cancelled), `item_ids` (json, nullable), `created_at`, `closed_at`.
+- **`reimbursement_links`**: `reimbursement_id`, `credit_transaction_id`, `amount`. A credit can be split across claims; the sum of its links never exceeds the credit.
+- `status` is derived from links on every write, never set by hand, except `cancelled` and a manual "fully paid".
+- Linked credits are excluded from income, except the extra part.
+- Your share = `amount − sum(open and settled claims)`, never below zero.
+
+## 16. Activity
+
+Boards: `History`, `ActFiltered` (filters applied, summary open), `ActFilter`, `ActDate`, `ActDateNative`, `ActCategory`, `ActAmount`, `ActAmountError`, `ActSort`, `DeskHistory`, `DeskActDate`, each with a `…Dark` board.
+
+**Header:** title, then the `MonthStepper` chip on the right ("October 2026", ‹ ›). Tapping the label opens the date sheet. A custom range replaces the label ("1–15 Oct") and drops the arrows.
+
+**Filter bar**
+
+- **Row 1** scrolls sideways (fade on the right edge): Needs review (toggle, count), Filter · n, Sort (shows the current order), then Category, Card, Type, Trip, Amount. A chip with a value shows the value in ink fill.
+- **Row 2:** applied filters as removable chips, then Clear. Hidden when nothing is applied. The default month is not an applied filter; a custom range is.
+- **Filter · n** opens one sheet with every filter: date presets, category, card, type (expense, income, investment, transfer), trip, amount presets, sort.
+- **Category sheet:** search, Spending and Income groups, colour dot, count, multi-select.
+- **Amount sheet:** Under ₹500, ₹500–5K, ₹5K–25K, Over ₹25K, Custom (min and max). Min above max shows an inline error and disables Show.
+- **Date sheet:** Today, This week, Last 7 days, This month, Last month, This year, Custom. Custom shows the range calendar; `ActDateNative` shows the fallback.
+- **State lives in the address**, so back, reload and shared links keep it: `/activity?from=2026-10-01&to=2026-10-15&cat=food,health&card=2047&type=expense&trip=odisha&min=100&max=2000&sort=amount-desc&review=1`. No saved filters.
+
+**Summary strip:** under the filters; covers exactly the rows the filters select, from one SQL query with the same `WHERE`. No raw codes such as `2026-10`.
+
+**Rows:** 12-hour time; category dot and name (Other stays `field` grey); card. Card bills (CRED, "HDFC Credit Card" payments) and self transfers: muted amount and a `Card bill` or `Transfer` tag. The first time one shows, a dismissable line under it: "Not counted as spend; the purchases already are." Split rows show the mini split bar and the first two categories ("Food, Shopping +2"). Reimbursable rows: see §15.
+
+**Desktop:** filters fit one row and wrap. Chips open popovers; the date popover has presets on the left and the calendar on the right. Rows select into the detail pane. Visible focus ring on every control.
+
+**States:** empty filter result: "Nothing matches these filters." with Clear. Error: "Couldn't load transactions." with Retry. Offline: rows already loaded stay visible; filters still work on them; Delete and swipe are disabled.
+
+## 17. Today
+
+Boards: `Main`, `MainDark`, `TodayHero` (four budget states, light and dark), `TodaySpec`, `DeskHome`, `DeskHomeNoBudget`, each desktop one with a dark board.
+
+- **Budget states:** none (spend and "Set a monthly budget", no pace line, no "over"), under (`on-hero-gain` "₹18,760 left"), near (`on-hero-month` when 90% or more is spent), over (`on-hero-over` "₹3,120 over"). The hero never shows "of ₹0".
+- **Spacing:** 24px between every block. Scroll content ends with 172px bottom padding (84 tab bar + 16 + 56 add button + 16), so the add button never covers an amount.
+- **Tab bar:** `height: calc(50px + env(safe-area-inset-bottom))`, `padding-bottom: env(safe-area-inset-bottom)`. No fixed extra padding on top, which caused the empty band in the installed app. `viewport-fit=cover` in the viewport meta.
+- **Chart labels:** see `TodaySpec`. Try the right of the spike, then the left. Never over the today dot or its label, never past the chart edge, always above the line. Still no room: shorten the amount (₹18.1K), then drop the merchant.
+- **Review card:** "115 to review · ₹26,240 in Other". The Other figure and the Other tile read the same query: this month's Other spend, excluding card bills and transfers.
+
+## 18. Settings
+
+Boards: `Settings` (AI on, installed, mini online), `SettingsOff` (AI off, not installed, mini offline), `SettingsPicker`, `SetModel`, `SetCatDelete`, `DeskSettings`, each with a dark board.
+
+- **Sync:** Mac mini row with the pill state; "Last new transaction 2 h ago" as its own row. **Sync now:** requested ("Asked the mini to check for new SMS.") → waiting ("Usually under a minute.") → synced ("Synced · 3 new transactions") or mini offline ("The mini is offline. Sync runs when it's back.").
+  - Server: `POST /api/sync` stores a request. The mini calls `GET /api/mini/poll` every 30 s; the call records `last_seen_at` and returns any request. Online = seen in the last 2 minutes. "Offline since" = `last_seen_at`. "Last new transaction" = newest ingested row.
+- **App:** Install (Installed ✓, or Install plus the iPhone line when not installed), Theme (Light / Dark / System), Export CSV.
+- **AI off:** one quiet card: "AI is off. Ask, the weekly digest and receipt reading need the server switch." Nothing else in the section.
+- **AI on:** Text model and Vision model (`ModelSelect` with presets: name, provider, rough cost), Daily call cap (50 / 100 / 200 / 500), usage bar "12 of 200 used today".
+  - Cost per call = OpenRouter `/api/v1/models` prompt and completion prices × a typical call (text: 1,500 tokens in, 300 out; receipt: one image plus 800 out) × the day's USD→INR rate. Recompute daily; show "about".
+- **Categories:** one line of explanation; Spending and Income groups; per row: drag handle, colour swatch (opens `SwatchPicker`), name in an editable field (dashed underline), "412 transactions", delete. Other and Other income cannot be deleted.
+  - Delete asks first (`SetCatDelete`): "Its 9 transactions move to Other. Its budget and 1 merchant rule are removed."
+- **Merchant rules:** unchanged.
+
+## 19. Motion
+
+Use `motion` springs. Every animation is off under `prefers-reduced-motion: reduce`; state changes then happen instantly.
+
+| Element | Spec |
+|---|---|
+| Sheets | Enter: spring, stiffness 400, damping 36 (no visible bounce). Drag down to close past 30% or a fast flick. Scrim fades 0 → 45%. |
+| Popovers (desktop) | 120 ms fade and 4px rise. Esc closes and returns focus to the chip. |
+| Summary strip | Height animates with a spring; chevron turns 180° with stiffness 500, damping 18 (one small overshoot). |
+| Swipe to delete | Delete is hidden at rest. While dragging, it fades in and scales from 0.8 to 1 over the first 88px. Release past 44px: springs open to 88px with about 6% overshoot (stiffness 500, damping 22). Beyond 88px the row follows at ⅓ of the finger. Release under 44px: springs shut. A full swipe past 60% of the width deletes, with an undo snackbar. |
+| Pull to refresh | Threshold 72px. The ring fills with distance; past the threshold the arrow flips and a light haptic fires where supported. The list holds at 56px while refreshing, then springs back. Done or failed shows for 1.2 s. |
+| Filter chips | Press scales to 0.96. A chip that gains a value cross-fades its label. |
+

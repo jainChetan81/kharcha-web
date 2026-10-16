@@ -1,7 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button, ErrorState, Field, PageHeader, SectionHead, Skeleton } from "../components/ui";
+import { Button, ErrorState, Field, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
+import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
@@ -40,6 +41,8 @@ function Settings() {
   // Client-only check; SSR renders the button, then this swaps in "Installed".
   const [installed, setInstalled] = useState(false);
   useEffect(() => setInstalled(isStandalone()), []);
+  const [theme, setTheme] = useState<Theme>("system");
+  useEffect(() => setTheme(getTheme()), []);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
   const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
@@ -148,6 +151,10 @@ function Settings() {
               else if (result === "unavailable") snack("Install is available from your browser menu.");
             })}>Install</Button>}
           </div>
+          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
+            <span className="text-[15px] font-medium">Theme</span>
+            <Segmented label="Theme" className="w-[220px]" value={theme} onChange={(t) => { setTheme(t); applyTheme(t); }} options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "system", label: "System" }]} />
+          </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Export CSV</span>
             <a href="/api/export" className="inline-flex min-h-10 items-center rounded-button border border-ink px-3.5 text-sm font-medium text-ink">Download</a>
@@ -207,7 +214,7 @@ function Settings() {
               <div key={rule.id} className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline">
                 {ruleEdit === rule.id ? <RuleEditor rule={rule} categories={data.categories.map((x) => x.name)} onCancel={() => setRuleEdit(null)} onSave={(values) => void editMerchantRule(rule, values)} /> : (
                   <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                    <span className="truncate font-mono text-[13px] text-[#3E4352]">{rule.match}</span>
+                    <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
                     <span className="flex min-w-0 items-center gap-1.5 text-sm"><span aria-hidden className="text-ink-3">→</span><strong className="truncate font-semibold">{rule.displayMerchant}</strong><span className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }} /><span className="truncate">{rule.category}</span></span>
                   </span>
                 )}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reimbursement edge cases</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1120px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+
+  <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Edge cases</h1>
+
+  <article style="padding: 16px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Swiggy · meal allowance</span><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--earn-soft); color: var(--earn)">Extra back</span></div>
+    <dl style="margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px">
+      <dt style="color: var(--ink2)">Paid</dt><dd style="margin: 0; text-align: right">₹499</dd>
+      <dt style="color: var(--ink2)">Office paid back</dt><dd style="margin: 0; text-align: right; color: var(--earn)">+₹550</dd>
+      <dt style="font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">Yours</dt><dd style="margin: 0; text-align: right; font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">₹0</dd>
+      <dt style="color: var(--ink2)">Extra ₹51</dt><dd style="margin: 0; text-align: right; color: var(--earn); font-weight: 500">counted as income</dd>
+    </dl>
+  </article>
+
+  <article style="padding: 16px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Ola · airport</span><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{cTagBg}}; color: {{cTagFg}}">{{cTag}}</span></div>
+    <dl style="margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; font-size: 14px">
+      <dt style="color: var(--ink2)">Paid</dt><dd style="margin: 0; text-align: right">₹1,180</dd>
+      <dt style="color: var(--ink2)">Expected from Office</dt><dd style="margin: 0; text-align: right; text-decoration: {{strike}}; color: var(--ink2)">₹1,180</dd>
+      <dt style="font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">Yours</dt><dd style="margin: 0; text-align: right; font-weight: 600; border-top: 1px solid var(--ink); padding-top: 6px">{{cYours}}</dd>
+    </dl>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font-size: 13px; color: var(--ink2)">{{cNote}}</span>
+      <button type="button" onClick="{{cToggle}}" style="min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--field); background: transparent; color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer">{{cAction}}</button>
+    </div>
+  </article>
+
+  <a href="RbItems.dc.html" style="padding: 16px; border-radius: 12px; background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; gap: 10px; color: var(--ink); text-decoration: none">
+    <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Meghana Foods · split and reimbursable</span><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--brand-soft); color: var(--brand)">Pending</span></div>
+    <div role="img" aria-label="₹1,000 of ₹1,620 goes back to Office" style="display: flex; height: 10px; gap: 2px; border-radius: 5px; overflow: hidden"><span style="flex: 1000; background: repeating-linear-gradient(135deg, var(--c-food) 0 3px, var(--card) 3px 5px)"></span><span style="flex: 620; background: var(--c-food)"></span></div>
+    <div style="display: flex; justify-content: space-between; font-size: 14px"><span style="color: var(--ink2)">3 of 6 items go back · ₹1,000</span><strong style="font-weight: 600">₹620 yours</strong></div>
+  </a>
+
+  <section aria-label="Owed, empty" style="padding: 28px 16px; border-radius: 12px; border: 1px dashed var(--field); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 20px">Nothing owed to you.</span>
+    <a href="History.dc.html" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); display: flex; align-items: center; color: var(--ink); font-size: 14px; font-weight: 500; text-decoration: none">Mark a transaction</a>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cancelled: true };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', field: '#8A8576', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'c-food': '#B4572E' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', field: '#737A8C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'c-food': '#E08A60' };
+    const t = this.props.dark ? D : L;
+    const c = this.state.cancelled;
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      cTag: c ? 'Cancelled' : 'Overdue',
+      cTagBg: c ? 'var(--sunken)' : 'var(--over-soft)', cTagFg: c ? 'var(--ink2)' : 'var(--over)',
+      strike: c ? 'line-through' : 'none',
+      cYours: c ? '₹1,180' : '₹0',
+      cNote: c ? 'Claim rejected. Counts fully as yours.' : 'Waiting on Office · 37 days',
+      cAction: c ? 'Undo' : 'Cancel claim',
+      cToggle: () => this.setState({ cancelled: !c })
+    };
+  }
+}
+</script>
+</body>
+</html>

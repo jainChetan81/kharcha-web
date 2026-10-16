@@ -60,7 +60,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
       title={label}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-[5px] text-xs whitespace-nowrap",
-        onInk ? "bg-on-ink/12 text-[#C9CDD6]" : state === "quiet" ? "bg-watch-soft text-[#6E470C]" : state === "synced" ? "bg-sunken text-ink-2" : "bg-[#E2DFD6] text-[#3E4352]",
+        onInk ? "bg-on-ink/12 text-on-ink-2" : state === "quiet" ? "bg-watch-soft text-watch-text" : state === "synced" ? "bg-sunken text-ink-2" : "bg-[#E2DFD6] text-[#3E4352]",
       )}
     >
       <span aria-hidden className={cn("size-[7px] rounded-full", dot)} />

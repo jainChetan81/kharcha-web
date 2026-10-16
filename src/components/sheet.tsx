@@ -26,7 +26,7 @@ export function Sheet({
     <Dialog.Root open onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div className="fixed inset-0 z-40 bg-ink/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} />
+          <motion.div className="fixed inset-0 z-40 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} />
         </Dialog.Overlay>
         <Dialog.Content asChild >
           <motion.section
@@ -39,7 +39,7 @@ export function Sheet({
               className,
             )}
           >
-            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-sm bg-[#CFCABB] tablet:hidden" />
+            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-sm bg-rule tablet:hidden" />
             <Dialog.Title className="m-0 font-serif text-[22px] font-medium">{title}</Dialog.Title>
             {description ? <Dialog.Description className="-mt-2 text-[13px] text-ink-3">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{title}</Dialog.Description>}
             {children}
@@ -71,9 +71,9 @@ export function Snackbars() {
       toastOptions={{
         unstyled: true,
         classNames: {
-          toast: "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-ink py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-lg",
+          toast: "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-lg",
           title: "leading-snug",
-          actionButton: "min-h-10 px-2.5 font-semibold text-[#B9C6DD]",
+          actionButton: "min-h-10 px-2.5 font-semibold text-on-ink-pace",
           cancelButton: "min-h-10 px-2.5 text-on-ink-2",
         },
       }}

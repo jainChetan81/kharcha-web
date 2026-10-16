@@ -220,7 +220,7 @@ function ActivityRow({ row, color, active, swiped, canDelete, onSelect, onSwipe,
   }, [swiped]);
   return (
     <div className="relative overflow-hidden border-b border-hairline desk:border-0">
-      <motion.button type="button" disabled={!canDelete} onClick={onDelete} style={{ opacity: reveal }} className="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-over text-sm font-semibold text-white disabled:opacity-50 desk:hidden"><motion.span style={{ scale }}>Delete</motion.span></motion.button>
+      <motion.button type="button" disabled={!canDelete} onClick={onDelete} style={{ opacity: reveal }} className="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-over text-sm font-semibold text-on-over disabled:opacity-50 desk:hidden"><motion.span style={{ scale }}>Delete</motion.span></motion.button>
       <motion.div
         drag={canDelete ? "x" : false}
         dragDirectionLock

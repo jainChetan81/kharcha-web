@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt · manual (AI off)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+</style>
+</helmet>
+<div style="{{vars}} width: 390px; height: 1100px; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 8px">
+    <div style="display: flex; align-items: center">
+      <a href="RcSaved.dc.html" aria-label="Back to transaction" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Items</h1>
+    </div>
+    <span style="font-size: 13px; color: var(--ink3)">Instamart · ₹2,340</span>
+  </header>
+
+  <p style="margin: 4px 20px 0; font-size: 13px; color: var(--ink3)">Receipt reading is off on this server. Add items by hand.</p>
+
+  <section style="padding: 14px 20px 0; display: flex; gap: 10px">
+    <div role="img" aria-label="Attached photo" style="width: 64px; height: 84px; border-radius: 8px; border: 1px solid var(--rule); background: var(--input); padding: 8px 6px; box-sizing: border-box; display: flex; flex-direction: column; gap: 5px"><span style="height: 5px; width: 70%; background: var(--ink3); border-radius: 2px"></span><span style="height: 4px; width: 90%; background: var(--rule); border-radius: 2px"></span><span style="height: 4px; width: 80%; background: var(--rule); border-radius: 2px"></span><span style="height: 4px; width: 86%; background: var(--rule); border-radius: 2px"></span></div>
+    <button type="button" style="width: 64px; height: 84px; border-radius: 8px; border: 1px dashed var(--field); background: transparent; color: var(--brand); font-size: 12px; font-weight: 500; cursor: pointer">Attach photo</button>
+  </section>
+
+  <section style="padding: 16px 20px 0">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 104px 28px; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3)"><span>Item</span><span style="text-align: right">₹</span><span style="text-align: right">Category</span><span></span></div>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="2">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 104px 28px; gap: 8px; align-items: center; min-height: 48px; border-bottom: 1px solid var(--hair); font-size: 14px">
+        <span>{{r.name}}</span><span style="text-align: right; font-weight: 500">{{r.amt}}</span>
+        <span style="justify-self: end; min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--field); background: var(--input); font-size: 12px; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{r.color}}"></span>{{r.cat}}</span>
+        <button type="button" aria-label="{{r.delLabel}}" style="width: 28px; height: 28px; border: 0; background: transparent; color: var(--ink3); padding: 0; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </sc-for>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 8px; padding-top: 12px">
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Item<input value="{{draftName}}" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px"></label>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Amount<input value="{{draftAmt}}" inputmode="decimal" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 15px; text-align: right"></label>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px">
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2)"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{draftColor}}"></span>{{draftCat}}</span>
+      <button type="button" onClick="{{addRow}}" disabled="{{noMore}}" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer">Add line</button>
+    </div>
+  </section>
+
+  <section style="margin: 20px 20px 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--rule); background: var(--card); display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; height: 10px; gap: 2px; border-radius: 5px; overflow: hidden">
+      <sc-for list="{{split}}" as="p" hint-placeholder-count="3"><span style="flex: {{p.n}}; background: {{p.color}}"></span></sc-for>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px">
+      <sc-for list="{{split}}" as="p" hint-placeholder-count="3"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{p.color}}"></span>{{p.cat}} <strong style="font-weight: 600">{{p.amt}}</strong></span></sc-for>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--hair); padding-top: 10px; font-size: 14px">
+      <span>{{restLabel}}</span>
+      <span style="font-size: 13px; color: var(--ink2)">Stays in Food</span>
+    </div>
+  </section>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 24px; background: var(--card); border-top: 1px solid var(--rule)">
+    <a href="RcSaved.dc.html" style="min-height: 52px; border-radius: 12px; background: var(--btn); display: flex; align-items: center; justify-content: center; color: var(--on-btn); font-size: 15px; font-weight: 500; text-decoration: none">Save split</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { n: 2 };
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', btn: '#1C2230', 'on-btn': '#F6F4EE',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-health': '#3D8077', 'c-other': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', btn: '#ECE8DF', 'on-btn': '#12151C',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-health': '#63BFB1', 'c-other': '#8F8B80' };
+    const t = this.props.dark ? D : L;
+    const col = (c) => 'var(--c-' + c.toLowerCase() + ')';
+    const queue = [
+      { name: 'boAt wired earphones', n: 649, cat: 'Shopping' },
+      { name: 'Phone charger, 20 W', n: 241, cat: 'Shopping' },
+      { name: 'Face wash, 100 ml', n: 178, cat: 'Health' },
+      { name: 'Dolo 650', n: 32, cat: 'Health' }
+    ];
+    const n = this.state.n;
+    const rows = queue.slice(0, n);
+    const draft = queue[n] || { name: '', n: '', cat: 'Food' };
+    const used = rows.reduce((a, b) => a + b.n, 0);
+    const rest = 2340 - used;
+    const sums = { Food: rest };
+    rows.forEach((r) => { sums[r.cat] = (sums[r.cat] || 0) + r.n; });
+    const fmt = (x) => '₹' + x.toLocaleString('en-IN');
+    return {
+      vars: Object.keys(t).map((k) => '--' + k + ': ' + t[k] + ';').join(' '),
+      rows: rows.map((r) => ({ name: r.name, amt: String(r.n), cat: r.cat, color: col(r.cat), delLabel: 'Remove ' + r.name })),
+      draftName: draft.name, draftAmt: String(draft.n), draftCat: draft.cat, draftColor: col(draft.cat),
+      noMore: n >= queue.length,
+      addRow: () => this.setState({ n: Math.min(queue.length, n + 1) }),
+      split: ['Food', 'Shopping', 'Health'].filter((c) => sums[c]).map((c) => ({ cat: c, n: sums[c], amt: fmt(sums[c]), color: col(c) })),
+      restLabel: fmt(rest) + ' not itemised'
+    };
+  }
+}
+</script>
+</body>
+</html>
