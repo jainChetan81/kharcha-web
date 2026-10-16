@@ -53,7 +53,11 @@ await removeTxn(db, swiggy.id);
 await ingest(db, [row]);
 assert.equal((await listTxns(db, { limit: 10 })).length, 0, "app delete survives re-push");
 assert.equal(miniRowSchema.parse({ ...row, date: "2026-04-01" }).date, "2026-04-01 00:00", "date-only rows normalise");
-await assert.rejects(ingest(db, [{ ...row, id: 3, amount: -1 }]), "CHECK rejects negative, batch rolls back");
+await assert.rejects(ingest(db, [{ ...row, id: 3 }, { ...row, id: 4, amount: -1 }]), "CHECK rejects negative, batch rolls back");
+assert.equal((await listTxns(db, { limit: 10 })).length, 0, "invalid batch leaves no partial writes");
+assert.equal(await ingest(db, [{ ...row, id: 3 }, { ...row, id: 4, amount: 0 }]), 1, "zero parser rows skip without blocking valid rows");
+assert.equal(await ingest(db, [{ ...row, id: 3, amount: 0, deletedAt: "2026-10-16 10:00" }]), 1, "zero tombstone still ingests");
+assert.equal((await listTxns(db, { limit: 10 })).length, 0, "zero tombstone hides existing transaction");
 assert.throws(() => miniRowSchema.parse({ ...row, date: "2026-02-30 10:00" }), "impossible date rejected");
 assert.throws(() => miniRowSchema.parse({ ...row, date: "2026-10-15 24:00" }), "impossible time rejected");
 await addTxn(db, { type: "expense", amount: 1, merchant: "Edge", category: "", date: "2026-11-01 00:00" });
@@ -101,4 +105,108 @@ console.log("check-db: ok");
   assert.equal(safeNext("/\\evil.example"), "/", "backslash next blocked");
   assert.equal(safeNext("/history?review=true"), "/history?review=true");
   console.log("check-auth: ok");
+}
+
+// Recurring schedule regressions use only synthetic rows in the in-memory DB.
+{
+  const { recurringOccurrences, recurringSeries, transactions } = await import("../src/server/db/schema.ts");
+  const { matchRecurring, scheduleSeries } = await import("../src/server/plan/jobs.ts");
+  const { eq } = await import("drizzle-orm");
+  const { mock } = await import("node:test");
+  const actualToday = new Date().toISOString().slice(0, 10);
+  const addTxnRow = (id: number, merchant: string, date: string, amount = 50, fields: Partial<typeof transactions.$inferInsert> = {}) =>
+    db.insert(transactions).values({ id, source: "sms", type: "expense", amount, merchant, category: "", date, ...fields });
+  const seriesRow = (id: number, name: string, match: string, cadence: "monthly" | "quarterly" | "yearly" | "weekly", usualDay: number | null, expectedAmount = 50) => ({
+    id, name, kind: "bill" as const, match, cadence, usualDay, expectedAmount, tolerancePct: 0, status: "active" as const,
+  });
+
+  mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-16T12:00:00Z") });
+  try {
+    await db.insert(recurringSeries).values([
+      seriesRow(9201, "Quarterly", "Quarterly Vendor", "quarterly", 15),
+      seriesRow(9202, "Yearly", "Yearly Vendor", "yearly", 15),
+      seriesRow(9203, "Weekly", "Weekly Vendor", "weekly", null, 70),
+      seriesRow(9204, "Schedule target", "Scoped Vendor", "monthly", 16),
+      seriesRow(9205, "Schedule sibling", "Scoped Vendor", "monthly", 16),
+      seriesRow(9206, "Guards", "Guard Vendor", "monthly", 16, 20),
+      seriesRow(9207, "New quarterly", "New quarterly", "quarterly", 20),
+      seriesRow(9208, "New yearly", "New yearly", "yearly", 25),
+      seriesRow(9209, "Late first quarterly", "Late first quarterly", "quarterly", 15),
+      seriesRow(9210, "Unpaid weekly", "Unpaid weekly", "weekly", null),
+    ]);
+    await db.batch([
+      addTxnRow(9201, "Quarterly Vendor", "2026-07-15 10:00"),
+      addTxnRow(9202, "Quarterly Vendor", "2026-08-15 10:00"),
+      addTxnRow(9203, "Quarterly Vendor", "2026-10-15 10:00"),
+      addTxnRow(9211, "Yearly Vendor", "2025-10-15 10:00"),
+      addTxnRow(9212, "Yearly Vendor", "2026-03-15 10:00"),
+      addTxnRow(9213, "Yearly Vendor", "2026-10-15 10:00"),
+      addTxnRow(9221, "Weekly Vendor", "2026-01-01 10:00", 70),
+      addTxnRow(9231, "Scoped Vendor", `${actualToday} 10:00`),
+      addTxnRow(9241, "Guard Vendor", "2026-10-16 10:00", 20, { type: "income" }),
+      addTxnRow(9242, "Guard Vendor", "2026-10-16 11:00", 20, { excluded: true }),
+      addTxnRow(9243, "Guard Vendor", "2026-10-16 12:00", 20, { deletedAt: "2026-10-16 12:01" }),
+      db.insert(recurringOccurrences).values({ seriesId: 9203, dueDate: "2026-01-01", transactionId: 9221, status: "cleared" }),
+      db.insert(recurringOccurrences).values({ seriesId: 9210, dueDate: "2026-01-01", transactionId: null, status: "upcoming" }),
+    ]);
+
+    await matchRecurring([9203, 9202, 9201], db, 9201);
+    let quarterly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9201));
+    assert.equal(quarterly.find((o) => o.dueDate === "2026-07-15")?.transactionId, 9201, "quarterly first payment anchors July");
+    assert.ok(!quarterly.some((o) => o.transactionId === 9202), "quarterly off-cycle August payment stays unmatched");
+    assert.equal(quarterly.find((o) => o.dueDate === "2026-10-15")?.transactionId, 9203, "quarterly cadence resumes in October");
+    await addTxnRow(9204, "Quarterly Vendor", "2026-07-16 10:00");
+    await matchRecurring([9204, 9201], db, 9201);
+    quarterly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9201));
+    assert.equal(quarterly.find((o) => o.dueDate === "2026-07-15")?.transactionId, 9201, "different payment cannot replace a matched transaction");
+    await matchRecurring([9201], db, 9201);
+    quarterly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9201));
+    assert.equal(quarterly.find((o) => o.dueDate === "2026-07-15")?.transactionId, 9201, "same transaction re-push is idempotent");
+
+    await matchRecurring([9213, 9212, 9211], db, 9202);
+    const yearly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9202));
+    assert.equal(yearly.find((o) => o.dueDate === "2025-10-15")?.transactionId, 9211, "yearly first payment anchors October");
+    assert.ok(!yearly.some((o) => o.transactionId === 9212), "yearly off-cycle payment stays unmatched");
+    assert.equal(yearly.find((o) => o.dueDate === "2026-10-15")?.transactionId, 9213, "yearly cadence resumes at anchor month");
+
+    await matchRecurring([], db, 9203);
+    let weekly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9203));
+    assert.equal(weekly.filter((o) => o.status === "past_due").length, 40, "weekly catch-up advances every missed period");
+    assert.equal(weekly.find((o) => o.status === "past_due" && o.dueDate === "2026-10-08")?.status, "past_due");
+    assert.deepEqual(weekly.filter((o) => o.status === "upcoming").map((o) => o.dueDate), ["2026-10-15"], "only current cadence occurrence remains upcoming");
+    await matchRecurring([], db, 9203);
+    weekly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9203));
+    assert.deepEqual(weekly.filter((o) => o.status === "upcoming").map((o) => o.dueDate), ["2026-10-15"], "repeat run keeps one current upcoming occurrence");
+    await addTxnRow(9222, "Weekly Vendor", "2026-10-20 10:00", 70);
+    await matchRecurring([9222], db, 9203);
+    weekly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9203));
+    assert.equal(weekly.find((o) => o.dueDate === "2026-10-15")?.status, "cleared_late", "payment within five day grace clears due late");
+    await matchRecurring([9222], db, 9203);
+    weekly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9203));
+    assert.equal(weekly.filter((o) => o.transactionId === 9222).length, 1, "late weekly re-push cannot clear the following due too");
+    assert.deepEqual(weekly.filter((o) => o.status === "upcoming").map((o) => o.dueDate), ["2026-10-22"]);
+    await matchRecurring([], db, 9210);
+    const unpaid = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9210));
+    assert.equal(unpaid.find((o) => o.dueDate === "2026-01-01")?.status, "past_due", "unpaid persisted due becomes past_due");
+    assert.equal(unpaid.filter((o) => o.status === "past_due").length, 41, "unpaid weekly schedule catches up without a prior payment");
+
+    await scheduleSeries(9204, db);
+    assert.ok((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9204))).length > 0, "scheduleSeries processes requested series");
+    assert.equal((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9205))).length, 0, "scheduleSeries leaves sibling series untouched");
+    await matchRecurring([9241, 9242, 9243], db, 9206);
+    const guarded = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9206));
+    assert.equal(guarded.find((o) => o.status === "upcoming")?.transactionId, null, "income, excluded, and deleted rows do not clear a due");
+    await matchRecurring([], db, 9207);
+    await matchRecurring([], db, 9208);
+    assert.equal((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9207)).get())?.dueDate, "2026-10-20", "new quarterly respects configured day");
+    assert.equal((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9208)).get())?.dueDate, "2026-10-25", "new yearly respects configured day");
+    await addTxnRow(9251, "Late first quarterly", "2026-07-17 10:00");
+    await matchRecurring([9251], db, 9209);
+    const firstQuarterly = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9209));
+    assert.equal(firstQuarterly.find((o) => o.transactionId === 9251)?.dueDate, "2026-07-15", "first quarterly payment honors usual day");
+    assert.equal(firstQuarterly.find((o) => o.transactionId === 9251)?.status, "cleared_late");
+  } finally {
+    mock.timers.reset();
+  }
+  console.log("check-recurring: ok");
 }

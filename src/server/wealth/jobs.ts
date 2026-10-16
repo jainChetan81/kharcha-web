@@ -41,7 +41,7 @@ export function navDate(value: string | undefined) {
 export function amfiLine(text: string, code: string) {
   const cols = text.split("\n").find((item) => item.startsWith(`${code};`))?.split(";");
   const nav = Number(cols?.[4]); const date = navDate(cols?.[5]);
-  return cols && nav > 0 && date ? { nav, date, source: "amfi" as const } : undefined;
+  return cols && Number.isFinite(nav) && nav > 0 && date ? { nav, date, source: "amfi" as const } : undefined;
 }
 async function amfiNav(code: string) {
   return amfiLine(await (await timeoutFetch("https://www.amfiindia.com/spages/NAVAll.txt")).text(), code);
@@ -51,7 +51,7 @@ async function amfiNav(code: string) {
 export function mfapiNav(body: { data?: unknown }) {
   const raw = (Array.isArray(body.data) ? body.data[0] : body.data) as { nav?: string; date?: string } | undefined;
   const nav = Number(raw?.nav); const date = navDate(raw?.date);
-  return nav > 0 && date ? { nav, date, source: "mfapi" as const } : undefined;
+  return Number.isFinite(nav) && nav > 0 && date ? { nav, date, source: "mfapi" as const } : undefined;
 }
 
 /** Fetch each scheme independently. Remote failures are deliberately ignored. */
@@ -61,8 +61,10 @@ export async function runPrices(db: Db = getDb()): Promise<{ updated: number }> 
   for (const holding of open) try {
     const code = holding.schemeCode!;
     let value: { nav: number; date: string; source: "mfapi" | "amfi" } | undefined;
-    const response = await timeoutFetch(`https://api.mfapi.in/mf/${encodeURIComponent(code)}/latest`);
-    if (response.ok) value = mfapiNav(await response.json() as { data?: unknown });
+    try {
+      const response = await timeoutFetch(`https://api.mfapi.in/mf/${encodeURIComponent(code)}/latest`);
+      if (response.ok) value = mfapiNav(await response.json() as { data?: unknown });
+    } catch { /* primary failure still allows AMFI fallback */ }
     value ??= await amfiNav(code);
     if (!value) continue;
     await db.insert(prices).values({ schemeCode: code, ...value }).onConflictDoUpdate({ target: [prices.schemeCode, prices.date], set: { nav: value.nav, source: value.source } });

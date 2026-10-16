@@ -24,9 +24,9 @@ const parseJson = (value: string): unknown => {
 const dropNulls = (value: unknown): unknown =>
   Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
 /** Merchant labels can carry UPI IDs or account numbers; neither may reach OpenRouter. */
-export const scrub = (label: string) => (/@|\d{6,}/.test(label) ? "[private payee]" : label);
+export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}/.test(label) ? "[private payee]" : label);
 /** Free text (questions, past answers) keeps its words but loses handles and long digit runs. */
-export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m));
+export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m));
 const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 

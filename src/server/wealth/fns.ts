@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { holdingCsvRows } from "../../lib/csv";
-import { getDb } from "../db/client";
-import { holdingTxns, holdings, prices } from "../db/schema";
-import { realDay, xirr } from "./xirr";
+import { holdingCsvRows } from "../../lib/csv.ts";
+import { getDb } from "../db/client.ts";
+import { holdingTxns, holdings, prices } from "../db/schema.ts";
+import { realDay, xirr } from "./xirr.ts";
 
 export type WealthSummary = { value: number; dayChange: number; navDate: string | null; spark: number[] };
 const id = z.object({ id: z.number().int().positive() });
@@ -14,7 +14,15 @@ const holdingSchema = z.object({
 });
 
 async function latestPrices() {
-  return getDb().all<{ scheme_code: string; date: string; nav: number; prev: number | null }>(sql`select p.scheme_code, p.date, p.nav, (select nav from prices q where q.scheme_code=p.scheme_code and q.date<p.date order by q.date desc limit 1) prev from prices p join (select scheme_code, max(date) date from prices group by scheme_code) last on p.scheme_code=last.scheme_code and p.date=last.date`);
+  return getDb().all<{ scheme_code: string; date: string; nav: number; prev: number | null; prev_date: string | null }>(sql`select p.scheme_code, p.date, p.nav, (select nav from prices q where q.scheme_code=p.scheme_code and q.date<p.date order by q.date desc limit 1) prev, (select date from prices q where q.scheme_code=p.scheme_code and q.date<p.date order by q.date desc limit 1) prev_date from prices p join (select scheme_code, max(date) date from prices group by scheme_code) last on p.scheme_code=last.scheme_code and p.date=last.date`);
+}
+export function navDayChange(txns: { date: string; units: number | null }[], previousDate: string | null, nav: number, previousNav: number | null) {
+  if (!previousDate || previousNav == null) return 0;
+  const previousUnits = txns.reduce((sum, txn) => sum + (txn.date <= previousDate ? (txn.units ?? 0) : 0), 0);
+  return previousUnits * (nav - previousNav);
+}
+export function isNotFutureDateInIST(date: string, now = new Date()) {
+  return date <= new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
 }
 // ponytail: invested-over-time with today's value as the final point; past values need per-date NAV, add when price history covers every holding.
 function investedSeries(txns: { date: string; amount: number }[], value: number) {
@@ -29,7 +37,7 @@ async function holdingsWithValue() {
     const txns = buys.filter((txn) => txn.holdingId === holding.id); const units = txns.reduce((sum, txn) => sum + (txn.units ?? 0), 0); const invested = txns.reduce((sum, txn) => sum + txn.amount, 0); const price = holding.schemeCode ? nav.get(holding.schemeCode) : undefined;
     const value = holding.manualValue ?? (price ? units * Number(price.nav) : invested);
     // Day change: units times the move since the previous NAV. Manual values have no daily price.
-    const dayChange = holding.manualValue == null && price?.prev ? units * (Number(price.nav) - Number(price.prev)) : 0;
+    const dayChange = holding.manualValue == null && price ? navDayChange(txns, price.prev_date, Number(price.nav), price.prev == null ? null : Number(price.prev)) : 0;
     return { ...holding, txns, units, invested, price, value, gain: value - invested, dayChange };
   });
 }
@@ -48,7 +56,7 @@ export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
   const allocation = Object.values(rows.reduce<Record<string, { value: number; target: number; name: string }>>((map, row) => { const item = map[row.assetClass] ?? { name: row.assetClass, value: 0, target: 0 }; item.value += row.value; item.target += row.targetPct ?? 0; map[row.assetClass] = item; return map; }, {}));
   const financialYear = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const nps = rows.filter((row) => row.kind === "nps").flatMap((row) => row.txns).filter((txn) => txn.date >= `${financialYear}-04-01`).reduce((sum, txn) => sum + txn.amount, 0);
-  return { rows, value, invested, gain: value - invested, xirr: xirr(flows), navDate: dates.sort().at(-1) ?? null, allocation, nps, financialYear, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
+  return { rows, value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), invested, gain: value - invested, xirr: xirr(flows), navDate: dates.sort().at(-1) ?? null, allocation, nps, financialYear, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
 });
 
 export const getHolding = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
@@ -69,7 +77,7 @@ export const searchFund = createServerFn({ method: "GET" }).validator(z.object({
   try { const response = await fetch(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(data.query)}`, { signal: AbortSignal.timeout(10_000) }); if (!response.ok) return []; const rows = await response.json() as { schemeCode: string | number; schemeName: string }[]; return rows.slice(0, 10).map((row) => ({ code: String(row.schemeCode), name: row.schemeName })); } catch { return []; }
 });
 
-const csvRow = z.object({ date: z.string().refine(realDay, "not a real date").refine((d) => d <= new Date().toISOString().slice(0, 10), "future date"), fund: z.string().trim().min(1), amount: z.coerce.number().refine((n) => n !== 0), units: z.coerce.number().refine((n) => n !== 0), nav: z.coerce.number().positive() }).refine((row) => Math.sign(row.amount) === Math.sign(row.units)); // negative amount + units = redemption
+const csvRow = z.object({ date: z.string().refine(realDay, "not a real date").refine((d) => isNotFutureDateInIST(d), "future date"), fund: z.string().trim().min(1), amount: z.coerce.number().refine((n) => n !== 0), units: z.coerce.number().refine((n) => n !== 0), nav: z.coerce.number().positive() }).refine((row) => Math.sign(row.amount) === Math.sign(row.units)); // negative amount + units = redemption
 export const importHoldingCsv = createServerFn({ method: "POST" }).validator(z.object({ csv: z.string().max(1_000_000) })).handler(async ({ data }) => {
   const values = holdingCsvRows(data.csv); const db = getDb(); const all = await db.select().from(holdings); const seen = new Set((await db.select().from(holdingTxns)).map((row) => `${row.holdingId}|${row.date}|${row.amount}|${row.units}`)); let imported = 0; let errors = 0; let skipped = 0;
   for (const [date, fund, amount, units, nav] of values) { const parsed = csvRow.safeParse({ date, fund, amount, units, nav }); const holding = parsed.success ? all.find((row) => row.name.toLowerCase() === parsed.data.fund.toLowerCase()) : undefined; if (!parsed.success || !holding) { errors++; continue; } const key = `${holding.id}|${parsed.data.date}|${parsed.data.amount}|${parsed.data.units}`; if (seen.has(key)) { skipped++; continue; } seen.add(key); await db.insert(holdingTxns).values({ holdingId: holding.id, date: parsed.data.date, amount: parsed.data.amount, units: parsed.data.units, nav: parsed.data.nav, source: "csv" }); imported++; }
