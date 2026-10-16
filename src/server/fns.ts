@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "./db/client";
 import {
   addRule, addSchema, addTxn, budgetSchema, categoryList, editSchema, editTxn, flagSchema, flagTxn, getTxn, listSchema,
-  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget,
+  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget, summarizeTxns,
 } from "./db/queries";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
@@ -43,6 +43,10 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
 export const getTransactions = createServerFn({ method: "GET" })
   .validator(listSchema.extend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
   .handler(({ data }) => listTxns(getDb(), { ...data, limit: data.limit ?? 500 }));
+
+export const getTransactionSummary = createServerFn({ method: "GET" })
+  .validator(listSchema)
+  .handler(({ data }) => summarizeTxns(getDb(), data));
 
 export const getTransaction = createServerFn({ method: "GET" })
   .validator(id)

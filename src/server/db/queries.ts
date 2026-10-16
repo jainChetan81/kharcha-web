@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, like, lt, or, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "./client.ts";
 import { budgets, categories, merchantRules, meta, TXN_TYPES, transactions, type MerchantRule } from "./schema.ts";
@@ -255,36 +255,67 @@ export async function monthSummary(db: Db, month: string) {
   return { month, totals, categories, reviewCount: review?.n ?? 0, lastIngestAt: last?.value ?? null };
 }
 
+const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => realDate(v), "not a real date");
 export const listSchema = z.object({
   month: monthSchema.optional(),
+  from: daySchema.optional(),
+  to: daySchema.optional(),
   search: z.string().trim().max(60).optional(),
   review: z.boolean().optional(),
   category: z.string().trim().max(40).optional(),
+  categories: z.array(z.string().trim().min(1).max(40)).max(40).optional(),
   card: z.string().regex(/^\d{4}$/).optional(),
-  type: z.enum(TXN_TYPES).optional(),
+  type: z.enum([...TXN_TYPES, "transfer"]).optional(),
+  min: z.number().finite().min(0).max(1e9).optional(),
+  max: z.number().finite().min(0).max(1e9).optional(),
+  sort: z.enum(["newest", "oldest", "amount-desc", "amount-asc"]).optional(),
   tripId: z.number().int().positive().optional(),
   merchant: z.string().trim().max(120).optional(),
   ids: z.array(z.number().int().positive()).max(500).optional(),
-});
+}).refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
+  .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
 export type ListQuery = z.infer<typeof listSchema>;
 
-/** withRaw adds the SMS text; only Detail, Review and Activity's pane need it. */
-export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean }) {
+function listWhere(q: ListQuery) {
   const where = [live];
-  if (q.month) where.push(inMonth(q.month));
+  if (q.from) where.push(gte(transactions.date, `${q.from} 00`));
+  if (q.to) where.push(lt(transactions.date, `${q.to} 24`));
+  if (!q.from && !q.to && q.month) where.push(inMonth(q.month));
+  const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
+  if (selectedCategories.length) {
+    const matches = selectedCategories.map((value) => {
+      const split = value.lastIndexOf(":");
+      return split > 0 && ["expense", "income", "investment"].includes(value.slice(0, split))
+        ? and(eq(transactions.type, value.slice(0, split) as typeof TXN_TYPES[number]), eq(transactions.category, value.slice(split + 1)))
+        : eq(transactions.category, value);
+    });
+    const match = or(...matches);
+    if (match) where.push(match);
+  }
   if (q.search) {
     const p = `%${q.search}%`;
     const match = or(like(transactions.merchant, p), like(transactions.category, p), like(transactions.rawText, p));
     if (match) where.push(match);
   }
   if (q.review) where.push(eq(transactions.needsReview, true));
-  if (q.category) where.push(eq(transactions.category, q.category));
   if (q.card) where.push(eq(transactions.accountLast4, q.card));
-  if (q.type) where.push(eq(transactions.type, q.type));
+  if (q.type === "transfer") where.push(eq(transactions.excluded, true));
+  else if (q.type) where.push(eq(transactions.type, q.type));
+  if (q.min !== undefined) where.push(gte(transactions.amount, q.min));
+  if (q.max !== undefined) where.push(lte(transactions.amount, q.max));
   if (q.merchant) where.push(eq(transactions.merchant, q.merchant));
   if (q.ids) where.push(inArray(transactions.id, q.ids.length ? q.ids : [0]));
-  if (q.tripId)
-    where.push(sql`${transactions.id} IN (SELECT transaction_id FROM transaction_trips WHERE trip_id = ${q.tripId})`);
+  if (q.tripId) where.push(sql`${transactions.id} IN (SELECT transaction_id FROM transaction_trips WHERE trip_id = ${q.tripId})`);
+  return where;
+}
+
+/** withRaw adds the SMS text; only Detail, Review and Activity's pane need it. */
+export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean }) {
+  const where = listWhere(q);
+  const order = q.sort === "oldest" ? [transactions.date, transactions.id] :
+    q.sort === "amount-desc" ? [desc(transactions.amount), desc(transactions.date)] :
+    q.sort === "amount-asc" ? [transactions.amount, desc(transactions.date)] :
+    [desc(transactions.date), desc(transactions.id)];
   return db
     .select({
       id: transactions.id,
@@ -306,10 +337,53 @@ export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boole
     })
     .from(transactions)
     .where(and(...where))
-    .orderBy(desc(transactions.date), desc(transactions.id))
+    .orderBy(...order)
     .limit(q.limit);
 }
 
+/** Days a filter covers, for avg/day. Null when the range is open-ended or absent. */
+function dayCount(q: ListQuery): number | null {
+  const dayMs = 864e5;
+  if (q.from && q.to) return (Date.parse(q.to) - Date.parse(q.from)) / dayMs + 1;
+  if (q.from || q.to) return null;
+  if (q.month) {
+    const [first, next] = monthBounds(q.month);
+    return (Date.parse(next) - Date.parse(first)) / dayMs;
+  }
+  return null;
+}
+
+/** One query, same WHERE as listTxns. Spend excludes excluded and duplicate rows; transferred is the excluded rows. */
+export async function summarizeTxns(db: Db, q: ListQuery) {
+  const where = and(...listWhere(q)) ?? sql`1 = 1`;
+  const [row] = await db.all<{ n: number; spent: number; income: number; transferred: number; top: string; biggest: string | null; frequent: string | null }>(sql`
+    WITH m AS (SELECT * FROM transactions WHERE ${where}),
+    s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)
+    SELECT
+      (SELECT COUNT(*) FROM m) AS n,
+      (SELECT COALESCE(SUM(amount), 0) FROM s) AS spent,
+      (SELECT COALESCE(SUM(amount), 0) FROM m WHERE type = 'income') AS income,
+      (SELECT COALESCE(SUM(amount), 0) FROM m WHERE excluded = 1) AS transferred,
+      (SELECT COALESCE(json_group_array(json_object('category', c, 'total', t)), '[]')
+         FROM (SELECT COALESCE(category, 'Other') AS c, SUM(amount) AS t FROM s GROUP BY c ORDER BY t DESC LIMIT 4)) AS top,
+      (SELECT json_object('merchant', merchant, 'amount', amount, 'date', date) FROM s ORDER BY amount DESC LIMIT 1) AS biggest,
+      (SELECT json_object('merchant', merchant, 'n', n)
+         FROM (SELECT merchant, COUNT(*) AS n FROM s GROUP BY merchant ORDER BY n DESC LIMIT 1)) AS frequent`);
+  const spent = Number(row?.spent ?? 0);
+  const income = Number(row?.income ?? 0);
+  const days = dayCount(q);
+  return {
+    count: Number(row?.n ?? 0),
+    spent,
+    income,
+    transferred: Number(row?.transferred ?? 0),
+    net: income - spent,
+    top: JSON.parse(row?.top ?? "[]") as { category: string; total: number }[],
+    biggest: row?.biggest ? (JSON.parse(row.biggest) as { merchant: string; amount: number; date: string }) : null,
+    frequent: row?.frequent ? (JSON.parse(row.frequent) as { merchant: string; n: number }) : null,
+    avgPerDay: days ? spent / days : null,
+  };
+}
 
 export async function getTxn(db: Db, id: number) {
   const [row] = await listTxns(db, { ids: [id], limit: 1, withRaw: true });

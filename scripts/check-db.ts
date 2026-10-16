@@ -101,6 +101,40 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   assert.notEqual((await db.select().from(transactions).where(eq(transactions.id, 9901)).get())?.deletedAt, null, "₹0 row soft-deleted");
   assert.equal((await db.select().from(transactions).where(eq(transactions.id, 9902)).get())?.deletedAt, null, "real row untouched");
 }
+// List filters: date range inclusive, multi-category matches name AND type, min/max, transfer = excluded.
+{
+  const { listSchema, summarizeTxns } = await import("../src/server/db/queries.ts");
+  const fdb = openDb(":memory:");
+  const seed = (id: number, date: string, amount: number, type: "expense" | "income", category: string, excluded = false) =>
+    addTxn(fdb, { type, amount, merchant: `M${id}`, category, date }).then(async (newId) => {
+      if (excluded) await fdb.update((await import("../src/server/db/schema.ts")).transactions).set({ excluded: true }).where(sql`id = ${newId}`);
+      return newId;
+    });
+  await seed(1, "2026-10-01 09:00", 100, "expense", "Food");
+  await seed(2, "2026-10-15 23:59", 300, "expense", "Health");
+  await seed(3, "2026-10-16 00:00", 500, "expense", "Food");
+  await seed(4, "2026-10-10 12:00", 900, "income", "Food");
+  await seed(5, "2026-10-12 12:00", 700, "expense", "Food", true);
+  const ids = async (q: Partial<Parameters<typeof listTxns>[1]>) =>
+    (await listTxns(fdb, { limit: 50, ...q } as Parameters<typeof listTxns>[1])).map((t) => t.id).sort((a, b) => a - b);
+  assert.deepEqual(await ids({ from: "2026-10-01", to: "2026-10-15" }), [1, 2, 4, 5], "range inclusive of both ends, excludes 16th");
+  assert.deepEqual(await ids({ categories: ["Food"] }), [1, 3, 4, 5], "multi category, Food across types");
+  assert.deepEqual(await ids({ type: "transfer" }), [5], "transfer means excluded rows");
+  assert.deepEqual(await ids({ min: 200, max: 600 }), [2, 3], "amount bounds inclusive");
+  assert.deepEqual(await ids({ type: "expense", min: 0 }).then((r) => r.length), 4, "expense type filter");
+  assert.equal(listSchema.safeParse({ from: "2026-02-30" }).success, false, "impossible from rejected");
+  assert.equal(listSchema.safeParse({ from: "2026-10-15", to: "2026-10-01" }).success, false, "to before from rejected");
+  assert.equal(listSchema.safeParse({ min: 900, max: 100 }).success, false, "min above max rejected");
+  const sum = await summarizeTxns(fdb, { from: "2026-10-01", to: "2026-10-15", limit: 50 } as Parameters<typeof summarizeTxns>[1]);
+  assert.equal(sum.count, 4, "summary count matches list WHERE");
+  assert.equal(sum.spent, 400, "spent = expense, not excluded: 100 + 300");
+  assert.equal(sum.income, 900, "income summed");
+  assert.equal(sum.transferred, 700, "transferred = excluded rows in range");
+  assert.equal(sum.biggest?.merchant, "M2", "biggest counted spend");
+  assert.equal(sum.avgPerDay, 400 / 15, "avg/day over 15 inclusive days");
+  const empty = await summarizeTxns(fdb, { from: "2025-01-01", to: "2025-01-02", limit: 50 } as Parameters<typeof summarizeTxns>[1]);
+  assert.deepEqual([empty.count, empty.spent, empty.top, empty.biggest, empty.frequent], [0, 0, [], null, null], "empty range summary");
+}
 console.log("check-db: ok");
 
 // Auth helpers: session signing, expiry, tamper, password hash, redirect safety.
