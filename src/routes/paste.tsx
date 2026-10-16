@@ -1,5 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "../components/ui";
-
-// STUB: replaced by the owning area.
-export const Route = createFileRoute("/paste")({ component: () => <PageHeader title="Paste SMS" /> });
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { z } from "zod";
+import { Button, PageHeader, Card } from "../components/ui";
+import { money, nowLocal } from "../lib/format";
+import { addTransaction } from "../server/fns";
+import { parsePasted } from "../server/daily/fns";
+import { saveFailed } from "../components/sheet";
+import { useOnline } from "../components/sync-pill";
+export const Route = createFileRoute("/paste")({ validateSearch: z.object({ text: z.string().optional() }), component: Paste });
+function Paste() { const initial = Route.useSearch().text ?? ""; const [text, setText] = useState(initial); const [parsed, setParsed] = useState<Awaited<ReturnType<typeof parsePasted>> | undefined>(); const navigate = useNavigate(); const online = useOnline(); const parse = async () => setParsed(await parsePasted({ data: { text } })); const save = async () => { if (!parsed) return; try { await addTransaction({ data: { ...parsed, date: nowLocal(), source: "paste" } }); void navigate({ to: "/" }); } catch { saveFailed(save); } }; return <main><PageHeader back="/add" title="Paste SMS" /><div className="space-y-5 px-5"><label className="flex flex-col gap-1.5 text-sm text-ink-2">Message<textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} className="field min-h-32 resize-none font-mono text-[13px] text-ink" /></label><div className="flex gap-2"><Button variant="outline" onClick={() => void navigator.clipboard.readText().then(setText)}>Paste from clipboard</Button><Button variant="text" onClick={() => setText("")}>Clear</Button><Button onClick={() => void parse()} disabled={!online || !text.trim()}>Parse</Button></div>{parsed === null && <Card className="p-5">Couldn’t parse this SMS. <Button variant="text" onClick={() => void navigate({ to: "/add" })}>Add manually</Button></Card>}{parsed && <Card className="flex flex-col gap-4 p-5"><span className="label-caps text-ink-3">Parsed on server</span><div className="flex justify-between border-b-[3px] border-double border-ink pb-3"><span><b className="block font-serif text-2xl">{parsed.merchant}</b><small className="text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small></span><b className="font-serif text-2xl">{money(parsed.amount)}</b></div><p className="m-0 text-sm text-ink-2">Saved rows stay flagged for review.</p><Button onClick={() => void save()} disabled={!online}>Save</Button></Card>}</div></main>; }
