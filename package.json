@@ -17,7 +17,8 @@
     "check:db": "node --experimental-strip-types --no-warnings scripts/check-db.ts",
     "quality": "npm run lint && npm run typecheck && npm run typecheck:tooling && npm run unused && npm run check:db && npm run check:format",
     "db:generate": "drizzle-kit generate",
-    "check:format": "node --experimental-strip-types --no-warnings scripts/check-format.ts"
+    "check:format": "node --experimental-strip-types --no-warnings scripts/check-format.ts",
+    "seed:dev": "node --experimental-strip-types --no-warnings scripts/seed-dev.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
@@ -58,7 +59,8 @@
       "scripts/*.ts"
     ],
     "entry": [
-      "scripts/hash-password.ts"
+      "scripts/hash-password.ts",
+      "scripts/seed-dev.ts"
     ]
   }
 }
