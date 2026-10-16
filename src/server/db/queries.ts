@@ -67,7 +67,6 @@ export function ruleMatches(rule: Pick<MerchantRule, "match">, merchant: string)
 export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
   // A ₹0 row is a parser miss (OTP, balance alert). Skip it rather than reject the batch, so the mini never retries forever.
   rows = rows.filter((r) => r.amount !== 0 || r.deletedAt);
-  if (rows.length === 0) return 0;
   const [rules, cats] = await Promise.all([
     db.select().from(merchantRules).orderBy(desc(merchantRules.id)),
     db.select({ name: categories.name, type: categories.type }).from(categories),

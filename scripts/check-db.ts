@@ -68,6 +68,9 @@ assert.equal((await listTxns(db, { month: "2026-12", search: "YearEnd", limit: 5
 const { meta } = await import("../src/server/db/schema.ts");
 const { eq } = await import("drizzle-orm");
 assert.equal(await db.select().from(meta).where(eq(meta.key, "missing")).get(), undefined, "get() miss is undefined");
+await db.update(meta).set({ value: "2000-01-01T00:00:00.000Z" }).where(eq(meta.key, "last_ingest_at"));
+assert.equal(await ingest(db, [{ ...row, id: 9000, amount: 0 }]), 0, "zero-only push creates no transactions");
+assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at")).get())?.value, "2000-01-01T00:00:00.000Z", "zero-only push refreshes sync timestamp");
 
 // Design rebuild: unknown category files as Other; rules apply on ingest; transfers excluded.
 {
@@ -110,7 +113,7 @@ console.log("check-db: ok");
 // Recurring schedule regressions use only synthetic rows in the in-memory DB.
 {
   const { recurringOccurrences, recurringSeries, transactions } = await import("../src/server/db/schema.ts");
-  const { matchRecurring, scheduleSeries } = await import("../src/server/plan/jobs.ts");
+  const { matchRecurring, nextDue, scheduleSeries } = await import("../src/server/plan/jobs.ts");
   const { eq } = await import("drizzle-orm");
   const { mock } = await import("node:test");
   const actualToday = new Date().toISOString().slice(0, 10);
@@ -193,6 +196,11 @@ console.log("check-db: ok");
     await scheduleSeries(9204, db);
     assert.ok((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9204))).length > 0, "scheduleSeries processes requested series");
     assert.equal((await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9205))).length, 0, "scheduleSeries leaves sibling series untouched");
+    await db.update(recurringSeries).set({ usualDay: 20, cadence: "quarterly" }).where(eq(recurringSeries.id, 9204));
+    await scheduleSeries(9204, db);
+    const edited = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9204));
+    assert.equal(edited.filter((o) => o.transactionId === 9231).length, 1, "rescheduling preserves one historical match per payment");
+    assert.equal(edited.find((o) => o.status === "upcoming")?.dueDate, nextDue(edited.find((o) => o.transactionId === 9231)!.dueDate, "quarterly", 20), "edited series uses new cadence and due day");
     await matchRecurring([9241, 9242, 9243], db, 9206);
     const guarded = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, 9206));
     assert.equal(guarded.find((o) => o.status === "upcoming")?.transactionId, null, "income, excluded, and deleted rows do not clear a due");
