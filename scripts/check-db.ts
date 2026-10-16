@@ -60,6 +60,23 @@ assert.equal((await listTxns(db, { month: "2026-12", search: "YearEnd", limit: 5
 const { meta } = await import("../src/server/db/schema.ts");
 const { eq } = await import("drizzle-orm");
 assert.equal(await db.select().from(meta).where(eq(meta.key, "missing")).get(), undefined, "get() miss is undefined");
+
+// Design rebuild: unknown category files as Other; rules apply on ingest; transfers excluded.
+{
+  const { addRule, listTxns: list } = await import("../src/server/db/queries.ts");
+  const base = { ...row, needsReview: 1 };
+  await ingest(db, [{ ...base, id: 100, category: "Beverages", merchant: "CAFE X", merchantCanonical: null }]);
+  assert.equal((await list(db, { search: "CAFE X", limit: 1 }))[0]?.category, "Other", "unknown category maps to Other");
+  await addRule(db, { match: "BLUE TOKAI*", displayMerchant: "Blue Tokai", category: "Food" });
+  await ingest(db, [{ ...base, id: 101, category: null, merchant: "BLUE TOKAI KORAMANGALA", merchantCanonical: null }]);
+  const ruled = (await list(db, { search: "Blue Tokai", limit: 1 }))[0];
+  assert.equal(ruled?.category, "Food", "rule sets category on ingest");
+  assert.equal(ruled?.merchant, "Blue Tokai", "rule renames merchant");
+  assert.equal(ruled?.rawMerchant, "BLUE TOKAI KORAMANGALA", "raw merchant kept");
+  assert.equal(ruled?.needsReview, false, "ruled rows skip review");
+  await ingest(db, [{ ...base, id: 102, category: "Credit Card Payment", merchant: "CC BILL", merchantCanonical: null }]);
+  assert.equal((await list(db, { search: "CC BILL", limit: 1 }))[0]?.excluded, true, "card bill is not a spend");
+}
 console.log("check-db: ok");
 
 // Auth helpers: session signing, expiry, tamper, password hash, redirect safety.
