@@ -1,0 +1,13 @@
+[Unit]
+Description=Kharcha background job schedules
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 Asia/Kolkata
+OnCalendar=*-*-* 23:30:00 Asia/Kolkata
+OnCalendar=*-*-* 02:00:00 Asia/Kolkata
+OnCalendar=Mon *-*-* 07:00:00 Asia/Kolkata
+Persistent=true
+Unit=kharcha-web-jobs.service
+
+[Install]
+WantedBy=timers.target
