@@ -33,6 +33,7 @@ import { Route as WealthIdRouteImport } from './routes/wealth_.$id'
 import { Route as WealthNewRouteImport } from './routes/wealth_.new'
 import { Route as ApiAttachmentsIdRouteImport } from './routes/api.attachments.$id'
 import { Route as ApiJobsNameRouteImport } from './routes/api.jobs.$name'
+import { Route as ApiMiniPollRouteImport } from './routes/api.mini.poll'
 import { Route as PlanRecurringIdRouteImport } from './routes/plan.recurring_.$id'
 import { Route as PlanRecurringNewRouteImport } from './routes/plan.recurring_.new'
 import { Route as PlanTripsIdRouteImport } from './routes/plan.trips_.$id'
@@ -161,6 +162,11 @@ const ApiJobsNameRoute = ApiJobsNameRouteImport.update({
   path: '/api/jobs/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMiniPollRoute = ApiMiniPollRouteImport.update({
+  id: '/api/mini/poll',
+  path: '/api/mini/poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRecurringIdRoute = PlanRecurringIdRouteImport.update({
   id: '/plan/recurring_/$id',
   path: '/plan/recurring/$id',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/plan/': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring/$id': typeof PlanRecurringIdRoute
   '/plan/recurring/new': typeof PlanRecurringNewRoute
   '/plan/trips/$id': typeof PlanTripsIdRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/plan/': typeof PlanIndexRoute
   '/api/attachments/$id': typeof ApiAttachmentsIdRoute
   '/api/jobs/$name': typeof ApiJobsNameRoute
+  '/api/mini/poll': typeof ApiMiniPollRoute
   '/plan/recurring_/$id': typeof PlanRecurringIdRoute
   '/plan/recurring_/new': typeof PlanRecurringNewRoute
   '/plan/trips_/$id': typeof PlanTripsIdRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/plan/'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring/$id'
     | '/plan/recurring/new'
     | '/plan/trips/$id'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/plan/'
     | '/api/attachments/$id'
     | '/api/jobs/$name'
+    | '/api/mini/poll'
     | '/plan/recurring_/$id'
     | '/plan/recurring_/new'
     | '/plan/trips_/$id'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   PlanIndexRoute: typeof PlanIndexRoute
   ApiAttachmentsIdRoute: typeof ApiAttachmentsIdRoute
   ApiJobsNameRoute: typeof ApiJobsNameRoute
+  ApiMiniPollRoute: typeof ApiMiniPollRoute
   PlanRecurringIdRoute: typeof PlanRecurringIdRoute
   PlanRecurringNewRoute: typeof PlanRecurringNewRoute
   PlanTripsIdRoute: typeof PlanTripsIdRoute
@@ -603,6 +616,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiJobsNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mini/poll': {
+      id: '/api/mini/poll'
+      path: '/api/mini/poll'
+      fullPath: '/api/mini/poll'
+      preLoaderRoute: typeof ApiMiniPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan/recurring_/$id': {
       id: '/plan/recurring_/$id'
       path: '/plan/recurring/$id'
@@ -680,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanIndexRoute: PlanIndexRoute,
   ApiAttachmentsIdRoute: ApiAttachmentsIdRoute,
   ApiJobsNameRoute: ApiJobsNameRoute,
+  ApiMiniPollRoute: ApiMiniPollRoute,
   PlanRecurringIdRoute: PlanRecurringIdRoute,
   PlanRecurringNewRoute: PlanRecurringNewRoute,
   PlanTripsIdRoute: PlanTripsIdRoute,

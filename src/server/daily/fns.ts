@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { categoryList, getMeta } from "../db/queries";
+import { categoryList } from "../db/queries";
 import { attachments, categories, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
 import { receiptSplitMatches, scrubItemName } from "../ai/receipt";
 import { afterWrite } from "../jobs";
@@ -10,10 +10,6 @@ import { parseMessage } from "../parsers/index.ts";
 
 const id = z.object({ id: z.number().int().positive() });
 const live = isNull(transactions.deletedAt);
-
-export const getLastIngestAt = createServerFn({ method: "GET" }).handler(async () => ({
-  lastIngestAt: (await getMeta(getDb(), "last_ingest_at")) ?? null,
-}));
 
 export const getReview = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();

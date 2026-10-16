@@ -265,3 +265,22 @@ console.log("check-db: ok");
   }
   console.log("check-recurring: ok");
 }
+
+{
+  // Mini presence and Sync now (§18).
+  const { minipoll, miniStatus, requestSync } = await import("../src/server/mini.ts");
+  const mdb = openDb(":memory:");
+  const t0 = new Date("2026-10-16T10:00:00Z");
+  assert.deepEqual(await minipoll(mdb, false, t0), { sync: false }, "no request, no sync");
+  let s = await miniStatus(mdb, t0.getTime() + 60_000);
+  assert.equal(s.online, true, "seen a minute ago is online");
+  assert.equal(s.sync, "idle");
+  assert.equal((await miniStatus(mdb, t0.getTime() + 3 * 60_000)).online, false, "3 min silent is offline");
+  await requestSync(mdb, new Date(t0.getTime() + 60_000));
+  assert.equal((await miniStatus(mdb, t0.getTime() + 61_000)).sync, "waiting");
+  assert.deepEqual(await minipoll(mdb, false, new Date(t0.getTime() + 90_000)), { sync: true }, "poll picks up the request");
+  assert.deepEqual(await minipoll(mdb, true, new Date(t0.getTime() + 120_000)), { sync: false }, "done clears it");
+  s = await miniStatus(mdb, t0.getTime() + 121_000);
+  assert.equal(s.sync, "synced");
+  console.log("check-mini: ok");
+}

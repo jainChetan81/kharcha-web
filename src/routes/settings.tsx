@@ -18,9 +18,9 @@ import {
   updateRule,
 } from "../server/daily/settings";
 import type { Category } from "../server/db/schema";
-import { ago, nowLocal, time, weekdayDate } from "../lib/format";
 import { ModelSelect } from "../components/model-select";
 import { SwatchPicker } from "../components/swatch-picker";
+import { SyncSection } from "../components/sync-section";
 
 export const Route = createFileRoute("/settings")({
   loader: () => getSettings(),
@@ -48,15 +48,6 @@ function Settings() {
   const [colorPicker, setColorPicker] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<(typeof data.categories)[number] | null>(null);
   const { used, cap } = data.ai;
-  const lastIngest = data.values.last_ingest_at;
-  const lastIngestDate = lastIngest ? new Date(lastIngest.replace(" ", "T")) : null;
-  const ageMinutes = lastIngestDate && !Number.isNaN(lastIngestDate.valueOf())
-    ? Math.max(0, Math.floor((Date.now() - lastIngestDate.valueOf()) / 60_000))
-    : null;
-  const ingestStatus = ageMinutes === null ? "No SMS received yet" : ageMinutes >= 360 ? `Mini quiet · ${Math.floor(ageMinutes / 60)} h` : "Healthy";
-  const ingestTime = lastIngestDate && !Number.isNaN(lastIngestDate.valueOf())
-    ? `${weekdayDate(nowLocal(lastIngestDate))}, ${time(lastIngestDate)} · ${ago(lastIngestDate.toISOString())}`
-    : "Not received yet";
 
   const refresh = () => void router.invalidate();
   const save = async (
@@ -165,17 +156,10 @@ function Settings() {
     <main>
       <PageHeader back="/" title="Settings" />
       <div className="space-y-7 px-5 pb-10 tablet:mx-auto tablet:max-w-[720px] desk:px-0">
+        <SyncSection />
+
         <section aria-labelledby="settings-app">
           <SectionHead id="settings-app" title="App" />
-          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[15px] font-medium">Last SMS from the mini</span>
-              <span className="text-[13px] text-ink-3">{ingestTime}</span>
-            </span>
-            <span className={`shrink-0 text-[13px] font-semibold ${ageMinutes !== null && ageMinutes < 360 ? "text-earn" : "text-ink-3"}`}>
-              <span aria-hidden className="mr-1.5 inline-block size-[7px] rounded-full bg-current" />{ingestStatus}
-            </span>
-          </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Install app</span>
             {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-10 text-sm" onClick={() => void promptInstall().then((result) => {

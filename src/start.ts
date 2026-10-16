@@ -5,8 +5,8 @@ import { isSignedIn } from "./server/auth";
 const csrf = createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === "serverFn" });
 
 // Reachable without a session: the login flow, plus endpoints with their own guard
-// (ingest and jobs: bearer token; ingest, jobs and health are also 404 on the public Caddy site).
-const PUBLIC = new Set(["/login", "/api/login", "/api/logout", "/api/ingest", "/api/health"]);
+// (ingest, mini poll and jobs: bearer token; all of these and health are also 404 on the public Caddy site).
+const PUBLIC = new Set(["/login", "/api/login", "/api/logout", "/api/ingest", "/api/health", "/api/mini/poll"]);
 const isPublic = (path: string) => PUBLIC.has(path) || path.startsWith("/api/jobs/");
 
 // ponytail: KHARCHA_AUTH=off opens the whole app (owner's choice while data is low-stakes).

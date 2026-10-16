@@ -11,7 +11,7 @@ kharcha.chetan-vps.tech {
         -Server
     }
     # Machine endpoints stay tailnet-only (the Mac mini pushes over Tailscale).
-    @internal path /api/ingest /api/ingest/* /api/health /api/jobs /api/jobs/*
+    @internal path /api/ingest /api/ingest/* /api/health /api/jobs /api/jobs/* /api/mini /api/mini/*
     respond @internal 404
     # Receipts upload up to 5 images or PDFs.
     request_body {
