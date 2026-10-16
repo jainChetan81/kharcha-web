@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receipt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1320px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 8px">
+    <div style="display: flex; align-items: center">
+      <a href="Detail.dc.html" aria-label="Back to transaction" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Receipt</h1>
+    </div>
+    <span style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #E3E8F1; font-size: 12px; color: #1F3459">Read by AI · 6 lines</span>
+  </header>
+
+  <section style="padding: 8px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <figure style="margin: 0; display: flex; flex-direction: column; gap: 6px">
+      <div role="img" aria-label="Screenshot 1, order items" style="height: 150px; border-radius: 10px; border: 1px solid #CFCABB; background: #FFFFFF; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 7px">
+        <span style="height: 8px; width: 70%; border-radius: 2px; background: #3E4352"></span>
+        <span style="height: 6px; width: 90%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 80%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 85%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 60%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 75%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="margin-top: auto; height: 8px; width: 50%; align-self: flex-end; border-radius: 2px; background: #3E4352"></span>
+      </div>
+      <figcaption style="font-size: 12px; color: #4A5163">Items</figcaption>
+    </figure>
+    <figure style="margin: 0; display: flex; flex-direction: column; gap: 6px">
+      <div role="img" aria-label="Screenshot 2, bill summary" style="height: 150px; border-radius: 10px; border: 1px solid #CFCABB; background: #FFFFFF; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 7px">
+        <span style="height: 8px; width: 55%; border-radius: 2px; background: #3E4352"></span>
+        <span style="height: 6px; width: 90%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 90%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="height: 6px; width: 90%; border-radius: 2px; background: #D9D5C8"></span>
+        <span style="margin-top: auto; height: 1px; background: #3E4352"></span>
+        <span style="height: 8px; width: 90%; border-radius: 2px; background: #3E4352"></span>
+      </div>
+      <figcaption style="font-size: 12px; color: #4A5163">Bill summary</figcaption>
+    </figure>
+    <button type="button" style="height: 150px; border-radius: 10px; border: 1px dashed #8A8576; background: transparent; color: #2F4A7A; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add image<span style="font-weight: 400; color: #5E6272; font-size: 12px">or PDF</span></button>
+  </section>
+
+  <section style="margin: 16px 20px 0; padding: 14px 16px; border-radius: 12px; background: #FBFAF6; border: 1px solid #D9D5C8; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+    <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272">Matched to SMS</span><span style="font-size: 15px; font-weight: 500">Swiggy Instamart · ₹510</span><span style="font-size: 13px; color: #5E6272">Tue 13 Oct, 22:50 · Card ••2047</span></span>
+    <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #2D6B4A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Totals agree</span>
+  </section>
+
+  <section style="padding: 20px 20px 0">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 28px 64px 96px; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272"><span>Item</span><span style="text-align: right">Qty</span><span style="text-align: right">₹</span><span style="text-align: right">Category</span></div>
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 28px 64px 96px; gap: 8px; align-items: center; min-height: 48px; border-bottom: 1px solid #E2DED3; font-size: 14px">
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.name}}</span>
+        <span style="text-align: right; color: #4A5163">{{it.qty}}</span>
+        <span style="text-align: right; font-weight: 500">{{it.amt}}</span>
+        <button type="button" onClick="{{it.cycle}}" aria-label="{{it.aria}}" style="justify-self: end; min-height: 32px; padding: 0 10px; border-radius: 999px; border: 1px solid #8A8576; background: #FFFFFF; font-size: 12px; color: #1C2230; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{it.color}}"></span>{{it.cat}}</button>
+      </div>
+    </sc-for>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 3px double #1C2230; font-size: 15px"><span style="font-weight: 600">Total on receipt</span><span style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 500">₹510</span></div>
+  </section>
+
+  <section style="margin: 20px 20px 0; padding: 16px; border-radius: 12px; background: #FBFAF6; border: 1px solid #D9D5C8; display: flex; flex-direction: column; gap: 12px">
+    <label style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Split by category</span></span>
+      <button type="button" role="switch" aria-checked="{{split}}" onClick="{{toggleSplit}}" style="flex: none; width: 48px; height: 28px; border-radius: 999px; border: 0; padding: 3px; background: {{track}}; display: flex; justify-content: {{knob}}"><span style="width: 22px; height: 22px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span></button>
+    </label>
+    <sc-if value="{{split}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px">
+        <sc-for list="{{parts}}" as="p" hint-placeholder-count="3"><span style="flex: {{p.n}}; background: {{p.color}}"></span></sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px">
+        <sc-for list="{{parts}}" as="p" hint-placeholder-count="3"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{p.color}}"></span>{{p.cat}} <strong style="font-weight: 600">{{p.amt}}</strong></span></sc-for>
+      </div>
+    </sc-if>
+  </section>
+
+  <p style="margin: 16px 20px 0; font-size: 12px; line-height: 1.5; color: #5E6272">Images are kept on your server. They go to OpenRouter only to be read, with the card and phone number areas blurred first.</p>
+
+  <div style="padding: 20px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+    <a href="Detail.dc.html" style="min-height: 52px; border-radius: 12px; border: 1px solid #1C2230; display: flex; align-items: center; justify-content: center; color: #1C2230; font-size: 15px; font-weight: 500; text-decoration: none">Discard</a>
+    <a href="Detail.dc.html" style="grid-column: span 2; min-height: 52px; border-radius: 12px; background: #1C2230; display: flex; align-items: center; justify-content: center; color: #F6F4EE; font-size: 15px; font-weight: 500; text-decoration: none">Save items</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1320}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { split: true, cats: {} };
+  }
+  renderVals() {
+    const C = { Food: '#B4572E', Home: '#4F7A4A', Health: '#3D8077', Other: '#8A8576' };
+    const order = ['Food', 'Home', 'Health', 'Other'];
+    const base = [
+      { name: 'Amul Taaza milk, 1 L', qty: '2', n: 136, cat: 'Food' },
+      { name: 'Brown bread', qty: '1', n: 55, cat: 'Food' },
+      { name: 'Eggs, 12', qty: '1', n: 96, cat: 'Food' },
+      { name: 'Bananas, 6', qty: '1', n: 49, cat: 'Food' },
+      { name: 'Surf Excel, 1 kg', qty: '1', n: 135, cat: 'Home' },
+      { name: 'Handling and delivery', qty: '', n: 39, cat: 'Other' }
+    ];
+    const s = this.state;
+    const items = base.map((b, i) => {
+      const cat = s.cats[i] || b.cat;
+      return {
+        name: b.name, qty: b.qty, amt: String(b.n), cat, color: C[cat],
+        aria: b.name + ', category ' + cat + '. Tap to change.',
+        cycle: () => this.setState({ cats: Object.assign({}, s.cats, { [i]: order[(order.indexOf(cat) + 1) % order.length] }) }),
+        n: b.n
+      };
+    });
+    const sums = {};
+    items.forEach((it) => { sums[it.cat] = (sums[it.cat] || 0) + it.n; });
+    const parts = order.filter((c) => sums[c]).map((c) => ({ cat: c, n: sums[c], amt: '₹' + sums[c], color: C[c] }));
+    return {
+      items, parts,
+      split: s.split,
+      track: s.split ? '#2F4A7A' : '#8A8576',
+      knob: s.split ? 'flex-end' : 'flex-start',
+      toggleSplit: () => this.setState({ split: !s.split })
+    };
+  }
+}
+</script>
+</body>
+</html>

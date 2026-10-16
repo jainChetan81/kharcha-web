@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Offline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 0 32px; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center">
+  <p style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; line-height: 1.3">Can’t reach your server right now.</p>
+  <button type="button" style="min-height: 48px; padding: 0 28px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; font-size: 16px; font-weight: 500">Retry</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

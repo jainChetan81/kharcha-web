@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kharcha ledger system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 2680px; box-sizing: border-box; padding: 64px 72px; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; display: flex; flex-direction: column; gap: 56px">
+
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px double #1C2230; padding-bottom: 20px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 64px; letter-spacing: -0.02em; line-height: 1">Kharcha</h1>
+      <span style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 20px; color: #4A5163">A ledger that fills itself.</span>
+    </div>
+    <span style="font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272">Ledger system · v1.0</span>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px">
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">1 · Type</h2>
+      <sc-for list="{{type}}" as="t" hint-placeholder-count="9">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border-bottom: 1px solid #E2DED3; padding-bottom: 10px">
+          <span style="font-family: {{t.family}}; font-size: {{t.size}}; font-weight: {{t.weight}}; font-style: {{t.style}}; letter-spacing: {{t.track}}; text-transform: {{t.case}}; line-height: 1.1; color: {{t.color}}">{{t.sample}}</span>
+          <span style="flex: none; font-size: 12px; color: #5E6272; text-align: right">{{t.spec}}</span>
+        </div>
+      </sc-for>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4A5163">Every number uses tabular lining figures. Self-host the three families so the shell and offline page render without Google Fonts.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">2 · Colour</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{swatches}}" as="s" hint-placeholder-count="20">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="height: 48px; border-radius: 8px; background: {{s.hex}}; border: 1px solid #D9D5C8"></div>
+            <span style="font-size: 13px; font-weight: 500">{{s.name}}</span>
+            <span style="font-size: 11px; color: #5E6272; font-family: 'IBM Plex Mono', monospace">{{s.token}} · {{s.hex}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <h3 style="margin: 8px 0 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272">Categories · always beside a label</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 16px">
+        <sc-for list="{{cats}}" as="c" hint-placeholder-count="9">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 13px"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{c.hex}}"></span>{{c.name}} <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5E6272">{{c.hex}}</span></span>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px">
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">3 · Numbers</h2>
+      <sc-for list="{{nums}}" as="n" hint-placeholder-count="8">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #E2DED3; padding-bottom: 8px">
+          <span style="font-size: 18px; font-weight: 500; color: {{n.color}}">{{n.value}}</span>
+          <span style="font-size: 13px; color: #5E6272">{{n.rule}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">4 · Surfaces</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <div style="padding: 16px; border-radius: 12px; background: #FBFAF6; border: 1px solid #D9D5C8; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Card</span><span style="font-size: 13px; color: #4A5163">Grouped content. 1px rule, radius 12.</span></div>
+        <div style="padding: 16px; border-radius: 12px; background: #1C2230; color: #F6F4EE; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Ink hero</span><span style="font-size: 13px; color: #C9CDD6">One per screen, top only. Today and Wealth.</span></div>
+        <div style="padding: 16px; border-radius: 12px; background: #1F3B4D; color: #F6F4EE; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Trip band</span><span style="font-size: 13px; color: #C8D3DA">Only for an active or upcoming trip.</span></div>
+        <div style="padding: 16px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Suggestion</span><span style="font-size: 13px; color: #4A5163">Dashed: something Kharcha guessed. Confirm or dismiss.</span></div>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4A5163">On ink: text #F6F4EE, secondary #A9AEBB, this month #F2C879, gain #8FD1A8, pace #8FA6CF.</p>
+    </section>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">5 · Components</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 13px; font-weight: 600">Buttons · 44 min height</span>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; font-weight: 500; font-size: 15px">Confirm · Food</button>
+          <button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-weight: 500; font-size: 15px">Skip</button>
+          <button type="button" style="min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: #2F4A7A; font-weight: 500; font-size: 15px">Edit</button>
+          <button type="button" style="min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: #A3402D; font-weight: 500; font-size: 15px">Delete</button>
+        </div>
+        <span style="font-size: 13px; font-weight: 600">Chips and segments</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button type="button" aria-pressed="true" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #2F4A7A; background: #2F4A7A; color: #FFFFFF; font-size: 14px">Food</button>
+          <button type="button" aria-pressed="false" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230; font-size: 14px">Shopping</button>
+          <button type="button" style="min-height: 38px; padding: 0 12px; border-radius: 999px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230; font-size: 14px; display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F4A7A"></span>Needs review</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+          <span style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; background: #FBFAF6; box-shadow: 0 1px 2px rgba(28,34,48,0.12)">Budgets</span>
+          <span style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5163">Recurring</span>
+          <span style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5163">Trips</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="sty-m" style="font-size: 13px; color: #4A5163">Merchant</label>
+          <input id="sty-m" value="Swiggy Instamart" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 13px; font-weight: 600">Ledger rows</span>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #4A5163"><span>Thu 15 Oct</span><span style="color: #1C2230; font-weight: 600">₹743</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; min-height: 56px; border-bottom: 1px solid #E2DED3"><span style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F4A7A"></span>Swiggy Instamart</span><span style="font-size: 13px; color: #5E6272">14:44 · Other · ••2047</span></span><span style="font-weight: 500">₹219</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; min-height: 56px; border-bottom: 1px solid #E2DED3"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Salary</span><span style="font-size: 13px; color: #5E6272">09:00 · Income</span></span><span style="font-weight: 500; color: #2D6B4A">+₹1,42,000</span></div>
+        <span style="font-size: 13px; font-weight: 600">Budget bar with pace tick</span>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 15px"><span style="font-weight: 500">Utilities</span><span><span style="font-weight: 500">₹1,577</span><span style="color: #5E6272"> / ₹2,000</span></span></div>
+          <div style="position: relative; height: 6px; background: #E6E2D7; border-radius: 3px"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 78.9%; border-radius: 3px; background: #8A5A12"></div><div style="position: absolute; left: 48.4%; top: -4px; width: 2px; height: 14px; background: #1C2230"></div></div>
+          <span style="font-size: 13px; color: #7A4F0E; font-weight: 500">On track to end at ₹3,260</span>
+        </div>
+        <span style="font-size: 13px; color: #4A5163">Bar colour follows the projected month end: indigo on pace, ochre ahead of pace, rust over.</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 13px; font-weight: 600">AI and insight blocks</span>
+        <div style="padding: 14px; border-radius: 12px; background: #FBFAF6; border: 1px solid #CFCABB; display: flex; flex-direction: column; gap: 8px">
+          <span style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 18px">This week, in short</span>
+          <span style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 14px; line-height: 1.5"><span style="font-family: 'Newsreader', Georgia, serif; color: #2F4A7A">i</span><span>Flipkart was <strong style="font-weight: 600; border-bottom: 1px solid #2F4A7A">38% of the month</strong> so far.</span></span>
+          <span style="font-size: 12px; color: #5E6272">Numbers from your ledger · words by AI</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap">
+          <span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #F4E9D2; color: #6E470C">Unusual</span>
+          <span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E3E8F1; color: #1F3459">Check</span>
+          <span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E2DFD6; color: #3E4352">Recurring?</span>
+          <span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E3E8F1; color: #1F3459">Read by AI</span>
+        </div>
+        <span style="font-size: 13px; font-weight: 600">Status pills</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <span style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #EEEBE2; font-size: 12px; color: #4A5163"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2D6B4A"></span>Synced 3 min ago</span>
+          
+          <span style="padding: 5px 10px; border-radius: 999px; background: #E2DFD6; font-size: 12px; color: #3E4352">Offline</span>
+          <span style="padding: 5px 10px; border-radius: 999px; background: #F4E9D2; font-size: 12px; color: #6E470C">Mini quiet · 6 h</span>
+        </div>
+        <div style="min-height: 52px; border-radius: 12px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 14px; font-size: 14px"><span>Saved ₹219 · Food</span><span style="padding: 0 10px; color: #B9C6DD; font-weight: 600">Undo</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px">
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">6 · Charts</h2>
+      <sc-for list="{{charts}}" as="c" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; padding-bottom: 8px; border-bottom: 1px solid #E2DED3; font-size: 14px; line-height: 1.45"><span style="font-weight: 600">{{c.k}}</span><span style="color: #3E4352">{{c.v}}</span></div>
+      </sc-for>
+    </section>
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272; border-bottom: 1px solid #1C2230; padding-bottom: 8px">7 · Layout</h2>
+      <sc-for list="{{layout}}" as="c" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; padding-bottom: 8px; border-bottom: 1px solid #E2DED3; font-size: 14px; line-height: 1.45"><span style="font-weight: 600">{{c.k}}</span><span style="color: #3E4352">{{c.v}}</span></div>
+      </sc-for>
+    </section>
+  </div>
+
+  <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; border-top: 1px solid #1C2230; padding-top: 16px; font-size: 14px; line-height: 1.5; color: #4A5163">
+    <div><div style="font-weight: 600; color: #1C2230">Copy</div>Sentence case. One short label, no helper text under headings. Dates as “Thu 15 Oct”.</div>
+    <div><div style="font-weight: 600; color: #1C2230">Icons</div>Stroke 1.75 on a 24 grid, round caps. Lucide set. Never emoji.</div>
+    <div><div style="font-weight: 600; color: #1C2230">Build</div>Tailwind 4 and shadcn restyled with these tokens. motion for swipe, sheets and snackbars: 150 ms state, 220 ms sheets, reduced motion respected. Charts are plain SVG.</div>
+    <div><div style="font-weight: 600; color: #1C2230">Access</div>Text measured at 4.9:1 or better. Field and chip borders 3.3:1. Colour never alone: words, signs or ticks too. 44 px targets.</div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2680}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const S = "'Newsreader', Georgia, serif", P = "'IBM Plex Sans', system-ui, sans-serif", M = "'IBM Plex Mono', monospace";
+    const t = (sample, spec, family, size, weight, extra) => Object.assign({ sample, spec, family, size, weight, style: 'normal', track: 'normal', case: 'none', color: '#1C2230' }, extra || {});
+    return {
+      type: [
+        t('₹47,854', 'display · Newsreader 56/500, −2%', S, '56px', '500', { track: '-0.02em' }),
+        t('Odisha', 'trip title · Newsreader 44/500', S, '44px', '500'),
+        t('October 2026', 'screen title · Newsreader 22–26/500', S, '24px', '500'),
+        t('This week, in short', 'AI voice · Newsreader italic 22', S, '22px', '400', { style: 'italic' }),
+        t('Budgets at risk', 'section · Newsreader 18/500', S, '18px', '500'),
+        t('Swiggy Instamart', 'row title · Plex Sans 15/500', P, '15px', '500'),
+        t('14:44 · Other · ••2047', 'meta · Plex Sans 13', P, '13px', '400', { color: '#5E6272' }),
+        t('Today · Thu 15 Oct', 'ledger label · 12 caps +8%', P, '12px', '400', { track: '0.08em', case: 'uppercase', color: '#5E6272' }),
+        t('Rs.219.00 spent on card xx2047', 'raw SMS · Plex Mono 13', M, '13px', '400', { color: '#3E4352' })
+      ],
+      swatches: [
+        { name: 'Paper', token: 'paper', hex: '#F6F4EE' },
+        { name: 'Card', token: 'card', hex: '#FBFAF6' },
+        { name: 'Sunken', token: 'sunken', hex: '#EEEBE2' },
+        { name: 'Rule', token: 'rule', hex: '#D9D5C8' },
+        { name: 'Ink', token: 'ink', hex: '#1C2230' },
+        { name: 'Ink 2', token: 'ink-2', hex: '#4A5163' },
+        { name: 'Ink 3', token: 'ink-3', hex: '#5E6272' },
+        { name: 'Hairline', token: 'hairline', hex: '#E2DED3' },
+        { name: 'Indigo', token: 'brand', hex: '#2F4A7A' },
+        { name: 'Indigo soft', token: 'brand-soft', hex: '#E3E8F1' },
+        { name: 'Earn', token: 'earn', hex: '#2D6B4A' },
+        { name: 'Over', token: 'over', hex: '#A3402D' },
+        { name: 'Watch', token: 'watch', hex: '#8A5A12' },
+        { name: 'Watch soft', token: 'watch-soft', hex: '#F4E9D2' },
+        { name: 'Trip', token: 'trip', hex: '#1F3B4D' },
+        { name: 'Field', token: 'field', hex: '#8A8576' },
+        { name: 'Indigo deep', token: 'brand-deep', hex: '#1F3459' },
+        { name: 'Month on ink', token: 'on-ink-month', hex: '#F2C879' },
+        { name: 'Gain on ink', token: 'on-ink-gain', hex: '#8FD1A8' }
+      ],
+      cats: [
+        { name: 'Food', hex: '#B4572E' }, { name: 'Shopping', hex: '#6B4C8A' }, { name: 'Transport', hex: '#2F6F8F' },
+        { name: 'Utilities', hex: '#8A6A1F' }, { name: 'Entertainment', hex: '#9B3D5C' }, { name: 'Home', hex: '#4F7A4A' },
+        { name: 'Health', hex: '#3D8077' }, { name: 'Work', hex: '#55606E' }, { name: 'Sports', hex: '#6B7A2A' }, { name: 'Other', hex: '#8A8576' }
+      ],
+      nums: [
+        { value: '₹1,23,450', rule: 'Lists: en-IN lakh grouping', color: '#1C2230' },
+        { value: '1.2L · 45K', rule: 'Axes and tight tiles: compact', color: '#1C2230' },
+        { value: '₹219', rule: 'Paise hidden when .00', color: '#1C2230' },
+        { value: '₹219.50', rule: 'Paise shown when present', color: '#1C2230' },
+        { value: '+₹85,000', rule: 'Income and gains: plus sign, green', color: '#2D6B4A' },
+        { value: '₹3,088 over', rule: 'Over budget: words, not colour alone', color: '#A3402D' },
+        { value: '$12.99 · ₹1,143', rule: 'Foreign: original first, rupees after', color: '#1C2230' },
+        { value: 'NAVs of 15 Oct', rule: 'Prices always carry their date', color: '#1C2230' }
+      ],
+      charts: [
+        { k: 'Numbering', v: 'Charts on Insights and in Ask answers carry “Fig. n” and a sentence title that states the finding.' },
+        { k: 'Pace line', v: 'Solid = this month, dotted indigo = budget pace, grey = last month. Today is a dot. Label spikes directly.' },
+        { k: 'Running period', v: 'Hatched fill for a month or day still in progress.' },
+        { k: 'Gain', v: 'Invested dashed, value solid, the gap shaded green (red when below).' },
+        { k: 'Scale', v: 'Month-on-month charts share one fixed y-axis. No donuts; bars, treemaps and rings only.' },
+        { k: 'Axes', v: 'Hairline baseline, at most two gridlines, compact labels at the right edge.' },
+        { k: 'Avoid on phones', v: 'Sankey, streamgraph and anything that needs hover to read.' }
+      ],
+      layout: [
+        { k: 'Phone · under 600', v: '20 px gutter. 5-tab bar (80 px) plus a 56 px add button bottom right.' },
+        { k: 'Tablet · 600 to 839', v: 'Same tabs, content max 640 px centred. Sheets become centred dialogs.' },
+        { k: 'Desktop · 840 up', v: '240 px sidebar: Today, Review, Activity, Plan, Wealth, Insights, Ask, then Settings. Main column plus a 300 px right rail.' },
+        { k: 'Keys', v: 'N add, / ask, R review, J K move, X select, C category, E not a spend. Lives in keybindings.ts.' },
+        { k: 'Sheets', v: 'Bottom sheets on phone for add, start trip, receipt. Radius 20, grab handle.' },
+        { k: 'Spacing', v: '4 · 8 · 12 · 16 · 20 · 24 · 28 · 48.' },
+        { k: 'Radius', v: 'Chips 999 · buttons 10 · cards 12 · hero 14 · sheets 20.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

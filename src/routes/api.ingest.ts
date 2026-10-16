@@ -3,6 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { getDb } from "../server/db/client";
 import { ingest, miniRowSchema } from "../server/db/queries";
+import { transactions } from "../server/db/schema";
+import { afterWrite } from "../server/jobs";
+import { inArray } from "drizzle-orm";
 
 const MAX_BODY = 2 * 1024 * 1024;
 const bodySchema = z.object({ transactions: z.array(miniRowSchema).max(1000) });
@@ -56,7 +59,14 @@ export const Route = createFileRoute("/api/ingest")({
           return json({ error: "Batch failed validation." }, 400);
         }
         try {
-          return json({ ok: true, count: await ingest(getDb(), parsed.transactions) });
+          const db = getDb();
+          const n = await ingest(db, parsed.transactions);
+          const miniIds = parsed.transactions.map((t) => t.id);
+          const rows = miniIds.length
+            ? await db.select({ id: transactions.id }).from(transactions).where(inArray(transactions.miniId, miniIds))
+            : [];
+          await afterWrite(rows.map((r) => r.id), db);
+          return json({ ok: true, count: n });
         } catch {
           return json({ error: "Store is unavailable." }, 500);
         }

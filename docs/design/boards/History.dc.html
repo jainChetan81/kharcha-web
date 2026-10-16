@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>History</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 12px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Activity</h1>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #EEEBE2; font-size: 12px; color: #4A5163"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2D6B4A"></span>Synced 3 min ago</div>
+  </header>
+
+  <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px">
+    <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E6272" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search</span>
+      <input placeholder="Merchant, category, SMS text" style="flex: 1; border: 0; outline: none; background: transparent; font: inherit; font-size: 16px; color: #1C2230">
+    </label>
+    <div style="display: flex; gap: 8px; overflow: hidden">
+      <button type="button" onClick="{{toggleReview}}" aria-pressed="{{reviewOnly}}" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid {{revBorder}}; background: {{revBg}}; color: {{revFg}}; display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 999px; background: {{revDot}}"></span>Needs review · 115</button>
+      <button type="button" aria-pressed="true" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid #1C2230; background: #1C2230; color: #F6F4EE">October</button>
+      <button type="button" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230">Category</button>
+      <button type="button" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230">Card</button>
+      <button type="button" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230">Type</button>
+      <button type="button" style="flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230">Trip</button>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 10px; background: #EEEBE2; font-size: 13px; color: #4A5163">
+      <span>{{sumLabel}}</span>
+      <span><span style="color: #1C2230; font-weight: 600">{{sumSpent}}</span> spent · <span style="color: #2D6B4A; font-weight: 600">+₹0</span> in</span>
+    </div>
+  </div>
+
+  <div style="padding: 8px 20px 0">
+    <sc-for list="{{days}}" as="d" hint-placeholder-count="4">
+      <div>
+        <div style="display: flex; justify-content: space-between; padding: 18px 0 6px; border-bottom: 1px solid #1C2230; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #4A5163">
+          <span>{{d.label}}</span><span style="color: #1C2230; font-weight: 600">{{d.total}}</span>
+        </div>
+        <sc-for list="{{d.rows}}" as="t" hint-placeholder-count="3">
+          <div style="position: relative; overflow: hidden; border-bottom: 1px solid #E2DED3">
+            <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 96px; background: #A3402D; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Delete</div>
+            <a href="Detail.dc.html" style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; background: #F6F4EE; color: #1C2230; text-decoration: none; transform: {{t.shift}}">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
+                  <sc-if value="{{t.review}}" hint-placeholder-val="{{ false }}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F4A7A; flex: none"></span></sc-if>{{t.merchant}}</span>
+                <span style="font-size: 13px; color: #5E6272">{{t.meta}}</span>
+              </div>
+              <span style="font-size: 15px; font-weight: 500">{{t.amount}}</span>
+            </a>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <a href="Add.dc.html" aria-label="Add transaction" style="position: absolute; right: 20px; bottom: 96px; width: 56px; height: 56px; border-radius: 16px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(28,34,48,0.22)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
+    <a href="History.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: #2F4A7A; text-decoration: none; border-top: 2px solid #2F4A7A; margin-top: -1px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
+    <a href="Budgets.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>
+    <a href="Wealth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Wealth</a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Insights</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { reviewOnly: false };
+  }
+  renderVals() {
+    const r = (merchant, meta, amount, review, swiped) => ({ merchant, meta, amount, review, shift: swiped ? 'translateX(-96px)' : 'none' });
+    const all = [
+      { label: 'Thu 15 Oct', rows: [r('Swiggy Instamart', '14:44 · Other · ••2047', '₹219', true), r('METAPAY* SZ9LV96VF4', '14:32 · Other · ••2047', '₹203', true), r('Swish', '13:58 · Food · ••0532', '₹321', false)] },
+      { label: 'Wed 14 Oct', rows: [r('Blinkit', '13:45 · Utilities · ••0532', '₹839', false)] },
+      { label: 'Tue 13 Oct', rows: [r('Swiggy Instamart', '22:50 · Other · ••2047', '₹510', true), r('SWIGGY E COM', '17:43 · Other · ••2047', '₹458', true), r('Flipkart', '16:00 · Shopping · ••3266', '₹18,088', false), r('GOOGLECLOUD', '13:52 · Other · ••3266', '₹2', true), r('STAR BIKE SERVICE', '12:51 · Other · ••0532', '₹150', true, true), r('Swiggy Instamart', '14:43 · Other · ••2047', '₹225', true)] },
+      { label: 'Mon 12 Oct', rows: [r('Swiggy', '19:58 · Food · ••2047', '₹247', false), r('IBIBO GROUP', '19:03 · Other · ••3266', '₹6,937', true), r('Swiggy Instamart', '11:23 · Other · ••2047', '₹216', true)] }
+    ];
+    const toNum = (a) => parseFloat(a.replace(/[₹,]/g, '')) || 0;
+    const only = this.state.reviewOnly;
+    let grand = 0;
+    const days = all.map((d) => {
+      const rows = only ? d.rows.filter((x) => x.review) : d.rows;
+      const sum = rows.reduce((s, x) => s + toNum(x.amount), 0);
+      grand += sum;
+      return { label: d.label, rows, total: '₹' + sum.toLocaleString('en-IN') };
+    }).filter((d) => d.rows.length);
+    return {
+      days,
+      reviewOnly: only,
+      revBg: only ? '#2F4A7A' : '#FBFAF6',
+      revFg: only ? '#FFFFFF' : '#1C2230',
+      revBorder: only ? '#2F4A7A' : '#8A8576',
+      revDot: only ? '#FFFFFF' : '#2F4A7A',
+      toggleReview: () => this.setState({ reviewOnly: !only }),
+      sumLabel: only ? 'October · needs review' : 'October',
+      sumSpent: only ? '₹' + grand.toLocaleString('en-IN') + ' shown' : '₹47,854'
+    };
+  }
+}
+</script>
+</body>
+</html>

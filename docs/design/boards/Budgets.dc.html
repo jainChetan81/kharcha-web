@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Budgets</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1260px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 12px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Plan</h1>
+    <span style="font-size: 14px; color: #4A5163">October · day 15 of 31</span>
+  </header>
+  <nav aria-label="Plan sections" style="margin: 0 20px 4px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+    <a href="Budgets.dc.html" aria-current="page" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #1C2230; background: #FBFAF6; box-shadow: 0 1px 2px rgba(28,34,48,0.12); text-decoration: none">Budgets</a>
+    <a href="Recurring.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #4A5163; text-decoration: none">Recurring</a>
+    <a href="Trips.dc.html" style="min-height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #4A5163; text-decoration: none">Trips</a>
+  </nav>
+
+  <section style="margin: 0 20px; padding: 16px 0 20px; border-bottom: 3px double #1C2230; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 34px; font-weight: 500">₹47,854</span>
+      <span style="font-size: 15px; color: #4A5163">of ₹50,000</span>
+    </div>
+    <div style="position: relative; height: 10px; background: #E6E2D7; border-radius: 5px">
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 95.7%; border-radius: 5px; background: #8A5A12"></div>
+      <div style="position: absolute; left: 48.4%; top: -5px; width: 2px; height: 20px; background: #1C2230"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: #4A5163">
+      <span style="color: #7A4F0E; font-weight: 600">₹2,146 left for 16 days</span>
+      <span>Tick = where you should be today</span>
+    </div>
+  </section>
+
+  <section style="padding: 8px 20px 0">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+      <div style="border-bottom: 1px solid #E2DED3">
+        <button type="button" onClick="{{r.toggle}}" aria-expanded="{{r.open}}" style="width: 100%; border: 0; background: transparent; padding: 14px 0; display: flex; flex-direction: column; gap: 8px; text-align: left; color: #1C2230">
+          <div style="width: 100%; display: flex; justify-content: space-between; font-size: 15px">
+            <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{r.color}}"></span>{{r.name}}</span>
+            <span><span style="font-weight: 500">{{r.spent}}</span><span style="color: #5E6272"> / {{r.limit}}</span></span>
+          </div>
+          <div style="width: 100%; position: relative; height: 6px; background: #E6E2D7; border-radius: 3px">
+            <div style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; width: {{r.fill}}; background: {{r.bar}}"></div>
+            <div style="position: absolute; left: 48.4%; top: -4px; width: 2px; height: 14px; background: #1C2230"></div>
+          </div>
+          <span style="font-size: 13px; font-weight: 500; color: {{r.noteColor}}">{{r.note}}</span>
+        </button>
+        <sc-if value="{{r.open}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; gap: 8px; align-items: flex-end; padding: 0 0 16px">
+            <label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #4A5163">Monthly limit
+              <input value="{{r.limitRaw}}" inputmode="numeric" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+            </label>
+            <button type="button" onClick="{{r.toggle}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; font-weight: 500">Save</button>
+            <button type="button" onClick="{{r.toggle}}" style="min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: #A3402D; font-weight: 500">Remove</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="margin: 20px 20px 0; padding: 14px 16px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-weight: 500">Other · ₹26,240</span>
+      <span style="font-size: 13px; color: #4A5163">No budget. Review files most of it.</span>
+    </div>
+    <a href="Review.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none">Review</a>
+  </section>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
+    <a href="Budgets.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: #2F4A7A; text-decoration: none; border-top: 2px solid #2F4A7A; margin-top: -1px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>
+    <a href="Wealth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Wealth</a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Insights</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1260}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: -1 };
+  }
+  renderVals() {
+    const OVER = { bar: '#A3402D', noteColor: '#A3402D' };
+    const WATCH = { bar: '#8A5A12', noteColor: '#7A4F0E' };
+    const OK = { bar: '#2F4A7A', noteColor: '#2D6B4A' };
+    const data = [
+      { name: 'Shopping', color: '#6B4C8A', spent: '₹18,088', limit: '₹15,000', limitRaw: '15000', fill: '100%', note: '₹3,088 over', tone: OVER },
+      { name: 'Utilities', color: '#8A6A1F', spent: '₹1,577', limit: '₹2,000', limitRaw: '2000', fill: '78.9%', note: 'Ahead of pace · on track for ₹3,260', tone: WATCH },
+      { name: 'Entertainment', color: '#9B3D5C', spent: '₹789', limit: '₹1,000', limitRaw: '1000', fill: '78.9%', note: 'Ahead of pace · on track for ₹1,630', tone: WATCH },
+      { name: 'Food', color: '#B4572E', spent: '₹962', limit: '₹12,000', limitRaw: '12000', fill: '8%', note: 'On pace', tone: OK },
+      { name: 'Home', color: '#4F7A4A', spent: '₹199', limit: '₹3,000', limitRaw: '3000', fill: '6.6%', note: 'On pace', tone: OK },
+      { name: 'Transport', color: '#2F6F8F', spent: '₹0', limit: '₹5,000', limitRaw: '5000', fill: '0%', note: 'On pace', tone: OK },
+      { name: 'Work', color: '#55606E', spent: '₹0', limit: '₹8,000', limitRaw: '8000', fill: '0%', note: 'On pace', tone: OK },
+      { name: 'Health', color: '#3D8077', spent: '₹0', limit: '₹4,000', limitRaw: '4000', fill: '0%', note: 'On pace', tone: OK }
+    ];
+    return {
+      rows: data.map((d, i) => Object.assign({}, d, d.tone, {
+        open: this.state.open === i,
+        toggle: () => this.setState({ open: this.state.open === i ? -1 : i })
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

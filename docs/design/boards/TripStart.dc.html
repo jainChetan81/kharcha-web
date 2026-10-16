@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Start a trip</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+  <a href="Main.dc.html" aria-label="Close" style="position: absolute; inset: 0; background: rgba(28,34,48,0.45)"></a>
+
+  <section role="dialog" aria-labelledby="ts-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 40px; background: #FBFAF6; border-radius: 20px 20px 0 0; padding: 8px 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: #CFCABB; align-self: center"></div>
+    <h2 id="ts-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Start a trip</h2>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="ts-name" style="font-size: 13px; color: #4A5163">Name</label>
+      <input id="ts-name" value="Odisha" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 22px; color: #1C2230">
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="ts-from" style="font-size: 13px; color: #4A5163">From</label>
+        <input id="ts-from" value="Sun 18 Oct" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="ts-to" style="font-size: 13px; color: #4A5163">To</label>
+        <input id="ts-to" value="Fri 23 Oct" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="ts-budget" style="font-size: 13px; color: #4A5163">Budget</label>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <input id="ts-budget" value="₹25,000" inputmode="numeric" style="flex: 1; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font: inherit; font-size: 16px; color: #1C2230">
+        <span style="font-size: 14px; color: #4A5163">₹4,167 a day for 6 days</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; border-top: 1px solid #E2DED3">
+      <sc-for list="{{toggles}}" as="t" hint-placeholder-count="2">
+        <label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid #E2DED3">
+          <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">{{t.title}}</span><span style="font-size: 13px; color: #4A5163">{{t.sub}}</span></span>
+          <button type="button" role="switch" aria-checked="{{t.on}}" onClick="{{t.flip}}" style="flex: none; width: 48px; height: 28px; border-radius: 999px; border: 0; padding: 3px; background: {{t.track}}; display: flex; justify-content: {{t.align}}"><span style="width: 22px; height: 22px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span></button>
+        </label>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; color: #4A5163">Bookings made before the trip</span>
+      <sc-for list="{{bookings}}" as="b" hint-placeholder-count="2">
+        <label style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid #D9D5C8; background: #FFFFFF">
+          <input type="checkbox" checked="{{b.on}}" onChange="{{b.flip}}" style="width: 20px; height: 20px; margin: 0; accent-color: #2F4A7A">
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 500">{{b.name}}</span><span style="font-size: 12px; color: #5E6272">{{b.meta}}</span></span>
+          <span style="font-size: 15px; font-weight: 500">{{b.amount}}</span>
+        </label>
+      </sc-for>
+    </div>
+
+    <a href="Trip.dc.html" style="margin-top: auto; min-height: 52px; border-radius: 12px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; text-decoration: none">Schedule trip</a>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { auto: true, skip: true, b0: true, b1: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const sw = (key, title, sub) => ({ title, sub, on: s[key], track: s[key] ? '#2F4A7A' : '#8A8576', align: s[key] ? 'flex-end' : 'flex-start', flip: () => this.setState({ [key]: !s[key] }) });
+    return {
+      toggles: [
+        sw('auto', 'Tag every payment in these dates', ''),
+        sw('skip', 'Leave recurring payments out', 'SIPs, subscriptions and rent stay untagged')
+      ],
+      bookings: [
+        { name: 'IndiGo', meta: '2 Oct · Card ••3266', amount: '₹7,840', on: s.b0, flip: () => this.setState({ b0: !s.b0 }) },
+        { name: 'IBIBO GROUP', meta: '12 Oct · Card ••3266', amount: '₹6,937', on: s.b1, flip: () => this.setState({ b1: !s.b1 }) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -10,18 +10,42 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as AddRouteImport } from './routes/add'
-import { Route as BudgetsRouteImport } from './routes/budgets'
-import { Route as HistoryRouteImport } from './routes/history'
+import { Route as AskRouteImport } from './routes/ask'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PasteRouteImport } from './routes/paste'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as WealthRouteImport } from './routes/wealth'
 import { Route as ApiHealthRouteImport } from './routes/api.health'
 import { Route as ApiIngestRouteImport } from './routes/api.ingest'
 import { Route as ApiLoginRouteImport } from './routes/api.login'
 import { Route as ApiLogoutRouteImport } from './routes/api.logout'
+import { Route as PlanIndexRouteImport } from './routes/plan.index'
+import { Route as PlanBudgetsRouteImport } from './routes/plan.budgets'
+import { Route as PlanRecurringRouteImport } from './routes/plan.recurring'
+import { Route as PlanTripsRouteImport } from './routes/plan.trips'
+import { Route as TxnIdRouteImport } from './routes/txn.$id'
+import { Route as WealthIdRouteImport } from './routes/wealth_.$id'
+import { Route as WealthNewRouteImport } from './routes/wealth_.new'
+import { Route as PlanRecurringIdRouteImport } from './routes/plan.recurring_.$id'
+import { Route as PlanRecurringNewRouteImport } from './routes/plan.recurring_.new'
+import { Route as PlanTripsIdRouteImport } from './routes/plan.trips_.$id'
+import { Route as PlanTripsNewRouteImport } from './routes/plan.trips_.new'
+import { Route as TxnIdEditRouteImport } from './routes/txn.$id_.edit'
+import { Route as TxnIdReceiptRouteImport } from './routes/txn.$id_.receipt'
+import { Route as WealthIdEditRouteImport } from './routes/wealth_.$id_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AddRoute = AddRouteImport.update({
@@ -29,19 +53,39 @@ const AddRoute = AddRouteImport.update({
   path: '/add',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BudgetsRoute = BudgetsRouteImport.update({
-  id: '/budgets',
-  path: '/budgets',
+const AskRoute = AskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PasteRoute = PasteRouteImport.update({
+  id: '/paste',
+  path: '/paste',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WealthRoute = WealthRouteImport.update({
+  id: '/wealth',
+  path: '/wealth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -64,87 +108,290 @@ const ApiLogoutRoute = ApiLogoutRouteImport.update({
   path: '/api/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanIndexRoute = PlanIndexRouteImport.update({
+  id: '/plan/',
+  path: '/plan/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanBudgetsRoute = PlanBudgetsRouteImport.update({
+  id: '/plan/budgets',
+  path: '/plan/budgets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRecurringRoute = PlanRecurringRouteImport.update({
+  id: '/plan/recurring',
+  path: '/plan/recurring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanTripsRoute = PlanTripsRouteImport.update({
+  id: '/plan/trips',
+  path: '/plan/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TxnIdRoute = TxnIdRouteImport.update({
+  id: '/txn/$id',
+  path: '/txn/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WealthIdRoute = WealthIdRouteImport.update({
+  id: '/wealth_/$id',
+  path: '/wealth/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WealthNewRoute = WealthNewRouteImport.update({
+  id: '/wealth_/new',
+  path: '/wealth/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRecurringIdRoute = PlanRecurringIdRouteImport.update({
+  id: '/plan/recurring_/$id',
+  path: '/plan/recurring/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRecurringNewRoute = PlanRecurringNewRouteImport.update({
+  id: '/plan/recurring_/new',
+  path: '/plan/recurring/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanTripsIdRoute = PlanTripsIdRouteImport.update({
+  id: '/plan/trips_/$id',
+  path: '/plan/trips/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanTripsNewRoute = PlanTripsNewRouteImport.update({
+  id: '/plan/trips_/new',
+  path: '/plan/trips/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TxnIdEditRoute = TxnIdEditRouteImport.update({
+  id: '/txn/$id_/edit',
+  path: '/txn/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TxnIdReceiptRoute = TxnIdReceiptRouteImport.update({
+  id: '/txn/$id_/receipt',
+  path: '/txn/$id/receipt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WealthIdEditRoute = WealthIdEditRouteImport.update({
+  id: '/wealth_/$id_/edit',
+  path: '/wealth/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/add': typeof AddRoute
-  '/budgets': typeof BudgetsRoute
-  '/history': typeof HistoryRoute
+  '/ask': typeof AskRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/paste': typeof PasteRoute
+  '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
+  '/wealth': typeof WealthRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
+  '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/recurring': typeof PlanRecurringRoute
+  '/plan/trips': typeof PlanTripsRoute
+  '/txn/$id': typeof TxnIdRoute
+  '/wealth/$id': typeof WealthIdRoute
+  '/wealth/new': typeof WealthNewRoute
+  '/plan/': typeof PlanIndexRoute
+  '/plan/recurring/$id': typeof PlanRecurringIdRoute
+  '/plan/recurring/new': typeof PlanRecurringNewRoute
+  '/plan/trips/$id': typeof PlanTripsIdRoute
+  '/plan/trips/new': typeof PlanTripsNewRoute
+  '/txn/$id/edit': typeof TxnIdEditRoute
+  '/txn/$id/receipt': typeof TxnIdReceiptRoute
+  '/wealth/$id/edit': typeof WealthIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/add': typeof AddRoute
-  '/budgets': typeof BudgetsRoute
-  '/history': typeof HistoryRoute
+  '/ask': typeof AskRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/paste': typeof PasteRoute
+  '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
+  '/wealth': typeof WealthRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
+  '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/recurring': typeof PlanRecurringRoute
+  '/plan/trips': typeof PlanTripsRoute
+  '/txn/$id': typeof TxnIdRoute
+  '/wealth/$id': typeof WealthIdRoute
+  '/wealth/new': typeof WealthNewRoute
+  '/plan': typeof PlanIndexRoute
+  '/plan/recurring/$id': typeof PlanRecurringIdRoute
+  '/plan/recurring/new': typeof PlanRecurringNewRoute
+  '/plan/trips/$id': typeof PlanTripsIdRoute
+  '/plan/trips/new': typeof PlanTripsNewRoute
+  '/txn/$id/edit': typeof TxnIdEditRoute
+  '/txn/$id/receipt': typeof TxnIdReceiptRoute
+  '/wealth/$id/edit': typeof WealthIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/add': typeof AddRoute
-  '/budgets': typeof BudgetsRoute
-  '/history': typeof HistoryRoute
+  '/ask': typeof AskRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/paste': typeof PasteRoute
+  '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
+  '/wealth': typeof WealthRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ingest': typeof ApiIngestRoute
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
+  '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/recurring': typeof PlanRecurringRoute
+  '/plan/trips': typeof PlanTripsRoute
+  '/txn/$id': typeof TxnIdRoute
+  '/wealth_/$id': typeof WealthIdRoute
+  '/wealth_/new': typeof WealthNewRoute
+  '/plan/': typeof PlanIndexRoute
+  '/plan/recurring_/$id': typeof PlanRecurringIdRoute
+  '/plan/recurring_/new': typeof PlanRecurringNewRoute
+  '/plan/trips_/$id': typeof PlanTripsIdRoute
+  '/plan/trips_/new': typeof PlanTripsNewRoute
+  '/txn/$id_/edit': typeof TxnIdEditRoute
+  '/txn/$id_/receipt': typeof TxnIdReceiptRoute
+  '/wealth_/$id_/edit': typeof WealthIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activity'
     | '/add'
-    | '/budgets'
-    | '/history'
+    | '/ask'
+    | '/insights'
     | '/login'
+    | '/paste'
+    | '/review'
+    | '/settings'
+    | '/wealth'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
     | '/api/logout'
+    | '/plan/budgets'
+    | '/plan/recurring'
+    | '/plan/trips'
+    | '/txn/$id'
+    | '/wealth/$id'
+    | '/wealth/new'
+    | '/plan/'
+    | '/plan/recurring/$id'
+    | '/plan/recurring/new'
+    | '/plan/trips/$id'
+    | '/plan/trips/new'
+    | '/txn/$id/edit'
+    | '/txn/$id/receipt'
+    | '/wealth/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activity'
     | '/add'
-    | '/budgets'
-    | '/history'
+    | '/ask'
+    | '/insights'
     | '/login'
+    | '/paste'
+    | '/review'
+    | '/settings'
+    | '/wealth'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
     | '/api/logout'
+    | '/plan/budgets'
+    | '/plan/recurring'
+    | '/plan/trips'
+    | '/txn/$id'
+    | '/wealth/$id'
+    | '/wealth/new'
+    | '/plan'
+    | '/plan/recurring/$id'
+    | '/plan/recurring/new'
+    | '/plan/trips/$id'
+    | '/plan/trips/new'
+    | '/txn/$id/edit'
+    | '/txn/$id/receipt'
+    | '/wealth/$id/edit'
   id:
     | '__root__'
     | '/'
+    | '/activity'
     | '/add'
-    | '/budgets'
-    | '/history'
+    | '/ask'
+    | '/insights'
     | '/login'
+    | '/paste'
+    | '/review'
+    | '/settings'
+    | '/wealth'
     | '/api/health'
     | '/api/ingest'
     | '/api/login'
     | '/api/logout'
+    | '/plan/budgets'
+    | '/plan/recurring'
+    | '/plan/trips'
+    | '/txn/$id'
+    | '/wealth_/$id'
+    | '/wealth_/new'
+    | '/plan/'
+    | '/plan/recurring_/$id'
+    | '/plan/recurring_/new'
+    | '/plan/trips_/$id'
+    | '/plan/trips_/new'
+    | '/txn/$id_/edit'
+    | '/txn/$id_/receipt'
+    | '/wealth_/$id_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
   AddRoute: typeof AddRoute
-  BudgetsRoute: typeof BudgetsRoute
-  HistoryRoute: typeof HistoryRoute
+  AskRoute: typeof AskRoute
+  InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
+  PasteRoute: typeof PasteRoute
+  ReviewRoute: typeof ReviewRoute
+  SettingsRoute: typeof SettingsRoute
+  WealthRoute: typeof WealthRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiIngestRoute: typeof ApiIngestRoute
   ApiLoginRoute: typeof ApiLoginRoute
   ApiLogoutRoute: typeof ApiLogoutRoute
+  PlanBudgetsRoute: typeof PlanBudgetsRoute
+  PlanRecurringRoute: typeof PlanRecurringRoute
+  PlanTripsRoute: typeof PlanTripsRoute
+  TxnIdRoute: typeof TxnIdRoute
+  WealthIdRoute: typeof WealthIdRoute
+  WealthNewRoute: typeof WealthNewRoute
+  PlanIndexRoute: typeof PlanIndexRoute
+  PlanRecurringIdRoute: typeof PlanRecurringIdRoute
+  PlanRecurringNewRoute: typeof PlanRecurringNewRoute
+  PlanTripsIdRoute: typeof PlanTripsIdRoute
+  PlanTripsNewRoute: typeof PlanTripsNewRoute
+  TxnIdEditRoute: typeof TxnIdEditRoute
+  TxnIdReceiptRoute: typeof TxnIdReceiptRoute
+  WealthIdEditRoute: typeof WealthIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/add': {
       id: '/add'
       path: '/add'
@@ -163,18 +417,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AddRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/budgets': {
-      id: '/budgets'
-      path: '/budgets'
-      fullPath: '/budgets'
-      preLoaderRoute: typeof BudgetsRouteImport
+    '/ask': {
+      id: '/ask'
+      path: '/ask'
+      fullPath: '/ask'
+      preLoaderRoute: typeof AskRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -182,6 +436,34 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/paste': {
+      id: '/paste'
+      path: '/paste'
+      fullPath: '/paste'
+      preLoaderRoute: typeof PasteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wealth': {
+      id: '/wealth'
+      path: '/wealth'
+      fullPath: '/wealth'
+      preLoaderRoute: typeof WealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -212,19 +494,136 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan/': {
+      id: '/plan/'
+      path: '/plan'
+      fullPath: '/plan/'
+      preLoaderRoute: typeof PlanIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/budgets': {
+      id: '/plan/budgets'
+      path: '/plan/budgets'
+      fullPath: '/plan/budgets'
+      preLoaderRoute: typeof PlanBudgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/recurring': {
+      id: '/plan/recurring'
+      path: '/plan/recurring'
+      fullPath: '/plan/recurring'
+      preLoaderRoute: typeof PlanRecurringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/trips': {
+      id: '/plan/trips'
+      path: '/plan/trips'
+      fullPath: '/plan/trips'
+      preLoaderRoute: typeof PlanTripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/txn/$id': {
+      id: '/txn/$id'
+      path: '/txn/$id'
+      fullPath: '/txn/$id'
+      preLoaderRoute: typeof TxnIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wealth_/$id': {
+      id: '/wealth_/$id'
+      path: '/wealth/$id'
+      fullPath: '/wealth/$id'
+      preLoaderRoute: typeof WealthIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wealth_/new': {
+      id: '/wealth_/new'
+      path: '/wealth/new'
+      fullPath: '/wealth/new'
+      preLoaderRoute: typeof WealthNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/recurring_/$id': {
+      id: '/plan/recurring_/$id'
+      path: '/plan/recurring/$id'
+      fullPath: '/plan/recurring/$id'
+      preLoaderRoute: typeof PlanRecurringIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/recurring_/new': {
+      id: '/plan/recurring_/new'
+      path: '/plan/recurring/new'
+      fullPath: '/plan/recurring/new'
+      preLoaderRoute: typeof PlanRecurringNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/trips_/$id': {
+      id: '/plan/trips_/$id'
+      path: '/plan/trips/$id'
+      fullPath: '/plan/trips/$id'
+      preLoaderRoute: typeof PlanTripsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan/trips_/new': {
+      id: '/plan/trips_/new'
+      path: '/plan/trips/new'
+      fullPath: '/plan/trips/new'
+      preLoaderRoute: typeof PlanTripsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/txn/$id_/edit': {
+      id: '/txn/$id_/edit'
+      path: '/txn/$id/edit'
+      fullPath: '/txn/$id/edit'
+      preLoaderRoute: typeof TxnIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/txn/$id_/receipt': {
+      id: '/txn/$id_/receipt'
+      path: '/txn/$id/receipt'
+      fullPath: '/txn/$id/receipt'
+      preLoaderRoute: typeof TxnIdReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wealth_/$id_/edit': {
+      id: '/wealth_/$id_/edit'
+      path: '/wealth/$id/edit'
+      fullPath: '/wealth/$id/edit'
+      preLoaderRoute: typeof WealthIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
   AddRoute: AddRoute,
-  BudgetsRoute: BudgetsRoute,
-  HistoryRoute: HistoryRoute,
+  AskRoute: AskRoute,
+  InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
+  PasteRoute: PasteRoute,
+  ReviewRoute: ReviewRoute,
+  SettingsRoute: SettingsRoute,
+  WealthRoute: WealthRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiIngestRoute: ApiIngestRoute,
   ApiLoginRoute: ApiLoginRoute,
   ApiLogoutRoute: ApiLogoutRoute,
+  PlanBudgetsRoute: PlanBudgetsRoute,
+  PlanRecurringRoute: PlanRecurringRoute,
+  PlanTripsRoute: PlanTripsRoute,
+  TxnIdRoute: TxnIdRoute,
+  WealthIdRoute: WealthIdRoute,
+  WealthNewRoute: WealthNewRoute,
+  PlanIndexRoute: PlanIndexRoute,
+  PlanRecurringIdRoute: PlanRecurringIdRoute,
+  PlanRecurringNewRoute: PlanRecurringNewRoute,
+  PlanTripsIdRoute: PlanTripsIdRoute,
+  PlanTripsNewRoute: PlanTripsNewRoute,
+  TxnIdEditRoute: TxnIdEditRoute,
+  TxnIdReceiptRoute: TxnIdReceiptRoute,
+  WealthIdEditRoute: WealthIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wealth</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1560px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <section style="background: #1C2230; color: #F6F4EE; padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Wealth</h1>
+      <span style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(246,244,238,0.12); font-size: 12px; color: #C9CDD6"><span style="width: 7px; height: 7px; border-radius: 999px; background: #8FD1A8"></span>NAVs of 15 Oct · checked 06:00</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #A9AEBB">Current value</span>
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 52px; font-weight: 500; line-height: 1; letter-spacing: -0.02em"><span style="font-size: 28px; color: #A9AEBB">₹</span>7,81,900</span>
+      <span style="font-size: 14px; color: #8FD1A8; font-weight: 500">+₹2,140 today · +0.27%</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-top: 1px solid rgba(246,244,238,0.18); padding-top: 12px">
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Invested<strong style="font-size: 17px; color: #F6F4EE; font-weight: 500">₹6,81,000</strong></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">Gain<strong style="font-size: 17px; color: #8FD1A8; font-weight: 500">+₹1,00,900</strong></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #A9AEBB">XIRR<strong style="font-size: 17px; color: #F6F4EE; font-weight: 500">12.6%</strong></span>
+    </div>
+
+    <svg viewBox="0 0 340 160" width="350" height="165" role="img" aria-label="Portfolio value against money invested over two years" style="display: block; margin: 4px -5px 0">
+      <line x1="0" y1="150" x2="340" y2="150" stroke="rgba(246,244,238,0.2)"/>
+      <line x1="0" y1="80" x2="340" y2="80" stroke="rgba(246,244,238,0.08)"/>
+      <line x1="0" y1="10" x2="340" y2="10" stroke="rgba(246,244,238,0.08)"/>
+      <path d="M0,136 L56,117.2 L84,114 L112,98.7 L168,76.7 L196,71.3 L224,56.6 L280,36 L308,29.1 L336,15.1 L336,43.3 L280,58.8 L224,74.2 L168,89.7 L112,105.1 L56,120.6 L0,136 Z" fill="rgba(143,209,168,0.28)"/>
+      <polyline points="0,136 56,120.6 112,105.1 168,89.7 224,74.2 280,58.8 336,43.3" fill="none" stroke="#C9CDD6" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <polyline points="0,136 56,117.2 84,114 112,98.7 168,76.7 196,71.3 224,56.6 280,36 308,29.1 336,15.1" fill="none" stroke="#F6F4EE" stroke-width="2.25" stroke-linejoin="round"/>
+      <circle cx="336" cy="15.1" r="3.5" fill="#F6F4EE"/>
+      <text x="2" y="77" font-size="9" fill="#A9AEBB" font-family="IBM Plex Sans">5.5L</text>
+      <text x="2" y="20" font-size="9" fill="#A9AEBB" font-family="IBM Plex Sans">8L</text>
+    </svg>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; gap: 12px; font-size: 12px; color: #A9AEBB">
+        <span style="display: flex; align-items: center; gap: 4px"><span style="width: 14px; height: 2px; background: #F6F4EE"></span>Value</span>
+        <span style="display: flex; align-items: center; gap: 4px"><span style="width: 14px; border-top: 2px dashed #C9CDD6"></span>Invested</span>
+        <span style="display: flex; align-items: center; gap: 4px"><span style="width: 10px; height: 10px; background: rgba(143,209,168,0.4)"></span>Gain</span>
+      </div>
+      <div role="radiogroup" aria-label="Range" style="display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: rgba(246,244,238,0.1)">
+        <sc-for list="{{ranges}}" as="r" hint-placeholder-count="3">
+          <button type="button" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}" style="min-height: 30px; min-width: 40px; border: 0; border-radius: 6px; font-size: 12px; background: {{r.bg}}; color: {{r.fg}}">{{r.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1C2230; padding-bottom: 8px">
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Allocation</h2>
+      <span style="font-size: 13px; color: #4A5163">Tick = your target</span>
+    </div>
+    <sc-for list="{{alloc}}" as="a" hint-placeholder-count="4">
+      <div style="padding: 12px 0; border-bottom: 1px solid #E2DED3; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; font-size: 15px"><span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{a.color}}"></span>{{a.name}}</span><span><span style="font-weight: 500">{{a.pct}}</span><span style="color: #5E6272"> · target {{a.target}}</span></span></div>
+        <div style="position: relative; height: 6px; background: #E6E2D7; border-radius: 3px"><div style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; width: {{a.pct}}; background: {{a.color}}"></div><div style="position: absolute; left: {{a.target}}; top: -4px; width: 2px; height: 14px; background: #1C2230"></div></div>
+        <span style="font-size: 13px; color: {{a.noteColor}}; font-weight: 500">{{a.note}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1C2230; padding-bottom: 8px">
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">Holdings</h2>
+      <span style="font-size: 13px; color: #4A5163">SIPs ₹20,000 / month</span>
+    </div>
+    <sc-for list="{{funds}}" as="f" hint-placeholder-count="5">
+      <a href="Fund.dc.html" style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; gap: 12px; align-items: center; min-height: 68px; border-bottom: 1px solid #E2DED3; color: #1C2230; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{f.name}}</span><span style="font-size: 12px; color: #5E6272">{{f.meta}}</span></span>
+        <svg viewBox="0 0 64 24" width="64" height="24" aria-hidden="true"><polyline points="{{f.spark}}" fill="none" stroke="#2F4A7A" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font-size: 15px; font-weight: 500">{{f.value}}</span><span style="font-size: 12px; color: #2D6B4A; font-weight: 500">{{f.gain}}</span></span>
+      </a>
+    </sc-for>
+  </section>
+
+  <div style="padding: 16px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <a href="Holding.dc.html" style="min-height: 48px; border-radius: 12px; border: 1px solid #1C2230; display: flex; align-items: center; justify-content: center; gap: 8px; color: #1C2230; font-size: 15px; font-weight: 500; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add holding</a>
+    <a href="Holding.dc.html" style="min-height: 48px; border-radius: 12px; border: 1px solid #8A8576; display: flex; align-items: center; justify-content: center; color: #1C2230; font-size: 15px; font-weight: 500; text-decoration: none">Import CSV</a>
+  </div>
+
+  <section style="margin: 24px 20px 0; padding: 16px; border-radius: 12px; background: #FBFAF6; border: 1px solid #D9D5C8; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">NPS this financial year</span><span style="font-size: 14px"><strong style="font-weight: 600">₹32,000</strong><span style="color: #5E6272"> / ₹50,000 cap</span></span></div>
+    <div style="height: 8px; border-radius: 4px; background: #E6E2D7"><div style="height: 8px; width: 64%; border-radius: 4px; background: #2F4A7A"></div></div>
+    <span style="font-size: 13px; color: #4A5163">₹18,000 room left before 31 Mar.</span>
+  </section>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; padding-bottom: 16px; box-sizing: border-box; background: #FBFAF6; border-top: 1px solid #D9D5C8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Today</a>
+    <a href="History.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
+    <a href="Budgets.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>
+    <a href="Wealth.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: #2F4A7A; text-decoration: none; border-top: 2px solid #2F4A7A; margin-top: -1px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Wealth</a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: #5E6272; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Insights</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { range: '2Y' };
+  }
+  renderVals() {
+    const ranges = ['1Y', '2Y', 'All'].map((r) => {
+      const on = r === this.state.range;
+      return { label: r, on, bg: on ? '#F6F4EE' : 'transparent', fg: on ? '#1C2230' : '#C9CDD6', pick: () => this.setState({ range: r }) };
+    });
+    return {
+      ranges,
+      alloc: [
+        { name: 'Index equity', color: '#2F4A7A', pct: '66.5%', target: '65%', note: 'On target', noteColor: '#2D6B4A' },
+        { name: 'Active equity', color: '#6B4C8A', pct: '13.9%', target: '15%', note: '1.1 pts under target', noteColor: '#4A5163' },
+        { name: 'NPS', color: '#3D8077', pct: '11.7%', target: '10%', note: '1.7 pts over target', noteColor: '#4A5163' },
+        { name: 'Gold', color: '#8A6A1F', pct: '7.8%', target: '10%', note: '2.2 pts under target', noteColor: '#7A4F0E' }
+      ],
+      funds: [
+        { name: 'Nifty 50 Index · Direct', meta: 'SIP ₹10,000 on 20th · 31 done', value: '₹3,58,400', gain: '+15.6% · XIRR 13.2%', spark: '0,20 8,18 16,19 24,14 32,15 40,11 48,9 56,7 64,4' },
+        { name: 'Nifty Next 50 Index · Direct', meta: 'SIP ₹5,000 on 5th · 29 done', value: '₹1,61,900', gain: '+11.7% · XIRR 11.4%', spark: '0,19 8,20 16,16 24,17 32,13 40,14 48,10 56,9 64,6' },
+        { name: 'Flexi cap · Direct', meta: 'SIP ₹3,000 on 10th · 32 done', value: '₹1,08,700', gain: '+13.2% · XIRR 12.8%', spark: '0,20 8,17 16,18 24,15 32,12 40,13 48,10 56,8 64,6' },
+        { name: 'NPS Tier I', meta: 'Manual · last ₹8,000 on 2 Oct', value: '₹91,600', gain: '+11.7% · XIRR 9.8%', spark: '0,20 8,19 16,17 24,16 32,14 40,13 48,11 56,10 64,8' },
+        { name: 'Gold', meta: 'SIP ₹2,000 on 25th · 24 done', value: '₹61,300', gain: '+27.7% · XIRR 22.1%', spark: '0,22 8,21 16,19 24,18 32,14 40,12 48,9 56,6 64,3' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

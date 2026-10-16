@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paste SMS</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; display: flex; flex-direction: column">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 20px 8px 8px">
+    <a href="Add.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Paste SMS</h1>
+  </header>
+
+  <div style="padding: 8px 20px 0; display: flex; flex-direction: column; gap: 8px">
+    <label for="paste-sms" style="font-size: 13px; color: #4A5163">Message</label>
+    <textarea id="paste-sms" rows="4" style="resize: none; padding: 12px; border-radius: 10px; border: 1px solid #8A8576; background: #FFFFFF; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.5; color: #1C2230">Txn of USD 12.99 on card xx3266 at OPENROUTER INC on 24-09-26 12:43. Avl lmt INR 1,84,220.</textarea>
+    <div style="display: flex; gap: 8px">
+      <button type="button" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 3h6v3H9z"/></svg>Paste from clipboard</button>
+      <button type="button" style="min-height: 44px; padding: 0 14px; border: 0; background: transparent; color: #2F4A7A; font-size: 14px; font-weight: 500">Clear</button>
+    </div>
+  </div>
+
+  <section style="margin: 24px 20px 0; padding: 20px; border-radius: 16px; background: #FBFAF6; border: 1px solid #CFCABB; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272">
+      <span>Parsed on server</span>
+      <span style="display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; padding: 3px 8px; border-radius: 999px; background: #F4E9D2; color: #6E470C">Check the rate</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 3px double #1C2230; padding-bottom: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 500">Openrouter</span>
+        <span style="font-size: 13px; color: #5E6272">Thu 24 Sept, 12:43 · Card ••3266</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500">$12.99</span>
+        <span style="font-size: 13px; color: #4A5163">₹1,143 at ₹88 / $</span>
+      </div>
+    </div>
+    <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; font-size: 14px">
+      <div style="display: flex; flex-direction: column; gap: 2px"><dt style="color: #5E6272; font-size: 12px">Type</dt><dd style="margin: 0; font-weight: 500">Expense</dd></div>
+      <div style="display: flex; flex-direction: column; gap: 2px"><dt style="color: #5E6272; font-size: 12px">Category</dt><dd style="margin: 0; font-weight: 500">Work</dd></div>
+      <div style="display: flex; flex-direction: column; gap: 2px"><dt style="color: #5E6272; font-size: 12px">Raw merchant</dt><dd style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 13px">OPENROUTER INC</dd></div>
+      <div style="display: flex; flex-direction: column; gap: 2px"><dt style="color: #5E6272; font-size: 12px">Confidence</dt><dd style="margin: 0; font-weight: 500">High</dd></div>
+    </dl>
+    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4A5163">Rupee amount uses your saved USD rate. It stays flagged for review until you match it to the card statement.</p>
+  </section>
+
+  <div style="margin-top: auto; padding: 0 20px 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <a href="Add.dc.html" style="min-height: 52px; border-radius: 12px; border: 1px solid #1C2230; display: flex; align-items: center; justify-content: center; color: #1C2230; font-size: 16px; font-weight: 500; text-decoration: none">Edit first</a>
+    <a href="Main.dc.html" style="min-height: 52px; border-radius: 12px; background: #1C2230; display: flex; align-items: center; justify-content: center; color: #F6F4EE; font-size: 16px; font-weight: 500; text-decoration: none">Save</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

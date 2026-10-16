@@ -1,11 +1,15 @@
 'use strict';
-// Offline shell only. Pages are server-rendered with live data and are never cached,
-// so no transaction data is stored on the device. Offline you get /offline.html.
-const CACHE = 'kharcha-shell-v2';
+// Offline shell only (§9). Pages are server-rendered with live data and are never cached,
+// so no transaction data is stored on the device. Never cache HTML, /_serverFn or /api.
+const CACHE = 'kharcha-shell-v3';
 const SHELL = ['/offline.html', '/icon.svg', '/icon-192.png', '/apple-touch-icon.png', '/manifest.webmanifest'];
 self.addEventListener('install', (event) => event.waitUntil(
-  caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()),
+  caches.open(CACHE).then((cache) => cache.addAll(SHELL)),
 ));
+// The page shows "New version ready · Reload" and posts this when the user agrees.
+self.addEventListener('message', (event) => {
+  if (event.data === 'skip-waiting') self.skipWaiting();
+});
 self.addEventListener('activate', (event) => event.waitUntil(
   caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
 ));
@@ -17,7 +21,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
     return;
   }
-  // Hashed build assets and icons hold no data; cache-first keeps repeat loads light.
+  if (url.pathname.startsWith('/_serverFn') || url.pathname.startsWith('/api')) return;
+  // Hashed build assets, fonts and icons hold no data; cache-first keeps repeat loads light.
   if (url.pathname.startsWith('/assets/') || SHELL.includes(url.pathname)) {
     event.respondWith(caches.match(request).then((hit) => hit || fetch(request).then((response) => {
       if (response.ok) {

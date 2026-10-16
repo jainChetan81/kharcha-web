@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transaction detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EE}
+a{color:#2F4A7A}a:hover{color:#1F3459}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1100px; position: relative; overflow: hidden; background: #F6F4EE; color: #1C2230; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 8px">
+    <a href="History.dc.html" aria-label="Back to history" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <a href="Edit.dc.html" style="min-height: 44px; padding: 0 12px; display: flex; align-items: center; color: #2F4A7A; font-size: 15px; font-weight: 500; text-decoration: none">Edit</a>
+  </header>
+
+  <section style="padding: 8px 20px 20px; margin: 0 20px; padding-left: 0; padding-right: 0; border-bottom: 3px double #1C2230; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272">Expense · Shopping</span>
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 30px">Flipkart</h1>
+    <div style="display: flex; align-items: baseline; gap: 2px">
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; color: #5E6272">₹</span>
+      <span style="font-family: 'Newsreader', Georgia, serif; font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: -0.02em">18,088</span>
+    </div>
+  </section>
+
+  <dl style="margin: 0; padding: 8px 20px 0">
+    <sc-for list="{{fields}}" as="f" hint-placeholder-count="7">
+      <div style="display: flex; justify-content: space-between; gap: 16px; min-height: 48px; align-items: center; border-bottom: 1px solid #E2DED3; font-size: 15px">
+        <dt style="color: #4A5163">{{f.k}}</dt>
+        <dd style="margin: 0; font-weight: 500; text-align: right">{{f.v}}</dd>
+      </div>
+    </sc-for>
+  </dl>
+
+  <section style="padding: 24px 20px 0; display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E6272">Source SMS</h2>
+    <p style="margin: 0; padding: 12px; border-radius: 8px; background: #EEEBE2; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.5; color: #3E4352">Rs.18,088.00 spent on card xx3266 at FLIPKAR on 13-10-26 16:00. Avl lmt INR 1,66,132.</p>
+    <span style="font-size: 13px; color: #4A5163">You renamed “FLIPKAR” to Flipkart. New SMS rows keep your edit.</span>
+  </section>
+
+  <section style="padding: 20px 20px 0">
+    <a href="Receipt.dc.html" style="min-height: 64px; padding: 0 16px; border-radius: 12px; border: 1px dashed #8A8576; display: flex; align-items: center; gap: 12px; color: #1C2230; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2F4A7A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">Add receipt or screenshots</span></span>
+    </a>
+  </section>
+
+  <section style="padding: 28px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1C2230; padding-bottom: 8px">
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 18px">More from Flipkart</h2>
+      <span style="font-size: 13px; color: #4A5163">2026 · ₹20,036</span>
+    </div>
+    <sc-for list="{{similar}}" as="s" hint-placeholder-count="2">
+      <div style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-bottom: 1px solid #E2DED3; font-size: 15px">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 500">{{s.date}}</span><span style="font-size: 13px; color: #5E6272">{{s.meta}}</span></span>
+        <span style="font-weight: 500">{{s.amount}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <div style="padding: 28px 20px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <button type="button" style="min-height: 48px; border-radius: 12px; border: 1px solid #1C2230; background: transparent; color: #1C2230; font-size: 15px; font-weight: 500">Not a spend</button>
+    <button type="button" style="min-height: 48px; border-radius: 12px; border: 1px solid #A3402D; background: transparent; color: #A3402D; font-size: 15px; font-weight: 500">Delete</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      fields: [
+        { k: 'Date', v: 'Tue 13 Oct 2026, 16:00' },
+        { k: 'Category', v: 'Shopping' },
+        { k: 'Card', v: '••3266' },
+        { k: 'Source', v: 'SMS via Mac mini' },
+        { k: 'Parsed by', v: 'Regex' },
+        { k: 'Reference', v: 'None in SMS' },
+        { k: 'Status', v: 'Reviewed' }
+      ],
+      similar: [
+        { date: '21 Aug', meta: 'Shopping · ••3266', amount: '₹1,299' },
+        { date: '4 Jul', meta: 'Shopping · ••3266', amount: '₹649' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
