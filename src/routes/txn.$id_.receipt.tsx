@@ -85,6 +85,7 @@ function Receipt() {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [job, setJob] = useState<{ status: string; error: string | null } | null>(null);
+  const [jobRun, setJobRun] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [crop, setCrop] = useState<Rect | null>(null);
   const [groupsOpen, setGroupsOpen] = useState(true);
@@ -95,7 +96,7 @@ function Receipt() {
   const activeDraft = drafts[0];
 
   useEffect(() => {
-    if (!txnId) return;
+    if (!txnId || jobRun < 0) return;
     let alive = true;
     let timer: ReturnType<typeof setInterval> | undefined;
     const poll = async () => {
@@ -116,7 +117,7 @@ function Receipt() {
     void poll();
     timer = setInterval(() => void poll(), 1500);
     return () => { alive = false; clearInterval(timer); };
-  }, [txnId, router]);
+  }, [txnId, router, jobRun]);
 
   useEffect(() => {
     const image = imageRef.current;
@@ -235,6 +236,7 @@ function Receipt() {
     try {
       const result = await startReceiptJob({ data: { transactionId: data.txn.id } });
       setJob({ status: result.status, error: result.error });
+      setJobRun((run) => run + 1);
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't start receipt reading."); }
     finally { setBusy(false); }
   };
@@ -244,7 +246,7 @@ function Receipt() {
     if (split && !agrees) return snack("Split totals must equal transaction amount.");
     setBusy(true);
     try { await saveReceipt({ data: { id: data.txn.id, split, items: clean } }); snack("Receipt items saved."); void navigate({ to: "/txn/$id", params: { id: String(data.txn.id) } }); }
-    catch (e) { if (e instanceof Error && /Splits must equal/.test(e.message)) snack(e.message); else saveFailed(save); }
+    catch (e) { if (e instanceof Error && (/Splits must equal/.test(e.message) || /Cancel the item reimbursement claim/.test(e.message))) snack(e.message); else saveFailed(save); }
     finally { setBusy(false); }
   };
   const selectedItems = selected.length > 1 ? items.filter((item) => selected.includes(item.key)) : [];

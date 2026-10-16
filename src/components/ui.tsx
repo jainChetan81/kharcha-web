@@ -121,9 +121,14 @@ const tagTones = {
   ai: "bg-brand-soft text-brand-deep",
   over: "bg-over-soft text-over",
   ok: "bg-earn-soft text-earn",
+  pending: "bg-brand-soft text-brand",
+  partly: "bg-watch-soft text-watch-text",
+  reimbursed: "bg-earn-soft text-earn",
+  extra: "bg-earn-soft text-earn",
+  cancelled: "bg-sunken text-ink-2",
 } as const;
-export function StatusTag({ tone, children }: { tone: keyof typeof tagTones; children: ReactNode }) {
-  return <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-xs font-semibold", tagTones[tone])}>{children}</span>;
+export function StatusTag({ tone, children, className }: { tone: keyof typeof tagTones; children: ReactNode; className?: string }) {
+  return <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-xs font-semibold", tagTones[tone], className)}>{children}</span>;
 }
 
 /** Category swatch + label; colour never alone. */

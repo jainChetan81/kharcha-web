@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Search, X } from "lucide-react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
 import { ActivityFilters } from "../components/activity-filters";
@@ -74,13 +74,14 @@ function Activity() {
   const cards = [...new Set(rows.map((row) => row.accountLast4).filter((value): value is string => Boolean(value)))];
   const activeCategories = search.categories ?? (search.category ? [search.category] : []);
   const splitOnly = activeCategories.length === 1 ? activeCategories[0].split(":").at(-1) : undefined;
-  // With one category filter, a split row counts only that category's part (day totals follow).
-  const viewRows = useMemo(() => rows.map((r) => {
-    if (!splitOnly || !r.splits.length) return r;
-    const part = r.splits.filter((x) => x.category === splitOnly).reduce((sum, x) => sum + x.amount, 0);
-    return { ...r, amount: part, originalTotal: r.amount };
-  }), [rows, splitOnly]);
-  const groups = useMemo(() => byDay(viewRows), [viewRows]);
+  // Project filtered split rows to selected parts. Day totals use the same share fraction.
+  const viewRows = rows.map((r) => {
+    if (!activeCategories.length || !r.splits.length) return r;
+    const part = r.splits.filter((x) => activeCategories.some((value) => value.split(":").at(-1) === x.category)).reduce((sum, x) => sum + x.amount, 0);
+    const ratio = r.amount > 0 ? part / r.amount : 0;
+    return { ...r, amount: part, yours: r.yours * ratio, originalTotal: r.amount };
+  });
+  const groups = byDay(viewRows);
   const merchantRows = active ? rows.filter((row) => row.merchant === active.merchant) : [];
   const merchantTotal = merchantRows.reduce((sum, row) => sum + (row.type === "expense" && !row.excluded ? row.amount : 0), 0);
   const colors = Object.fromEntries(meta.categories.map((item) => [item.name, item.colorToken]));

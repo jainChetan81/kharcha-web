@@ -41,7 +41,7 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const getTransactions = createServerFn({ method: "GET" })
-  .validator(listSchema.extend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
+  .validator(listSchema.safeExtend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
   .handler(async ({ data }) => {
     const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500 });
     const splits = await splitsByTxnIds(getDb(), rows.map((r) => r.id));

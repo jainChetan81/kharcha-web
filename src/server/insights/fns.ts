@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client.ts";
-import { monthBounds, spendByCategory } from "../db/queries.ts";
+import { countedAmountSql, monthBounds, shareSql, spendByCategory, splitShareOf } from "../db/queries.ts";
 import { dayMonth } from "../../lib/format.ts";
 import { digests, insights } from "../db/schema.ts";
 
@@ -44,14 +44,23 @@ export const getInsights = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const db = getDb(); const month = data.month ?? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7); const [from, to] = monthBounds(month);
     const [waterfall, daily, bees, merchants, allInsights] = await Promise.all([
-      db.all<{ income: number; investments: number; spending: number }>(sql`SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount END), 0) income, COALESCE(SUM(CASE WHEN type = 'investment' THEN amount END), 0) investments, COALESCE(SUM(CASE WHEN type = 'expense' AND excluded = 0 AND duplicate_of IS NULL THEN amount END), 0) spending FROM transactions WHERE deleted_at IS NULL AND date >= ${from} AND date < ${to}`),
-      db.all<{ day: string; total: number; category: string }>(sql`SELECT substr(t.date, 1, 10) day, SUM(COALESCE(s.amount, t.amount)) total, COALESCE(s.category, t.category, 'Other') category FROM transactions t LEFT JOIN transaction_splits s ON s.transaction_id = t.id WHERE ${aliasedSpend} AND t.date >= ${from} AND t.date < ${to} GROUP BY 1, 3`),
-      db.all<{ id: number; merchant: string; amount: number; category: string; date: string }>(sql`SELECT id, merchant, amount, COALESCE(category, 'Other') category, date FROM transactions WHERE ${spend} AND date >= ${from} AND date < ${to} ORDER BY amount DESC LIMIT 120`),
-      db.all<{ merchant: string; total: number; n: number }>(sql`SELECT merchant, SUM(amount) total, COUNT(*) n FROM transactions WHERE ${spend} AND date >= ${from} AND date < ${to} GROUP BY merchant ORDER BY total DESC LIMIT 8`),
+      db.all<{ income: number; investments: number; spending: number }>(sql`SELECT
+        COALESCE(SUM(CASE WHEN type = 'income' AND excluded = 0 AND duplicate_of IS NULL THEN ${countedAmountSql()} END), 0) income,
+        COALESCE(SUM(CASE WHEN type = 'investment' THEN amount END), 0) investments,
+        COALESCE(SUM(CASE WHEN type = 'expense' AND excluded = 0 AND duplicate_of IS NULL THEN ${shareSql()} END), 0) spending
+        FROM transactions WHERE deleted_at IS NULL AND date >= ${from} AND date < ${to}`),
+      db.all<{ day: string; total: number; category: string }>(sql`
+        SELECT substr(t.date, 1, 10) day, SUM(CASE WHEN s.transaction_id IS NULL THEN ${shareSql("t")} ELSE
+          ${sql.raw(splitShareOf("t", "s"))} END) total,
+          COALESCE(s.category, t.category, 'Other') category
+        FROM transactions t LEFT JOIN transaction_splits s ON s.transaction_id = t.id WHERE ${aliasedSpend}
+          AND t.date >= ${from} AND t.date < ${to} GROUP BY 1, 3`),
+      db.all<{ id: number; merchant: string; amount: number; category: string; date: string }>(sql`SELECT id, merchant, ${shareSql()} amount, COALESCE(category, 'Other') category, date FROM transactions WHERE ${spend} AND date >= ${from} AND date < ${to} ORDER BY amount DESC LIMIT 120`),
+      db.all<{ merchant: string; total: number; n: number }>(sql`SELECT merchant, SUM(${shareSql()}) total, COUNT(*) n FROM transactions WHERE ${spend} AND date >= ${from} AND date < ${to} GROUP BY merchant ORDER BY total DESC LIMIT 8`),
       db.select().from(insights).where(isNull(insights.dismissedAt)).orderBy(desc(insights.createdAt)).limit(8),
     ]);
     const six = await Promise.all(Array.from({ length: 6 }, async (_, index) => {
-      const date = new Date(`${month}-01T00:00:00`); date.setMonth(date.getMonth() - (5 - index)); const key = date.toISOString().slice(0, 7); const [start, end] = monthBounds(key); const row = await db.all<{ total: number }>(sql`SELECT COALESCE(SUM(amount), 0) total FROM transactions WHERE ${spend} AND date >= ${start} AND date < ${end}`); return { month: key, total: Number(row[0]?.total ?? 0), current: key === month };
+      const date = new Date(`${month}-01T00:00:00`); date.setMonth(date.getMonth() - (5 - index)); const key = date.toISOString().slice(0, 7); const [start, end] = monthBounds(key); const row = await db.all<{ total: number }>(sql`SELECT COALESCE(SUM(${shareSql()}), 0) total FROM transactions WHERE ${spend} AND date >= ${start} AND date < ${end}`); return { month: key, total: Number(row[0]?.total ?? 0), current: key === month };
     }));
     const values = moneyRows(waterfall)[0] ?? { income: 0, investments: 0, spending: 0 };
     const categories = await spendByCategory(db, from, to);

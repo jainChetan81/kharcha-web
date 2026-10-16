@@ -18,12 +18,24 @@ export type LedgerTxn = {
   excluded?: boolean;
   rawMerchant?: string | null;
   splits?: { category: string; amount: number }[];
+  yours?: number;
+  reimbursable?: number;
 };
 
 /** Excluded rows (card bills, own-account moves, anything marked "Not a spend") stay listed but don't count. Ingest files card bills as Other, so the tag can't tell them apart. */
 const cardBill = (t: LedgerTxn) => /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
 const label = (t: LedgerTxn) =>
   t.excluded ? (cardBill(t) ? "Card bill" : "Transfer") : t.type === "income" ? "Income" : t.type === "investment" ? "Investment" : (t.category ?? "Other");
+
+/** ReimbursableBadge: U-turn arrow + "₹1,200 back" in brand, on rows with a claim (§5). */
+export function ReimbursableBadge({ amount, className }: { amount?: number; className?: string }) {
+  return (
+    <span className={cn("inline-flex shrink-0 items-center gap-1 rounded-chip border border-brand px-1.5 py-0.5 text-xs font-medium text-brand", className)}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" /></svg>
+      {amount != null ? `${money(amount)} back` : "back"}
+    </span>
+  );
+}
 
 /** Row meta line with the category in its colour; "Other" and uncounted rows stay neutral. */
 export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boolean; color?: string }) {
@@ -79,8 +91,14 @@ export function LedgerRow({ t, withDate, trailing, className, color }: { t: Ledg
           <span className="truncate">{t.merchant}</span>
         </span>
         <RowMeta t={t} withDate={withDate} color={color} />
+        {t.reimbursable != null && t.reimbursable > 0 && <ReimbursableBadge amount={t.reimbursable} className="self-start" />}
       </span>
-      {trailing ?? <Amount t={t} />}
+      {trailing ?? (t.reimbursable ? (
+        <span className="flex shrink-0 flex-col items-end gap-0.5">
+          <Amount t={t} />
+          <span className="text-[13px] whitespace-nowrap text-ink-3">{money(t.yours ?? 0)} yours · {money(t.reimbursable)} paid</span>
+        </span>
+      ) : <Amount t={t} />)}
     </Link>
   );
 }
@@ -105,7 +123,8 @@ export function byDay<T extends LedgerTxn>(rows: T[]): { date: string; total: nu
       out.push(g);
     }
     g.rows.push(r);
-    if (r.type === "expense" && !r.excluded) g.total += r.amount;
+    // Your share when the server sent one; reimbursed amounts don't count toward the day.
+    if (r.type === "expense" && !r.excluded) g.total += r.yours ?? r.amount;
   }
   return out;
 }

@@ -8,9 +8,11 @@ export function BudgetBar({
   pacePct,
   showLabels = false,
   className,
+  reimbursable = 0,
 }: {
   spent: number;
   limit: number;
+  reimbursable?: number;
   /** Fraction 0..1 or percentage 0..100. */
   pacePct: number;
   showLabels?: boolean;
@@ -19,6 +21,7 @@ export function BudgetBar({
   const normPace = pacePct > 1 ? pacePct / 100 : pacePct;
   const pacePercent = Math.min(100, Math.max(0, normPace * 100));
   const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+  const reimbursablePct = spent > 0 ? Math.min(pct, Math.max(0, reimbursable / spent * pct)) : 0;
   const projected = normPace > 0 ? spent / normPace : spent;
   const tone =
     projected > limit ? "bg-over"
@@ -42,6 +45,13 @@ export function BudgetBar({
           className={cn("absolute inset-y-0 left-0 rounded-chip", tone)}
           style={{ width: `${pct}%` }}
         />
+        {reimbursablePct > 0 && (
+          <span
+            aria-hidden
+            className="absolute inset-y-0 rounded-chip"
+            style={{ left: `${pct - reimbursablePct}%`, width: `${reimbursablePct}%`, background: "repeating-linear-gradient(135deg, var(--field) 0 2px, transparent 2px 5px)" }}
+          />
+        )}
         <span
           className="absolute -top-1 h-3.5 w-0.5 bg-ink"
           style={{ left: `${pacePercent}%` }}

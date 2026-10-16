@@ -26,6 +26,7 @@ import { Route as ApiLoginRouteImport } from './routes/api.login'
 import { Route as ApiLogoutRouteImport } from './routes/api.logout'
 import { Route as PlanIndexRouteImport } from './routes/plan.index'
 import { Route as PlanBudgetsRouteImport } from './routes/plan.budgets'
+import { Route as PlanOwedRouteImport } from './routes/plan.owed'
 import { Route as PlanRecurringRouteImport } from './routes/plan.recurring'
 import { Route as PlanTripsRouteImport } from './routes/plan.trips'
 import { Route as TxnIdRouteImport } from './routes/txn.$id'
@@ -127,6 +128,11 @@ const PlanBudgetsRoute = PlanBudgetsRouteImport.update({
   path: '/plan/budgets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanOwedRoute = PlanOwedRouteImport.update({
+  id: '/plan/owed',
+  path: '/plan/owed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRecurringRoute = PlanRecurringRouteImport.update({
   id: '/plan/recurring',
   path: '/plan/recurring',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/api/login': typeof ApiLoginRoute
   '/api/logout': typeof ApiLogoutRoute
   '/plan/budgets': typeof PlanBudgetsRoute
+  '/plan/owed': typeof PlanOwedRoute
   '/plan/recurring': typeof PlanRecurringRoute
   '/plan/trips': typeof PlanTripsRoute
   '/txn/$id': typeof TxnIdRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/api/login'
     | '/api/logout'
     | '/plan/budgets'
+    | '/plan/owed'
     | '/plan/recurring'
     | '/plan/trips'
     | '/txn/$id'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   ApiLoginRoute: typeof ApiLoginRoute
   ApiLogoutRoute: typeof ApiLogoutRoute
   PlanBudgetsRoute: typeof PlanBudgetsRoute
+  PlanOwedRoute: typeof PlanOwedRoute
   PlanRecurringRoute: typeof PlanRecurringRoute
   PlanTripsRoute: typeof PlanTripsRoute
   TxnIdRoute: typeof TxnIdRoute
@@ -567,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanBudgetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan/owed': {
+      id: '/plan/owed'
+      path: '/plan/owed'
+      fullPath: '/plan/owed'
+      preLoaderRoute: typeof PlanOwedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan/recurring': {
       id: '/plan/recurring'
       path: '/plan/recurring'
@@ -692,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLoginRoute: ApiLoginRoute,
   ApiLogoutRoute: ApiLogoutRoute,
   PlanBudgetsRoute: PlanBudgetsRoute,
+  PlanOwedRoute: PlanOwedRoute,
   PlanRecurringRoute: PlanRecurringRoute,
   PlanTripsRoute: PlanTripsRoute,
   TxnIdRoute: TxnIdRoute,

@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "../db/client.ts";
 import { ruleMatches } from "../db/queries.ts";
-import { attachments, categories, merchantRules, receiptJobs, transactionItems, transactions } from "../db/schema.ts";
+import { attachments, categories, merchantRules, receiptJobs, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
 
 export type ReceiptError = "unreadable" | "not_receipt" | "ai_unavailable";
@@ -126,6 +126,11 @@ export async function runReceiptJob(db: Db, jobId: number, transactionId: number
       };
     })
     .filter((row) => row.name && row.amount > 0);
+
+  const itemClaim = await db.select({ id: reimbursements.id }).from(reimbursements)
+    .where(and(eq(reimbursements.transactionId, transactionId), sql`${reimbursements.itemIds} IS NOT NULL`, sql`${reimbursements.status} != 'cancelled'`)).get();
+  // Keep this successful read in the job log, but do not replace IDs used by an item claim.
+  if (itemClaim) { await setJob({ status: "done", model: reply.model, finishedAt: now() }); return; }
 
   // Re-read replaces only AI rows; manual rows stay.
   const operations = [

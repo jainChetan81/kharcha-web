@@ -3,7 +3,7 @@ import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { categoryList } from "../db/queries";
-import { attachments, categories, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { attachments, categories, reimbursements, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
 import { receiptSplitMatches, scrubItemName } from "../ai/receipt";
 import { afterWrite } from "../jobs";
 import { parseMessage } from "../parsers/index.ts";
@@ -44,6 +44,11 @@ export const saveReceipt = createServerFn({ method: "POST" }).validator(receiptS
   const db = getDb();
   const txn = await db.select({ amount: transactions.amount, type: transactions.type }).from(transactions).where(and(eq(transactions.id, data.id), live)).get();
   if (!txn) throw new Error("Transaction not found.");
+  // Item claims hold item IDs; replacing those rows would silently restore the
+  // claimed amount to split-category totals. Cancel claim before editing receipt.
+  const itemClaim = await db.select({ id: reimbursements.id }).from(reimbursements)
+    .where(and(eq(reimbursements.transactionId, data.id), sql`${reimbursements.itemIds} IS NOT NULL`, sql`${reimbursements.status} != 'cancelled'`)).get();
+  if (itemClaim) throw new Error("Cancel the item reimbursement claim before changing receipt items.");
   const known = new Set((await db.select({ name: categories.name }).from(categories).where(eq(categories.type, txn.type === "income" ? "income" : "expense"))).map((row) => row.name));
   if (data.items.some((row) => !known.has(row.category))) throw new Error("Unknown category.");
   const cleanItems = data.items.map((item, sortOrder) => ({ ...item, name: scrubItemName(item.name), transactionId: data.id, source: item.source ?? "manual" as const, confidence: item.confidence ?? null, sortOrder }));

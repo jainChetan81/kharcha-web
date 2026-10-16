@@ -30,12 +30,12 @@ export const getUpcoming = createServerFn({ method: "GET" }).validator(z.object(
 
 export const getPlanBudgets = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
   const db = getDb(); const [from, to] = monthBounds(data.month);
-  const [spend, limits, cats] = await Promise.all([spendByCategory(db, from, to), db.query.budgets.findMany(), db.select().from(categories).where(eq(categories.type, "expense")).orderBy(categories.sortOrder)]);
-  const byName = new Map(spend.map((row) => [row.category, row.total])); const limitOf = new Map(limits.map((row) => [row.category, row.monthlyLimit]));
+  const [spend, gross, limits, cats] = await Promise.all([spendByCategory(db, from, to), spendByCategory(db, from, to, true), db.query.budgets.findMany(), db.select().from(categories).where(eq(categories.type, "expense")).orderBy(categories.sortOrder)]);
+  const byName = new Map(spend.map((row) => [row.category, row.total])); const grossOf = new Map(gross.map((row) => [row.category, row.total])); const limitOf = new Map(limits.map((row) => [row.category, row.monthlyLimit]));
   // Same scope as Today: every expense category, Other included, plus any spend under a category since removed.
   const known = new Set(cats.map((cat) => cat.name));
   const orphans = spend.filter((row) => !known.has(row.category)).map((row, i) => ({ name: row.category, type: "expense" as const, colorToken: "cat-other", sortOrder: 99 + i }));
-  return [...cats, ...orphans].map((cat) => ({ ...cat, spent: byName.get(cat.name) ?? 0, limit: limitOf.get(cat.name) ?? null }));
+  return [...cats, ...orphans].map((cat) => ({ ...cat, spent: byName.get(cat.name) ?? 0, gross: Math.max(grossOf.get(cat.name) ?? 0, byName.get(cat.name) ?? 0), limit: limitOf.get(cat.name) ?? null }));
 });
 
 export const getRecurring = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
