@@ -1,5 +1,5 @@
 import { and, count, desc, eq, gte, isNull, like, lt, lte, sql, sum } from "drizzle-orm";
-import { listWhere, type Scope, spendByCategory } from "../db/queries.ts";
+import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
@@ -48,7 +48,6 @@ const scopeDated = (scope: Scope) => Boolean(scope.month || scope.from || scope.
 
 async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<ResultRow[]> {
   // Scope is applied here, server-side, so the model can't widen it and card digits never leave the box.
-  // ponytail: category scope matches split rows but sums whole amounts, like the rest of Ask; use filteredAmount if split precision matters.
   const where = [isNull(transactions.deletedAt), isNull(transactions.duplicateOf), ...listWhere(scope)];
   if (scope.type !== "transfer") where.push(eq(transactions.excluded, false)); // "Not counted" scope asks about exactly those rows.
   const period = scopeDated(scope) ? {} : dates(spec);
@@ -60,7 +59,9 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<Result
   if (spec.filters.trip) where.push(sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`);
   const group = spec.groupBy ?? null;
   const label = group === "day" ? sql<string>`substr(${transactions.date}, 1, 10)` : group === "month" ? sql<string>`substr(${transactions.date}, 1, 7)` : group === "category" ? sql<string>`coalesce(${transactions.category}, 'Other')` : group === "merchant" ? transactions.merchant : sql<string>`'Total'`;
-  const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${transactions.amount})` : sum(transactions.amount).mapWith(Number);
+  // A category scope counts only the selected split parts, matching Activity and Insights.
+  const amount = scope.categories?.length || scope.category ? filteredAmount(scope).counted : sql`${transactions.amount}`;
+  const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${amount})` : sql<number>`sum(${amount})`.mapWith(Number);
   const rows = await db.select({ label, value: metric, ids: sql<string>`group_concat(${transactions.id})` }).from(transactions).where(and(...where)).groupBy(label).orderBy(desc(metric));
   return rows.map((row) => ({ label: String(row.label), value: Number(row.value ?? 0), transactionIds: String(row.ids ?? "").split(",").filter(Boolean).map(Number) }));
 }
@@ -142,11 +143,13 @@ followUps: up to 3 short next questions this ledger can answer (totals, counts o
 
 /** What the model is told about the scope: names and dates only. Card digits, raw search text and amounts stay local. */
 export function describeScope(scope: Scope) {
-  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => scrub(value.split(":").at(-1) ?? value));
+  // Scope labels come from the URL, so any digit run of 4+ (card last-4) is dropped too.
+  const label = (value: string) => (/\d{4}/.test(value) ? "[private]" : scrub(value));
+  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => label(value.split(":").at(-1) ?? value));
   const parts = {
     period: scope.from || scope.to ? `${scope.from ?? "start"} to ${scope.to ?? "today"}` : scope.month,
     categories: cats.length ? cats : undefined,
-    merchant: scope.merchant ? scrub(scope.merchant) : undefined,
+    merchant: scope.merchant ? label(scope.merchant) : undefined,
     type: scope.type === "transfer" ? "not counted" : scope.type,
     card: scope.card ? "one card" : undefined,
     trip: scope.tripId ? "one trip" : undefined,

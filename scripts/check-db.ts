@@ -180,6 +180,11 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   const range = await insightsFor(idb, { from: "2026-09-15", to: "2026-10-03" });
   assert.equal(range.month, "2026-10", "range anchors on its end month");
   assert.equal(range.bees.length, 3, "range covers both months");
+  const open = await insightsFor(idb, { from: "2026-01-01" });
+  assert.equal(open.month, new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7), "from-only range anchors on now");
+  const { scopeSearch } = await import("../src/lib/filters.ts");
+  assert.equal(scopeSearch.safeParse({ from: "2026-02-30" }).success, false, "client rejects impossible dates like the server");
+  assert.equal(scopeSearch.safeParse({ categories: [" "] }).success, false, "client rejects blank categories like the server");
 }
 // Reimbursement accounting uses only synthetic transactions.
 {

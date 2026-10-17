@@ -45,8 +45,8 @@ export async function insightsFor(db: Db, data: Scope) {
     const now = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7);
     const ranged = Boolean(data.from || data.to);
     const q = ranged ? { ...data, month: undefined } : { ...data, month: data.month ?? now };
-    // Anchor month for the calendar and the six-month bars: the month the period ends in.
-    const month = (data.to ?? data.from)?.slice(0, 7) ?? q.month ?? now;
+    // Anchor month for the calendar and the six-month bars: the month the period ends in (open end = now).
+    const month = data.to?.slice(0, 7) ?? (data.from ? now : q.month ?? now);
     const { counted, splitFilter } = filteredAmount(q);
     const scoped = (where: SQL) => sql`WITH m AS (SELECT transactions.*, ${counted} AS counted_amount FROM transactions WHERE ${where}),
       s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)`;
