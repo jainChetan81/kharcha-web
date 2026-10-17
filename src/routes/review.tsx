@@ -58,8 +58,8 @@ function Review() {
   const current = queue[0];
   const open = queue.find((row) => row.id === activeId) ?? current;
   const selected = queue.filter((row) => checked.includes(row.id));
-  const suggested = category?.id === open?.id ? category.name : open?.suggestion ?? "Other";
-  const makeRule = rule?.id === open?.id && rule.on;
+  const suggested = open && category?.id === open.id ? category.name : open?.suggestion ?? "Other";
+  const makeRule = Boolean(open && rule?.id === open.id && rule.on);
   const colorOf = (name: string | null) => categories.find((item) => item.name === name)?.colorToken ?? "cat-other";
 
   useEffect(() => {
