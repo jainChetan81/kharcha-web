@@ -20,6 +20,8 @@ assert.equal(figuresMatchRows("About ₹1,200 so far.", [{ value: 1199.6 }]), tr
 assert.equal(scrub("swiggy@axisbank"), "[private payee]");
 assert.equal(scrub("A/c 123456789"), "[private payee]");
 assert.equal(scrub("Swiggy"), "Swiggy");
+assert.equal(scrub("Visa 4242"), "[private payee]", "card last-4 in labels");
+assert.equal(redact("Over ₹ 4500 or INR 4500?"), "Over ₹ 4500 or INR 4500?", "spaced currency amounts kept");
 assert.equal(scrub("Visa 1234 5678 9012 3456"), "[private payee]");
 assert.equal(scrub("Visa 1234-5678-9012-3456"), "[private payee]");
 assert.equal(scrub("Visa 1234.5678.9012.3456"), "[private payee]");

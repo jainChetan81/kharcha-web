@@ -24,9 +24,9 @@ const parseJson = (value: string): unknown => {
 const dropNulls = (value: unknown): unknown =>
   Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
 /** Merchant labels can carry UPI IDs or account numbers; neither may reach OpenRouter. */
-export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}/.test(label) ? "[private payee]" : label);
+export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}|\d{4}/.test(label) ? "[private payee]" : label); // 4 digits: card last-4 in labels like "Visa 4242".
 /** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
-export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![₹\d,.]|Rs\.? ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
+export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
 const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 
@@ -144,13 +144,11 @@ followUps: up to 3 short next questions this ledger can answer (totals, counts o
 
 /** What the model is told about the scope: names and dates only. Card digits, raw search text and amounts stay local. */
 export function describeScope(scope: Scope) {
-  // Scope labels come from the URL, so any digit run of 4+ (card last-4) is dropped too.
-  const label = (value: string) => (/\d{4}/.test(value) ? "[private]" : scrub(value));
-  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => label(value.split(":").at(-1) ?? value));
+  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => scrub(value.split(":").at(-1) ?? value));
   const parts = {
     period: scope.from || scope.to ? `${scope.from ?? "start"} to ${scope.to ?? "today"}` : scope.month,
     categories: cats.length ? cats : undefined,
-    merchant: scope.merchant ? label(scope.merchant) : undefined,
+    merchant: scope.merchant ? scrub(scope.merchant) : undefined,
     type: scope.type === "transfer" ? "not counted" : scope.type,
     card: scope.card ? "one card" : undefined,
     trip: scope.tripId ? "one trip" : undefined,
