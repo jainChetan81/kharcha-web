@@ -16,10 +16,9 @@ const ruleFields = z.object({
   displayMerchant: z.string().trim().min(1).max(120),
   category: name,
 });
-const settingKey = z.enum(["openrouter_model", "openrouter_vision_model", "openrouter_daily_cap"]);
+const settingKey = z.enum(["openrouter_model", "openrouter_daily_cap"]);
 const settingsSchema = z.discriminatedUnion("key", [
   z.object({ key: z.literal("openrouter_model"), value: z.string().trim().max(100) }),
-  z.object({ key: z.literal("openrouter_vision_model"), value: z.string().trim().max(100) }),
   z.object({ key: z.literal("openrouter_daily_cap"), value: z.enum(["50", "100", "200", "500"]) }),
 ]);
 

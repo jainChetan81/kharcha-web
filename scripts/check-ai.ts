@@ -5,7 +5,8 @@ import { askSpecSchema, figuresMatchRows, redact, scrub } from "../src/server/ai
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
 import { callOpenRouter } from "../src/server/ai/client.ts";
-import { categorize, receiptOutput, receiptSplitMatches, scrubItemName } from "../src/server/ai/receipt.ts";
+import { attachments, receiptJobs } from "../src/server/db/schema.ts";
+import { categorize, receiptOutput, receiptSplitMatches, redactReceiptText, runReceiptJob, scrubItemName } from "../src/server/ai/receipt.ts";
 import { spendByCategory } from "../src/server/db/queries.ts";
 import { transactionSplits } from "../src/server/db/schema.ts";
 import { validDigestLines, runDetectors, runDigest } from "../src/server/insights/jobs.ts";
@@ -92,5 +93,40 @@ const byCat = Object.fromEntries((await spendByCategory(splitDb, "2026-10-01", "
 assert.equal(byCat.Food, 120, "split contributes split amounts, unsplit rows keep category");
 assert.equal(byCat.Home, 30);
 assert.equal(byCat.Shopping, undefined, "split replaces the single category");
+
+// Local OCR redaction: synthetic bill text only.
+const bill = redactReceiptText("Mart Bill\nCard 4111 1111 1111 1111\nUPI: someone@okbank\nA/c 123456789012\nMilk 60.00\nTotal 1,234.50");
+assert.ok(bill.includes("Milk 60.00\nTotal 1,234.50"), "items, amounts and line breaks kept");
+assert.ok(!redactReceiptText("Ravi Kumar\n9876543210\nhi@shop.in").match(/9876543210|@shop/), "phone and email removed");
+assert.ok(!bill.includes("4111") && !bill.includes("@okbank") && !bill.includes("123456789012"), "card, UPI and account removed");
+
+// runReceiptJob: injected OCR, mocked fetch, in-memory DB. Never touches disk or network.
+async function receiptHarness(text: string | null) {
+  const rdb = openDb(":memory:");
+  await rdb.insert(transactions).values({ source: "manual", type: "expense", amount: 60, merchant: "Mart", category: "Food", date: "2026-10-05 10:00" });
+  await rdb.insert(attachments).values({ transactionId: 1, path: "/synthetic/none.jpg", mime: "image/jpeg", bytes: 1 });
+  await rdb.insert(receiptJobs).values({ transactionId: 1, status: "queued" });
+  let calls = 0; let body = "";
+  globalThis.fetch = async (_input, init) => { calls++; body = String(init?.body); return Response.json({ choices: [{ message: { content: JSON.stringify({ isReceipt: true, total: 60, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] }) } }] }); };
+  process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+  await runReceiptJob(rdb, 1, 1, async () => text);
+  const job = await rdb.select().from(receiptJobs).get();
+  return { job, calls, body };
+}
+try {
+  const ok = await receiptHarness("Mart Bill\nCard 4111 1111 1111 1111\nUPI: someone@okbank\nA/c 123456789012\nMilk 60.00\nTotal 60.00");
+  assert.equal(ok.calls, 1);
+  assert.ok(!ok.body.includes("base64") && !ok.body.includes("image_url"), "no image payload");
+  assert.ok(!ok.body.includes("4111") && !ok.body.includes("@okbank") && !ok.body.includes("123456789012"), "sensitive OCR text not sent");
+  assert.equal(ok.job?.status, "done");
+  const none = await receiptHarness(null);
+  assert.equal(none.calls, 0, "OCR unavailable: no AI call");
+  assert.equal(none.job?.status, "failed");
+  assert.equal(none.job?.error, "unreadable");
+} finally {
+  globalThis.fetch = savedFetch;
+  if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
+  if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+}
 
 console.log("ai checks passed");

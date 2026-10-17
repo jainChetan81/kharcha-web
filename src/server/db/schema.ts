@@ -145,7 +145,23 @@ export const holdings = sqliteTable("holdings", {
   sipAmount: real("sip_amount"),
   sipDay: integer("sip_day"),
   smsMatch: text("sms_match"),
+  // Cost basis reported with manualValue on manualValueDate (statement snapshot, no buy history).
+  manualInvested: real("manual_invested"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+});
+
+// Active SIP mandates as last seen at the broker. Planned dates only: they never create
+// buys or clear debits; real instalments still come from holding_txns.
+export const sipMandates = sqliteTable("sip_mandates", {
+  id: integer("id").primaryKey(),
+  // Stable source identity (e.g. broker + folio tail + day) so a re-load updates, not duplicates.
+  sourceKey: text("source_key").notNull().unique(),
+  holdingId: integer("holding_id").notNull().references(() => holdings.id, { onDelete: "cascade" }),
+  amount: real("amount").notNull(),
+  day: integer("day").notNull(),
+  nextDate: text("next_date"),
+  note: text("note"),
+  observedOn: text("observed_on").notNull(),
 });
 
 export const holdingTxns = sqliteTable(

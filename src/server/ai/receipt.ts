@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "../db/client.ts";
@@ -6,12 +7,44 @@ import { ruleMatches } from "../db/queries.ts";
 import { attachments, categories, merchantRules, receiptJobs, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
 
+const execFileAsync = promisify(execFile);
+
 export type ReceiptError = "unreadable" | "not_receipt" | "ai_unavailable";
 export const receiptSplitMatches = (amount: number, splits: { amount: number }[]) => splits.length > 0 && Math.abs(splits.reduce((sum, row) => sum + row.amount, 0) - amount) <= 0.01;
 
 // 13–19 digits, optionally spaced or dashed; UPI handles look like name@bank.
 const CARD_RUN = /(?<!\d)\d(?:[ -]?\d){12,18}(?!\d)/g;
 const UPI_ID = /[\w.+-]+@[a-z]{2,}/gi;
+const PRIVATE_RECEIPT_LINE = /\b(?:upi|vpa|card|a\s*\/\s*c|acct|account|ifsc|txn\s*id|ref\s*no|rrn|auth\s*code|approval|qr|scan\s+to\s+pay|pan)\b/i;
+
+/** OCR one local image without invoking a shell. OCR output and errors stay local. */
+export async function ocrImage(path: string): Promise<string | null> {
+  try {
+    const { stdout } = await execFileAsync("tesseract", [path, "stdout", "-l", "eng", "--psm", "6"], {
+      timeout: 20_000,
+      maxBuffer: 256 * 1024,
+      killSignal: "SIGKILL",
+    });
+    return stdout;
+  } catch {
+    return null;
+  }
+}
+
+/** Remove sensitive receipt lines and identifiers before text leaves this server. */
+export function redactReceiptText(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .filter((line) => !PRIVATE_RECEIPT_LINE.test(line))
+    .join("\n")
+    .replace(CARD_RUN, "[number]")
+    .replace(/(?<![\d,.])\d{9,}(?![\d,.])/g, "[number]")
+    .replace(UPI_ID, "[id]")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/\n\s*\n+/g, "\n")
+    .trim()
+    .slice(0, 8000);
+}
 
 /** Drop card-like digit runs and UPI handles from an item name before it is stored. */
 export function scrubItemName(name: string): string {
@@ -58,17 +91,18 @@ export function categorize(item: string, merchant: string, rules: Rule[], known:
 
 const prompt = (names: string[]) =>
   [
-    "Read the attached receipt image(s) as one order.",
+    "Read the receipt text below (OCR, may contain errors) as one order.",
     'Return only JSON: {"isReceipt": boolean, "total": number|null, "currency": string|null, "items": [{"name": string, "qty": number|null, "amount": number, "confidence": number between 0 and 1, "category": string}]}.',
-    "Set isReceipt to false if the images are not a receipt or bill.",
+    "Set isReceipt to false if the text is not a receipt or bill.",
+    "Give low confidence for lines the OCR may have garbled.",
     "Never write card numbers, account numbers or UPI IDs into names.",
     `Category must be one of: ${names.join(", ")}. Omit it if none fits.`,
   ].join("\n");
 
 const now = () => new Date().toISOString();
 
-/** Run one vision read for a transaction and store its AI items. Job row records the outcome. */
-export async function runReceiptJob(db: Db, jobId: number, transactionId: number): Promise<void> {
+/** Run one local OCR read for a transaction and store its AI items. Job row records the outcome. */
+export async function runReceiptJob(db: Db, jobId: number, transactionId: number, ocr = ocrImage): Promise<void> {
   const setJob = (values: Partial<typeof receiptJobs.$inferInsert>) => db.update(receiptJobs).set(values).where(eq(receiptJobs.id, jobId));
   const fail = async (error: ReceiptError): Promise<void> => { await setJob({ status: "failed", error, finishedAt: now() }); };
   await setJob({ status: "reading", startedAt: now() });
@@ -80,24 +114,23 @@ export async function runReceiptJob(db: Db, jobId: number, transactionId: number
     db.select({ match: merchantRules.match, category: merchantRules.category }).from(merchantRules).orderBy(desc(merchantRules.id)),
   ]);
   if (!txn) { await fail("unreadable"); return; }
-  // PDFs are stored but not sent: vision input is images only for now.
+  // PDFs are stored but not sent: OCR runs on images only.
   const images = files.filter((file) => file.mime !== "application/pdf").slice(0, 5);
   if (!images.length) { await fail("unreadable"); return; }
 
+  // Pixels never leave the server: OCR locally, redact, send text only. No raw-image fallback.
+  const texts: string[] = [];
+  for (const image of images) {
+    const raw = await ocr(image.path);
+    if (raw !== null) texts.push(redactReceiptText(raw));
+  }
+  const text = texts.filter(Boolean).join("\n---\n");
+  const words = text.match(/[a-z0-9]+/gi) ?? [];
+  if (words.length < 3 || !/\d/.test(text)) { await fail("unreadable"); return; }
+
   const type = txn.type === "income" ? "income" : "expense";
   const names = new Set(known.filter((c) => c.type === type).map((c) => c.name));
-  const content: unknown[] = [{ type: "text", text: prompt([...names]) }];
-  try {
-    for (const image of images) {
-      const bytes = await readFile(image.path);
-      content.push({ type: "image_url", image_url: { url: `data:${image.mime};base64,${bytes.toString("base64")}` } });
-    }
-  } catch {
-    await fail("unreadable");
-    return;
-  }
-
-  const reply = await callOpenRouter([{ role: "user", content }], { db, vision: true });
+  const reply = await callOpenRouter([{ role: "user", content: `${prompt([...names])}\n\nReceipt text:\n${text}` }], { db });
   if (!reply.ok) { await fail("ai_unavailable"); return; }
   let json: unknown;
   try {

@@ -246,6 +246,9 @@ console.log("check-db: ok");
   assert.equal(safeNext("//evil.example"), "/", "protocol-relative next blocked");
   assert.equal(safeNext("/\\evil.example"), "/", "backslash next blocked");
   assert.equal(safeNext("/history?review=true"), "/history?review=true");
+  // Expired session on client navigation: start.ts sends the browser to /login?next=<page>.
+  const next = new URLSearchParams(`next=${encodeURIComponent("/wealth?tab=sip&x=1")}`).get("next");
+  assert.equal(safeNext(next), "/wealth?tab=sip&x=1", "login next round-trips the current page");
   console.log("check-auth: ok");
 }
 

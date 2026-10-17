@@ -59,6 +59,8 @@ export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)
 export const weekday = (date: string) => day(date).toLocaleDateString("en-IN", { weekday: "short" });
 /** Prices carry their date: "NAVs of 15 Oct". */
 export const navsOf = (date: string) => `NAVs of ${dayMonth(date)}`;
+/** Manual values carry theirs: "Statement of 9 Oct". */
+export const statementOf = (date: string) => `Statement of ${dayMonth(date)}`;
 
 /** "Oct" · "October" for a "YYYY-MM". */
 export const monthName = (month: string, width: "short" | "long" = "long") =>

@@ -17,11 +17,10 @@ const auth = createMiddleware().server(async ({ request, pathname, handlerType, 
   if (authOff) return next();
   if (handlerType === "router" && isPublic(pathname)) return next();
   if (isSignedIn(request)) return next();
-  if (handlerType === "serverFn") return new Response("Sign in again.", { status: 401 });
-  const target = encodeURIComponent(pathname + new URL(request.url).search);
+  if (handlerType === "serverFn") return new Response(SIGN_IN_AGAIN, { status: 401 });
   return new Response(null, {
     status: 302,
-    headers: { Location: `/login?next=${target}`, "Cache-Control": "no-store" },
+    headers: { Location: loginHref(pathname + new URL(request.url).search), "Cache-Control": "no-store" },
   });
 });
 
@@ -32,4 +31,20 @@ const noStore = createMiddleware().server(async ({ next, handlerType }) => {
   return result;
 });
 
-export const startInstance = createStart(() => ({ requestMiddleware: [csrf, auth, noStore] }));
+export const SIGN_IN_AGAIN = "Sign in again.";
+
+// Browser side: an expired session makes every server function 401. Retrying cannot fix
+// that, so leave for the login page and come back to the same screen afterwards.
+export const loginHref = (path: string) => `/login?next=${encodeURIComponent(path)}`;
+const expired = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  try {
+    return await next();
+  } catch (error) {
+    if (error instanceof Error && error.message === SIGN_IN_AGAIN && typeof window !== "undefined" && location.pathname !== "/login") {
+      window.location.assign(loginHref(location.pathname + location.search));
+    }
+    throw error;
+  }
+});
+
+export const startInstance = createStart(() => ({ requestMiddleware: [csrf, auth, noStore], functionMiddleware: [expired] }));

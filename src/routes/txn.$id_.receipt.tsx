@@ -13,7 +13,7 @@ type Item = { key: string; name: string; qty: number | null; amount: number; cat
 type SavedFile = { id: number; mime: string };
 type Draft = { file: File; url: string; rotate: number };
 type Rect = { x: number; y: number; width: number; height: number };
-const PRIVACY = "Photos go to the AI service only to read the items. Kharcha removes card numbers and UPI IDs from what it saves. Crop out full card numbers before adding a photo.";
+const PRIVACY = "Photos stay on your server. Kharcha reads the text there, removes card, account and UPI numbers, and sends only the remaining text to the AI service.";
 const MIN_CROP = 24;
 
 /** Render the photo with its Rotate turns applied. maxSide caps the longer edge (preview 900, upload 2400). */

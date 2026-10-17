@@ -62,14 +62,11 @@ function estimate(price: Price | undefined, inputTokens: number, outputTokens: n
 
 /** Fetches only while AI is enabled. Failed pricing never affects AI calls or settings load. */
 export async function modelCosts(db: Db, aiOn: boolean) {
-  if (!aiOn) return { text: {} as Record<string, string | null>, vision: {} as Record<string, string | null> };
+  if (!aiOn) return { text: {} as Record<string, string | null> };
   const prices = await dailyPrices(db);
   const text: Record<string, string | null> = {};
-  const vision: Record<string, string | null> = {};
   for (const [id, price] of Object.entries(prices)) {
     text[id] = estimate(price, 1500, 300);
-    // Vision estimate uses 1,000 equivalent input tokens for one typical receipt image.
-    vision[id] = estimate(price, 1000, 800);
   }
-  return { text, vision };
+  return { text };
 }
