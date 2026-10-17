@@ -379,3 +379,19 @@ console.log("check-db: ok");
   assert.equal(s.sync, "synced");
   console.log("check-mini: ok");
 }
+// A new rule files pending rows it matches, not just the source row.
+{
+  const { addRule } = await import("../src/server/db/queries.ts");
+  const rdb = openDb(":memory:");
+  const base = { type: "expense" as const, amount: 99, category: "Other", date: "2026-10-16 09:00" };
+  const a = await addTxn(rdb, { ...base, merchant: "OPENROUTER INC" });
+  const b = await addTxn(rdb, { ...base, merchant: "OPENROUTER INC" });
+  const c = await addTxn(rdb, { ...base, merchant: "CAFE Y" });
+  await rdb.run(sql`UPDATE transactions SET needs_review = 1`);
+  const { ids } = await addRule(rdb, { match: "OPENROUTER INC", displayMerchant: "OpenRouter", category: "Work", createdFromTxnId: a });
+  assert.deepEqual(ids.sort(), [a, b].sort(), "rule files every matching pending row");
+  const rows = await listTxns(rdb, { limit: 10 });
+  assert.equal(rows.find((t) => t.id === b)?.category, "Work");
+  assert.equal(rows.find((t) => t.id === b)?.needsReview, false);
+  assert.equal(rows.find((t) => t.id === c)?.needsReview, true, "other merchants stay in review");
+}
