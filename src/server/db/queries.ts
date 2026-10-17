@@ -327,9 +327,11 @@ export function listWhere(q: ListQuery) {
       const category = split > 0 ? value.slice(split + 1) : value;
       const splitMatch = sql`EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id} AND fs.category = ${category}${type ? sql` AND ${transactions.type} = ${type}` : sql``})`;
       const noSplits = sql`NOT EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id})`;
+      // Null category reads as Other everywhere, so the Other filter includes uncategorised rows.
+      const categoryMatch = sql`COALESCE(${transactions.category}, 'Other') = ${category}`;
       const rowMatch = type
-        ? and(eq(transactions.type, type as typeof TXN_TYPES[number]), eq(transactions.category, category), noSplits)
-        : and(eq(transactions.category, category), noSplits);
+        ? and(eq(transactions.type, type as typeof TXN_TYPES[number]), categoryMatch, noSplits)
+        : and(categoryMatch, noSplits);
       return or(rowMatch, splitMatch);
     });
     const match = or(...matches);

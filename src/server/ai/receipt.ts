@@ -6,6 +6,7 @@ import type { Db } from "../db/client.ts";
 import { ruleMatches } from "../db/queries.ts";
 import { attachments, categories, merchantRules, receiptJobs, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
+import { callCostUsd } from "./pricing.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -160,16 +161,18 @@ export async function runReceiptJob(db: Db, jobId: number, transactionId: number
     })
     .filter((row) => row.name && row.amount > 0);
 
+  const costUsd = await callCostUsd(db, reply.model, reply.tokensIn, reply.tokensOut, reply.costUsd);
+  const provenance = { model: reply.model, tokensIn: reply.tokensIn, tokensOut: reply.tokensOut, costUsd };
   const itemClaim = await db.select({ id: reimbursements.id }).from(reimbursements)
     .where(and(eq(reimbursements.transactionId, transactionId), sql`${reimbursements.itemIds} IS NOT NULL`, sql`${reimbursements.status} != 'cancelled'`)).get();
   // Keep this successful read in the job log, but do not replace IDs used by an item claim.
-  if (itemClaim) { await setJob({ status: "done", model: reply.model, finishedAt: now() }); return; }
+  if (itemClaim) { await setJob({ ...provenance, status: "done", finishedAt: now() }); return; }
 
   // Re-read replaces only AI rows; manual rows stay.
   const operations = [
     db.delete(transactionItems).where(and(eq(transactionItems.transactionId, transactionId), eq(transactionItems.source, "ai"))),
     ...(rows.length ? [db.insert(transactionItems).values(rows)] : []),
-    setJob({ status: "done", model: reply.model, finishedAt: now() }),
+    setJob({ ...provenance, status: "done", finishedAt: now() }),
   ];
   await db.batch(operations as [typeof operations[number], ...typeof operations[number][]]);
 }

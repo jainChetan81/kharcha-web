@@ -5,6 +5,7 @@ import { shareSql, spendByCategory } from "../db/queries.ts";
 import { budgets, digests, holdings, holdingTxns, insights, recurringSeries, transactions } from "../db/schema.ts";
 import { scrub } from "../ai/ask.ts";
 import { callOpenRouter } from "../ai/client.ts";
+import { callCostUsd } from "../ai/pricing.ts";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const localDate = () => new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date())}T00:00:00Z`);
@@ -91,6 +92,11 @@ Pick the 3 facts that matter most this week, most important first, using context
 num must be copied verbatim from the chosen facts value, and factKey must be that fact's key. Use each fact at most once. No other figures in pre or post.` }, { role: "user", content: JSON.stringify({ facts, context }) }], { db });
   let text: string | null = null; let model: string | null = null;
   if (response.ok) { const parsed = z.object({ lines: z.unknown() }).safeParse(parseJson(response.content)); if (parsed.success && validDigestLines(parsed.data.lines, facts)) { text = JSON.stringify(parsed.data.lines); model = response.model; } }
-  await db.insert(digests).values({ weekStart: iso(week), factsJson: JSON.stringify({ ...facts, links }), text, model }).onConflictDoUpdate({ target: digests.weekStart, set: { factsJson: JSON.stringify({ ...facts, links }), text, model } });
+  // Provenance only when the model's words were kept; a rejected reply still cost money but is not shown.
+  const tokensIn = text !== null && response.ok ? response.tokensIn : null;
+  const tokensOut = text !== null && response.ok ? response.tokensOut : null;
+  const costUsd = text !== null && response.ok ? await callCostUsd(db, response.model, response.tokensIn, response.tokensOut, response.costUsd) : null;
+  const row = { factsJson: JSON.stringify({ ...facts, links }), text, model, tokensIn, tokensOut, costUsd };
+  await db.insert(digests).values({ weekStart: iso(week), ...row }).onConflictDoUpdate({ target: digests.weekStart, set: { ...row, createdAt: sql`(datetime('now'))` } });
   return { written: text !== null };
 }

@@ -37,8 +37,8 @@ export function ModelSelect({ id, label, value, placeholder, disabled, onChange,
       <div id={listId} className="m-0 max-h-[min(60dvh,520px)] overflow-y-auto">
         {filtered.map((model) => <div key={model.id} aria-current={value === model.id ? "true" : undefined} className="border-b border-hairline">
           <button type="button" className="grid min-h-16 w-full grid-cols-[minmax(0,1fr)_24px] items-center gap-2.5 text-left" onClick={() => choose(model.id)}>
-            <span className="flex min-w-0 flex-col gap-0.5"><span className="truncate text-[15px] font-medium">{model.name}</span><span className="truncate text-[13px] text-ink-3">{model.provider} · <span className="font-mono">{model.id}</span></span></span>
-            <span className="flex max-w-[120px] items-center gap-2"><span className="text-xs break-words text-ink-2">{costs[model.id]}</span><span className="text-brand">{value === model.id && <Check size={20} aria-label="Selected" />}</span></span>
+            <span className="flex min-w-0 flex-col gap-0.5 py-2"><span className="truncate text-[15px] font-medium">{model.name}</span><span className="truncate text-[13px] text-ink-3">{model.provider} · <span className="font-mono">{model.id}</span></span>{costs[model.id] && <span className="text-xs text-ink-2">{costs[model.id]}</span>}</span>
+            <span className="text-brand">{value === model.id && <Check size={20} aria-label="Selected" />}</span>
           </button>
         </div>)}
         {custom && !presets.some((model) => model.id === custom) && <div className="border-b border-hairline">

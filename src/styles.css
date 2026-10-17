@@ -27,6 +27,7 @@
   --color-brand: #2F4A7A;
   --color-brand-deep: #1F3459;
   --color-brand-soft: #E3E8F1;
+  --color-ai-accent: #A76AE0;
   --color-earn: #2D6B4A;
   --color-over: #A3402D;
   --color-watch: #8A5A12;
@@ -114,6 +115,7 @@
   --color-input: #12151C;
   --color-ink: #ECE8DF; --color-ink-2: #BFC2CC; --color-ink-3: #A0A4B0;
   --color-brand: #9DB3DA; --color-on-brand: #12151C; --color-brand-soft: #243149;
+  --color-ai-accent: #C9A0F0;
   --color-earn: #74C595; --color-earn-soft: #1D3326;
   --color-over: #F08C76; --color-over-soft: #3A1F1A; --color-on-over: #12151C;
   --color-watch: #C99A3A; --color-watch-text: #E6B864; --color-watch-soft: #3A2F18;
@@ -159,4 +161,22 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 }
 @utility hatch {
   background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, var(--color-track) 6px 12px);
+}
+
+/* AI look (DESIGN.md AI board): gradient orb marking model-made content. Colour is decorative; meaning is in the label. */
+@utility ai-orb {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, var(--color-ai-accent) 45%, var(--color-brand) 100%);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-ai-accent) 60%, transparent);
+  animation: ai-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ai-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-orb { animation: none; }
 }

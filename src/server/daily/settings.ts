@@ -26,14 +26,14 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
   const db = getDb();
   const keys = [...settingKey.options, "last_ingest_at"];
   const entries = await Promise.all(keys.map(async (key) => [key, await getMeta(db, key)] as const));
-  // Count is type-scoped: income categories count income rows, expense categories count the rest.
+  // Count is type-scoped (null category counts as Other): income categories count income rows, expense categories count the rest.
   const transactionCount = count(transactions.id);
   const aiOn = process.env.KHARCHA_AI === "on";
   const ai = await aiConfig(db);
   return {
     categories: await db.select({ name: categories.name, type: categories.type, colorToken: categories.colorToken, sortOrder: categories.sortOrder, transactionCount })
       .from(categories)
-      .leftJoin(transactions, and(eq(transactions.category, categories.name), isNull(transactions.deletedAt), sql`((${categories.type} = 'income') = (${transactions.type} = 'income'))`))
+      .leftJoin(transactions, and(sql`coalesce(${transactions.category}, 'Other') = ${categories.name}`, isNull(transactions.deletedAt), sql`((${categories.type} = 'income') = (${transactions.type} = 'income'))`))
       .groupBy(categories.name, categories.type)
       .orderBy(categories.type, categories.sortOrder),
 
@@ -53,7 +53,7 @@ export const getCategoryDeleteCounts = createServerFn({ method: "GET" })
     const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
     const shared = await db.select({ name: categories.name }).from(categories).where(and(eq(categories.name, data.name), ne(categories.type, data.type))).get();
     const [txns, budget, rules] = await Promise.all([
-      db.select({ count: count() }).from(transactions).where(and(eq(transactions.category, data.name), isNull(transactions.deletedAt), ofType)).get(),
+      db.select({ count: count() }).from(transactions).where(and(sql`coalesce(${transactions.category}, 'Other') = ${data.name}`, isNull(transactions.deletedAt), ofType)).get(),
       data.type === "expense" ? db.select({ count: count() }).from(budgets).where(eq(budgets.category, data.name)).get() : Promise.resolve({ count: 0 }),
       data.type === "expense" || !shared ? db.select({ count: count() }).from(merchantRules).where(eq(merchantRules.category, data.name)).get() : Promise.resolve({ count: 0 }),
     ]);

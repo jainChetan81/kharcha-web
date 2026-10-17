@@ -3,6 +3,7 @@ import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/qu
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
+import { callCostUsd } from "./pricing.ts";
 import type { Db } from "../db/client.ts";
 
 const filterSchema = z.object({
@@ -16,7 +17,9 @@ export const askSpecSchema = z.object({
 export type AskSpec = z.infer<typeof askSpecSchema>;
 
 type ResultRow = { label: string; value: number; transactionIds: number[] };
-export type AskResult = { ok: true; question: string; answer: string; rows: ResultRow[]; transactionIds: number[]; followUps: string[]; model: string } | { ok: false; reason: string };
+export type AskResult = { ok: true; question: string; answer: string; rows: ResultRow[]; transactionIds: number[]; followUps: string[]; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null } | { ok: false; reason: string };
+// Any unknown part makes the total unknown: a partial sum would understate the call.
+const sumKnown = (values: (number | null)[]) => (values.length && values.every((value) => value !== null) ? (values as number[]).reduce((a, b) => a + b, 0) : null);
 const parseJson = (value: string): unknown => {
   try { return JSON.parse(value); } catch { return undefined; }
 };
@@ -180,6 +183,11 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";
   const followUps = ok ? answerData.data.followUps : [];
   const model = narrated.ok ? narrated.model : planned.model;
-  await db.insert(askLog).values({ question, scopeJson: JSON.stringify(scope), specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model });
-  return { ok: true, question, answer, rows, transactionIds, followUps, model };
+  // Provenance covers every call that answered: planner and narrator.
+  const calls = [planned, narrated].flatMap((call) => (call.ok ? [call] : []));
+  const tokensIn = sumKnown(calls.map((call) => call.tokensIn));
+  const tokensOut = sumKnown(calls.map((call) => call.tokensOut));
+  const costUsd = sumKnown(await Promise.all(calls.map((call) => callCostUsd(db, call.model, call.tokensIn, call.tokensOut, call.costUsd))));
+  await db.insert(askLog).values({ question, scopeJson: JSON.stringify(scope), specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model, tokensIn, tokensOut, costUsd });
+  return { ok: true, question, answer, rows, transactionIds, followUps, model, tokensIn, tokensOut, costUsd };
 }

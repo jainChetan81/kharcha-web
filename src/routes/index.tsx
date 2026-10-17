@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { MessageCircle, Plus, Settings } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
+import { AiMark } from "../components/ai-mark";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
 import { DigestCard } from "../components/digest-card";
@@ -12,7 +13,7 @@ import { PaceChart } from "../components/pace-chart";
 import { SyncPill } from "../components/sync-pill";
 import { Card, Empty, ErrorState, SectionHead, Skeleton } from "../components/ui";
 import { Treemap } from "../components/treemap";
-import { money, navsOf, overOrLeft, signed, statementOf, thisMonth, weekday } from "../lib/format";
+import { dayMonth, money, navsOf, overOrLeft, signed, statementOf, thisMonth, weekday } from "../lib/format";
 import { getTodayData } from "../server/daily/today";
 import { getDigest } from "../server/insights/fns";
 import { getUpcoming } from "../server/plan/fns";
@@ -45,7 +46,7 @@ function Today() {
       <div className="flex shrink-0 items-center gap-0 desk:gap-3">
         <span className="hidden min-[420px]:inline-flex"><SyncPill onInk short /></span>
         <Link to="/settings" aria-label="Settings" className="flex size-11 items-center justify-center text-on-ink hover:text-on-ink"><Settings size={20} strokeWidth={1.75} /></Link>
-        <Link to="/ask" className="flex min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-sm font-medium text-ink hover:text-ink"><MessageCircle size={16} />Ask</Link>
+        <Link to="/ask" className="flex min-h-9 items-center gap-1.5 rounded-chip bg-paper px-3 text-sm font-medium text-ink hover:text-ink"><AiMark />Ask</Link>
         <Link to="/add" className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-sm font-medium text-ink hover:text-ink desk:flex"><Plus size={16} />Add</Link>
       </div>
     </header>
@@ -67,8 +68,19 @@ function Today() {
     <div className="mt-3 grid grid-cols-3 gap-2">{upcoming.slice(0, 3).map((item) => <Card key={`${item.seriesId}-${item.date}`} className="flex min-w-0 flex-col gap-1 p-2.5"><span className="font-serif text-[22px] leading-none">{item.date.slice(-2)} <small className="font-sans text-[11px] text-ink-3">{weekday(item.date)}</small></span><span className="truncate text-[13px] font-medium">{item.name}</span><span className="text-[13px] text-ink-2">{money(item.amount)}</span></Card>)}</div>
   </section>;
   const review = today.reviewCount > 0 && <Link to="/review" className="flex min-h-[52px] items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-[15px] text-ink hover:text-ink"><span className="flex items-center gap-2"><i className="size-2 shrink-0 rounded-full bg-brand" /><strong>{today.reviewCount} to review</strong>{today.reviewOther > 0 && <span className="text-ink-2">· {today.reviewOther} unreviewed in Other</span>}</span><strong className="text-sm text-brand">Start</strong></Link>;
-  const wealthRow = wealth && <Link to="/wealth" className="grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-3 rounded-card border border-rule bg-card px-4 py-3.5 text-ink hover:text-ink"><span><small className="text-xs tracking-[0.08em] text-ink-3 uppercase">Wealth</small><strong className="block font-serif text-[26px] font-medium leading-tight">{money(wealth.value)}</strong>{wealth.navDate && <span className="text-xs text-ink-3">{navsOf(wealth.navDate)} · {signed(wealth.dayChange)} since previous NAV</span>}{!wealth.navDate && wealth.asOf && <span className="text-xs text-ink-3">{statementOf(wealth.asOf)} · not live</span>}</span><span className="flex flex-col items-end gap-1"><Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" />{wealth.spark.length > 1 && <small className="text-[11px] text-ink-3">Contributions</small>}</span></Link>;
-  return <DeskPage rail={<><DigestCard digest={digest} />{upcomingSection}</>}>
+  const wealthRow = wealth && <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink hover:text-ink">
+    <div className="flex items-start justify-between gap-3"><span className="min-w-0"><small className="text-xs tracking-[0.08em] text-ink-3 uppercase">Wealth</small><strong className="block font-serif text-[26px] font-medium leading-tight">{money(wealth.value)}</strong></span><Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" /></div>
+    {(wealth.gain != null && wealth.gainPct != null) && <div className="mt-1 text-xs text-ink-2"><span className={wealth.gain >= 0 ? "text-earn" : "text-over"}>{signed(wealth.gain)}</span> · {wealth.gainPct.toFixed(1)}%{wealth.xirr != null && <> · XIRR {(wealth.xirr * 100).toFixed(1)}%</>}</div>}
+    {wealth.nextSip && <div className="mt-1 text-xs text-ink-2">Next SIP {money(wealth.nextSip.amount)} · {dayMonth(wealth.nextSip.date)}</div>}
+    {wealth.allocation.length > 0 && <div className="mt-2">
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-sunken" role="img" aria-label={`Portfolio allocation by asset class: ${wealth.allocation.map((item) => `${item.name} ${Math.round(item.pct)}%`).join(", ")}`}>
+        {wealth.allocation.map((item, index) => <span key={item.name} className="h-full" style={{ width: `${item.pct}%`, background: `var(--color-cat-${["food", "shopping", "transport", "utilities", "entertainment", "home", "health", "sports", "work", "other"][index % 10]})` }} />)}
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] leading-tight text-ink-3">{wealth.allocation.slice(0, 3).map((item, index) => <span key={item.name} className="whitespace-nowrap"><i aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full align-middle" style={{ background: `var(--color-cat-${["food", "shopping", "transport", "utilities", "entertainment", "home", "health", "sports", "work", "other"][index]})` }} />{item.name} {Math.round(item.pct)}</span>)}</div>
+    </div>}
+    <div className="mt-1.5 text-[11px] text-ink-3">{wealth.holdings} holdings{wealth.navDate ? ` · ${navsOf(wealth.navDate)} · ${signed(wealth.dayChange)} since previous NAV` : wealth.asOf ? ` · ${statementOf(wealth.asOf)} · not live` : ""}</div>
+  </Link>;
+  return <DeskPage rail={<><DigestCard digest={digest} />{upcomingSection}</>} railClassName="hidden desk:flex">
     {hero}
     {(shell.trip || digest.status !== "none") && <div className="mt-4 desk:hidden">{shell.trip && <div className="mb-4"><TripBand trip={shell.trip} /></div>}<DigestCard digest={digest} /></div>}
     <div className="space-y-6 px-5 pt-6 desk:px-0">
