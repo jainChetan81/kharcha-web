@@ -19,8 +19,8 @@ export function useHoldsInput(active = true) {
 }
 
 export function Sheet({
-  title, description, onClose, confirmClose, children, className,
-}: { title: string; description?: string; onClose: () => void; confirmClose?: () => boolean; children: ReactNode; className?: string }) {
+  title, description, onClose, confirmClose, children, className, swipe = true,
+}: { title: string; description?: string; onClose: () => void; confirmClose?: () => boolean; children: ReactNode; className?: string; swipe?: boolean }) {
   useHoldsInput();
   const reduced = useReducedMotion();
   const close = () => { if (!confirmClose || confirmClose()) onClose(); };
@@ -35,7 +35,8 @@ export function Sheet({
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 36 }}
-            drag={reduced ? false : "y"}
+            // Long scrolling lists turn swipe-to-close off: drag="y" blocks touch scroll and fights row reorder.
+            drag={reduced || !swipe ? false : "y"}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.5 }}
             onDragEnd={(event, info) => {
@@ -61,7 +62,9 @@ export function Sheet({
 
 /** Ink snackbar (States board). 6 seconds; one action. */
 export function snack(text: string, action?: { label: string; onClick: () => void }, secondary?: { label: string; onClick: () => void }) {
+  // Same plain text replaces the visible snack instead of stacking; snacks with an action (Undo) keep their own.
   toast(text, {
+    id: action ? undefined : text,
     duration: 6000,
     action: action && { label: action.label, onClick: action.onClick },
     cancel: secondary && { label: secondary.label, onClick: secondary.onClick },

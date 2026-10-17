@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { Button, ErrorState, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
 import { applyTheme, getTheme, type Theme } from "../lib/theme";
@@ -43,6 +43,7 @@ function Settings() {
   useEffect(() => setInstalled(isStandalone()), []);
   const [theme, setTheme] = useState<Theme>("system");
   useEffect(() => setTheme(getTheme()), []);
+  const [open, setOpen] = useState<"categories" | "rules" | null>(null);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
   const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
@@ -195,76 +196,85 @@ function Settings() {
                 <span className="text-sm"><strong className="font-semibold">{used}</strong><span className="text-ink-3"> of {cap} used today</span></span>
               </div>
               <Segmented label="Daily call cap" className="w-full" options={[50, 100, 200, 500].map((n) => ({ value: String(n), label: String(n) }))} value={String(cap)} onChange={(value) => void save("openrouter_daily_cap", value)} />
-              <div aria-label={`${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}% of daily AI call cap used`} role="img" className="h-1.5 overflow-hidden rounded-sm bg-sunken">
-                <div className="h-full rounded-sm bg-brand" style={{ width: `${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}%` }} />
-              </div>
             </div>
           </div>}
         </section>
 
-        <section aria-labelledby="settings-categories">
-          <SectionHead id="settings-categories" title="Categories" action={<button type="button" className="inline-flex min-h-8 items-center gap-1 text-sm font-medium text-brand" onClick={() => document.getElementById("new-category-name")?.focus()}><Plus size={16} />Add</button>} />
-          <p className="mt-2 mb-0 text-[13px] leading-relaxed text-ink-2">Every transaction gets one. Budgets and Insights add them up.</p>
-          {(["expense", "income"] as const).map((type) => {
-            const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
-            return <div key={type} className="mt-4">
-              <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
-              <Reorder.Group axis="y" values={group} onReorder={(next) => void reorderGroup(type, next)} aria-label={`${type === "expense" ? "Spending" : "Income"} categories`} className="m-0 list-none p-0">
-                {group.map((item) => (
-                  <CategoryItem
-                    key={item.name}
-                    item={item}
-                    online={online}
-                    colorPickerOpen={colorPicker === item.name}
-                    onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
-                    onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
-                    onNameChange={(name) => void updateCategory(item, { name })}
-                    onMove={(dir) => void moveCategory(item, dir)}
-                    onDelete={() => { setDeleteTarget(item); setDeleteCounts(null); void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } }).then(setDeleteCounts).catch(() => setDeleteCounts(null)); }}
-                  />
-                ))}
-              </Reorder.Group>
-            </div>;
-          })}
-          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
-            <label className="sr-only" htmlFor="new-category-name">New category name</label>
-            <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
-            <span className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} aria-hidden />
-            <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
-          </div>
-          {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
-            <div className="grid grid-cols-2 gap-2.5 pt-1.5">
-              <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
-              <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
-            </div>
-          </Sheet>}
-        </section>
-
-        <section aria-labelledby="settings-rules">
-          <SectionHead id="settings-rules" title={`Merchant rules · ${data.rules.length}`} action={<span className="text-sm text-ink-3">{rules.length} shown</span>} />
-          <label htmlFor="rule-search" className="sr-only">Search rules</label>
-          <input id="rule-search" className="field mt-3" placeholder="Search rules" value={search} onChange={(event) => setSearch(event.currentTarget.value)} />
-          <div>
-            {rules.map((rule) => (
-              <div key={rule.id} className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline">
-                {ruleEdit === rule.id ? <RuleEditor rule={rule} categories={data.categories.map((x) => x.name)} onCancel={() => setRuleEdit(null)} onSave={(values) => void editMerchantRule(rule, values)} /> : (
-                  <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                    <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
-                    <span className="flex min-w-0 items-center gap-1.5 text-sm"><span aria-hidden className="text-ink-3">→</span><strong className="truncate font-semibold">{rule.displayMerchant}</strong><span className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }} /><span className="truncate">{rule.category}</span></span>
-                  </span>
-                )}
-                <button type="button" aria-label={`Edit rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-brand" onClick={() => setRuleEdit(ruleEdit === rule.id ? null : rule.id)}><Pencil size={18} /></button>
-                <button type="button" aria-label={`Delete rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-over" onClick={() => void deleteMerchantRule(rule)}><Trash2 size={18} /></button>
-              </div>
-            ))}
-          </div>
-          {rules.length === 0 && <p className="py-5 text-sm text-ink-3">No matching rules.</p>}
-          <p className="mt-2 mb-0 text-sm text-ink-2">All {data.rules.length} rules</p>
+        <section aria-labelledby="settings-data">
+          <SectionHead id="settings-data" title="Data" />
+          <IndexRow label="Categories" detail={String(data.categories.length)} onClick={() => setOpen("categories")} />
+          <IndexRow label="Merchant rules" detail={String(data.rules.length)} onClick={() => setOpen("rules")} />
         </section>
       </div>
       {ios && <IosInstallSheet onClose={() => setIos(false)} />}
+      {open === "categories" && <Sheet swipe={false} title="Categories" description="Every transaction gets one. Budgets and Insights add them up." onClose={() => setOpen(null)}>
+        <div>
+        {(["expense", "income"] as const).map((type) => {
+          const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
+          return <div key={type} className="mt-4">
+            <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
+            <Reorder.Group axis="y" values={group} onReorder={(next) => void reorderGroup(type, next)} aria-label={`${type === "expense" ? "Spending" : "Income"} categories`} className="m-0 list-none p-0">
+              {group.map((item) => (
+                <CategoryItem
+                  key={item.name}
+                  item={item}
+                  online={online}
+                  colorPickerOpen={colorPicker === item.name}
+                  onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
+                  onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
+                  onNameChange={(name) => void updateCategory(item, { name })}
+                  onMove={(dir) => void moveCategory(item, dir)}
+                  onDelete={() => { setDeleteTarget(item); setDeleteCounts(null); void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } }).then(setDeleteCounts).catch(() => setDeleteCounts(null)); }}
+                />
+              ))}
+            </Reorder.Group>
+          </div>;
+        })}
+        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
+          <label className="sr-only" htmlFor="new-category-name">New category name</label>
+          <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
+          <span className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} aria-hidden />
+          <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
+        </div>
+        {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
+          <div className="grid grid-cols-2 gap-2.5 pt-1.5">
+            <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
+            <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
+          </div>
+        </Sheet>}
+        </div>
+      </Sheet>}
+      {open === "rules" && <Sheet swipe={false} title={`Merchant rules · ${data.rules.length}`} description={`${rules.length} shown`} onClose={() => { setOpen(null); setRuleEdit(null); }}>
+        <div>
+        <label htmlFor="rule-search" className="sr-only">Search rules</label>
+        <input id="rule-search" className="field" placeholder="Search rules" value={search} onChange={(event) => setSearch(event.currentTarget.value)} />
+        <div>
+          {rules.map((rule) => (
+            <div key={rule.id} className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline">
+              {ruleEdit === rule.id ? <RuleEditor rule={rule} categories={data.categories.map((x) => x.name)} onCancel={() => setRuleEdit(null)} onSave={(values) => void editMerchantRule(rule, values)} /> : (
+                <span className="flex min-w-0 flex-col gap-0.5 py-2">
+                  <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
+                  <span className="flex min-w-0 items-center gap-1.5 text-sm"><span aria-hidden className="text-ink-3">→</span><strong className="truncate font-semibold">{rule.displayMerchant}</strong><span className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }} /><span className="truncate">{rule.category}</span></span>
+                </span>
+              )}
+              <button type="button" aria-label={`Edit rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-brand" onClick={() => setRuleEdit(ruleEdit === rule.id ? null : rule.id)}><Pencil size={18} /></button>
+              <button type="button" aria-label={`Delete rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-over" onClick={() => void deleteMerchantRule(rule)}><Trash2 size={18} /></button>
+            </div>
+          ))}
+        </div>
+        {rules.length === 0 && <p className="py-5 text-sm text-ink-3">No matching rules.</p>}
+        </div>
+      </Sheet>}
     </main>
   );
+}
+
+function IndexRow({ label, detail, onClick }: { label: string; detail: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-2 border-b border-hairline text-left">
+    <span className="flex-1 text-[15px] font-medium">{label}</span>
+    <span className="text-sm text-ink-3">{detail}</span>
+    <ChevronRight size={18} className="text-ink-3" aria-hidden />
+  </button>;
 }
 
 function CategoryItem({
@@ -281,7 +291,7 @@ function CategoryItem({
 }) {
   const controls = useDragControls();
   const isOther = item.name === "Other";
-  return <Reorder.Item value={item} dragListener={false} dragControls={controls} className="border-b border-hairline bg-paper">
+  return <Reorder.Item value={item} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
     <div className="flex min-h-14 items-center gap-1">
       <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => controls.start(event)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
       <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
