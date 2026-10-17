@@ -5,10 +5,11 @@ import { getDb } from "../db/client.ts";
 import { askLog } from "../db/schema.ts";
 import { aiConfig } from "./client.ts";
 import { askLedger } from "./ask.ts";
+import { scopeSchema } from "../db/queries.ts";
 
 export const ask = createServerFn({ method: "POST" })
-  .validator(z.object({ question: z.string().trim().min(2).max(500) }))
-  .handler(({ data }) => askLedger(getDb(), data.question));
+  .validator(z.object({ question: z.string().trim().min(2).max(500), scope: scopeSchema.optional() }))
+  .handler(({ data }) => askLedger(getDb(), data.question, data.scope));
 
 export const getAskHistory = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb(); const [history, config] = await Promise.all([db.select().from(askLog).orderBy(desc(askLog.createdAt)).limit(20), aiConfig(db)]);

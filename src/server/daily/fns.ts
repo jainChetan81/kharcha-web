@@ -23,6 +23,7 @@ export const getReview = createServerFn({ method: "GET" }).handler(async () => {
 export const getActivityMeta = createServerFn({ method: "GET" }).handler(async () => ({
   categories: await categoryList(getDb()),
   trips: await getDb().select({ id: trips.id, name: trips.name }).from(trips).where(isNull(trips.endedAt)).orderBy(desc(trips.startDate)),
+  cards: (await getDb().selectDistinct({ card: transactions.accountLast4 }).from(transactions).where(and(live, sql`${transactions.accountLast4} IS NOT NULL`)).orderBy(transactions.accountLast4)).map((row) => row.card as string),
 }));
 
 export const getDetail = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {

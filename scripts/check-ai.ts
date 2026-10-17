@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { eq } from "drizzle-orm";
-import { askSpecSchema, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
+import { askLedger, askSpecSchema, describeScope, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
 import { callOpenRouter } from "../src/server/ai/client.ts";
@@ -127,6 +127,42 @@ try {
   globalThis.fetch = savedFetch;
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
   if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+}
+
+// Ask scope: server enforces it, the planner's period can't widen it, card digits never reach the model.
+{
+  const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.OPENROUTER_API_KEY; const savedFetch = globalThis.fetch;
+  try {
+    mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-19T01:30:00Z") });
+    const sdb = openDb(":memory:"); const bodies: string[] = [];
+    await sdb.insert(transactions).values([
+      { source: "manual", type: "expense", amount: 100, merchant: "Cafe", category: "Food", date: "2026-10-05 12:00", accountLast4: "4242" },
+      { source: "manual", type: "expense", amount: 200, merchant: "Cafe", category: "Food", date: "2026-10-06 12:00", accountLast4: "9999" },
+      { source: "manual", type: "expense", amount: 400, merchant: "Shop", category: "Shopping", date: "2026-10-06 13:00", accountLast4: "4242" },
+      { source: "manual", type: "expense", amount: 800, merchant: "Cafe", category: "Food", date: "2026-09-06 12:00", accountLast4: "4242" },
+    ]);
+    // Planner asks for everything, all time; scope must still win.
+    const replies = [JSON.stringify({ queries: [{ metric: "sum", period: "all", filters: {} }] }), JSON.stringify({ answer: "In scope you spent ₹100.", followUps: [] })];
+    globalThis.fetch = async (_input, init) => { bodies.push(String(init?.body)); return Response.json({ choices: [{ message: { content: replies[(bodies.length - 1) % 2] } }] }); };
+    process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+    const result = await askLedger(sdb, "How much?", { month: "2026-10", categories: ["expense:Food"], card: "4242" });
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.deepEqual(result.rows.map((r) => r.value), [100], "scope: Oct + Food + card 4242 only");
+      assert.equal(result.answer, "In scope you spent ₹100.", "figure from scoped rows passes the check");
+    }
+    assert.ok(bodies.every((b) => !b.includes("4242")), "card digits never reach OpenRouter");
+    assert.ok(bodies[0]?.includes("one card") && bodies[0]?.includes("Food"), "planner told the scope by name");
+    replies[1] = JSON.stringify({ answer: "Total ₹1,500.", followUps: [] });
+    const all = await askLedger(sdb, "How much?");
+    assert.equal(all.ok && all.rows[0]?.value, 1500, "no scope: planner's period applies");
+    assert.equal(describeScope({}), null);
+    assert.deepEqual(describeScope({ merchant: "pay@okaxis", min: 10 }), { merchant: "[private payee]", amount: "an amount range" });
+  } finally {
+    mock.timers.reset(); globalThis.fetch = savedFetch;
+    if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
+    if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+  }
 }
 
 console.log("ai checks passed");

@@ -156,6 +156,31 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   const empty = await summarizeTxns(fdb, { from: "2025-01-01", to: "2025-01-02", limit: 50 } as Parameters<typeof summarizeTxns>[1]);
   assert.deepEqual([empty.count, empty.spent, empty.top, empty.biggest, empty.frequent], [0, 0, [], null, null], "empty range summary");
 }
+// Insights uses Activity's filters: same scope, same spend, income and payment count.
+{
+  const { summarizeTxns } = await import("../src/server/db/queries.ts");
+  const { insightsFor } = await import("../src/server/insights/fns.ts");
+  const idb = openDb(":memory:");
+  const { transactions: t } = await import("../src/server/db/schema.ts");
+  await idb.insert(t).values([
+    { source: "manual", type: "expense", amount: 100, merchant: "Cafe", category: "Food", date: "2026-10-02 09:00", accountLast4: "1111" },
+    { source: "manual", type: "expense", amount: 250, merchant: "Cafe", category: "Food", date: "2026-10-03 09:00", accountLast4: "2222" },
+    { source: "manual", type: "expense", amount: 900, merchant: "Shop", category: "Shopping", date: "2026-10-04 09:00", accountLast4: "1111" },
+    { source: "manual", type: "income", amount: 5000, merchant: "Pay", category: "Salary", date: "2026-10-01 09:00" },
+    { source: "manual", type: "expense", amount: 70, merchant: "Cafe", category: "Food", date: "2026-09-20 09:00", accountLast4: "1111" },
+  ]);
+  for (const scope of [{ month: "2026-10" }, { month: "2026-10", card: "1111" }, { month: "2026-10", categories: ["expense:Food"] }, { from: "2026-09-15", to: "2026-10-03" }]) {
+    const [ins, sum] = await Promise.all([insightsFor(idb, scope), summarizeTxns(idb, scope)]);
+    assert.equal(ins.waterfall.spending, sum.spent, `insights spend = activity spend for ${JSON.stringify(scope)}`);
+    assert.equal(ins.waterfall.income, sum.income, `insights income = activity income for ${JSON.stringify(scope)}`);
+  }
+  const food = await insightsFor(idb, { month: "2026-10", categories: ["expense:Food"] });
+  assert.deepEqual(food.merchants.map((m) => m.merchant), ["Cafe"], "category filter narrows merchants");
+  assert.deepEqual(food.six.slice(-2).map((m) => m.total), [70, 350], "six months keep the filter, one month each");
+  const range = await insightsFor(idb, { from: "2026-09-15", to: "2026-10-03" });
+  assert.equal(range.month, "2026-10", "range anchors on its end month");
+  assert.equal(range.bees.length, 3, "range covers both months");
+}
 // Reimbursement accounting uses only synthetic transactions.
 {
   const { transactions, reimbursements, reimbursementLinks, transactionItems, transactionSplits } = await import("../src/server/db/schema.ts");
