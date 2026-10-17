@@ -180,6 +180,7 @@ function Activity() {
           dateOpen={dateOpen}
           onDateClose={() => setDateOpen(false)}
         />
+        {(search.ids?.length || search.merchant) && <div className="flex flex-wrap gap-2">{search.ids?.length ? <button type="button" onClick={() => change({ ids: undefined })} className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand">{search.ids.length} supporting transactions<span aria-hidden="true">×</span><span className="sr-only">Show all</span></button> : null}{search.merchant && <button type="button" onClick={() => change({ merchant: undefined })} className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand">{search.merchant}<span aria-hidden="true">×</span><span className="sr-only">Remove merchant filter</span></button>}</div>}
         <SummaryStrip summary={summary} colors={colors} scope={pickScope(search)} />
 
         {!online && <p role="status" className="m-0 text-[13px] text-ink-3">Offline · saved transactions remain available; delete is disabled.</p>}
