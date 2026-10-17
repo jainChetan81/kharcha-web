@@ -156,6 +156,16 @@ try {
     replies[1] = JSON.stringify({ answer: "Total ₹1,500.", followUps: [] });
     const all = await askLedger(sdb, "How much?");
     assert.equal(all.ok && all.rows[0]?.value, 1500, "no scope: planner's period applies");
+    // Split row: scope Food counts only the Food part.
+    const { transactionSplits: splits } = await import("../src/server/db/schema.ts");
+    const [split] = await sdb.insert(transactions).values({ source: "manual", type: "expense", amount: 100, merchant: "Mixed", category: "Food", date: "2026-10-07 12:00", accountLast4: "4242" }).returning({ id: transactions.id });
+    await sdb.insert(splits).values([{ transactionId: split.id, category: "Food", amount: 50 }, { transactionId: split.id, category: "Travel", amount: 50 }]);
+    replies[1] = JSON.stringify({ answer: "₹150 in scope.", followUps: [] });
+    const withSplit = await askLedger(sdb, "How much?", { month: "2026-10", categories: ["expense:Food"], card: "4242" });
+    assert.equal(withSplit.ok && withSplit.rows[0]?.value, 150, "split row counts only its Food part");
+    // Card digits typed into category or merchant never reach the model.
+    await askLedger(sdb, "How much?", { month: "2026-10", category: "Visa 4242", merchant: "4242" });
+    assert.ok(bodies.every((b) => !b.includes("4242")), "4-digit runs in scope labels are dropped");
     assert.equal(describeScope({}), null);
     assert.deepEqual(describeScope({ merchant: "pay@okaxis", min: 10 }), { merchant: "[private payee]", amount: "an amount range" });
   } finally {
