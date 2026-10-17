@@ -1,0 +1,1 @@
+ALTER TABLE `ask_log` ADD `scope_json` text;

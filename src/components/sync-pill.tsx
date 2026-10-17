@@ -46,16 +46,23 @@ export const useOnline = () => {
   return s !== "offline" && s !== "unreachable";
 };
 
+/** One wording everywhere: "Checked X · last new Y". Both halves reuse seenAt/lastIngestAt. */
+export const checkedLabel = (seenAt: string | null, lastIngestAt: string | null, short = false) => {
+  const checked = seenAt ? ago(seenAt) : null;
+  const lastNew = lastIngestAt ? ago(lastIngestAt) : null;
+  const squeeze = (text: string) => short ? text.replace(" min ago", "m").replace(" h ago", "h").replace(" d ago", "d") : text;
+  const prefix = checked && Date.parse(seenAt!) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
+  return `${prefix} · last new ${lastNew ? squeeze(lastNew) : "none"}`;
+};
+
 export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean }) {
   const { state, lastIngestAt, seenAt } = useSync();
   if (state === "unknown") return null;
-  const since = lastIngestAt ? ago(lastIngestAt) : "";
   const label =
     state === "offline" ? "Offline"
     : state === "unreachable" ? "Server unreachable"
     : state === "mini-offline" ? `Mini offline since ${seenAt ? time(new Date(seenAt)) : ""}`
-    : state === "quiet" ? `Mini quiet · ${lastIngestAt ? since.replace(" ago", "") : "no push yet"}`
-    : short ? `Synced ${since.replace(" min ago", "m").replace(" h ago", "h").replace(" d ago", "d")}` : `Synced ${since}`;
+    : checkedLabel(seenAt, lastIngestAt, short);
   const dot = state === "synced" ? (onInk ? "bg-on-ink-gain" : "bg-earn") : state === "quiet" ? "bg-watch" : state === "mini-offline" ? "bg-over" : "bg-ink-3";
   return (
     <span

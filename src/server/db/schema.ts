@@ -294,6 +294,7 @@ export type Holding = typeof holdings.$inferSelect;
 export const askLog = sqliteTable("ask_log", {
   id: integer("id").primaryKey(),
   question: text("question").notNull(),
+  scopeJson: text("scope_json"),
   specJson: text("spec_json"),
   answerJson: text("answer_json"),
   model: text("model"),

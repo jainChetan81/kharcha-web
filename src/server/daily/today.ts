@@ -12,7 +12,7 @@ export const getTodayData = createServerFn({ method: "GET" })
     const db = getDb();
     const [from, to] = monthBounds(data.month);
     const [previousFrom] = monthBounds(shiftMonth(data.month, -1));
-    const [byCategory, current, previous, recent, [budget], [review], colors] = await Promise.all([
+    const [byCategory, current, previous, recent, [budget], [review], [reviewOther], colors] = await Promise.all([
       spendByCategory(db, from, to),
       db.select({ date: transactions.date, amount: shareSql(), merchant: transactions.merchant })
         .from(transactions).where(and(spendable, gte(transactions.date, from), lt(transactions.date, to))).orderBy(asc(transactions.date)),
@@ -21,6 +21,8 @@ export const getTodayData = createServerFn({ method: "GET" })
       listTxns(db, { limit: 5 }),
       db.select({ total: sum(budgets.monthlyLimit) }).from(budgets),
       db.select({ total: count() }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+      // Only the Other tile's label needs this, and only for the visible month.
+      db.select({ total: count() }).from(transactions).where(and(spendable, eq(transactions.category, "Other"), eq(transactions.needsReview, true), gte(transactions.date, from), lt(transactions.date, to))),
       db.select({ name: categories.name, colorToken: categories.colorToken }).from(categories).where(eq(categories.type, "expense")),
     ]);
     const token = new Map(colors.map((item) => [item.name, item.colorToken]));
@@ -33,8 +35,8 @@ export const getTodayData = createServerFn({ method: "GET" })
       previous,
       recent,
       reviewCount: review?.total ?? 0,
-      // Same number as the Other tile, so the card and the treemap agree.
-      reviewOther: byCategory.find((item) => item.category === "Other")?.total ?? 0,
+      // Actual unreviewed Other rows in this month; the tile labels from this, not share.
+      reviewOther: Number(reviewOther?.total ?? 0),
       colors,
     };
   });

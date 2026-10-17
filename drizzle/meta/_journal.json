@@ -50,6 +50,13 @@
       "when": 1792209315297,
       "tag": "0006_heavy_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792239952615,
+      "tag": "0007_fearless_master_mold",
+      "breakpoints": true
     }
   ]
 }

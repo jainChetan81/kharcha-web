@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useBlocker, useNavigate, useRouter } from "@tanstack/react-router";
 import { Check, ImagePlus, LoaderCircle, Plus, RotateCcw, RotateCw, Trash2, WandSparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
@@ -72,6 +72,9 @@ export const Route = createFileRoute("/txn/$id_/receipt")({
   component: Receipt,
 });
 
+// Compare item content only; React keys are not part of the saved draft.
+const sig = (list: Item[]) => JSON.stringify(list.map(({ key: _key, ...item }) => item));
+
 function Receipt() {
   const data = Route.useLoaderData();
   const navigate = useNavigate();
@@ -79,6 +82,10 @@ function Receipt() {
   const online = useOnline();
   useHoldsInput();
   const [items, setItems] = useState<Item[]>(() => (data?.items ?? []).map((item) => ({ ...item, key: crypto.randomUUID(), confidence: item.confidence ?? null, source: item.source as Item["source"] })));
+  const [baseline, setBaseline] = useState(() => sig(items));
+  // Unsaved item edits block in-app navigation (confirm) and tab close. Read by the blocker, so a ref.
+  const dirtyRef = useRef(false);
+  useBlocker({ shouldBlockFn: () => dirtyRef.current && !window.confirm("Discard receipt items?"), enableBeforeUnload: () => dirtyRef.current });
   const [split, setSplit] = useState(Boolean(data?.splits.length));
   const [files, setFiles] = useState<SavedFile[]>(() => (data?.files ?? []).map(({ id, mime }) => ({ id, mime })));
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -108,7 +115,8 @@ function Receipt() {
         await router.invalidate();
         const refreshed = await getDetail({ data: { id: txnId } });
         if (alive && refreshed) {
-          setItems(refreshed.items.map((item) => ({ ...item, key: crypto.randomUUID(), confidence: item.confidence ?? null, source: item.source as Item["source"] })));
+          const next = refreshed.items.map((item) => ({ ...item, key: crypto.randomUUID(), confidence: item.confidence ?? null, source: item.source as Item["source"] }));
+          setItems(next); setBaseline(sig(next));
           setSplit(Boolean(refreshed.splits.length));
         }
       }
@@ -126,6 +134,7 @@ function Receipt() {
     drawCrop(image, target, crop, activeDraft.rotate);
   }, [crop, activeDraft]);
 
+  dirtyRef.current = sig(items) !== baseline;
   if (!data) return <main className="p-5"><Empty text="Transaction not found." /></main>;
   const categories = data.categories.filter((item) => item.type === (data.txn.type === "income" ? "income" : "expense")).map((item) => item.name);
   const total = items.reduce((sum, item) => sum + (Number.isFinite(item.amount) ? item.amount : 0), 0);
@@ -245,7 +254,7 @@ function Receipt() {
     const clean = items.map(({ key: _key, ...item }) => ({ ...item, name: item.name.trim() }));
     if (split && !agrees) return snack("Split totals must equal transaction amount.");
     setBusy(true);
-    try { await saveReceipt({ data: { id: data.txn.id, split, items: clean } }); snack("Receipt items saved."); void navigate({ to: "/txn/$id", params: { id: String(data.txn.id) } }); }
+    try { await saveReceipt({ data: { id: data.txn.id, split, items: clean } }); snack("Receipt items saved."); dirtyRef.current = false; void navigate({ to: "/txn/$id", params: { id: String(data.txn.id) } }); }
     catch (e) { if (e instanceof Error && (/Splits must equal/.test(e.message) || /Cancel the item reimbursement claim/.test(e.message))) snack(e.message); else saveFailed(save); }
     finally { setBusy(false); }
   };

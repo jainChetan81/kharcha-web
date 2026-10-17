@@ -19,7 +19,7 @@ import {
   updateRule,
 } from "../server/daily/settings";
 import type { Category } from "../server/db/schema";
-import { ModelSelect } from "../components/model-select";
+import { ModelSelect, presets } from "../components/model-select";
 import { SwatchPicker } from "../components/swatch-picker";
 import { SyncSection } from "../components/sync-section";
 
@@ -178,13 +178,17 @@ function Settings() {
             <span className="text-[15px] font-medium">Export CSV</span>
             <a href="/api/export" className="inline-flex min-h-10 items-center rounded-button border border-ink px-3.5 text-sm font-medium text-ink">Download</a>
           </div>
+          <div className="flex min-h-14 items-center justify-between border-b border-hairline">
+            <span className="text-[15px] font-medium">Sign out</span>
+            <form method="post" action="/api/logout"><button type="submit" className="inline-flex min-h-10 items-center rounded-button border border-ink px-3.5 text-sm font-medium text-ink">Sign out</button></form>
+          </div>
         </section>
 
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
           {data.aiOn && <div className="space-y-3 pt-3.5">
-            <ModelSelect id="model" label="Model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
+            <ModelSelect id="model" label="Model" value={data.values.openrouter_model ?? ""} placeholder={presets.find((m) => m.id === data.ai.model)?.name ?? data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[13px] text-ink-2">Daily call cap</span>

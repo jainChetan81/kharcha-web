@@ -31,7 +31,7 @@ export function BudgetBar({
   return (
     <div
       role="img"
-      aria-label={`Spent ${money(spent)} of ${money(limit)}`}
+      aria-label={limit > 0 ? `Spent ${money(spent)} of ${money(limit)}` : `Spent ${money(spent)}, no budget set`}
       className={cn("flex flex-col gap-1.5", className)}
     >
       {showLabels && (
@@ -52,10 +52,10 @@ export function BudgetBar({
             style={{ left: `${pct - reimbursablePct}%`, width: `${reimbursablePct}%`, background: "repeating-linear-gradient(135deg, var(--field) 0 2px, transparent 2px 5px)" }}
           />
         )}
-        <span
+        {limit > 0 && <span
           className="absolute -top-1 h-3.5 w-0.5 bg-ink"
           style={{ left: `${pacePercent}%` }}
-        />
+        />}
       </div>
     </div>
   );

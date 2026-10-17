@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
 import { modelCosts } from "../ai/pricing";
-import { getMeta, setMeta } from "../db/queries";
+import { getMeta, sameMatch, setMeta } from "../db/queries";
 import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
 
 const name = z.string().trim().min(1).max(40);
@@ -130,7 +130,9 @@ export const updateRule = createServerFn({ method: "POST" })
   .validator(ruleFields.extend({ id: z.number().int().positive() }))
   .handler(async ({ data }) => {
     const { id, ...set } = data;
-    await getDb().update(merchantRules).set(set).where(eq(merchantRules.id, id));
+    // Same-match rules are replaced, never stacked: newest rule wins at ingest.
+    const db = getDb();
+    await db.batch([db.delete(merchantRules).where(sameMatch(set.match, id)), db.update(merchantRules).set(set).where(eq(merchantRules.id, id))]);
   });
 
 // Returns the deleted row so the client can offer undo via restoreRule.
@@ -147,6 +149,9 @@ export const removeRule = createServerFn({ method: "POST" })
 export const restoreRule = createServerFn({ method: "POST" })
   .validator(ruleFields.extend({ id: z.number().int().positive(), createdFromTxnId: z.number().int().nullable() }))
   .handler(async ({ data }) => {
-    await getDb().insert(merchantRules).values(data).onConflictDoNothing();
+    // Undo never overrides a newer same-match rule made since the delete.
+    const db = getDb();
+    if (await db.select({ id: merchantRules.id }).from(merchantRules).where(sameMatch(data.match)).get()) return;
+    await db.insert(merchantRules).values(data).onConflictDoNothing();
   });
 

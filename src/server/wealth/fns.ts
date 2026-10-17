@@ -10,7 +10,7 @@ export type WealthSummary = { value: number; dayChange: number; navDate: string 
 const id = z.object({ id: z.number().int().positive() });
 const holdingSchema = z.object({
   id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(120), kind: z.enum(["fund", "gold", "nps", "other"]), assetClass: z.string().trim().min(1).max(80), schemeCode: z.string().trim().max(30).nullable(),
-  targetPct: z.number().min(0).max(100).nullable(), manualValue: z.number().min(0).max(1e10).nullable(), manualValueDate: z.string().refine(realDay).nullable(), sipAmount: z.number().positive().max(1e8).nullable(), sipDay: z.number().int().min(1).max(31).nullable(), smsMatch: z.string().trim().max(120).nullable(),
+  targetPct: z.number().finite().min(0).max(100).nullable(), manualValue: z.number().finite().min(0).max(1e10).nullable(), manualValueDate: z.string().refine(realDay).nullable(), sipAmount: z.number().finite().positive().max(1e8).nullable(), sipDay: z.number().int().min(1).max(31).nullable(), smsMatch: z.string().trim().max(120).nullable(),
 });
 
 async function latestPrices() {
@@ -67,7 +67,7 @@ export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
   const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
   const flows = rows.flatMap((row) => row.txns.map((txn) => ({ date: txn.date, amount: -txn.amount }))); // Snapshot-only holdings have no dated cost, so their value stays out of XIRR.
   const traded = rows.filter((row) => row.txns.length).reduce((sum, row) => sum + row.value, 0); if (traded) flows.push({ date: new Date().toISOString().slice(0, 10), amount: traded });
-  const allocation = Object.values(rows.reduce<Record<string, { value: number; target: number; name: string }>>((map, row) => { const item = map[row.assetClass] ?? { name: row.assetClass, value: 0, target: 0 }; item.value += row.value; item.target += row.targetPct ?? 0; map[row.assetClass] = item; return map; }, {}));
+  const allocation = Object.values(rows.reduce<Record<string, { value: number; target: number; hasTarget: boolean; name: string }>>((map, row) => { const item = map[row.assetClass] ?? { name: row.assetClass, value: 0, target: 0, hasTarget: false }; item.value += row.value; item.target += row.targetPct ?? 0; item.hasTarget ||= row.targetPct != null; map[row.assetClass] = item; return map; }, {}));
   const financialYear = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const nps = rows.filter((row) => row.kind === "nps").flatMap((row) => row.txns).filter((txn) => txn.date >= `${financialYear}-04-01`).reduce((sum, txn) => sum + txn.amount, 0);
   return { rows, value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), invested, gain: value - invested, xirr: xirr(flows), navDate: dates.sort().at(-1) ?? null, asOf: snapshotDate(rows), sips, allocation, nps, financialYear, spark: investedSeries(rows.flatMap((row) => row.txns), value) };

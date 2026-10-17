@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, gte, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { monthBounds, monthSchema, spendByCategory } from "../db/queries";
-import { categories, recurringOccurrences, recurringSeries, transactionTrips, transactions, trips } from "../db/schema";
+import { categories, recurringOccurrences, recurringSeries, sipMandates, holdings, transactionTrips, transactions, trips } from "../db/schema";
 import { scheduleSeries } from "./jobs";
 
 export type UpcomingPayment = { seriesId: number; date: string; name: string; amount: number; kind: string };
@@ -40,12 +40,18 @@ export const getPlanBudgets = createServerFn({ method: "GET" }).validator(z.obje
 
 export const getRecurring = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
   const db = getDb(); const [from, to] = monthBounds(data.month);
-  const [series, occurrences, detector] = await Promise.all([
+  const [series, occurrences, detector, open, sipTotals] = await Promise.all([
     db.select().from(recurringSeries).orderBy(asc(recurringSeries.name)),
     db.select({ seriesId: recurringOccurrences.seriesId, dueDate: recurringOccurrences.dueDate, status: recurringOccurrences.status, transactionId: recurringOccurrences.transactionId }).from(recurringOccurrences).where(and(gte(recurringOccurrences.dueDate, from), lte(recurringOccurrences.dueDate, to))),
     db.all<{ payload_json: string }>(sql`select payload_json from insights where detector = 'recurring' and dismissed_at is null limit 1`),
+    db.select({ id: holdings.id }).from(holdings).where(eq(holdings.isClosed, false)),
+    db.select({ holdingId: sipMandates.holdingId, total: sum(sipMandates.amount).mapWith(Number) }).from(sipMandates).groupBy(sipMandates.holdingId),
   ]);
-  return { series, occurrences, suggestion: detector[0]?.payload_json ?? null };
+  const openIds = new Set(open.map((row) => row.id));
+  // Wealth SIP mandates for open holdings, minus any series already tracking that holding.
+  const linked = new Set(series.filter((row) => row.status === "active" && row.holdingId != null).map((row) => row.holdingId));
+  const wealthSips = sipTotals.filter((row) => openIds.has(row.holdingId) && !linked.has(row.holdingId)).reduce((sum, row) => sum + (row.total ?? 0), 0);
+  return { series, occurrences, suggestion: detector[0]?.payload_json ?? null, wealthSips };
 });
 
 export const getSeries = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
