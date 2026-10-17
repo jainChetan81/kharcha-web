@@ -31,6 +31,8 @@ assert.equal(rangeLabel("2026-10-01", "2026-10-15"), "1–15 Oct");
 assert.equal(rangeLabel("2026-09-29", "2026-10-03"), "29 Sept–3 Oct");
 assert.equal(rangeLabel("2025-12-29", "2026-01-03"), "29 Dec 2025–3 Jan 2026");
 assert.equal(ago(new Date(Date.now() - 3 * 60000).toISOString()), "3 min ago");
+assert.equal(ago(new Date().toISOString()), "just now");
+assert.equal(ago("2026-10-17 14:42:40", Date.parse("2026-10-17T14:45:40Z")), "3 min ago");
 assert.equal(evalAmount("450+120"), 570);
 assert.equal(evalAmount("450+120-20.5"), 549.5);
 assert.equal(evalAmount("4++5"), undefined);

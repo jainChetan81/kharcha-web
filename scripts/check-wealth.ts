@@ -3,7 +3,7 @@ import { nextDue } from "../src/server/plan/jobs.ts";
 import { amfiLine, mfapiNav, navDate, runPrices } from "../src/server/wealth/jobs.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { holdings, prices } from "../src/server/db/schema.ts";
-import { isNotFutureDateInIST, navDayChange, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
+import { isNotFutureDateInIST, navDayChange, nextSipDate, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
 import { realDay, xirr } from "../src/server/wealth/xirr.ts";
 import { holdingCsvRows } from "../src/lib/csv.ts";
 
@@ -13,6 +13,10 @@ assert.equal(xirr([{ date: "bad", amount: -1000 }, { date: "2027-01-01", amount:
 assert.equal(realDay("2026-02-30"), false);
 assert.equal(nextDue("2026-01-31", "monthly", 31), "2026-02-28");
 assert.equal(nextDue("2026-01-01", "weekly"), "2026-01-08");
+assert.equal(nextSipDate(5, new Date("2026-10-17T00:00:00Z")), "2026-11-05", "SIP date uses IST day");
+assert.equal(nextSipDate(31, new Date("2026-02-01T00:00:00Z")), "2026-02-28", "SIP date clamps to month end");
+assert.equal(nextSipDate(17, new Date("2026-10-17T00:00:00Z")), "2026-10-17", "today's SIP remains upcoming");
+assert.equal(nextSipDate(17, new Date("2026-10-17T20:00:00Z")), "2026-11-17", "passed IST day advances to next month");
 assert.deepEqual(holdingCsvRows('\uFEFFdate,fund,amount,units,nav\n2026-01-05,"HDFC, Growth ""Direct""",-1000,-10,100\n'), [["2026-01-05", 'HDFC, Growth "Direct"', "-1000", "-10", "100"]]);
 assert.equal(navDate("15-Oct-2026"), "2026-10-15");
 assert.equal(navDate("31-Feb-2026"), undefined);

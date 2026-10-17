@@ -46,8 +46,10 @@ function Settings() {
   const [open, setOpen] = useState<"categories" | "rules" | null>(null);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
-  const [categoryDraft, setCategoryDraft] = useState({ name: "", type: "expense" as const, colorToken: "cat-other" });
+  const [categoryDraft, setCategoryDraft] = useState<{ name: string; type: "expense" | "income"; colorToken: string }>({ name: "", type: "expense", colorToken: "cat-other" });
   const [colorPicker, setColorPicker] = useState<string | null>(null);
+  // Layout animation only while dragging: otherwise an add/delete makes rows glide from stale spots over the next heading (iOS left them stuck).
+  const [dragging, setDragging] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<(typeof data.categories)[number] | null>(null);
   const [deleteCounts, setDeleteCounts] = useState<{ transactions: number; budgets: number; rules: number } | null>(null);
   const { used, cap } = data.ai;
@@ -121,7 +123,7 @@ function Settings() {
     if (!name || !online) return;
     try {
       await saveCategory({ data: { name, type: categoryDraft.type, colorToken: categoryDraft.colorToken, sortOrder: data.categories.filter((x) => x.type === categoryDraft.type).length } });
-      setCategoryDraft({ name: "", type: "expense", colorToken: "cat-other" });
+      setCategoryDraft({ ...categoryDraft, name: "" });
       snack("Category added.");
       refresh();
     } catch (error) {
@@ -207,7 +209,7 @@ function Settings() {
         </section>
       </div>
       {ios && <IosInstallSheet onClose={() => setIos(false)} />}
-      {open === "categories" && <Sheet swipe={false} title="Categories" description="Every transaction gets one. Budgets and Insights add them up." onClose={() => setOpen(null)}>
+      {open === "categories" && <Sheet swipe={false} title="Categories" description="Every transaction gets one. Budgets and Insights add them up." onClose={() => { setOpen(null); setColorPicker(null); setDeleteTarget(null); setDeleteCounts(null); }}>
         <div>
         {(["expense", "income"] as const).map((type) => {
           const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
@@ -219,6 +221,8 @@ function Settings() {
                   key={item.name}
                   item={item}
                   online={online}
+                  dragging={dragging}
+                  onDragging={setDragging}
                   colorPickerOpen={colorPicker === item.name}
                   onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
                   onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
@@ -230,12 +234,14 @@ function Settings() {
             </Reorder.Group>
           </div>;
         })}
-        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
+        <Segmented label="New category type" className="mt-4 w-full" value={categoryDraft.type} onChange={(type) => setCategoryDraft({ ...categoryDraft, type, colorToken: type === "income" ? "cat-other-income" : "cat-other" })} options={[{ value: "expense", label: "Spending" }, { value: "income", label: "Income" }]} />
+        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
           <label className="sr-only" htmlFor="new-category-name">New category name</label>
           <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
-          <span className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} aria-hidden />
+          <button type="button" aria-label="Colour for new category" aria-expanded={colorPicker === "__new"} disabled={!online} onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")} className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} />
           <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
         </div>
+        {colorPicker === "__new" && <SwatchPicker label="Colours for new category" value={categoryDraft.colorToken} onChange={(token) => { setColorPicker(null); setCategoryDraft({ ...categoryDraft, colorToken: token }); }} />}
         {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
           <div className="grid grid-cols-2 gap-2.5 pt-1.5">
             <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
@@ -244,7 +250,7 @@ function Settings() {
         </Sheet>}
         </div>
       </Sheet>}
-      {open === "rules" && <Sheet swipe={false} title={`Merchant rules · ${data.rules.length}`} description={`${rules.length} shown`} onClose={() => { setOpen(null); setRuleEdit(null); }}>
+      {open === "rules" && <Sheet swipe={false} title={`Merchant rules · ${data.rules.length}`} description={`${rules.length} shown`} onClose={() => { setOpen(null); setRuleEdit(null); setSearch(""); }}>
         <div>
         <label htmlFor="rule-search" className="sr-only">Search rules</label>
         <input id="rule-search" className="field" placeholder="Search rules" value={search} onChange={(event) => setSearch(event.currentTarget.value)} />
@@ -278,10 +284,12 @@ function IndexRow({ label, detail, onClick }: { label: string; detail: string; o
 }
 
 function CategoryItem({
-  item, online, colorPickerOpen, onToggleColorPicker, onColorChange, onNameChange, onMove, onDelete,
+  item, online, dragging, onDragging, colorPickerOpen, onToggleColorPicker, onColorChange, onNameChange, onMove, onDelete,
 }: {
   item: Awaited<ReturnType<typeof getSettings>>["categories"][number];
   online: boolean;
+  dragging: boolean;
+  onDragging: (on: boolean) => void;
   colorPickerOpen: boolean;
   onToggleColorPicker: () => void;
   onColorChange: (token: string) => void;
@@ -291,9 +299,9 @@ function CategoryItem({
 }) {
   const controls = useDragControls();
   const isOther = item.name === "Other";
-  return <Reorder.Item value={item} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
+  return <Reorder.Item value={item} layout={dragging || undefined} onDragEnd={() => onDragging(false)} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
     <div className="flex min-h-14 items-center gap-1">
-      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => controls.start(event)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
+      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => { onDragging(true); controls.start(event); }} onPointerUp={() => onDragging(false)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
       <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
         <span className="size-6 rounded-[7px]" style={{ background: `var(--color-${item.colorToken})` }} />
       </button>

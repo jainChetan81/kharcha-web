@@ -9,7 +9,7 @@ import { digests, insights } from "../db/schema.ts";
 
 export type DigestLine = { pre: string; num: string; post: string; href: string };
 export type Digest =
-  | { status: "ok"; weekStart: string; label: string; lines: DigestLine[] }
+  | { status: "ok"; weekStart: string; label: string; lines: DigestLine[]; model: string | null; tokensIn: number | null; tokensOut: number | null; costUsd: number | null; createdAt: string }
   | { status: "unavailable" }
   | { status: "none" };
 
@@ -26,6 +26,7 @@ export const getDigest = createServerFn({ method: "GET" }).handler(async (): Pro
       status: "ok", weekStart: digest.weekStart,
       label: `Week of ${dayMonth(digest.weekStart)}`,
       lines: lines.map((line) => ({ pre: line.pre, num: line.num, post: line.post, href: facts.links?.[line.factKey ?? ""] ?? "/insights" })),
+      model: digest.model, tokensIn: digest.tokensIn, tokensOut: digest.tokensOut, costUsd: digest.costUsd, createdAt: digest.createdAt,
     };
   } catch { return { status: "unavailable" }; }
 });

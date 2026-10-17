@@ -221,6 +221,9 @@ export const receiptJobs = sqliteTable("receipt_jobs", {
   status: text("status", { enum: ["queued", "reading", "done", "failed"] }).notNull().default("queued"),
   error: text("error", { enum: ["unreadable", "not_receipt", "ai_unavailable"] }),
   model: text("model"),
+  tokensIn: integer("tokens_in"),
+  tokensOut: integer("tokens_out"),
+  costUsd: real("cost_usd"),
   startedAt: text("started_at"),
   finishedAt: text("finished_at"),
 });
@@ -254,6 +257,9 @@ export const digests = sqliteTable("digests", {
   factsJson: text("facts_json").notNull(),
   text: text("text"),
   model: text("model"),
+  tokensIn: integer("tokens_in"),
+  tokensOut: integer("tokens_out"),
+  costUsd: real("cost_usd"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
@@ -298,5 +304,8 @@ export const askLog = sqliteTable("ask_log", {
   specJson: text("spec_json"),
   answerJson: text("answer_json"),
   model: text("model"),
+  tokensIn: integer("tokens_in"),
+  tokensOut: integer("tokens_out"),
+  costUsd: real("cost_usd"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });

@@ -20,7 +20,7 @@ export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
 export async function callOpenRouter(
   messages: unknown[],
   options: { db?: Db } = {},
-): Promise<{ ok: true; content: string; model: string } | { ok: false; reason: string }> {
+): Promise<{ ok: true; content: string; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null } | { ok: false; reason: string }> {
   // One switch for every outbound call: Ask, digest, receipts.
   if (process.env.KHARCHA_AI !== "on") return { ok: false, reason: "disabled" };
   const key = process.env.OPENROUTER_API_KEY;
@@ -38,12 +38,17 @@ export async function callOpenRouter(
       method: "POST",
       signal: AbortSignal.timeout(30_000),
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: config.model, messages, response_format: { type: "json_object" } }),
+      body: JSON.stringify({ model: config.model, messages, response_format: { type: "json_object" }, usage: { include: true } }),
     });
     if (!response.ok) return { ok: false, reason: "unavailable" };
-    const payload = (await response.json()) as { choices?: { message?: { content?: string } }[] };
+    const payload = (await response.json()) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: unknown; completion_tokens?: unknown; cost?: unknown } };
     const content = payload.choices?.[0]?.message?.content;
-    return content ? { ok: true, content, model: config.model } : { ok: false, reason: "unavailable" };
+    const count = (value: unknown) => (Number.isInteger(value) && (value as number) >= 0 ? (value as number) : null);
+    const tokensIn = count(payload.usage?.prompt_tokens);
+    const tokensOut = count(payload.usage?.completion_tokens);
+    const reported = payload.usage?.cost;
+    const costUsd = typeof reported === "number" && Number.isFinite(reported) && reported >= 0 ? reported : null;
+    return content ? { ok: true, content, model: config.model, tokensIn, tokensOut, costUsd } : { ok: false, reason: "unavailable" };
   } catch {
     return { ok: false, reason: "unavailable" };
   }

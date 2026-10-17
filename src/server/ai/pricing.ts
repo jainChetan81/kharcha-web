@@ -2,9 +2,7 @@ import { eq } from "drizzle-orm";
 import { setMeta } from "../db/queries.ts";
 import { meta } from "../db/schema.ts";
 import type { Db } from "../db/client.ts";
-
-// ponytail: fixed INR conversion keeps estimates available without another unauthenticated data source; replace when a free daily FX source is reachable.
-const INR_PER_USD = 84;
+import { INR_PER_USD } from "../../lib/format.ts";
 const dayKey = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 type Price = { prompt: number; completion: number };
 type Prices = Record<string, Price>;
@@ -54,10 +52,24 @@ async function dailyPrices(db: Db): Promise<Prices> {
   return prices ?? {};
 }
 
+function rupees(price: Price | undefined, inputTokens: number, outputTokens: number): number | null {
+  return price ? (price.prompt * inputTokens + price.completion * outputTokens) * INR_PER_USD : null;
+}
+
 function estimate(price: Price | undefined, inputTokens: number, outputTokens: number): string | null {
-  if (!price) return null;
-  const rupees = (price.prompt * inputTokens + price.completion * outputTokens) * INR_PER_USD;
-  return `about ₹${rupees < 0.01 ? "<0.01" : rupees.toFixed(2)} per call`;
+  const value = rupees(price, inputTokens, outputTokens);
+  if (value === null) return null;
+  return `about ₹${value < 0.01 ? "<0.01" : value.toFixed(2)} per call`;
+}
+
+/** USD cost for one call: OpenRouter's reported figure, else the cached daily prices. Null when neither is known. */
+export async function callCostUsd(db: Db, model: string, tokensIn: number | null, tokensOut: number | null, reported: number | null): Promise<number | null> {
+  if (reported !== null) return reported;
+  if (tokensIn === null || tokensOut === null) return null;
+  // Cache only: no extra outbound call on the AI path. Settings load fills today's cache.
+  const cached = parsePrices((await db.select({ value: meta.value }).from(meta).where(eq(meta.key, `model_costs_${dayKey()}`)).get())?.value);
+  const price = cached?.[model];
+  return price ? price.prompt * tokensIn + price.completion * tokensOut : null;
 }
 
 /** Fetches only while AI is enabled. Failed pricing never affects AI calls or settings load. */

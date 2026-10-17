@@ -5,6 +5,7 @@ import { cn } from "../lib/cn";
 import { dayMonth } from "../lib/format";
 import { ActivityIcon, InsightsIcon, PlanIcon, PlusIcon, TodayIcon, WealthIcon } from "./icons";
 import { SyncPill } from "./sync-pill";
+import { AiMark } from "./ai-mark";
 
 export type ShellData = { reviewCount: number; trip: { id: number; name: string; startDate: string; endDate: string; autoTag: boolean; active: boolean } | null };
 
@@ -48,7 +49,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                 aria-current={on ? "page" : undefined}
                 className={cn("flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]", on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink")}
               >
-                <span>{n.label}</span>
+                <span className="inline-flex items-center gap-1.5">{n.to === "/ask" && <AiMark />}{n.label}</span>
                 {n.to === "/review" && data.reviewCount > 0 && <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>}
               </Link>
             );

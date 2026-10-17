@@ -10,6 +10,9 @@ const inr = (whole: boolean) =>
 const inrWhole = inr(true);
 const inrPaise = inr(false);
 
+// ponytail: fixed INR conversion keeps AI cost estimates available without another unauthenticated data source; replace when a free daily FX source is reachable.
+export const INR_PER_USD = 84;
+
 /** ₹1,23,450 · ₹219 · ₹219.50 (paise only when present). */
 export function money(n: number): string {
   const r = Math.round(n * 100) / 100;
@@ -94,9 +97,18 @@ export function nowLocal(d = new Date()): string {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 }
 
+/** en-IN grouping for plain token counts: "2,140". */
+export const grouped = (n: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+
+/** Small AI costs in rupees: "₹0.03"; anything under a paisa shows as "₹0.01". */
+export const aiCost = (usd: number) => { const rupees = usd * INR_PER_USD; return money(rupees < 0.01 ? 0.01 : Math.round(rupees * 100) / 100); };
+
 /** "3 min ago" · "6 h ago" · "2 d ago". */
 export function ago(iso: string, now = Date.now()): string {
-  const mins = Math.max(0, Math.round((now - Date.parse(iso)) / 60000));
+  // SQLite datetime('now') is UTC with no zone ("2026-10-17 14:42:40"); read it as UTC, not local.
+  const at = Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso.replace(" ", "T")}Z`);
+  const mins = Math.max(0, Math.round((now - at) / 60000));
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins} min ago`;
   if (mins < 48 * 60) return `${Math.round(mins / 60)} h ago`;
   return `${Math.round(mins / 1440)} d ago`;
