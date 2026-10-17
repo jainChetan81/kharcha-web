@@ -65,7 +65,7 @@ function Activity() {
   // Project filtered split rows to selected parts. Day totals use the same share fraction.
   const viewRows = rows.map((r) => {
     if (!activeCategories.length || !r.splits.length) return r;
-    const part = r.splits.filter((x) => activeCategories.some((value) => value.split(":").at(-1) === x.category)).reduce((sum, x) => sum + x.amount, 0);
+    const part = r.splits.filter((x) => activeCategories.some((value) => !/^(income|investment):/.test(value) && value.split(":").at(-1) === x.category)).reduce((sum, x) => sum + x.amount, 0);
     const ratio = r.amount > 0 ? part / r.amount : 0;
     return { ...r, amount: part, yours: r.yours * ratio, originalTotal: r.amount };
   });

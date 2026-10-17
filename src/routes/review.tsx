@@ -7,7 +7,7 @@ import { Sheet, saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, Empty, ErrorState, PageHeader, Skeleton } from "../components/ui";
 import { usePageKeys } from "../keybindings";
-import { card, money, shortDate, thisMonth } from "../lib/format";
+import { card, money, shortDate } from "../lib/format";
 import { getReview } from "../server/daily/fns";
 import { createRule, flagTransaction, getCategories, getTransactions } from "../server/fns";
 
@@ -61,6 +61,7 @@ function Review() {
   const selected = queue.filter((row) => checked.includes(row.id));
   const suggested = open && category?.id === open.id ? category.name : open?.suggestion ?? "Other";
   const makeRule = Boolean(open && rule?.id === open.id && rule.on);
+  const year = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 4); // Ledger dates are IST.
   const colorOf = (name: string | null) => categories.find((item) => item.name === name)?.colorToken ?? "cat-other";
 
   useEffect(() => {
@@ -217,7 +218,7 @@ function Review() {
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate font-serif text-2xl font-medium">{open.merchant}</span>
                 <span className="text-[13px] text-ink-3">
-                  {shortDate(open.date)}{open.date.slice(0, 4) === thisMonth().slice(0, 4) ? "" : ` ${open.date.slice(0, 4)}`} · {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
+                  {shortDate(open.date)}{open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} · {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
                 </span>
               </div>
               <strong className="shrink-0 font-serif text-[28px] font-medium">{money(open.amount)}</strong>
@@ -292,7 +293,7 @@ function Review() {
             return (
               <li key={row.id} className={`grid ${grid} min-h-10 items-center gap-3 border-b border-hairline text-sm`} style={active ? { background: "var(--color-brand-soft)", boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}>
                 <input type="checkbox" aria-label={`Select ${row.merchant}`} checked={isChecked} disabled={handled} onChange={() => toggleChecked(row.id)} className="ml-2 size-[18px] accent-brand" />
-                <span className="text-ink-3">{row.date.slice(0, 4) === thisMonth().slice(0, 4) ? shortDate(row.date).split(",")[0] : `${shortDate(row.date).split(",")[0]} ’${row.date.slice(2, 4)}`}</span>
+                <span className="text-ink-3">{row.date.slice(0, 4) === year ? shortDate(row.date).split(",")[0] : `${shortDate(row.date).split(",")[0]} ’${row.date.slice(2, 4)}`}</span>
                 <button type="button" onClick={() => setActiveId(row.id)} className={`min-h-10 truncate text-left font-medium text-ink ${handled ? "opacity-45" : ""}`}>{row.merchant}</button>
                 <span className="text-ink-3">{card(row.accountLast4)}</span>
                 <span className={`flex items-center gap-1.5 truncate ${handled ? "opacity-45" : ""}`}>

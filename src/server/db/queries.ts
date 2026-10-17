@@ -405,7 +405,8 @@ function dayCount(q: ListQuery): number | null {
 /** Counted amount per row under a category filter: a split row counts only its selected parts (§15). */
 export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
   const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
-  const splitNames = selectedCategories.map((value) => {
+  // Splits exist only on expense rows, so "income:Travel" never picks a split part.
+  const splitNames = selectedCategories.filter((value) => !/^(income|investment):/.test(value)).map((value) => {
     const i = value.lastIndexOf(":");
     return i > 0 ? value.slice(i + 1) : value;
   });

@@ -180,6 +180,12 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
   const range = await insightsFor(idb, { from: "2026-09-15", to: "2026-10-03" });
   assert.equal(range.month, "2026-10", "range anchors on its end month");
   assert.equal(range.bees.length, 3, "range covers both months");
+  // Type prefix: "income:Travel" must not pull the Travel half of an expense split.
+  const { transactionSplits: ts } = await import("../src/server/db/schema.ts");
+  const [mixed] = await idb.insert(t).values({ source: "manual", type: "expense", amount: 100, merchant: "Mixed", category: "Food", date: "2026-10-05 09:00" }).returning({ id: t.id });
+  await idb.insert(ts).values([{ transactionId: mixed.id, category: "Food", amount: 50 }, { transactionId: mixed.id, category: "Travel", amount: 50 }]);
+  const typed = await summarizeTxns(idb, { month: "2026-10", merchant: "Mixed", categories: ["expense:Food", "income:Travel"] });
+  assert.equal(typed.spent, 50, "income:Travel scope skips the expense split's Travel part");
   const open = await insightsFor(idb, { from: "2026-01-01" });
   assert.equal(open.month, new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7), "from-only range anchors on now");
   const { scopeSearch } = await import("../src/lib/filters.ts");

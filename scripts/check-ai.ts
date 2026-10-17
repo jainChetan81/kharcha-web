@@ -24,6 +24,8 @@ assert.equal(scrub("Visa 1234 5678 9012 3456"), "[private payee]");
 assert.equal(scrub("Visa 1234-5678-9012-3456"), "[private payee]");
 assert.equal(scrub("Visa 1234.5678.9012.3456"), "[private payee]");
 assert.equal(redact("Paid card 1234.5678.9012.3456"), "Paid card [number]");
+assert.equal(redact("Why did card 4242 fail in 2026?"), "Why did card [number] fail in 2026?", "card last-4 redacted, years kept");
+assert.equal(redact("card ••4242 vs XX1234, ₹4500 in 2025"), "card ••[number] vs XX[number], ₹4500 in 2025", "bare last-4 masked; ₹ amounts and years kept");
 assert.equal(redact("Paid ravi@okhdfc from card 4111 1111 1111 1111 on 12 Oct"), "Paid [private] from card [number] on 12 Oct");
 assert.equal(figuresMatchRows("You spent 120000 rupees", [{ value: 900 }]), false);
 assert.equal(figuresMatchRows("Rs. 900 and INR 900", [{ value: 900 }]), true);
