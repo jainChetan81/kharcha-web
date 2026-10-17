@@ -251,7 +251,8 @@ Every list screen needs an empty state (one line plus one action), a loading ske
   - Trip page: band, per-day bars (tap a day), categories, "Getting there" outside the daily budget, recurring payments left out, Edit / End.
 - **Start a trip:** name, dates, budget per day, auto-tag and leave-recurring-out switches, bookings found before the trip.
 - **Wealth**
-  - Ink hero: value, day change with NAV date, invested / gain / XIRR, GainChart (1Y/2Y/All).
+  - Ink hero: value, day change with NAV date, invested / gain / XIRR, GainChart (1Y/2Y/All). Holdings with only a statement value show "Statement of 9 Oct · not live"; XIRR stays — until real buys exist.
+  - SIPs: planned mandates (`sip_mandates`), monthly total, next listed date. Planned dates only, never shown as paid.
   - Allocation vs target.
   - Holdings rows open `Fund`.
   - Add holding, Import CSV.
@@ -262,7 +263,7 @@ Every list screen needs an empty state (one line plus one action), a loading ske
   - **NPS and Other:** name plus a value you type in.
   - SIP amount and day, an "SMS contains" match with a live count of matching past debits, target %.
   - CSV import (`date, fund, amount, units, nav`) with a preview and an error count.
-- **Fund:** value, NAV line with SIP buys and average cost, stats, next instalment, instalments.
+- **Fund:** value, NAV line with SIP buys and average cost, stats, SIP mandates, instalments. No NAV history hides the chart.
 - **Insights**
   - KPI tiles.
   - Worth-a-look cards (dismissable).
@@ -310,6 +311,8 @@ Keep `transactions` and the ingest contract (`miniRowSchema` ↔ `kharcha-mini/s
   - `id`, `name`, `kind` (fund/gold/nps/other), `scheme_code` (nullable), `target_pct`, `is_closed`.
   - `manual_value` and `manual_value_date`, for NPS and other.
   - `sip_amount`, `sip_day`, `sms_match`.
+  - `manual_invested`: statement cost basis paired with `manual_value`, used until `holding_txns` exist.
+- **`sip_mandates`**: `source_key` (unique, hashed broker identity), `holding_id`, `amount`, `day`, `next_date`, `note`, `observed_on`. Loaded from a statement on the server; never creates buys or clears debits.
 - **`holding_txns`**: `id`, `holding_id`, `transaction_id`, `date`, `amount`, `units`, `nav`, `source` (sms/csv/manual).
 - **`prices`**: `scheme_code`, `date`, `nav`, `source` (mfapi/amfi). Primary key on `scheme_code` and `date`.
 - **`attachments`**, **`transaction_items`**, **`transaction_splits`**: §14.
@@ -338,9 +341,9 @@ Jobs run on a systemd timer next to autodeploy.
 **OpenRouter** (`src/server/ai/`):
 
 1. **Ask:** the model returns a query spec only, `{metric, filters, groupBy, period, compareTo}`, validated with zod. The server runs it. The model narrates the returned rows. Reject the answer if it contains a ₹ figure that is not in the result. Return `transactionIds` for the "Based on N" link.
-2. **Receipts:** vision model, one call per transaction with all its images. Output is validated with zod (§14). The receipt is always read from a transaction's Detail, so there is no matching step.
+2. **Receipts:** text only. The server runs `tesseract` on each image, drops payment lines and redacts card, account, phone, UPI and email, then makes one text call per transaction. Images never leave the server; no OCR text means `unreadable`, never an image fallback. Output is validated with zod (§14). The receipt is always read from a transaction's Detail, so there is no matching step.
 3. **Never send** raw SMS, card numbers or UPI IDs.
-4. **Config** lives in `meta` and is editable in Settings: `openrouter_model`, `openrouter_vision_model`, `openrouter_daily_cap`.
+4. **Config** lives in `meta` and is editable in Settings: `openrouter_model`, `openrouter_daily_cap`.
 5. **Unavailable** (cap reached, OpenRouter down, or AI off):
    - Ask: "AI is unavailable right now. Filters still work."
    - Receipt: see `RcFailed` and `RcManual`.
@@ -443,7 +446,7 @@ Read a receipt into items, give each item a category, and split the transaction 
 - A split is saved only when splits sum to the transaction amount. Adjustment lines make that true.
 - Budgets, Insights and Activity totals use splits when they exist.
 - Editing the transaction amount after a split asks to re-check the split.
-- **Privacy line**, everywhere photos go to the AI: "Photos go to the AI service only to read the items. Kharcha removes card numbers and UPI IDs from what it saves. Crop out full card numbers before adding a photo."
+- **Privacy line**, on receipt capture: "Photos stay on your server. Kharcha reads the text there, removes card, account and UPI numbers, and sends only the remaining text to the AI service."
   - What it means: the cropped photo goes to the AI service as it is. Kharcha drops any digit run that looks like a card number and any UPI ID from the model output before saving items, and stores the photo itself only on the VPS. It cannot stop the AI service from seeing what is in the photo, so the copy tells you to crop.
 - **Offline:** saved items and photos are viewable. Read, Save, Merge and Delete are disabled, with the standard offline line from §9. See §13 on this reading of the brief.
 - **Empty:** a transaction without a receipt shows only the Add receipt entry on Detail.
@@ -545,8 +548,8 @@ Boards: `Settings` (AI on, installed, mini online), `SettingsOff` (AI off, not i
   - Server: `POST /api/sync` stores a request. The mini calls `GET /api/mini/poll` every 30 s; the call records `last_seen_at` and returns any request. Online = seen in the last 2 minutes. "Offline since" = `last_seen_at`. "Last new transaction" = newest ingested row.
 - **App:** Install (Installed ✓, or Install plus the iPhone line when not installed), Theme (Light / Dark / System), Export CSV.
 - **AI off:** one quiet card: "AI is off. Ask, the weekly digest and receipt reading need the server switch." Nothing else in the section.
-- **AI on:** Text model and Vision model (`ModelSelect` with presets: name, provider, rough cost), Daily call cap (50 / 100 / 200 / 500), usage bar "12 of 200 used today".
-  - Cost per call = OpenRouter `/api/v1/models` prompt and completion prices × a typical call (text: 1,500 tokens in, 300 out; receipt: one image plus 800 out) × the day's USD→INR rate. Recompute daily; show "about".
+- **AI on:** Model (`ModelSelect` with presets: name, provider, rough cost), Daily call cap (50 / 100 / 200 / 500), usage bar "12 of 200 used today".
+  - Cost per call = OpenRouter `/api/v1/models` prompt and completion prices × a typical call (1,500 tokens in, 300 out) × the day's USD→INR rate. Recompute daily; show "about".
 - **Categories:** one line of explanation; Spending and Income groups; per row: drag handle, colour swatch (opens `SwatchPicker`), name in an editable field (dashed underline), "412 transactions", delete. Other and Other income cannot be deleted.
   - Delete asks first (`SetCatDelete`): "Its 9 transactions move to Other. Its budget and 1 merchant rule are removed."
 - **Merchant rules:** unchanged.

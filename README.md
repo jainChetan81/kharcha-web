@@ -27,15 +27,13 @@ Finance data. Two ways in:
 
 Log out everywhere: change `SESSION_SECRET` and restart. Change password: `printf %s 'new password' | node --experimental-strip-types scripts/hash-password.ts`, put the output in `APP_PASSWORD_HASH`, restart.
 
-## Screens (v1)
+## Screens
 
-- **Today**: month switcher, spend, income, invested, by-category bars, recent, review count, last sync.
-- **History**: search, needs-review filter, edit or delete in a dialog (shows the source SMS).
-- **Budgets**: monthly limit per category with progress; 0 removes one.
-- **Add**: manual entry.
-- `GET /api/health`: row count and last ingest time, for Uptime Kuma.
+Today, Review, Activity, Plan (budgets, recurring, trips, owed), Wealth, Insights, Ask, Settings, transaction detail with receipts. Spec: `docs/design/DESIGN.md`. `GET /api/health` (tailnet only) gives row count and last ingest time.
 
-The UI is a placeholder until the Claude Design pass. Deferred: subscriptions, portfolio, export, reimbursements, offline write outbox.
+## Wealth data
+
+Fund values and SIPs come from broker statements, not live prices: there are no units or purchase history yet, so Wealth shows "Statement of <date> · not live" and XIRR —. To refresh, hand the new statement to an agent; it loads `holdings.manual_value`/`manual_invested`/`manual_value_date` and upserts `sip_mandates` (keyed by hashed `source_key`) on the VPS after a `.backup`. There is no import screen for this on purpose. Live value needs units per fund (then `scheme_code` + nightly prices take over).
 
 ## Develop
 
