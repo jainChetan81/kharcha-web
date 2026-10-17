@@ -30,7 +30,8 @@ export function Sheet({
         <Dialog.Overlay asChild>
           <motion.div className="fixed inset-0 z-40 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={reduced ? { duration: 0 } : { duration: 0.22 }} />
         </Dialog.Overlay>
-        <Dialog.Content asChild >
+        {/* Snackbars sit outside the sheet: tapping Undo/Retry must not close it. */}
+        <Dialog.Content asChild onInteractOutside={(event) => { if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault(); }}>
           <motion.section
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -78,6 +79,8 @@ export function Snackbars() {
   return (
     <Toaster
       position="bottom-center"
+      // Radix modals set pointer-events:none on body; keep snack actions tappable over an open sheet.
+      style={{ pointerEvents: "auto" }}
       offset={96}
       mobileOffset={{ bottom: 96 }}
       toastOptions={{
