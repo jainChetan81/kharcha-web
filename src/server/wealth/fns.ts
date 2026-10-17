@@ -92,7 +92,7 @@ export const getWealthSummary = createServerFn({ method: "GET" }).handler(async 
   const nextSip = mandates.filter((row) => active.has(row.holdingId)).map((row) => ({ amount: row.amount, date: nextSipDate(row.day) })).sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
   return {
     value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), navDate: dates.sort().at(-1) ?? null, asOf: snapshotDate(rows), spark: investedSeries(rows.flatMap((row) => row.txns), value),
-    holdings: rows.length, invested, gain, gainPct: invested ? (gain! / invested) * 100 : null, xirr: xirr(wealthFlows(rows)), allocation, nextSip,
+    holdings: rows.length, invested, gain, gainPct: invested && invested > 0 ? (gain! / invested) * 100 : null, xirr: xirr(wealthFlows(rows)), allocation, nextSip,
   };
 });
 

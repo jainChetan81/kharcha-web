@@ -299,9 +299,9 @@ function CategoryItem({
 }) {
   const controls = useDragControls();
   const isOther = item.name === "Other";
-  return <Reorder.Item value={item} layout={dragging || undefined} onDragEnd={() => onDragging(false)} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
+  return <Reorder.Item value={item} layout={dragging as true} /* false turns layout animation off; the prop type omits it */ onDragEnd={() => onDragging(false)} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
     <div className="flex min-h-14 items-center gap-1">
-      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => { onDragging(true); controls.start(event); }} onPointerUp={() => onDragging(false)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
+      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => { onDragging(true); controls.start(event); }} onPointerUp={() => onDragging(false)} onPointerCancel={() => onDragging(false)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
       <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
         <span className="size-6 rounded-[7px]" style={{ background: `var(--color-${item.colorToken})` }} />
       </button>

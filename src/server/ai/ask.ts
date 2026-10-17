@@ -18,7 +18,8 @@ export type AskSpec = z.infer<typeof askSpecSchema>;
 
 type ResultRow = { label: string; value: number; transactionIds: number[] };
 export type AskResult = { ok: true; question: string; answer: string; rows: ResultRow[]; transactionIds: number[]; followUps: string[]; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null } | { ok: false; reason: string };
-const sumKnown = (values: (number | null)[]) => { const known = values.filter((value): value is number => value !== null); return known.length ? known.reduce((a, b) => a + b, 0) : null; };
+// Any unknown part makes the total unknown: a partial sum would understate the call.
+const sumKnown = (values: (number | null)[]) => (values.length && values.every((value) => value !== null) ? (values as number[]).reduce((a, b) => a + b, 0) : null);
 const parseJson = (value: string): unknown => {
   try { return JSON.parse(value); } catch { return undefined; }
 };

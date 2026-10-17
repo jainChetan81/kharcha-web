@@ -67,7 +67,7 @@ export async function callCostUsd(db: Db, model: string, tokensIn: number | null
   if (reported !== null) return reported;
   if (tokensIn === null || tokensOut === null) return null;
   // Cache only: no extra outbound call on the AI path. Settings load fills today's cache.
-  const cached = parsePrices((await db.select({ value: meta.value }).from(meta).where(eq(meta.key, `model_costs_${dayKey()}`)).get())?.value);
+  const cached = parsePrices((await db.select({ value: meta.value }).from(meta).where(eq(meta.key, `model_costs_${dayKey()}`)).get().catch(() => undefined))?.value); // cost is display-only; never fail the AI call over it
   const price = cached?.[model];
   return price ? price.prompt * tokensIn + price.completion * tokensOut : null;
 }

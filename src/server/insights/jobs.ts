@@ -97,6 +97,6 @@ num must be copied verbatim from the chosen facts value, and factKey must be tha
   const tokensOut = text !== null && response.ok ? response.tokensOut : null;
   const costUsd = text !== null && response.ok ? await callCostUsd(db, response.model, response.tokensIn, response.tokensOut, response.costUsd) : null;
   const row = { factsJson: JSON.stringify({ ...facts, links }), text, model, tokensIn, tokensOut, costUsd };
-  await db.insert(digests).values({ weekStart: iso(week), ...row }).onConflictDoUpdate({ target: digests.weekStart, set: row });
+  await db.insert(digests).values({ weekStart: iso(week), ...row }).onConflictDoUpdate({ target: digests.weekStart, set: { ...row, createdAt: sql`(datetime('now'))` } });
   return { written: text !== null };
 }

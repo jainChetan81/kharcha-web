@@ -1,7 +1,7 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, statementOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
+  ago, aiCost, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, statementOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -46,3 +46,4 @@ const offenders = (readdirSync("src", { recursive: true }) as string[])
   .filter((f) => banned.test(readFileSync(`src/${f}`, "utf8")));
 assert.deepEqual(offenders, [], "format dates, times and numbers via src/lib/format.ts");
 console.log("check-format: ok");
+assert.equal(aiCost(0), money(0));

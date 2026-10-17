@@ -101,7 +101,7 @@ export function nowLocal(d = new Date()): string {
 export const grouped = (n: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
 
 /** Small AI costs in rupees: "₹0.03"; anything under a paisa shows as "₹0.01". */
-export const aiCost = (usd: number) => { const rupees = usd * INR_PER_USD; return money(rupees < 0.01 ? 0.01 : Math.round(rupees * 100) / 100); };
+export const aiCost = (usd: number) => { const rupees = usd * INR_PER_USD; return money(rupees <= 0 ? 0 : rupees < 0.01 ? 0.01 : Math.round(rupees * 100) / 100); };
 
 /** "3 min ago" · "6 h ago" · "2 d ago". */
 export function ago(iso: string, now = Date.now()): string {
