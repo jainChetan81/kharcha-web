@@ -19,12 +19,13 @@ export function useHoldsInput(active = true) {
 }
 
 export function Sheet({
-  title, description, onClose, children, className,
-}: { title: string; description?: string; onClose: () => void; children: ReactNode; className?: string }) {
+  title, description, onClose, confirmClose, children, className,
+}: { title: string; description?: string; onClose: () => void; confirmClose?: () => boolean; children: ReactNode; className?: string }) {
   useHoldsInput();
   const reduced = useReducedMotion();
+  const close = () => { if (!confirmClose || confirmClose()) onClose(); };
   return (
-    <Dialog.Root open onOpenChange={(o) => !o && onClose()}>
+    <Dialog.Root open onOpenChange={(o) => !o && close()}>
       <Dialog.Portal>
         <Dialog.Overlay asChild>
           <motion.div className="fixed inset-0 z-40 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={reduced ? { duration: 0 } : { duration: 0.22 }} />
@@ -39,7 +40,7 @@ export function Sheet({
             dragElastic={{ top: 0, bottom: 0.5 }}
             onDragEnd={(event, info) => {
               const height = (event.currentTarget as HTMLElement).offsetHeight;
-              if (info.offset.y > height * 0.3 || info.velocity.y > 500) onClose();
+              if (info.offset.y > height * 0.3 || info.velocity.y > 500) close();
             }}
             className={cn(
               "fixed inset-x-0 bottom-0 z-50 flex max-h-[calc(100dvh-64px)] flex-col gap-3.5 overflow-y-auto rounded-t-sheet bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-ink outline-none",

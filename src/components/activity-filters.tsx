@@ -88,7 +88,7 @@ function Pop({ label, value, active, children }: { label: string; value: string;
 }
 const FilterTrigger = forwardRef<HTMLButtonElement, { label: string; value: string; active: boolean } & ComponentProps<"button">>(
   ({ label, value, active, ...props }, ref) => (
-    <button ref={ref} type="button" {...props} className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-chip border px-3.5 text-sm transition-transform active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${active ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}>
+    <button ref={ref} type="button" {...props} className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-chip border px-3.5 text-sm whitespace-nowrap transition-transform active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${active ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}>
       {value || label}<ChevronDown size={14} aria-hidden="true" />
     </button>
   ),
@@ -155,8 +155,8 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
     ? <Pop key={name} label={label} value={value} active={active}>{(close) => content(name, close)}</Pop>
     : <FilterTrigger key={name} label={label} value={value} active={active} onClick={() => setSheet(name)} />;
   return <>
-    <div className="relative -mx-5 desk:mx-0"><div role="toolbar" aria-label="Activity filters" className="flex gap-2 overflow-x-auto px-5 pb-1 desk:flex-wrap desk:overflow-visible desk:px-0">
-      {onReview && <button type="button" aria-pressed={Boolean(search.review)} onClick={onReview} className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-chip border px-3.5 text-sm active:scale-[0.96] ${search.review ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}><i aria-hidden className="size-2 rounded-full bg-brand" />Needs review <strong>{reviewCount}</strong></button>}
+    <div className="desk:mx-0"><div role="toolbar" aria-label="Activity filters" className="flex flex-wrap gap-2 pb-1">
+      {onReview && <button type="button" aria-pressed={Boolean(search.review)} onClick={onReview} className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-chip border px-3.5 text-sm whitespace-nowrap active:scale-[0.96] ${search.review ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}><i aria-hidden className="size-2 rounded-full bg-brand" />Needs review <strong>{reviewCount}</strong></button>}
       {picker("Filter", "Filter", `Filter${count ? ` · ${count}` : ""}`, count > 0)}
       {onReview && picker("Sort", "Sort", sorts.find(([k]) => k === search.sort)?.[1] ?? "Newest", Boolean(search.sort && search.sort !== "newest"))}
       {picker("Category", "Category", activeCats.length ? `${activeCats.length} categories` : "", activeCats.length > 0)}
@@ -164,7 +164,7 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
       {picker("Type", "Type", search.type === "transfer" ? "Not counted" : search.type ?? "", Boolean(search.type))}
       {picker("Trip", "Trip", trips.find((t) => t.id === search.tripId)?.name ?? "", Boolean(search.tripId))}
       {picker("Amount", "Amount", amountTitle, Boolean(amountTitle))}
-    </div><span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-paper to-transparent desk:hidden" /></div>
+    </div></div>
     {count > 0 && <div className="flex flex-wrap gap-2">{search.from && search.to && <Applied label={dateTitle} onClick={() => onApply({ from: undefined, to: undefined })} />}{activeCats.map((value) => <Applied key={value} label={value.split(":").at(-1) ?? value} onClick={() => { const next = activeCats.filter((v) => v !== value); onApply({ categories: next.length ? next : undefined, category: undefined }); }} />)}{search.card && <Applied label={`••${search.card}`} onClick={() => onApply({ card: undefined })} />}{search.type && <Applied label={search.type === "transfer" ? "Not counted" : search.type} onClick={() => onApply({ type: undefined })} />}{search.tripId && <Applied label={trips.find((t) => t.id === search.tripId)?.name ?? "Trip"} onClick={() => onApply({ tripId: undefined })} />}{amountTitle && <Applied label={amountTitle} onClick={() => onApply({ min: undefined, max: undefined })} />}<button type="button" onClick={onClear} className="min-h-9 px-2 text-sm font-medium text-brand">Clear</button></div>}
     {sheet && <Sheet title={sheet} onClose={() => { setSheet(null); onDateClose?.(); }}>{content(sheet, () => { setSheet(null); onDateClose?.(); })}</Sheet>}
   </>;

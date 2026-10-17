@@ -180,6 +180,6 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";
   const followUps = ok ? answerData.data.followUps : [];
   const model = narrated.ok ? narrated.model : planned.model;
-  await db.insert(askLog).values({ question, specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model });
+  await db.insert(askLog).values({ question, scopeJson: JSON.stringify(scope), specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model });
   return { ok: true, question, answer, rows, transactionIds, followUps, model };
 }

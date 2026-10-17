@@ -4,7 +4,7 @@ import { ago, time } from "../lib/format";
 import { getSyncStatus, syncNow } from "../server/daily/sync";
 import { saveFailed } from "./sheet";
 import { SectionHead } from "./ui";
-import { useOnline, useSync } from "./sync-pill";
+import { checkedLabel, useOnline, useSync } from "./sync-pill";
 
 type Status = Awaited<ReturnType<typeof getSyncStatus>>;
 
@@ -52,8 +52,8 @@ export function SyncSection() {
         </span>
       </div>
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline">
-        <span className="text-[15px]">Last new transaction</span>
-        <span className="text-sm text-ink-2">{status?.lastIngestAt ? ago(status.lastIngestAt) : "None yet"}</span>
+        <span className="text-[15px]">Status</span>
+        <span className="text-right text-sm text-ink-2">{status ? checkedLabel(status.seenAt, status.lastIngestAt) : "Loading"}</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-3">
         <button type="button" onClick={() => void ask()} disabled={!online || waiting || state === "unknown"} aria-busy={waiting} className="inline-flex min-h-11 items-center gap-1.5 rounded-button border border-ink px-3.5 text-sm font-medium whitespace-nowrap text-ink">

@@ -5,6 +5,7 @@ import { openDb } from "../src/server/db/client.ts";
 import {
   addTxn, editTxn, ingest, listTxns, miniRowSchema, monthSummary, removeTxn, setBudget,
 } from "../src/server/db/queries.ts";
+import { merchantRules } from "../src/server/db/schema.ts";
 
 const db = openDb(":memory:");
 assert.deepEqual(await db.all(sql`SELECT ${250} AS amount, ${"Test store"} AS merchant`), [{ amount: 250, merchant: "Test store" }], "raw SQL returns named columns");
@@ -430,4 +431,14 @@ console.log("check-db: ok");
   assert.equal(rows.find((t) => t.id === b)?.category, "Work");
   assert.equal(rows.find((t) => t.id === b)?.needsReview, false);
   assert.equal(rows.find((t) => t.id === c)?.needsReview, true, "other merchants stay in review");
+}
+// Same match twice: newest category wins, exactly one rule remains.
+{
+  const { addRule } = await import("../src/server/db/queries.ts");
+  const rdb = openDb(":memory:");
+  await addRule(rdb, { match: "AMAZON INDIA", displayMerchant: "Amazon", category: "Utilities" });
+  await addRule(rdb, { match: "  amazon india ", displayMerchant: "Amazon", category: "Shopping" });
+  const rules = await rdb.select().from(merchantRules);
+  assert.equal(rules.length, 1, "same match leaves one rule");
+  assert.equal(rules[0]?.category, "Shopping", "newest category wins");
 }

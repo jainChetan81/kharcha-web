@@ -507,9 +507,11 @@ export const ruleSchema = z.object({
   category: z.string().trim().min(1).max(40),
   createdFromTxnId: z.number().int().positive().optional(),
 });
+/** One rule per match (case-insensitive, trimmed): a same-match rule is replaced, never stacked. Newest rule wins at ingest. */
+export const sameMatch = (match: string, exceptId = -1) => sql`lower(trim(${merchantRules.match})) = lower(${match.trim()}) AND ${merchantRules.id} != ${exceptId}`;
 /** Saves the rule, then files the source row and every pending row it matches so Review doesn't ask again. */
 export async function addRule(db: Db, r: z.infer<typeof ruleSchema>): Promise<{ ruleId: number; ids: number[] }> {
-  const [row] = await db.insert(merchantRules).values(r).returning({ id: merchantRules.id });
+  const [, [row]] = await db.batch([db.delete(merchantRules).where(sameMatch(r.match)), db.insert(merchantRules).values(r).returning({ id: merchantRules.id })]);
   const pending = await db.select({ id: transactions.id, merchant: transactions.merchant, rawMerchant: transactions.rawMerchant }).from(transactions)
     .where(and(live, eq(transactions.needsReview, true), sql`${transactions.type} != 'investment'`));
   const ids = new Set(pending.filter((t) => ruleMatches(r, t.merchant) || (t.rawMerchant !== null && ruleMatches(r, t.rawMerchant))).map((t) => t.id));

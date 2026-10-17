@@ -32,6 +32,7 @@ const bare = (p: string) => /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const hideChrome = bare(path);
+  const planAction = path === "/plan/trips" || path === "/plan/recurring";
   const { trip } = data;
   return (
     <div className="min-h-dvh desk:flex">
@@ -68,7 +69,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
         </div>
       </aside>
 
-      <div className={cn("mx-auto w-full min-w-0 tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1", !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0")}>
+      <div className={cn("mx-auto w-full min-w-0 tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1", !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0", planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]")}>
         {children}
       </div>
 

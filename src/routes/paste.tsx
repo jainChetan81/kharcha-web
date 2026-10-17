@@ -49,7 +49,7 @@ function Paste() {
   return <main className="flex min-h-dvh flex-col">
     <PageHeader back="/add" title="Paste SMS" />
     <div className="flex flex-1 flex-col gap-4 px-5 pb-7 tablet:mx-auto tablet:w-full tablet:max-w-[640px]">
-      <label htmlFor="paste-bank" className="flex flex-col gap-1.5 text-[13px] text-ink-2">Bank (optional)
+      <label htmlFor="paste-bank" className="flex flex-col gap-1.5 text-[13px] text-ink-2">Bank (optional) · leave on Detect for Axis, HDFC, IndusInd messages
         <select id="paste-bank" className="field" value={bank} onChange={(event) => { setBank(event.target.value as typeof bank); reset(); }}>
           <option value="">Detect from message</option><option value="axis">Axis</option><option value="hdfc">HDFC</option><option value="indusind">IndusInd</option>
         </select>

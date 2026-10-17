@@ -24,6 +24,8 @@ const activitySearch = ordered(scopeShape.extend({
 
 type ActivitySearch = z.infer<typeof activitySearch>;
 type Row = Awaited<ReturnType<typeof getTransactions>>[number];
+// Same rule as ledger.tsx's row label; ingest files card bills as Other, so the category can't tell them apart.
+const cardBill = (t: Row) => /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
 
 export const Route = createFileRoute("/activity")({
   validateSearch: activitySearch,
@@ -156,15 +158,15 @@ function Activity() {
       <div className="space-y-6 px-5 pt-5 pb-5 desk:px-0 desk:pt-7">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="m-0 font-serif text-[26px] font-medium">Activity</h1>
-          <div className="flex w-full items-center gap-2 desk:w-auto">
-            <label className="field flex min-h-11 min-w-0 flex-1 items-center gap-2 bg-card px-3 desk:w-[min(360px,35vw)] desk:flex-none">
+          <div className="flex w-full flex-col items-stretch gap-2 desk:w-auto desk:flex-row desk:items-center">
+            <label className="field flex min-h-11 w-full min-w-0 items-center gap-2 bg-card px-3 desk:w-[min(360px,35vw)] desk:flex-none">
               <Search className="size-[18px] shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
               <span className="sr-only">Search transactions</span>
               <input ref={searchRef} aria-label="Search transactions" placeholder="Merchant, category, SMS text" value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-3" />
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="flex size-9 shrink-0 items-center justify-center text-ink-3"><X size={16} /></button>}
               <kbd className="hidden rounded-[4px] border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
             </label>
-            <MonthStepper to="/activity" month={month} label={customRange} onOpen={() => setDateOpen(true)} />
+            <span className="self-start desk:self-auto"><MonthStepper to="/activity" month={month} label={customRange} onOpen={() => setDateOpen(true)} /></span>
           </div>
         </header>
 
@@ -196,7 +198,7 @@ function Activity() {
               </section>)}
           </div>
         ) : (
-          <Empty text="Nothing matches these filters." action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
+          <Empty text={search.tripId ? "No transactions match this trip with the current filters." : "Nothing matches these filters."} action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
         )}
       </div>
     </DeskPage>
@@ -216,7 +218,7 @@ function ActivityRow({ row, color, splitOnly, active, swiped, canDelete, onSelec
   }, [swiped, reduced, x]);
   return (
     <div className="relative overflow-hidden border-b border-hairline desk:border-0">
-      <motion.button type="button" disabled={!canDelete} onClick={onDelete} style={{ opacity: reveal }} className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-sm font-semibold text-on-over disabled:opacity-50 desk:hidden"><motion.span style={{ scale }}>Delete</motion.span></motion.button>
+      <motion.button type="button" aria-label={`Delete ${row.merchant}`} tabIndex={swiped ? 0 : -1} aria-hidden={!swiped} disabled={!canDelete} onClick={onDelete} style={{ opacity: reveal }} className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-sm font-semibold text-on-over disabled:opacity-50 desk:hidden"><motion.span style={{ scale }}>Delete</motion.span></motion.button>
       <motion.div
         drag={canDelete ? "x" : false}
         dragDirectionLock
@@ -241,7 +243,7 @@ function ActivityRow({ row, color, splitOnly, active, swiped, canDelete, onSelec
         <button type="button" onClick={onSelect} className="hidden min-h-11 w-full grid-cols-[56px_minmax(0,1fr)_120px_64px_84px] items-center gap-3 px-2 text-left text-sm text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid" style={active ? { background: "var(--color-brand-soft)" } : undefined}>
           <span className="text-ink-3">{time(row.date)}</span>
           <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
-          <span className="flex min-w-0 items-center gap-1.5 truncate"><CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />{row.category ?? "Other"}</span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate">{row.excluded && cardBill(row) ? <span className="inline-flex items-center rounded-[4px] bg-sunken px-1.5 text-[12px] text-ink-2">Card bill</span> : <><CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />{row.category ?? "Other"}</>}</span>
           <span className="text-ink-3">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />
         </button>
