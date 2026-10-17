@@ -25,10 +25,11 @@ type Props = {
   categories: Category[];
   cards: string[];
   trips: { id: number; name: string }[];
-  reviewCount: number;
+  /** Omit review and sort on pages that aren't a list (Insights). */
+  reviewCount?: number;
   onApply: (next: Partial<Search>) => void;
   onClear: () => void;
-  onReview: () => void;
+  onReview?: () => void;
   dateOpen?: boolean;
   onDateClose?: () => void;
 };
@@ -146,7 +147,7 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
         {name === "Card" && <div className="flex flex-wrap gap-2">{cards.map((v) => <Chip key={v} on={search.card === v} onClick={() => apply({ card: search.card === v ? undefined : v })}>••{v}</Chip>)}<Button variant="outline" onClick={() => apply({ card: undefined })}>Clear</Button></div>}
         {name === "Type" && <div className="flex flex-wrap gap-2">{([ ["expense", "Expense"], ["income", "Income"], ["investment", "Investment"], ["transfer", "Not counted"] ] as const).map(([key, label]) => <Chip key={key} on={search.type === key} onClick={() => apply({ type: search.type === key ? undefined : key })}>{label}</Chip>)}</div>}
         {name === "Trip" && <div className="flex flex-wrap gap-2">{trips.map((trip) => <Chip key={trip.id} on={search.tripId === trip.id} onClick={() => apply({ tripId: search.tripId === trip.id ? undefined : trip.id })}>{trip.name}</Chip>)}<Button variant="outline" onClick={() => apply({ tripId: undefined })}>Clear</Button></div>}
-        {name === "Filter" && <div className="grid grid-cols-2 gap-2">{["Date", "Category", "Card", "Type", "Trip", "Amount", "Sort"].map((v) => <button key={v} type="button" onClick={() => setSheet(v)} className="min-h-11 rounded-chip border border-field text-sm">{v}</button>)}</div>}
+        {name === "Filter" && <div className="grid grid-cols-2 gap-2">{["Date", "Category", "Card", "Type", "Trip", "Amount", ...(onReview ? ["Sort"] : [])].map((v) => <button key={v} type="button" onClick={() => setSheet(v)} className="min-h-11 rounded-chip border border-field text-sm">{v}</button>)}</div>}
       </div>
     );
   };
@@ -155,9 +156,9 @@ export function ActivityFilters({ search, categories, cards, trips, reviewCount,
     : <FilterTrigger key={name} label={label} value={value} active={active} onClick={() => setSheet(name)} />;
   return <>
     <div className="relative -mx-5 desk:mx-0"><div role="toolbar" aria-label="Activity filters" className="flex gap-2 overflow-x-auto px-5 pb-1 desk:flex-wrap desk:overflow-visible desk:px-0">
-      <button type="button" aria-pressed={Boolean(search.review)} onClick={onReview} className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-chip border px-3.5 text-sm active:scale-[0.96] ${search.review ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}><i aria-hidden className="size-2 rounded-full bg-brand" />Needs review <strong>{reviewCount}</strong></button>
+      {onReview && <button type="button" aria-pressed={Boolean(search.review)} onClick={onReview} className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-chip border px-3.5 text-sm active:scale-[0.96] ${search.review ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}><i aria-hidden className="size-2 rounded-full bg-brand" />Needs review <strong>{reviewCount}</strong></button>}
       {picker("Filter", "Filter", `Filter${count ? ` · ${count}` : ""}`, count > 0)}
-      {picker("Sort", "Sort", sorts.find(([k]) => k === search.sort)?.[1] ?? "Newest", Boolean(search.sort && search.sort !== "newest"))}
+      {onReview && picker("Sort", "Sort", sorts.find(([k]) => k === search.sort)?.[1] ?? "Newest", Boolean(search.sort && search.sort !== "newest"))}
       {picker("Category", "Category", activeCats.length ? `${activeCats.length} categories` : "", activeCats.length > 0)}
       {picker("Card", "Card", search.card ? `••${search.card}` : "", Boolean(search.card))}
       {picker("Type", "Type", search.type === "transfer" ? "Not counted" : search.type ?? "", Boolean(search.type))}

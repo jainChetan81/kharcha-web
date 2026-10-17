@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
+import type { ScopeSearch } from "../lib/filters";
 import { money, shortDate, signed } from "../lib/format";
 
 type Summary = {
@@ -17,7 +18,7 @@ type Summary = {
 };
 
 /** One server query (getTransactionSummary). Collapsed: one row of figures. Expanded: the rest. */
-export function SummaryStrip({ summary, colors }: { summary: Summary; colors: Record<string, string> }) {
+export function SummaryStrip({ summary, colors, scope }: { summary: Summary; colors: Record<string, string>; scope: ScopeSearch }) {
   const [expanded, setExpanded] = useState(false);
   const reduced = useReducedMotion();
   const figures = [
@@ -94,7 +95,7 @@ export function SummaryStrip({ summary, colors }: { summary: Summary; colors: Re
               <strong>{money(summary.avgPerDay)}</strong>
             </div>
           )}
-          <Link to="/insights" className="min-h-11 self-start pt-2 font-medium text-brand">See insights</Link>
+          <Link to="/insights" search={scope} className="min-h-11 self-start pt-2 font-medium text-brand">See insights</Link>
         </div>
       </motion.div>
     </section>

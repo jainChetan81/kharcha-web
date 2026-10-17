@@ -229,7 +229,6 @@ export const shareSql = (t = "transactions") => sql<number>`${sql.raw(shareOf(t)
 const countedOf = (t: string) =>
   `CASE WHEN ${t}.type = 'income' THEN ${t}.amount - ${linkedOf(t)} + ${extraOf(t)} WHEN ${t}.type = 'expense' THEN ${shareOf(t)} ELSE ${t}.amount END`;
 const countedSql = (t = "transactions") => sql.raw(countedOf(t));
-export const countedAmountSql = (t = "transactions") => countedSql(t);
 
 /** Own share of a saved split; item claims reduce only their chosen categories. */
 export const splitShareOf = (txn: string, split: string) => `MAX(0, ${split}.amount
@@ -289,7 +288,7 @@ export async function monthSummary(db: Db, month: string) {
 }
 
 const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => realDate(v), "not a real date");
-export const listSchema = z.object({
+const listShape = z.object({
   month: monthSchema.optional(),
   from: daySchema.optional(),
   to: daySchema.optional(),
@@ -305,11 +304,17 @@ export const listSchema = z.object({
   tripId: z.number().int().positive().optional(),
   merchant: z.string().trim().max(120).optional(),
   ids: z.array(z.number().int().positive()).max(500).optional(),
-}).refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
-  .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
+});
+const ordered = <T extends z.ZodType<{ from?: string; to?: string; min?: number; max?: number }>>(schema: T) =>
+  schema.refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
+    .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
+export const listSchema = ordered(listShape);
 export type ListQuery = z.infer<typeof listSchema>;
+/** Activity's filters minus list-only keys: what Insights and Ask scope accept. */
+export const scopeSchema = ordered(listShape.omit({ sort: true, ids: true, review: true }));
+export type Scope = z.infer<typeof scopeSchema>;
 
-function listWhere(q: ListQuery) {
+export function listWhere(q: ListQuery) {
   const where = [live];
   if (q.from) where.push(gte(transactions.date, `${q.from} 00`));
   if (q.to) where.push(lt(transactions.date, `${q.to} 24`));
@@ -388,16 +393,20 @@ function dayCount(q: ListQuery): number | null {
   if (q.from || q.to) return null;
   if (q.month) {
     const [first, next] = monthBounds(q.month);
+    // Current month: pace so far, not spend spread over days still to come.
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+    if (today.slice(0, 7) === q.month) return Number(today.slice(8, 10));
     return (Date.parse(next) - Date.parse(first)) / dayMs;
   }
   return null;
 }
 
 /** One query, same WHERE as listTxns. Spend excludes excluded and duplicate rows; transferred is the excluded rows. counted_amount is the filtered split part, scaled to your share (§15). */
-export async function summarizeTxns(db: Db, q: ListQuery) {
-  const where = and(...listWhere(q)) ?? sql`1 = 1`;
+/** Counted amount per row under a category filter: a split row counts only its selected parts (§15). */
+export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
   const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
-  const splitNames = selectedCategories.map((value) => {
+  // Splits exist only on expense rows, so "income:Travel" never picks a split part.
+  const splitNames = selectedCategories.filter((value) => !/^(income|investment):/.test(value)).map((value) => {
     const i = value.lastIndexOf(":");
     return i > 0 ? value.slice(i + 1) : value;
   });
@@ -410,6 +419,12 @@ export async function summarizeTxns(db: Db, q: ListQuery) {
           WHERE fs.transaction_id = transactions.id${splitFilter}), 0)
         ELSE ${sql.raw(countedOf("transactions"))} END`
     : sql.raw(countedOf("transactions"));
+  return { counted, splitFilter };
+}
+
+export async function summarizeTxns(db: Db, q: ListQuery) {
+  const where = and(...listWhere(q)) ?? sql`1 = 1`;
+  const { counted, splitFilter } = filteredAmount(q);
   const [row] = await db.all<{ n: number; spent: number; income: number; transferred: number; top: string; biggest: string | null; frequent: string | null }>(sql`
     WITH m AS (SELECT transactions.*, ${counted} AS counted_amount FROM transactions WHERE ${where}),
     s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)

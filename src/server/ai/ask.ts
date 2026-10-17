@@ -1,5 +1,5 @@
 import { and, count, desc, eq, gte, isNull, like, lt, lte, sql, sum } from "drizzle-orm";
-import { spendByCategory } from "../db/queries.ts";
+import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callOpenRouter } from "./client.ts";
@@ -24,9 +24,9 @@ const parseJson = (value: string): unknown => {
 const dropNulls = (value: unknown): unknown =>
   Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
 /** Merchant labels can carry UPI IDs or account numbers; neither may reach OpenRouter. */
-export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}/.test(label) ? "[private payee]" : label);
-/** Free text (questions, past answers) keeps its words but loses handles and long digit runs. */
-export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m));
+export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}|\d{4}/.test(label) ? "[private payee]" : label); // 4 digits: card last-4 in labels like "Visa 4242".
+/** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
+export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
 const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 
@@ -43,9 +43,14 @@ function dates(spec: AskSpec) {
   return { from: fmt(d), to: months === 2 ? fmt(new Date(Date.UTC(y, m, 1))) : fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) };
 }
 
-async function runSpec(db: Db, spec: AskSpec): Promise<ResultRow[]> {
-  const where = [isNull(transactions.deletedAt), eq(transactions.excluded, false), isNull(transactions.duplicateOf)];
-  const period = dates(spec);
+/** Scope dates win over the planner's period: the page's filter is what the person is looking at. */
+const scopeDated = (scope: Scope) => Boolean(scope.month || scope.from || scope.to);
+
+async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<ResultRow[]> {
+  // Scope is applied here, server-side, so the model can't widen it and card digits never leave the box.
+  const where = [isNull(transactions.deletedAt), isNull(transactions.duplicateOf), ...listWhere(scope)];
+  if (scope.type !== "transfer") where.push(eq(transactions.excluded, false)); // "Not counted" scope asks about exactly those rows.
+  const period = scopeDated(scope) ? {} : dates(spec);
   if (period.from) where.push(gte(transactions.date, period.from));
   if (period.to) where.push(period.explicitTo ? lte(transactions.date, `${period.to} 23:59`) : lt(transactions.date, period.to));
   if (spec.filters.category) where.push(eq(transactions.category, spec.filters.category));
@@ -54,7 +59,10 @@ async function runSpec(db: Db, spec: AskSpec): Promise<ResultRow[]> {
   if (spec.filters.trip) where.push(sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`);
   const group = spec.groupBy ?? null;
   const label = group === "day" ? sql<string>`substr(${transactions.date}, 1, 10)` : group === "month" ? sql<string>`substr(${transactions.date}, 1, 7)` : group === "category" ? sql<string>`coalesce(${transactions.category}, 'Other')` : group === "merchant" ? transactions.merchant : sql<string>`'Total'`;
-  const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${transactions.amount})` : sum(transactions.amount).mapWith(Number);
+  // A category scope counts only the selected split parts, matching Activity and Insights.
+  // ponytail: groupBy "category" still labels split rows by their root category; join transaction_splits if split breakdowns get used.
+  const amount = scope.categories?.length || scope.category ? filteredAmount(scope).counted : sql`${transactions.amount}`;
+  const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${amount})` : sql<number>`sum(${amount})`.mapWith(Number);
   const rows = await db.select({ label, value: metric, ids: sql<string>`group_concat(${transactions.id})` }).from(transactions).where(and(...where)).groupBy(label).orderBy(desc(metric));
   return rows.map((row) => ({ label: String(row.label), value: Number(row.value ?? 0), transactionIds: String(row.ids ?? "").split(",").filter(Boolean).map(Number) }));
 }
@@ -125,30 +133,48 @@ Spec = {
   "period": "current_month" | "previous_month" | "last_30_days" | "last_3_months" | "this_year" | "all"   (default current_month),
   "filters": { "category"?: exact category name, "merchant"?: substring of merchant name, "type"?: "expense" | "income" | "investment", "from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD", "trip"?: substring of trip name }
 }
-from/to override period. Omit fields you do not need; never invent other keys. Use the context to map words to real category, merchant and trip names, and to resolve follow-up questions from recentQuestions. Spending questions use type "expense".`;
+from/to override period. If "scope" is set, every query is already limited to it by the server (its period replaces yours); plan within it and don't repeat its filters. Omit fields you do not need; never invent other keys. Use the context to map words to real category, merchant and trip names, and to resolve follow-up questions from recentQuestions. Spending questions use type "expense".`;
 
 const narratorPrompt = `You are Kharcha, a sharp, friendly money assistant for one person in India. Return JSON only: {"answer": string, "followUps": string[]}.
 answer: at most 4 short sentences, plain text, no markdown.
-1. Answer the question directly from "results" (the first query is the main one).
+1. Answer the question directly from "results" (the first query is the main one). If "scope" is set, results cover only that scope; say so briefly when it matters.
 2. Then use your own judgment with "context", which is this person's recent history: if something is worth noticing, say it and give one concrete, practical suggestion they can act on this month. Look for: a category well above its usualMonth (vsUsual), onPaceFor beyond budget, a negative budgetLeft, one merchant or subscription dominating, a trip or recurring charge driving the number, or a month that breaks the monthlySpend trend. Prefer the single most useful insight over a list. Skip this if nothing stands out; never pad or lecture.
 Money rules: every rupee figure you write must appear in results or context. Write it as ₹ with Indian digit grouping and no decimals, e.g. ₹12,345. You may name categories, merchants and months freely. Do not do new arithmetic: use the supplied vsUsual, onPaceFor and budgetLeft instead of subtracting yourself. If a figure you want is not supplied, describe it in words ("about double", "well under budget").
 followUps: up to 3 short next questions this ledger can answer (totals, counts or averages by category, merchant, day, month, trip or date range), tailored to what you found.`;
 
-export async function askLedger(db: Db, question: string): Promise<AskResult> {
+/** What the model is told about the scope: names and dates only. Card digits, raw search text and amounts stay local. */
+export function describeScope(scope: Scope) {
+  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => scrub(value.split(":").at(-1) ?? value));
+  const parts = {
+    period: scope.from || scope.to ? `${scope.from ?? "start"} to ${scope.to ?? "today"}` : scope.month,
+    categories: cats.length ? cats : undefined,
+    merchant: scope.merchant ? scrub(scope.merchant) : undefined,
+    type: scope.type === "transfer" ? "not counted" : scope.type,
+    card: scope.card ? "one card" : undefined,
+    trip: scope.tripId ? "one trip" : undefined,
+    amount: scope.min !== undefined || scope.max !== undefined ? "an amount range" : undefined,
+    search: scope.search ? "a text search" : undefined,
+  };
+  const set = Object.fromEntries(Object.entries(parts).filter(([, v]) => v !== undefined));
+  return Object.keys(set).length ? set : null;
+}
+
+export async function askLedger(db: Db, question: string, scope: Scope = {}): Promise<AskResult> {
   const context = await ledgerContext(db);
   const asked = redact(question);
-  const planned = await callOpenRouter([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
+  const scoped = describeScope(scope);
+  const planned = await callOpenRouter([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
   if (!planned.ok) return planned;
   const raw = dropNulls(parseJson(planned.content));
   const parsed = plan.safeParse(raw);
   const single = parsed.success ? null : askSpecSchema.safeParse(raw);
   const queries = parsed.success ? parsed.data.queries : single?.success ? [single.data] : null;
   if (!queries) return { ok: false, reason: "invalid" };
-  const results = await Promise.all(queries.map((spec) => runSpec(db, spec)));
+  const results = await Promise.all(queries.map((spec) => runSpec(db, spec, scope)));
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
   const shown = results.map((list, index) => ({ spec: queries[index], rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })) }));
-  const narrated = await callOpenRouter([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, results: shown, context }) }], { db });
+  const narrated = await callOpenRouter([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, results: shown, context }) }], { db });
   const answerData = narrated.ok ? z.object({ answer: z.string().max(700), followUps: z.array(z.string().trim().min(3).max(120)).max(3).default([]) }).safeParse(parseJson(narrated.content)) : null;
   const ok = answerData?.success && figuresMatchRows(answerData.data.answer, [...results.flat(), ...contextFigures(context)]);
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";

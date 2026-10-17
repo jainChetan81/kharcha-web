@@ -12,27 +12,15 @@ import { saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, Empty, ErrorState, Skeleton } from "../components/ui";
 import { card, money, rangeLabel, thisMonth, time, weekdayDate } from "../lib/format";
+import { ordered, pickScope, scopeShape } from "../lib/filters";
 import { getActivityMeta } from "../server/daily/fns";
 import { deleteTransaction, getTransactions, getTransactionSummary, restoreTransaction } from "../server/fns";
 
-const activitySearch = z.object({
-  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  search: z.string().max(60).optional(),
+const activitySearch = ordered(scopeShape.extend({
   review: z.boolean().optional(),
-  category: z.string().max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40).optional(),
-  categories: z.array(z.string().min(1).max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)).max(40).optional(),
-  merchant: z.string().max(120).optional(),
-  card: z.string().regex(/^\d{4}$/).optional(),
-  type: z.enum(["income", "expense", "investment", "transfer"]).optional(),
-  tripId: z.number().int().positive().optional(),
   ids: z.array(z.number().int().positive()).max(500).optional(),
-  min: z.number().finite().min(0).max(1e9).optional(),
-  max: z.number().finite().min(0).max(1e9).optional(),
   sort: z.enum(["newest", "oldest", "amount-desc", "amount-asc"]).optional(),
-}).refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
-  .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
+}));
 
 type ActivitySearch = z.infer<typeof activitySearch>;
 type Row = Awaited<ReturnType<typeof getTransactions>>[number];
@@ -77,7 +65,7 @@ function Activity() {
   // Project filtered split rows to selected parts. Day totals use the same share fraction.
   const viewRows = rows.map((r) => {
     if (!activeCategories.length || !r.splits.length) return r;
-    const part = r.splits.filter((x) => activeCategories.some((value) => value.split(":").at(-1) === x.category)).reduce((sum, x) => sum + x.amount, 0);
+    const part = r.splits.filter((x) => activeCategories.some((value) => !/^(income|investment):/.test(value) && value.split(":").at(-1) === x.category)).reduce((sum, x) => sum + x.amount, 0);
     const ratio = r.amount > 0 ? part / r.amount : 0;
     return { ...r, amount: part, yours: r.yours * ratio, originalTotal: r.amount };
   });
@@ -176,7 +164,7 @@ function Activity() {
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="flex size-9 shrink-0 items-center justify-center text-ink-3"><X size={16} /></button>}
               <kbd className="hidden rounded-[4px] border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
             </label>
-            <MonthStepper month={month} label={customRange} onOpen={() => setDateOpen(true)} />
+            <MonthStepper to="/activity" month={month} label={customRange} onOpen={() => setDateOpen(true)} />
           </div>
         </header>
 
@@ -192,7 +180,8 @@ function Activity() {
           dateOpen={dateOpen}
           onDateClose={() => setDateOpen(false)}
         />
-        <SummaryStrip summary={summary} colors={colors} />
+        {(search.ids?.length || search.merchant) && <div className="flex flex-wrap gap-2">{search.ids?.length ? <button type="button" onClick={() => change({ ids: undefined })} className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand">{search.ids.length} supporting transactions<span aria-hidden="true">×</span><span className="sr-only">Show all</span></button> : null}{search.merchant && <button type="button" onClick={() => change({ merchant: undefined })} className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand">{search.merchant}<span aria-hidden="true">×</span><span className="sr-only">Remove merchant filter</span></button>}</div>}
+        <SummaryStrip summary={summary} colors={colors} scope={pickScope(search)} />
 
         {!online && <p role="status" className="m-0 text-[13px] text-ink-3">Offline · saved transactions remain available; delete is disabled.</p>}
         {showExcludedNote && rows.some((row) => row.excluded) && <p className="m-0 flex min-h-11 items-center justify-between gap-3 rounded-button bg-sunken px-3 text-[13px] text-ink-2">Not counted as spend; the purchases already are.<button type="button" aria-label="Dismiss not counted note" onClick={() => { setShowExcludedNote(false); try { window.localStorage.setItem("kharcha-activity-excluded-note", "dismissed"); } catch { /* Storage can be unavailable in private browsing. */ } }} className="flex size-11 shrink-0 items-center justify-center text-ink-3"><X size={16} aria-hidden="true" /></button></p>}

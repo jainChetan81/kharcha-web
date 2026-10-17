@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
@@ -9,13 +8,20 @@ import { Waterfall } from "../components/charts/waterfall";
 import { DeskPage } from "../components/app-shell";
 import { InsightCard, type InsightView } from "../components/insight-card";
 import { Empty, ErrorState, PageHeader, SectionHead, Skeleton } from "../components/ui";
-import { compact, money, monthLabel } from "../lib/format";
+import { compact, money, monthLabel, rangeLabel } from "../lib/format";
+import { ActivityFilters } from "../components/activity-filters";
+import { MonthStepper } from "../components/month-stepper";
+import { pickScope, scopeSearch, type ScopeSearch } from "../lib/filters";
+import { getActivityMeta } from "../server/daily/fns";
 import { dismissInsight, getInsights } from "../server/insights/fns";
 
 export const Route = createFileRoute("/insights")({
-  validateSearch: z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).optional() }),
+  validateSearch: scopeSearch,
   loaderDeps: ({ search }) => search,
-  loader: ({ deps }) => getInsights({ data: deps }),
+  loader: async ({ deps }) => {
+    const [data, meta] = await Promise.all([getInsights({ data: deps }), getActivityMeta()]);
+    return { ...data, meta };
+  },
   pendingComponent: () => <div className="p-5"><Skeleton rows={8} /></div>,
   errorComponent: () => { const router = useRouter(); return <ErrorState retry={() => router.invalidate()} />; },
   component: Insights,
@@ -26,15 +32,20 @@ function Figure({ number, title, children }: { number: number; title: string; ch
 }
 
 function Insights() {
-  const data = Route.useLoaderData(); const [hidden, setHidden] = useState<number[]>([]); const cards = data.insights.filter((item) => !hidden.includes(item.id)).map((item) => ({ id: item.id, detector: item.detector, payload: JSON.parse(item.payloadJson) as Record<string, unknown> })) as InsightView[];
+  const data = Route.useLoaderData(); const search = Route.useSearch(); const router = useRouter(); const [dateOpen, setDateOpen] = useState(false);
+  // The server defaults to this month; links must say so, or Activity/Ask widen to all time.
+  const scope = { ...pickScope(search), ...(search.from || search.to ? {} : { month: data.month }) };
+  const change = (next: Partial<ScopeSearch>) => void router.navigate({ to: "/insights", search: { ...search, ...next } });
+  const period = data.from && data.to ? rangeLabel(data.from, data.to) : data.from || data.to ? `${data.from ?? "…"} – ${data.to ?? "now"}` : monthLabel(data.month);
+  const [hidden, setHidden] = useState<number[]>([]); const cards = data.insights.filter((item) => !hidden.includes(item.id)).map((item) => ({ id: item.id, detector: item.detector, payload: JSON.parse(item.payloadJson) as Record<string, unknown> })) as InsightView[];
   const dismiss = async (id: number) => { setHidden((list) => [...list, id]); try { await dismissInsight({ data: { id } }); } catch { setHidden((list) => list.filter((item) => item !== id)); } };
   const total = data.waterfall.spending;
   const kpis = [["Spent", money(total)], ["Income", money(data.waterfall.income)], ["Saved", money(data.waterfall.saved)], ["Payments", String(data.bees.length)]];
-  const rail = <><section className="flex flex-col gap-3"><span className="label-caps text-ink-3">Worth a look · {cards.length}</span>{cards.length ? cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />) : <Empty text="Nothing needs a closer look." />}</section><section className="flex flex-col gap-1"><SectionHead title="Top merchants" /><MerchantTable rows={data.merchants} /></section></>;
-  return <DeskPage rail={rail}><PageHeader title={`Insights · ${monthLabel(data.month)}`} actions={<Link to="/ask" className="inline-flex min-h-10 items-center gap-2 rounded-button bg-ink px-3.5 text-sm font-medium text-paper"><MessageCircle size={16} strokeWidth={1.75} />Ask</Link>} /><div className="flex flex-col gap-7 px-5 pb-4 desk:px-0"><div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule tablet:grid-cols-4">{kpis.map(([label, value]) => <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3"><span className="text-xs text-ink-3">{label}</span><strong className="font-serif text-2xl font-medium">{value}</strong></div>)}</div><section className="flex flex-col gap-3 desk:hidden"><span className="label-caps text-ink-3">Worth a look · {cards.length}</span>{cards.length ? cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />) : <Empty text="Nothing needs a closer look." />}</section><div className="grid gap-7 desk:grid-cols-2"><Figure number={1} title={`Where ${monthLabel(data.month)}’s money went`}><Waterfall values={data.waterfall} /></Figure><Figure number={2} title={`${monthLabel(data.month)}, day by day`}><DayRings rows={data.daily} month={data.month} /></Figure></div><Figure number={3} title="Every payment this month"><Beeswarm rows={data.bees} /></Figure><div className="desk:grid desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-8"><Figure number={4} title="Six months, same scale"><SixMonths rows={data.six} /></Figure><section className="mt-7 desk:mt-0 desk:hidden"><SectionHead title="Top merchants" /><MerchantTable rows={data.merchants} /></section></div></div></DeskPage>;
+  const rail = <><section className="flex flex-col gap-3"><span className="label-caps text-ink-3">Worth a look · {cards.length}</span>{cards.length ? cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />) : <Empty text="Nothing needs a closer look." />}</section><section className="flex flex-col gap-1"><SectionHead title="Top merchants" /><MerchantTable rows={data.merchants} scope={scope} /></section></>;
+  return <DeskPage rail={rail}><PageHeader title={`Insights · ${period}`} actions={<Link to="/ask" search={scope} className="inline-flex min-h-10 items-center gap-2 rounded-button bg-ink px-3.5 text-sm font-medium text-paper"><MessageCircle size={16} strokeWidth={1.75} />Ask</Link>} /><div className="flex flex-col gap-7 px-5 pb-4 desk:px-0"><div className="flex flex-col gap-3"><MonthStepper to="/insights" month={data.month} label={data.from || data.to ? period : undefined} onOpen={() => setDateOpen(true)} /><ActivityFilters search={search} categories={data.meta.categories} cards={data.meta.cards} trips={data.meta.trips} onApply={change} onClear={() => void router.navigate({ to: "/insights", search: { month: search.month } })} dateOpen={dateOpen} onDateClose={() => setDateOpen(false)} /></div><div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule tablet:grid-cols-4">{kpis.map(([label, value]) => <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3"><span className="text-xs text-ink-3">{label}</span><strong className="font-serif text-2xl font-medium">{value}</strong></div>)}</div><section className="flex flex-col gap-3 desk:hidden"><span className="label-caps text-ink-3">Worth a look · {cards.length}</span>{cards.length ? cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />) : <Empty text="Nothing needs a closer look." />}</section><div className="grid gap-7 desk:grid-cols-2"><Figure number={1} title={`Where ${period}’s money went`}><Waterfall values={data.waterfall} /></Figure><Figure number={2} title={`${monthLabel(data.month)}, day by day`}><DayRings rows={data.daily} month={data.month} /></Figure></div><Figure number={3} title="Every payment in view"><Beeswarm rows={data.bees} /></Figure><div className="desk:grid desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-8"><Figure number={4} title="Six months, same scale"><SixMonths rows={data.six} /></Figure><section className="mt-7 desk:mt-0 desk:hidden"><SectionHead title="Top merchants" /><MerchantTable rows={data.merchants} scope={scope} /></section></div></div></DeskPage>;
 }
 
-function MerchantTable({ rows }: { rows: { merchant: string; total: number; n: number }[] }) {
+function MerchantTable({ rows, scope }: { rows: { merchant: string; total: number; n: number }[]; scope: ScopeSearch }) {
   if (!rows.length) return <Empty text="No spending this month." />;
-  return <div>{rows.map((row) => <Link key={row.merchant} to="/activity" className="flex min-h-11 items-center justify-between border-b border-hairline text-[14px] text-ink"><span>{row.merchant} <small className="text-xs text-ink-3">· {row.n} rows</small></span><strong className="font-medium">{compact(row.total)}</strong></Link>)}</div>;
+  return <div>{rows.map((row) => <Link key={row.merchant} to="/activity" search={{ ...scope, merchant: row.merchant }} className="flex min-h-11 items-center justify-between border-b border-hairline text-[14px] text-ink"><span>{row.merchant} <small className="text-xs text-ink-3">· {row.n} rows</small></span><strong className="font-medium">{compact(row.total)}</strong></Link>)}</div>;
 }
