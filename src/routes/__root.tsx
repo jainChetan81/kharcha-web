@@ -104,6 +104,7 @@ function RootError({ error, reset }: ErrorComponentProps) {
         {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
       </p>
       <Button onClick={reset} className="min-h-12 px-7 text-base">Retry</Button>
+      <a href="/login" className="text-ink-2 underline">Sign in</a>
     </main>
   );
 }

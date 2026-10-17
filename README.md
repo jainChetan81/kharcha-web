@@ -54,7 +54,9 @@ Live since 2026-10-15:
 - `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Caddy handles TLS)
 - `https://vps.bullhead-mine.ts.net:8790` (tailnet)
 
-**Login is currently OFF** (`KHARCHA_AUTH=off` in `/etc/kharcha-web/env`, owner's choice on 2026-10-15). Anyone with the URL can read and edit. To enable it: add `SESSION_SECRET` and `APP_PASSWORD_HASH`, remove `KHARCHA_AUTH=off`, then run `sudo systemctl restart kharcha-web`. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`.
+Login is on. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`.
+
+Receipt reading runs OCR on the VPS and sends only redacted text to OpenRouter. It needs `sudo apt install tesseract-ocr`; without it receipts fail as unreadable and nothing is sent.
 
 First install, from the Mac (already done):
 

@@ -53,7 +53,7 @@ function Settings() {
 
   const refresh = () => void router.invalidate();
   const save = async (
-    key: "openrouter_model" | "openrouter_vision_model" | "openrouter_daily_cap",
+    key: "openrouter_model" | "openrouter_daily_cap",
     value: string,
   ) => {
     if (!online || value === (data.values[key] ?? "")) return;
@@ -184,8 +184,7 @@ function Settings() {
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
           {data.aiOn && <div className="space-y-3 pt-3.5">
-            <ModelSelect id="model" label="Text model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
-            <ModelSelect id="vision" label="Vision model, for receipts" value={data.values.openrouter_vision_model ?? ""} placeholder={data.ai.visionModel} disabled={!online} costs={data.costs.vision} onChange={(value) => void save("openrouter_vision_model", value)} />
+            <ModelSelect id="model" label="Model" value={data.values.openrouter_model ?? ""} placeholder={data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[13px] text-ink-2">Daily call cap</span>

@@ -3,10 +3,10 @@ import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { holdingCsvRows } from "../../lib/csv.ts";
 import { getDb } from "../db/client.ts";
-import { holdingTxns, holdings, prices } from "../db/schema.ts";
+import { holdingTxns, holdings, prices, sipMandates } from "../db/schema.ts";
 import { realDay, xirr } from "./xirr.ts";
 
-export type WealthSummary = { value: number; dayChange: number; navDate: string | null; spark: number[] };
+export type WealthSummary = { value: number; dayChange: number; navDate: string | null; asOf: string | null; spark: number[] };
 const id = z.object({ id: z.number().int().positive() });
 const holdingSchema = z.object({
   id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(120), kind: z.enum(["fund", "gold", "nps", "other"]), assetClass: z.string().trim().min(1).max(80), schemeCode: z.string().trim().max(30).nullable(),
@@ -30,40 +30,55 @@ function investedSeries(txns: { date: string; amount: number }[], value: number)
   const series = sorted.map((txn) => (sum += txn.amount));
   return series.length ? [...series, value] : [];
 }
+/** Latest statement date among manual values: the "as of" label when there is no NAV. */
+export const snapshotDate = (rows: { manualValue: number | null; manualValueDate: string | null }[]) =>
+  rows.filter((row) => row.manualValue != null && row.manualValueDate).map((row) => row.manualValueDate!).sort().at(-1) ?? null;
+
 async function holdingsWithValue() {
   const db = getDb(); const [all, buys, latest] = await Promise.all([db.select().from(holdings).where(eq(holdings.isClosed, false)), db.select().from(holdingTxns), latestPrices()]);
   const nav = new Map(latest.map((row) => [row.scheme_code, row]));
-  return all.map((holding) => {
-    const txns = buys.filter((txn) => txn.holdingId === holding.id); const units = txns.reduce((sum, txn) => sum + (txn.units ?? 0), 0); const invested = txns.reduce((sum, txn) => sum + txn.amount, 0); const price = holding.schemeCode ? nav.get(holding.schemeCode) : undefined;
-    const value = holding.manualValue ?? (price ? units * Number(price.nav) : invested);
-    // Day change: units times the move since the previous NAV. Manual values have no daily price.
-    const dayChange = holding.manualValue == null && price ? navDayChange(txns, price.prev_date, Number(price.nav), price.prev == null ? null : Number(price.prev)) : 0;
-    return { ...holding, txns, units, invested, price, value, gain: value - invested, dayChange };
-  });
+  return all.map((holding) => valueHolding(holding, buys.filter((txn) => txn.holdingId === holding.id), holding.schemeCode ? nav.get(holding.schemeCode) : undefined));
+}
+
+type Price = { date: string; nav: number; prev: number | null; prev_date: string | null };
+type Txn = { date: string; amount: number; units: number | null };
+type Valued = { manualValue: number | null; manualInvested: number | null };
+export function valueHolding<H extends Valued, T extends Txn>(holding: H, txns: T[], price: Price | undefined) {
+  const units = txns.reduce((sum, txn) => sum + (txn.units ?? 0), 0);
+  // No buy history: use the statement cost basis, else the value itself (gain unknown, shown as zero).
+  const invested = txns.length ? txns.reduce((sum, txn) => sum + txn.amount, 0) : (holding.manualInvested ?? holding.manualValue ?? 0);
+  const value = holding.manualValue ?? (price ? units * Number(price.nav) : invested);
+  // Day change: units times the move since the previous NAV. Manual values have no daily price.
+  const dayChange = holding.manualValue == null && price ? navDayChange(txns, price.prev_date, Number(price.nav), price.prev == null ? null : Number(price.prev)) : 0;
+  return { ...holding, txns, units, invested, price, value, gain: value - invested, dayChange };
 }
 
 /** CONTRACT (used by Today): portfolio value, day change, NAV date, ~30-point sparkline. */
 export const getWealthSummary = createServerFn({ method: "GET" }).handler(async (): Promise<WealthSummary | null> => {
   const rows = await holdingsWithValue(); if (!rows.length) return null;
   const value = rows.reduce((sum, row) => sum + row.value, 0); const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
-  return { value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), navDate: dates.sort().at(-1) ?? null, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
+  return { value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), navDate: dates.sort().at(-1) ?? null, asOf: snapshotDate(rows), spark: investedSeries(rows.flatMap((row) => row.txns), value) };
 });
 
 export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await holdingsWithValue(); const value = rows.reduce((sum, row) => sum + row.value, 0); const invested = rows.reduce((sum, row) => sum + row.invested, 0);
+  const [rows, mandates] = await Promise.all([holdingsWithValue(), getDb().select().from(sipMandates).orderBy(asc(sipMandates.day))]);
+  const names = new Map(rows.map((row) => [row.id, row.name]));
+  const sips = mandates.filter((row) => names.has(row.holdingId)).map((row) => ({ ...row, name: names.get(row.holdingId)! })); const value = rows.reduce((sum, row) => sum + row.value, 0); const invested = rows.reduce((sum, row) => sum + row.invested, 0);
   const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
-  const flows = rows.flatMap((row) => row.txns.map((txn) => ({ date: txn.date, amount: -txn.amount }))); if (value) flows.push({ date: new Date().toISOString().slice(0, 10), amount: value });
+  const flows = rows.flatMap((row) => row.txns.map((txn) => ({ date: txn.date, amount: -txn.amount }))); // Snapshot-only holdings have no dated cost, so their value stays out of XIRR.
+  const traded = rows.filter((row) => row.txns.length).reduce((sum, row) => sum + row.value, 0); if (traded) flows.push({ date: new Date().toISOString().slice(0, 10), amount: traded });
   const allocation = Object.values(rows.reduce<Record<string, { value: number; target: number; name: string }>>((map, row) => { const item = map[row.assetClass] ?? { name: row.assetClass, value: 0, target: 0 }; item.value += row.value; item.target += row.targetPct ?? 0; map[row.assetClass] = item; return map; }, {}));
   const financialYear = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const nps = rows.filter((row) => row.kind === "nps").flatMap((row) => row.txns).filter((txn) => txn.date >= `${financialYear}-04-01`).reduce((sum, txn) => sum + txn.amount, 0);
-  return { rows, value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), invested, gain: value - invested, xirr: xirr(flows), navDate: dates.sort().at(-1) ?? null, allocation, nps, financialYear, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
+  return { rows, value, dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0), invested, gain: value - invested, xirr: xirr(flows), navDate: dates.sort().at(-1) ?? null, asOf: snapshotDate(rows), sips, allocation, nps, financialYear, spark: investedSeries(rows.flatMap((row) => row.txns), value) };
 });
 
 export const getHolding = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
   const rows = await holdingsWithValue(); const holding = rows.find((row) => row.id === data.id); if (!holding) return null;
   const history = holding.schemeCode ? await getDb().select().from(prices).where(eq(prices.schemeCode, holding.schemeCode)).orderBy(asc(prices.date)) : [];
   const flows = holding.txns.map((txn) => ({ date: txn.date, amount: -txn.amount })); if (holding.value) flows.push({ date: new Date().toISOString().slice(0, 10), amount: holding.value });
-  return { ...holding, history, xirr: xirr(flows) };
+  const sips = await getDb().select().from(sipMandates).where(eq(sipMandates.holdingId, holding.id)).orderBy(asc(sipMandates.day));
+  return { ...holding, history, sips, xirr: xirr(flows) };
 });
 
 export const saveHolding = createServerFn({ method: "POST" }).validator(holdingSchema).handler(async ({ data }) => {

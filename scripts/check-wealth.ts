@@ -3,7 +3,7 @@ import { nextDue } from "../src/server/plan/jobs.ts";
 import { amfiLine, mfapiNav, navDate, runPrices } from "../src/server/wealth/jobs.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { holdings, prices } from "../src/server/db/schema.ts";
-import { isNotFutureDateInIST, navDayChange } from "../src/server/wealth/fns.ts";
+import { isNotFutureDateInIST, navDayChange, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
 import { realDay, xirr } from "../src/server/wealth/xirr.ts";
 import { holdingCsvRows } from "../src/lib/csv.ts";
 
@@ -30,6 +30,12 @@ assert.equal(navDayChange([
 ], "2026-10-14", 102, 100), 20);
 assert.equal(navDayChange([{ date: "2026-10-15", units: 10 }], "2026-10-14", 110, 100), 0, "same-day purchase has no prior exposure");
 assert.equal(navDayChange([{ date: "2026-10-13", units: 10 }, { date: "2026-10-14", units: -4 }], "2026-10-14", 110, 100), 60, "prior redemptions reduce exposure");
+// Statement snapshot (synthetic): no buys, so value and basis come from the statement.
+const snap = valueHolding({ manualValue: 110_000, manualInvested: 100_000 }, [], undefined);
+assert.deepEqual([snap.value, snap.invested, snap.gain, snap.units, snap.dayChange], [110_000, 100_000, 10_000, 0, 0]);
+assert.equal(valueHolding({ manualValue: 50_000, manualInvested: null }, [], undefined).gain, 0, "unknown basis never invents a gain");
+assert.equal(valueHolding({ manualValue: null, manualInvested: 999 }, [{ date: "2026-10-01", amount: 1000, units: 10 }], { date: "2026-10-15", nav: 120, prev: null, prev_date: null }).gain, 200, "buy history overrides snapshot basis");
+assert.equal(snapshotDate([{ manualValue: 1, manualValueDate: "2026-10-09" }, { manualValue: null, manualValueDate: "2026-12-01" }, { manualValue: 2, manualValueDate: "2026-09-01" }]), "2026-10-09");
 const savedFetch = globalThis.fetch;
 try {
   for (const failure of ["network", "json"]) {
