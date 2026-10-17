@@ -492,9 +492,18 @@ export const ruleSchema = z.object({
   category: z.string().trim().min(1).max(40),
   createdFromTxnId: z.number().int().positive().optional(),
 });
-export async function addRule(db: Db, r: z.infer<typeof ruleSchema>): Promise<number> {
+/** Saves the rule, then files the source row and every pending row it matches so Review doesn't ask again. */
+export async function addRule(db: Db, r: z.infer<typeof ruleSchema>): Promise<{ ruleId: number; ids: number[] }> {
   const [row] = await db.insert(merchantRules).values(r).returning({ id: merchantRules.id });
-  return row?.id ?? 0;
+  const pending = await db.select({ id: transactions.id, merchant: transactions.merchant, rawMerchant: transactions.rawMerchant }).from(transactions)
+    .where(and(live, eq(transactions.needsReview, true), sql`${transactions.type} != 'investment'`));
+  const ids = new Set(pending.filter((t) => ruleMatches(r, t.merchant) || (t.rawMerchant !== null && ruleMatches(r, t.rawMerchant))).map((t) => t.id));
+  if (r.createdFromTxnId) ids.add(r.createdFromTxnId);
+  if (ids.size)
+    await db.update(transactions)
+      .set({ category: r.category, merchant: r.displayMerchant, needsReview: false, editedAt: sql`(datetime('now'))` })
+      .where(inArray(transactions.id, [...ids]));
+  return { ruleId: row?.id ?? 0, ids: [...ids] };
 }
 
 export async function getMeta(db: Db, key: string): Promise<string | undefined> {

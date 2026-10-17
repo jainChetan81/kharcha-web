@@ -103,8 +103,10 @@ function Review() {
   const confirmOne = (row: Row, nextCategory: string, makeRule: boolean) =>
     run(
       async () => {
+        // Same merchant still in the queue gets the same answer; no asking twice.
+        const same = queue.filter((item) => item.merchant === row.merchant).map((item) => item.id);
         if (makeRule) {
-          await createRule({
+          const { ids } = await createRule({
             data: {
               match: row.rawMerchant ?? row.merchant,
               displayMerchant: row.merchant,
@@ -112,11 +114,14 @@ function Review() {
               createdFromTxnId: row.id,
             },
           });
+          const rest = same.filter((id) => !ids.includes(id));
+          for (const id of rest) await flagTransaction({ data: { id, category: nextCategory, needsReview: false } });
+          finish([...ids, ...rest]);
         } else {
-          await flagTransaction({ data: { id: row.id, category: nextCategory, needsReview: false } });
+          for (const id of same) await flagTransaction({ data: { id, category: nextCategory, needsReview: false } });
+          finish(same);
         }
-        finish([row.id]);
-        snack(`Saved ${money(row.amount)} · ${nextCategory}`);
+        snack(same.length > 1 ? `Filed ${same.length} · ${row.merchant} · ${nextCategory}` : `Saved ${money(row.amount)} · ${nextCategory}`);
       },
       () => confirmOne(row, nextCategory, makeRule),
     );

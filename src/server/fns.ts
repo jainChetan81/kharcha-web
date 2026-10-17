@@ -1,7 +1,7 @@
 // Core server functions: shell, transactions, categories, budgets, rules. Feature areas live in
 // src/server/{plan,wealth,insights,ai}/fns.ts. Every function here is behind the auth middleware.
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, eq, gte, isNull, lte, sql } from "drizzle-orm";
+import { and, count, eq, gte, isNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db/client";
 import {
@@ -92,13 +92,4 @@ export const saveBudget = createServerFn({ method: "POST" })
 /** "Always file X as Y" from Review/Edit: creates the rule and files the source row. */
 export const createRule = createServerFn({ method: "POST" })
   .validator(ruleSchema)
-  .handler(async ({ data }) => {
-    const db = getDb();
-    const ruleId = await addRule(db, data);
-    if (data.createdFromTxnId)
-      await db
-        .update(transactions)
-        .set({ category: data.category, merchant: data.displayMerchant, needsReview: false, editedAt: sql`(datetime('now'))` })
-        .where(eq(transactions.id, data.createdFromTxnId));
-    return ruleId;
-  });
+  .handler(({ data }) => addRule(getDb(), data));
