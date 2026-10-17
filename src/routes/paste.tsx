@@ -58,7 +58,7 @@ function Paste() {
         <textarea id="paste-sms" value={text} onChange={(event) => { setText(event.target.value); reset(); }} rows={5} maxLength={2000} className="field min-h-32 resize-y font-mono text-[13px] leading-relaxed text-ink" />
       </label>
       <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void paste()}>Paste from clipboard</Button><Button variant="text" onClick={() => { setText(""); reset(); }}>Clear</Button><Button onClick={() => void parse()} disabled={!online || !text.trim()}>Parse</Button></div>
-      {failed && <Card className="flex items-center justify-between gap-3 p-4 text-[15px]">Couldn’t parse this SMS.<Button variant="text" onClick={() => void navigate({ to: "/add" })}>Add manually</Button></Card>}
+      {failed && <Card className="p-4 text-[15px]">Couldn’t parse this SMS. Add it manually below.</Card>}
       {parsed && <Card className="mt-2 flex flex-col gap-3.5 p-5">
         <span className="label-caps text-ink-3">Parsed on server · {parsed.bankName}</span>
         <div className="flex justify-between gap-3 border-b-[3px] border-double border-ink pb-3"><span className="min-w-0"><b className="block truncate font-serif text-2xl font-medium">{parsed.merchant}</b><small className="text-[13px] text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small></span><b className="shrink-0 font-serif text-[28px] font-medium">{parsed.status === "foreign" ? foreign(parsed.currency, parsed.originalAmount, parsed.amount) : money(parsed.amount)}</b></div>

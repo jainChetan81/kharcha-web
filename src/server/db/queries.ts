@@ -393,6 +393,9 @@ function dayCount(q: ListQuery): number | null {
   if (q.from || q.to) return null;
   if (q.month) {
     const [first, next] = monthBounds(q.month);
+    // Current month: pace so far, not spend spread over days still to come.
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+    if (today.slice(0, 7) === q.month) return Number(today.slice(8, 10));
     return (Date.parse(next) - Date.parse(first)) / dayMs;
   }
   return null;

@@ -179,11 +179,14 @@ export function Skeleton({ rows = 4 }: { rows?: number }) {
   );
 }
 
-export function ErrorState({ text = "Couldn't load this.", retry }: { text?: string; retry: () => void }) {
+export function ErrorState({ text = "Couldn't load this.", retry, back }: { text?: string; retry: () => void; back?: LinkProps["to"] }) {
   return (
-    <div role="alert" className="flex flex-col items-start gap-2 py-8 text-[15px] text-ink-2">
+    <div role="alert" className="flex flex-col items-start gap-2 px-5 py-8 text-[15px] text-ink-2 desk:px-0">
       <p className="m-0">{text}</p>
-      <Button variant="outline" onClick={retry}>Retry</Button>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={retry}>Retry</Button>
+        {back && <Link to={back} className="inline-flex min-h-11 items-center px-3 font-medium text-brand">Back to Today</Link>}
+      </div>
     </div>
   );
 }

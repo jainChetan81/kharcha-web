@@ -48,7 +48,7 @@ export function ReviewDeck({
 }) {
   const [category, setCategory] = useState(row.suggestion);
   const [rule, setRule] = useState(false);
-  const [smsOpen, setSmsOpen] = useState(Boolean(row.rawText));
+  const [smsOpen, setSmsOpen] = useState(false);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [duplicateOf, setDuplicateOf] = useState<number | null>(duplicates[0]?.id ?? null);
 
