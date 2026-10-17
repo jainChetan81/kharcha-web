@@ -25,8 +25,8 @@ const dropNulls = (value: unknown): unknown =>
   Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
 /** Merchant labels can carry UPI IDs or account numbers; neither may reach OpenRouter. */
 export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}/.test(label) ? "[private payee]" : label);
-/** Free text (questions, past answers) keeps its words but loses handles and long digit runs. */
-export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m));
+/** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
+export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![₹\d,.]|Rs\.? ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
 const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 
@@ -60,6 +60,7 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<Result
   const group = spec.groupBy ?? null;
   const label = group === "day" ? sql<string>`substr(${transactions.date}, 1, 10)` : group === "month" ? sql<string>`substr(${transactions.date}, 1, 7)` : group === "category" ? sql<string>`coalesce(${transactions.category}, 'Other')` : group === "merchant" ? transactions.merchant : sql<string>`'Total'`;
   // A category scope counts only the selected split parts, matching Activity and Insights.
+  // ponytail: groupBy "category" still labels split rows by their root category; join transaction_splits if split breakdowns get used.
   const amount = scope.categories?.length || scope.category ? filteredAmount(scope).counted : sql`${transactions.amount}`;
   const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${amount})` : sql<number>`sum(${amount})`.mapWith(Number);
   const rows = await db.select({ label, value: metric, ids: sql<string>`group_concat(${transactions.id})` }).from(transactions).where(and(...where)).groupBy(label).orderBy(desc(metric));
