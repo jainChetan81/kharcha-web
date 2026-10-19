@@ -5,7 +5,7 @@ import { CategoryPicker } from "../components/category-picker";
 import { ReviewDeck } from "../components/review-deck";
 import { Sheet, saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, CategoryDot, Empty, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, CategoryDot, ErrorState, PageHeader, Skeleton } from "../components/ui";
 import { usePageKeys } from "../keybindings";
 import { card, money, shortDate } from "../lib/format";
 import { getReview } from "../server/daily/fns";
@@ -198,7 +198,16 @@ function Review() {
       <DeskPage>
         <PageHeader title="Review" />
         <div className="px-5 desk:px-0">
-          <Empty text="Nothing needs review." action={<Link to="/">Back to home</Link>} />
+          <div className="flex flex-col items-center gap-3 pt-8 pb-4 text-center">
+            <span className="flex size-10 items-center justify-center rounded-full bg-earn text-paper">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+            </span>
+            <p className="m-0 font-serif text-[26px] font-medium">Nothing to review</p>
+            <div className="flex gap-2">
+              <Link to="/activity" className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-[15px] font-medium text-ink">Open Activity</Link>
+              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-[15px] font-medium text-paper">Back to Today</Link>
+            </div>
+          </div>
         </div>
       </DeskPage>
     );

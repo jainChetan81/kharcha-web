@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Activity · all filters</title>
+<title>Filters</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -14,78 +14,156 @@ body{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@keyframes ai-shift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 
 </style>
 </helmet>
-<div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 390px; height: 1160px">
+<div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 390px; height: 844px">
 
-  <div aria-hidden="true" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
-    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 26px">Activity</span>
-    <span style="height: 44px; border-radius: 10px; border: 1px solid var(--field)"></span>
-    <span style="display: flex; gap: 8px"><span style="width: 150px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span><span style="width: 90px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span><span style="width: 100px; height: 44px; border-radius: 999px; border: 1px solid var(--field)"></span></span>
-  </div>
-  <div style="position: absolute; inset: 0; background: var(--scrim)"></div>
-  <section role="dialog" aria-modal="true" aria-labelledby="filt-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 60px; background: var(--card); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 24px var(--shadow)">
-    <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--rule); align-self: center; margin-top: 8px"></div>
-    <header style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 20px">
-      <h2 id="filt-title" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Filter</h2>
-      <a href="History.dc.html" aria-label="Close" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+  <div style="position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--card)">
+    <header style="display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--rule)">
+      <a href="History.dc.html" aria-label="Close filters" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+      <h1 id="filt-t" style="margin: 0 auto 0 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Filters</h1>
+      <button type="button" onClick="{{clearAll}}" aria-disabled="{{noneSet}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: {{clearColor}}; font-size: 15px; font-weight: 500; cursor: pointer">Clear all</button>
     </header>
-    <div style="flex: 1; min-height: 0; overflow: hidden; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 20px">
-      <sc-for list="{{sections}}" as="g" hint-placeholder-count="7">
-        <section aria-label="{{g.name}}">
-          <h3 style="margin: 0 0 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 500; display: flex; justify-content: space-between"><span>{{g.name}}</span><a href="{{g.href}}" style="min-height: 44px; margin: -14px 0; display: flex; align-items: center; color: var(--brand); text-transform: none; letter-spacing: 0; font-size: 13px; text-decoration: none">{{g.more}}</a></h3>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px">
-            <sc-for list="{{g.opts}}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{o.fn}}" aria-pressed="{{o.on}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; border: 1px solid {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font-weight: {{o.weight}}"><sc-if value="{{o.dot}}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{o.dot}}"></span></sc-if>{{o.label}}</button></sc-for>
+
+    <sc-if value="{{anySet}}" hint-placeholder-val="{{ true }}">
+      <div aria-label="Selected filters" style="display: flex; gap: 6px; padding: 4px 16px; overflow-x: auto; border-bottom: 1px solid var(--hair); -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent)">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+          <button type="button" onClick="{{c.remove}}" aria-label="{{c.aria}}" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer"><span style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 500; white-space: nowrap">{{c.label}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span></button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 124px minmax(0, 1fr)">
+      <nav aria-label="Filter types" role="tablist" aria-orientation="vertical" style="background: var(--sunken); display: flex; flex-direction: column; overflow: hidden">
+        <sc-for list="{{facets}}" as="t" hint-placeholder-count="7">
+          <button type="button" role="tab" aria-selected="{{t.on}}" aria-controls="filt-pane" onClick="{{t.pick}}" style="position: relative; min-height: 56px; padding: 0 10px 0 16px; border: 0; border-bottom: 1px solid var(--hair); background: {{t.bg}}; color: var(--ink); display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 14px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
+            <span aria-hidden="true" style="position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: {{t.bar}}"></span>
+            <span>{{t.label}}</span>
+            <sc-if value="{{t.count}}" hint-placeholder-val="{{ false }}"><span aria-label="{{t.countAria}}" style="min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--brand); color: var(--on-brand); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{t.count}}</span></sc-if>
+          </button>
+        </sc-for>
+      </nav>
+
+      <section id="filt-pane" role="tabpanel" aria-label="{{f.title}}" style="padding: 12px 16px 16px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); font-weight: 500">{{f.title}}</h2>
+        <sc-if value="{{f.search}}" hint-placeholder-val="{{ false }}">
+          <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--field); background: var(--input)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true" style="color: var(--ink3)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search categories</span>
+            <input value="{{q}}" onChange="{{searchFn}}" placeholder="Search" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)">
+          </label>
+        </sc-if>
+        <sc-for list="{{f.groups}}" as="g" hint-placeholder-count="1">
+          <sc-if value="{{g.name}}" hint-placeholder-val="{{ false }}"><h3 style="margin: 8px 0 0; font-size: 12px; color: var(--ink2); font-weight: 600">{{g.name}}</h3></sc-if>
+          <div role="{{g.role}}" aria-label="{{g.aria}}" style="display: flex; flex-direction: column">
+            <sc-for list="{{g.options}}" as="o" hint-placeholder-count="5">
+              <button type="button" role="{{o.role}}" aria-checked="{{o.on}}" onClick="{{o.fn}}" style="width: 100%; min-height: 48px; padding: 0; border: 0; border-bottom: 1px solid var(--hair); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 12px; font-size: 15px; text-align: left; cursor: pointer">
+                <span style="flex: none; width: 20px; height: 20px; box-sizing: border-box; border-radius: {{o.radius}}; border: 2px solid {{o.boxBorder}}; background: {{o.boxBg}}; color: var(--on-brand); display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--on-brand); display: {{o.dotShow}}"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: {{o.tickShow}}"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+                <sc-if value="{{o.color}}" hint-placeholder-val="{{ false }}"><span style="flex: none; width: 10px; height: 10px; border-radius: 3px; background: {{o.color}}"></span></sc-if>
+                <span style="flex: 1; min-width: 0; font-weight: {{o.weight}}">{{o.label}}</span>
+                <span style="font-size: 13px; color: var(--ink3)">{{o.n}}</span>
+              </button>
+            </sc-for>
           </div>
-        </section>
-      </sc-for>
+        </sc-for>
+        <sc-if value="{{f.isDate}}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{customOn}}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding-top: 4px">
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">From<input type="date" value="2026-10-12" max="2026-10-15" style="min-height: 44px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 14px; color-scheme: {{scheme}}"></label>
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">To<input type="date" value="2026-10-14" max="2026-10-15" style="min-height: 44px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--field); background: var(--input); color: var(--ink); font-size: 14px; color-scheme: {{scheme}}"></label>
+            </div>
+            <a href="ActDate.dc.html" style="min-height: 44px; display: flex; align-items: center; gap: 6px; color: var(--brand); font-size: 14px; font-weight: 500; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Pick on a calendar</a>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{f.isAmount}}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding-top: 4px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Minimum<span style="display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid {{amtBorder}}; background: var(--input)"><span style="color: var(--ink3)">₹</span><input inputmode="numeric" value="{{amtMin}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)"></span></label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2)">Maximum<span style="display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid {{amtBorder}}; background: var(--input)"><span style="color: var(--ink3)">₹</span><input inputmode="numeric" value="{{amtMax}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)"></span></label>
+          </div>
+          <sc-if value="{{amtBad}}" hint-placeholder-val="{{ false }}"><span role="alert" style="font-size: 13px; color: var(--over); font-weight: 500">Minimum is more than maximum.</span></sc-if>
+        </sc-if>
+      </section>
     </div>
-    <footer style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px; padding: 12px 20px 34px; border-top: 1px solid var(--hair); background: var(--card)">
-      <button type="button" onClick="{{clear}}" style="min-height: 52px; border-radius: 12px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 15px; font-weight: 500; cursor: pointer">{{clearLabel}}</button>
-      <a href="ActFiltered.dc.html" aria-disabled="{{showDis}}" style="opacity: {{showOp}}; min-height: 52px; border-radius: 12px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">{{showLabel}}</a>
+
+    <footer style="padding: 12px 16px 34px; border-top: 1px solid var(--rule); background: var(--card)">
+      <a href="{{showHref}}" aria-disabled="{{showDis}}" style="min-height: 52px; border-radius: 12px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none; opacity: {{showOp}}">{{showLabel}}</a>
     </footer>
-  </section>
+  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 390, "height": 1160}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "tabdate": {"editor": "boolean", "default": false}, "tabamount": {"editor": "boolean", "default": false}, "bad": {"editor": "boolean", "default": false}, "$preview": {"width": 390, "height": 844}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { date: 'This month', cat: ['Food'], card: ['••2047'], type: [], trip: [], amt: '₹100–2K', sort: 'Newest first' };
+    this.state = { tab: props.tabdate ? 'date' : props.tabamount ? 'amount' : 'category', q: '',
+      sel: props.tabdate ? { sort: ['Newest first'], date: ['Custom range'], category: [] }
+        : { sort: ['Newest first'], date: ['This month'], category: ['Food'], card: ['••2047'], amount: ['Custom'] } };
   }
   renderVals() {
-    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', 'ai-1': '#2F4A7A', 'ai-2': '#5B3FC4', 'ai-3': '#8A3FA8', 'ai-text': '#5B3FC4', 'ai-glow': 'rgba(91,63,196,0.38)', 'ai-soft': 'rgba(91,63,196,0.08)', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
       'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
-    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', 'ai-1': '#8FA6D8', 'ai-2': '#A58CF2', 'ai-3': '#D08AE6', 'ai-text': '#B9A6F7', 'ai-glow': 'rgba(150,120,255,0.42)', 'ai-soft': 'rgba(165,140,242,0.12)', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
       'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
     const T = this.props.dark ? D : L;
     const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
     const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
 
-    const pick = (label, on, fn, extra) => Object.assign({ label, on: on ? 'true' : 'false', fn, border: on ? 'var(--brand)' : 'var(--field)', bg: on ? 'var(--brand)' : 'var(--input)', fg: on ? 'var(--on-brand)' : 'var(--ink)', weight: on ? '500' : '400' }, extra || {});
-
-    const s = this.state;
-    const tog = (key, v) => () => { const cur = s[key]; this.setState({ [key]: cur.indexOf(v) >= 0 ? cur.filter((x) => x !== v) : cur.concat([v]) }); };
-    const one = (key, v) => () => this.setState({ [key]: s[key] === v ? '' : v });
-    const multi = (key, list, dots) => list.map((v) => pick(v, s[key].indexOf(v) >= 0, tog(key, v), dots ? { dot: col(v) } : {}));
-    const single = (key, list) => list.map((v) => pick(v, s[key] === v, one(key, v)));
-    const n = ['cat', 'card', 'type', 'trip'].filter((k) => s[k].length).length + (s.amt ? 1 : 0) + (s.date !== 'This month' ? 1 : 0);
+    const s = this.state, p = this.props;
+    const sel = s.sel;
+    const on = (f, v) => (sel[f] || []).indexOf(v) >= 0;
+    const toggle = (f, v, single) => () => {
+      const cur = sel[f] || [];
+      const next = single ? (cur[0] === v ? [] : [v]) : (cur.indexOf(v) >= 0 ? cur.filter((x) => x !== v) : cur.concat([v]));
+      this.setState({ sel: Object.assign({}, sel, { [f]: next }) });
+    };
+    const opt = (f, label, n, single, extra) => {
+      const v = on(f, label);
+      return Object.assign({ label, n: n == null ? '' : String(n), on: v ? 'true' : 'false', role: single ? 'radio' : 'checkbox', fn: toggle(f, label, single),
+        radius: single ? '999px' : '5px', boxBorder: v ? 'var(--brand)' : 'var(--field)', boxBg: v ? 'var(--brand)' : 'transparent',
+        dotShow: single && v ? 'block' : 'none', tickShow: !single && v ? 'block' : 'none', weight: v ? '600' : '400', color: '' }, extra || {});
+    };
+    const q = s.q.trim().toLowerCase();
+    const catOpt = (c, n) => opt('category', c, n, false, { color: col(c) });
+    const match = (c) => !q || c.toLowerCase().indexOf(q) >= 0;
+    const SPEND = [['Food', 31], ['Shopping', 12], ['Transport', 9], ['Utilities', 6], ['Entertainment', 4], ['Home', 3], ['Health', 2], ['Sports', 0], ['Work', 5], ['Other', 29]];
+    const INC = [['Salary', 1], ['Refunds', 2], ['Interest', 1], ['Other income', 0]];
+    const AMT = ['Under ₹500', '₹500–5K', '₹5K–25K', 'Over ₹25K', 'Custom'];
+    const F = {
+      sort: { title: 'Sort', groups: [{ name: '', role: 'radiogroup', aria: 'Sort', options: ['Newest first', 'Oldest first', 'Highest amount', 'Lowest amount'].map((x) => opt('sort', x, null, true)) }] },
+      date: { title: 'Date', isDate: true, groups: [{ name: '', role: 'radiogroup', aria: 'Date', options: ['Today', 'This week', 'Last 7 days', 'This month', 'Last month', 'This year', 'Custom range'].map((x) => opt('date', x, null, true)) }] },
+      category: { title: 'Category', search: true, groups: [{ name: 'Spending', role: 'group', aria: 'Spending', options: SPEND.filter(([c]) => match(c)).map(([c, n]) => catOpt(c, n)) }, { name: 'Income', role: 'group', aria: 'Income', options: INC.filter(([c]) => match(c)).map(([c, n]) => catOpt(c, n)) }].filter((g) => g.options.length) },
+      card: { title: 'Card', groups: [{ name: '', role: 'group', aria: 'Card', options: [['••2047', 48], ['••3266', 31], ['••0532', 26]].map(([c, n]) => opt('card', c, n)) }] },
+      type: { title: 'Type', groups: [{ name: '', role: 'group', aria: 'Type', options: [['Expense', 96], ['Income', 4], ['Investment', 2], ['Transfer', 2], ['Card bill', 1]].map(([c, n]) => opt('type', c, n)) }] },
+      trip: { title: 'Trip', groups: [{ name: '', role: 'radiogroup', aria: 'Trip', options: [['Odisha', 0], ['Coorg', 0], ['Goa', 0], ['Not on a trip', 105]].map(([c, n]) => opt('trip', c, n, true)) }] },
+      amount: { title: 'Amount', isAmount: true, groups: [{ name: '', role: 'radiogroup', aria: 'Amount', options: AMT.map((x) => opt('amount', x, null, true)) }] },
+      status: { title: 'Status', groups: [{ name: '', role: 'group', aria: 'Status', options: [['Needs review', 115], ['Has a receipt', 3], ['Split', 2], ['Reimbursable', 6]].map(([c, n]) => opt('status', c, n)) }] }
+    };
+    const ORDER = [['sort', 'Sort'], ['date', 'Date'], ['category', 'Category'], ['card', 'Card'], ['type', 'Type'], ['trip', 'Trip'], ['amount', 'Amount'], ['status', 'Status']];
+    const isDefault = (k) => k === 'sort' ? (sel.sort || [])[0] === 'Newest first' : k === 'date' ? (sel.date || [])[0] === 'This month' : false;
+    const setKeys = ORDER.map(([k]) => k).filter((k) => (sel[k] || []).length && !isDefault(k));
+    const chipLabel = (k, v) => k === 'amount' && v === 'Custom' ? (p.bad ? '₹5,000–2,000' : '₹100–2,000') : k === 'date' && v === 'Custom range' ? '12–14 Oct' : v;
+    const chips = [];
+    setKeys.forEach((k) => (sel[k] || []).forEach((v) => chips.push({ label: chipLabel(k, v), aria: 'Remove ' + chipLabel(k, v), remove: toggle(k, v, k === 'sort' || k === 'date' || k === 'trip' || k === 'amount') })));
+    const has = (k) => setKeys.indexOf(k) >= 0;
+    const n = !setKeys.length ? 105 : has('category') && has('card') && has('amount') ? 5 : has('date') && setKeys.length === 1 ? 8 : Math.max(1, 105 - setKeys.length * 30);
+    const bad = !!p.bad && on('amount', 'Custom');
+    const tab = s.tab;
     return {
       vars,
-      sections: [
-        { name: 'Date', more: 'Custom', href: 'ActDate.dc.html', opts: single('date', ['Today', 'This week', 'Last 7 days', 'This month', 'Last month', 'This year']) },
-        { name: 'Category', more: 'All 14', href: 'ActCategory.dc.html', opts: multi('cat', ['Food', 'Shopping', 'Transport', 'Utilities', 'Other'], true) },
-        { name: 'Card', more: '', href: '#', opts: multi('card', ['••2047', '••3266', '••0532']) },
-        { name: 'Type', more: '', href: '#', opts: multi('type', ['Expense', 'Income', 'Investment', 'Transfer']) },
-        { name: 'Trip', more: '', href: '#', opts: multi('trip', ['Odisha', 'Coorg', 'Goa', 'No trip']) },
-        { name: 'Amount', more: 'Custom', href: 'ActAmount.dc.html', opts: single('amt', ['Under ₹500', '₹500–5K', '₹5K–25K', 'Over ₹25K', '₹100–2K']) },
-        { name: 'Sort', more: '', href: '#', opts: single('sort', ['Newest first', 'Oldest first', 'Highest amount', 'Lowest amount']) }
-      ],
-      clear: () => this.setState({ date: 'This month', cat: [], card: [], type: [], trip: [], amt: '', sort: 'Newest first' }),
-      clearLabel: 'Clear all',
-      showLabel: n ? 'Show 5 transactions' : 'Show 105 transactions', showOp: '1', showDis: 'false'
+      facets: ORDER.map(([k, label]) => { const c = setKeys.indexOf(k) >= 0 ? (sel[k] || []).length : 0; return { label, on: tab === k ? 'true' : 'false', pick: () => this.setState({ tab: k }), bg: tab === k ? 'var(--card)' : 'transparent', weight: tab === k ? '600' : '400', bar: tab === k ? 'var(--brand)' : 'transparent', count: c ? String(c) : '', countAria: c + ' selected' }; }),
+      f: F[tab],
+      q: s.q, searchFn: (e) => this.setState({ q: e && e.target ? e.target.value : '' }),
+      customOn: on('date', 'Custom range'), scheme: p.dark ? 'dark' : 'light',
+      amtMin: bad ? '5,000' : '100', amtMax: '2,000', amtBad: bad, amtBorder: bad ? 'var(--over)' : 'var(--field)',
+      chips, anySet: chips.length > 0, noneSet: chips.length ? 'false' : 'true',
+      clearColor: chips.length ? 'var(--brand)' : 'var(--ink3)',
+      clearAll: () => this.setState({ sel: { sort: ['Newest first'], date: ['This month'] } }),
+      showLabel: bad ? 'Fix the amount range' : 'Show ' + n + ' transactions',
+      showHref: bad ? '#' : chips.length ? 'ActFiltered.dc.html' : 'History.dc.html',
+      showOp: bad ? '0.45' : '1', showDis: bad ? 'true' : 'false'
     };
   }
 }

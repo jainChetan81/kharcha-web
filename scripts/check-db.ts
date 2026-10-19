@@ -9,6 +9,11 @@ import { merchantRules } from "../src/server/db/schema.ts";
 
 const db = openDb(":memory:");
 assert.deepEqual(await db.all(sql`SELECT ${250} AS amount, ${"Test store"} AS merchant`), [{ amount: 250, merchant: "Test store" }], "raw SQL returns named columns");
+{
+  const xdb = openDb(":memory:");
+  const id = await addTxn(xdb, { type: "expense", amount: 99, merchant: "Not a spend add", category: "Other", date: "2026-10-16 09:00", excluded: true });
+  assert.equal((await xdb.all<{ excluded: number }>(sql`SELECT excluded FROM transactions WHERE id = ${id}`))[0]?.excluded, 1, "Add with Not a spend stores excluded in one insert");
+}
 // Deleting a category merges its split into an existing Other row without a PK collision.
 {
   const sdb = openDb(":memory:");

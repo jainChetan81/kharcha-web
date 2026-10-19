@@ -78,7 +78,7 @@ function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/45" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" />
         <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-sheet bg-card p-6 text-ink">
           <Dialog.Title className="m-0 font-serif text-[22px] font-medium">Shortcuts</Dialog.Title>
           <Dialog.Description className="sr-only">Keyboard shortcuts</Dialog.Description>

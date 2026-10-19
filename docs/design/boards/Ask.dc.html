@@ -20,7 +20,7 @@ button{font:inherit;cursor:pointer}
   <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 8px; border-bottom: 1px solid #D9D5C8">
     <div style="display: flex; align-items: center">
       <a href="Main.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #1C2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
-      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px">Ask your ledger</h1>
+      <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px; display: flex; align-items: center; gap: 10px"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="aig1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: #2F4A7A"></stop><stop offset="0.55" style="stop-color: #5B3FC4"></stop><stop offset="1" style="stop-color: #8A3FA8"></stop></linearGradient></defs><g fill="url(#aig1)"><path d="M12 2.5c.7 5 2.5 6.8 7.5 7.5-5 .7-6.8 2.5-7.5 7.5-.7-5-2.5-6.8-7.5-7.5 5-.7 6.8-2.5 7.5-7.5z"/><path d="M19 15.2c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z"/></g></svg>Ask your ledger</h1>
     </div>
     <button type="button" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #2F4A7A; font-size: 14px; font-weight: 500">History</button>
   </header>
@@ -28,7 +28,7 @@ button{font:inherit;cursor:pointer}
   <div style="flex: 1; padding: 16px 20px 0; display: flex; flex-direction: column; gap: 16px">
     <div style="align-self: flex-end; max-width: 280px; padding: 10px 14px; border-radius: 14px 14px 4px 14px; background: #1C2230; color: #F6F4EE; font-size: 15px; line-height: 1.45">How much have I spent on food delivery since July?</div>
 
-    <article style="padding: 16px; border-radius: 14px; background: #FBFAF6; border: 1px solid #CFCABB; display: flex; flex-direction: column; gap: 12px">
+    <article style="padding: 16px; border-radius: 14px; background: linear-gradient(#FBFAF6, #FBFAF6) padding-box, linear-gradient(120deg, #34508A 0%, #5B3FC4 50%, #8A3FA8 100%) border-box; border: 1px solid transparent; border-top-width: 4px; display: flex; flex-direction: column; gap: 12px">
       <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272">Fig. 1 · Food delivery by month</span>
       <span style="font-family: 'Newsreader', Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1">₹26,203</span>
       <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #3E4352">Since 1 July. September was the heaviest month at ₹8,960, up 21% on August. October is on track to beat it.</p>
@@ -53,7 +53,7 @@ button{font:inherit;cursor:pointer}
 
     <sc-if value="{{asked}}" hint-placeholder-val="{{ false }}">
       <div style="align-self: flex-end; max-width: 280px; padding: 10px 14px; border-radius: 14px 14px 4px 14px; background: #1C2230; color: #F6F4EE; font-size: 15px; line-height: 1.45">Which days of the week?</div>
-      <article style="padding: 16px; border-radius: 14px; background: #FBFAF6; border: 1px solid #CFCABB; display: flex; flex-direction: column; gap: 10px">
+      <article style="padding: 16px; border-radius: 14px; background: linear-gradient(#FBFAF6, #FBFAF6) padding-box, linear-gradient(120deg, #34508A 0%, #5B3FC4 50%, #8A3FA8 100%) border-box; border: 1px solid transparent; border-top-width: 4px; display: flex; flex-direction: column; gap: 10px">
         <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E6272">Fig. 2 · Same orders, by weekday</span>
         <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #3E4352">Weekends carry 34% of it. Saturday alone is <strong style="font-weight: 600">₹5,460</strong>.</p>
         <sc-for list="{{week}}" as="w" hint-placeholder-count="7">
@@ -77,7 +77,7 @@ button{font:inherit;cursor:pointer}
     <label style="display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 6px 0 14px; border-radius: 12px; border: 1px solid #8A8576; background: #FFFFFF">
       <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Question</span>
       <input placeholder="Ask about your money" style="flex: 1; border: 0; outline: none; background: transparent; font: inherit; font-size: 16px; color: #1C2230">
-      <button type="button" aria-label="Send" style="width: 44px; height: 44px; border-radius: 10px; border: 0; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      <button type="button" aria-label="Send" style="width: 44px; height: 44px; border-radius: 10px; border: 0; background: linear-gradient(120deg, #34508A 0%, #5B3FC4 50%, #8A3FA8 100%); color: #FFFFFF; box-shadow: 0 4px 14px rgba(91,63,196,0.35); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
     </label>
     <span style="font-size: 12px; line-height: 1.45; color: #5E6272">Totals come from your database. The AI gets your question and those totals, never SMS text or card numbers.</span>
   </div>

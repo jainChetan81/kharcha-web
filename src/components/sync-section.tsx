@@ -8,10 +8,10 @@ import { checkedLabel, useOnline, useSync } from "./sync-pill";
 
 type Status = Awaited<ReturnType<typeof getSyncStatus>>;
 
-export function SyncSection() {
+export function SyncSection({ initial }: { initial?: Status }) {
   const { state } = useSync();
   const online = useOnline();
-  const [status, setStatus] = useState<Status | null>(null);
+  const [status, setStatus] = useState<Status | null>(initial ?? null);
   const [asked, setAsked] = useState(false);
 
   useEffect(() => {

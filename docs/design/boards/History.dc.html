@@ -14,42 +14,48 @@ body{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@keyframes ai-shift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 
 </style>
 </helmet>
 <div style="{{vars}} position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; width: 390px; height: 1400px">
 
-  <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 12px">
-    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Activity</h1>
+  <sc-if value="{{notSearching}}" hint-placeholder-val="{{ true }}">
+  <header style="display: flex; align-items: center; gap: 4px; padding: 12px 20px 4px">
+    <h1 style="margin: 0 auto 0 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Activity</h1>
+    <button type="button" onClick="{{openSearch}}" aria-label="Search transactions" style="width: 44px; height: 44px; border: 0; background: transparent; color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     <span style="flex: none; display: flex; align-items: center; border-radius: 999px; border: 1px solid var(--field); background: var(--card); color: var(--ink)">
       <sc-if value="{{wholeMonth}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{prevMonth}}" aria-label="Previous month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button></sc-if>
-      <a href="ActDate.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: inherit; text-decoration: none; white-space: nowrap; padding: {{monthPad}}">{{month}}</a>
+      <a href="ActFilterDate.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: inherit; text-decoration: none; white-space: nowrap; padding: {{monthPad}}">{{month}}</a>
       <sc-if value="{{wholeMonth}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{nextMonth}}" aria-label="Next month" style="width: 40px; min-height: 44px; border: 0; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></sc-if>
     </span>
   </header>
-  <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px">
-    <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--field); background: var(--input)">
+  </sc-if>
+  <sc-if value="{{searching}}" hint-placeholder-val="{{ false }}">
+  <div style="display: flex; align-items: center; gap: 8px; padding: 12px 12px 4px 20px">
+    <label style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--brand); background: var(--input)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true" style="color: var(--ink3)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search</span>
       <input placeholder="Merchant, category, SMS text" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--ink)">
     </label>
-    <div role="toolbar" aria-label="Filters" style="margin: 0 -20px; padding: 0 20px; display: flex; gap: 8px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent)">
-      <button type="button" onClick="{{toggleReview}}" aria-pressed="{{reviewOnly}}" style="flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; border: 1px solid {{rev.border}}; background: {{rev.bg}}; color: {{rev.fg}}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{rev.dot}}"></span>Needs review<span style="font-weight: 600">115</span></button>
-      <a href="ActFilter.dc.html" style="flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid {{filt.border}}; background: {{filt.bg}}; color: {{filt.fg}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>{{filt.label}}</a>
-      <a href="ActSort.dc.html" style="flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; border: 1px solid var(--field); background: var(--card); color: var(--ink); text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>Newest</a>
-      <sc-for list="{{quick}}" as="q" hint-placeholder-count="5">
-        <a href="{{q.href}}" style="flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; cursor: pointer; text-decoration: none; border: 1px solid {{q.border}}; background: {{q.bg}}; color: {{q.fg}}; font-weight: {{q.weight}}">{{q.label}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
+    <button type="button" onClick="{{closeSearch}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--brand); font-size: 15px; font-weight: 500; cursor: pointer">Cancel</button>
+  </div>
+  </sc-if>
+  <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 10px">
+    <div role="toolbar" aria-label="Filters and sort" style="margin: 0 -20px; padding: 0 20px; display: flex; gap: 6px; align-items: center; overflow-x: auto; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent)">
+      <a href="ActFilter.dc.html" aria-label="{{filterAria}}" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit"><span style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; white-space: nowrap; box-sizing: border-box; border: 1px solid {{filt.border}}; background: {{filt.bg}}; color: {{filt.fg}}; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Filter<sc-if value="{{filtered}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: var(--on-brand); color: var(--brand); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">{{count}}</span></sc-if></span></a>
+      <a href="ActSort.dc.html" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit; color: var(--ink)"><span style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; white-space: nowrap; box-sizing: border-box; border: 1px solid var(--field); background: var(--card)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>Sort</span></a>
+      <span aria-hidden="true" style="flex: none; width: 1px; height: 20px; background: var(--rule)"></span>
+      <sc-for list="{{appliedPills}}" as="a" hint-placeholder-count="2">
+        <button type="button" onClick="{{a.remove}}" aria-label="{{a.aria}}" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit"><span style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; white-space: nowrap; box-sizing: border-box; padding-right: 8px; border: 1px solid var(--brand); background: var(--brand); color: var(--on-brand); font-weight: 500">{{a.label}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span></button>
       </sc-for>
+      <sc-for list="{{quickPills}}" as="q" hint-placeholder-count="4">
+        <sc-if value="{{q.isLink}}" hint-placeholder-val="{{ true }}"><a href="{{q.href}}" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit; color: var(--ink)"><span style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; white-space: nowrap; box-sizing: border-box; border: 1px solid var(--field); background: var(--card)">{{q.label}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></a></sc-if>
+        <sc-if value="{{q.isToggle}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{q.add}}" aria-pressed="false" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit; color: var(--ink)"><span style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; white-space: nowrap; box-sizing: border-box; border: 1px solid var(--field); background: var(--card)"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--brand)"></span>{{q.label}}<strong style="font-weight: 600">115</strong></span></button></sc-if>
+      </sc-for>
+      <sc-if value="{{filtered}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{clearAll}}" style="flex: none; min-height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; cursor: pointer; text-decoration: none; font: inherit; padding: 0 8px; color: var(--brand); font-size: 14px; font-weight: 500">Clear all</button></sc-if>
     </div>
-    <sc-if value="{{filtered}}" hint-placeholder-val="{{ false }}">
-      <div aria-label="Applied filters" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
-        <sc-for list="{{applied}}" as="a" hint-placeholder-count="3">
-          <button type="button" onClick="{{a.remove}}" aria-label="{{a.aria}}" style="min-height: 44px; padding: 0 6px 0 12px; border-radius: 999px; border: 0; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; cursor: pointer">{{a.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
-        </sc-for>
-        <button type="button" onClick="{{clearAll}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--brand); font-size: 14px; font-weight: 500; cursor: pointer">Clear</button>
-      </div>
-    </sc-if>
     <div style="border-radius: 12px; background: var(--sunken)">
       <button type="button" onClick="{{toggleOpen}}" aria-expanded="{{open}}" aria-controls="sum-detail" style="width: 100%; min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--ink2); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; text-align: left; cursor: pointer">
         <span style="flex: 1; min-width: 0; display: flex; gap: 14px; padding: 8px 0">
@@ -133,7 +139,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
     <a href="History.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; text-decoration: none; font-weight: 600; color: var(--brand); box-shadow: inset 0 2px 0 var(--brand)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Activity</a>
     <a href="Budgets.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; text-decoration: none; color: var(--ink3)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Plan</a>
     <a href="Wealth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; text-decoration: none; color: var(--ink3)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Wealth</a>
-    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; text-decoration: none; color: var(--ink3)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Insights</a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; text-decoration: none; color: var(--ink3)"><span style="position: relative; width: 22px; height: 22px; display: block"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M11 20V6M17 20v-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none"/></svg><span style="position: absolute; right: -6px; top: -4px"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="aig1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: #2F4A7A"></stop><stop offset="0.55" style="stop-color: #5B3FC4"></stop><stop offset="1" style="stop-color: #8A3FA8"></stop></linearGradient></defs><g fill="url(#aig1)"><path d="M12 2.5c.7 5 2.5 6.8 7.5 7.5-5 .7-6.8 2.5-7.5 7.5-.7-5-2.5-6.8-7.5-7.5 5-.7 6.8-2.5 7.5-7.5z"/><path d="M19 15.2c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z"/></g></svg></span></span>Insights</a>
   </nav>
 </div>
 </x-dc>
@@ -141,12 +147,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { reviewOnly: false, open: !!props.open, m: 2, applied: props.custom ? ['range'] : props.filtered ? ['food', 'card', 'amount'] : [], noteSeen: false };
+    this.state = { search: false, open: !!props.open, m: 2, applied: props.custom ? ['range'] : props.filtered ? ['food', 'card', 'amount'] : [], noteSeen: false };
   }
   renderVals() {
-    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', 'ai-1': '#2F4A7A', 'ai-2': '#5B3FC4', 'ai-3': '#8A3FA8', 'ai-text': '#5B3FC4', 'ai-glow': 'rgba(91,63,196,0.38)', 'ai-soft': 'rgba(91,63,196,0.08)', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
       'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
-    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', 'ai-1': '#8FA6D8', 'ai-2': '#A58CF2', 'ai-3': '#D08AE6', 'ai-text': '#B9A6F7', 'ai-glow': 'rgba(150,120,255,0.42)', 'ai-soft': 'rgba(165,140,242,0.12)', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
       'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
     const T = this.props.dark ? D : L;
     const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
@@ -170,11 +176,14 @@ class Component extends DCLogic {
       { label: 'Mon 5 Oct', rows: [cat('Swiggy Instamart', '6:40 PM', 'Food', '••2047', 1180, { m: 'Swiggy Instamart', cat: 'Food part of a split' })] },
       { label: 'Sat 3 Oct', rows: [cat('Swiggy', '1:15 PM', 'Food', '••2047', 298)] }
     ];
-    const custom = s.applied.indexOf('range') >= 0;
+    const has = (k) => s.applied.indexOf(k) >= 0;
+    const custom = has('range');
+    const review = has('review');
     const filtered = s.applied.length > 0;
-    const src = custom ? month.filter((d) => ['Wed 14 Oct', 'Tue 13 Oct', 'Mon 12 Oct'].indexOf(d.label) >= 0) : filtered ? foodSet : month;
+    const narrowed = has('food') || has('card') || has('amount');
+    const src = custom ? month.filter((d) => ['Wed 14 Oct', 'Tue 13 Oct', 'Mon 12 Oct'].indexOf(d.label) >= 0) : narrowed ? foodSet : month;
     const days = src.map((d) => {
-      let rows = s.reviewOnly ? d.rows.filter((r) => r.review) : d.rows;
+      let rows = review ? d.rows.filter((r) => r.review) : d.rows;
       rows = rows.map((r) => Object.assign({}, r, {
         a: fmt(r.n), amtColor: r.muted ? 'var(--ink3)' : 'var(--ink)', weight: r.muted ? '400' : '500',
         shift: r.swiped ? 'translateX(-88px)' : 'none'
@@ -188,19 +197,16 @@ class Component extends DCLogic {
     // the sample month: rows above are the top of a 105-row list
     const M = { n: 105, spent: 47854, income: 12000, moved: 160000 };
     const F = { n: counted.length, spent, income: 0, moved };
-    const S = filtered || s.reviewOnly ? F : M;
+    const S = filtered ? F : M;
     const net = S.income - S.spent;
     const byCat = {};
     counted.filter((r) => !r.muted).forEach((r) => { const c = r.isSplit ? 'Other' : r.cat; byCat[c] = (byCat[c] || 0) + r.n; });
     const topSrc = custom ? Object.keys(byCat).map((c) => [c, byCat[c]]).sort((x, y) => y[1] - x[1]).slice(0, 4) : filtered ? [['Food', spent]] : [['Other', 26240], ['Shopping', 18088], ['Utilities', 1577], ['Food', 962]];
     const max = topSrc[0][1];
     const months = ['August 2026', 'September 2026', 'October 2026'];
-    const chip = (label, val, href) => val
-      ? { label: val, href, border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', weight: '500' }
-      : { label, href, border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', weight: '400' };
-    const has = (k) => s.applied.indexOf(k) >= 0;
     const remove = (k) => () => this.setState({ applied: s.applied.filter((x) => x !== k) });
-    const APPLIED = { range: '12–14 Oct', food: 'Food', card: '••2047', amount: '₹100–2K' };
+    const APPLIED = { range: '12–14 Oct', food: 'Food', card: '••2047', amount: '₹100–2K', review: 'Needs review' };
+    const QUICK = [{ key: 'food', label: 'Category', href: 'ActFilter.dc.html' }, { key: 'card', label: 'Card', href: 'ActFilter.dc.html' }, { key: 'type', label: 'Type', href: 'ActFilter.dc.html' }, { key: 'review', label: 'Needs review', toggle: true }];
     return {
       vars,
       days,
@@ -216,18 +222,19 @@ class Component extends DCLogic {
         : filtered
         ? [{ k: 'Biggest', v: '₹1,180', s: 'Swiggy Instamart' }, { k: 'Most frequent', v: 'Swiggy', s: '3 times' }, { k: 'Avg/day', v: fmt(spent / 15), s: 'over 15 days' }]
         : [{ k: 'Biggest', v: '₹18,088', s: 'Flipkart' }, { k: 'Most frequent', v: 'Swiggy Instamart', s: '23 times' }, { k: 'Avg/day', v: '₹3,190', s: 'over 15 days' }],
-      reviewOnly: s.reviewOnly,
-      toggleReview: () => this.setState({ reviewOnly: !s.reviewOnly }),
-      rev: s.reviewOnly ? { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', dot: 'var(--on-brand)' } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', dot: 'var(--brand)' },
-      filt: filtered ? { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)', label: 'Filter · ' + s.applied.length } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)', label: 'Filter' },
+      filt: filtered ? { border: 'var(--brand)', bg: 'var(--brand)', fg: 'var(--on-brand)' } : { border: 'var(--field)', bg: 'var(--card)', fg: 'var(--ink)' },
+      count: String(s.applied.length),
+      filterAria: filtered ? 'Filter, ' + s.applied.length + ' applied' : 'Filter',
       month: custom ? '12–14 Oct' : months[s.m],
       wholeMonth: !custom,
       monthPad: custom ? '0 16px' : '0',
       prevMonth: () => this.setState({ m: Math.max(0, s.m - 1) }),
       nextMonth: () => this.setState({ m: Math.min(2, s.m + 1) }),
-      quick: [chip('Category', has('food') ? 'Food' : '', 'ActCategory.dc.html'), chip('Card', has('card') ? '••2047' : '', 'ActFilter.dc.html'), chip('Type', '', 'ActFilter.dc.html'), chip('Trip', '', 'ActFilter.dc.html'), chip('Amount', has('amount') ? '₹100–2K' : '', 'ActAmount.dc.html')],
       filtered,
-      applied: s.applied.map((k) => ({ label: APPLIED[k], aria: 'Remove ' + APPLIED[k], remove: remove(k) })),
+      appliedPills: s.applied.map((k) => ({ label: APPLIED[k], aria: 'Remove filter: ' + APPLIED[k], remove: remove(k) })),
+      quickPills: QUICK.filter((q) => !has(q.key)).map((q) => ({ label: q.label, href: q.href || '', isLink: !q.toggle, isToggle: !!q.toggle, add: () => this.setState({ applied: s.applied.concat([q.key]) }) })),
+      searching: !!s.search, notSearching: !s.search,
+      openSearch: () => this.setState({ search: true }), closeSearch: () => this.setState({ search: false }),
       clearAll: () => this.setState({ applied: [] }),
       dismissNote: () => this.setState({ noteSeen: true })
     };

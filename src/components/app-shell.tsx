@@ -107,10 +107,12 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
 }
 
 /** Desktop page frame: main column plus a 300px right rail (§5). Rail stacks under main on phones. */
-export function DeskPage({ children, rail, className, railClassName }: { children: ReactNode; rail?: ReactNode; className?: string; railClassName?: string }) {
+/** `reserveRail` keeps the 300px column empty when there is no rail, so sibling tabs share one width. */
+export function DeskPage({ children, rail, className, railClassName, reserveRail }: { children: ReactNode; rail?: ReactNode; className?: string; railClassName?: string; reserveRail?: boolean }) {
   return (
     <div className={cn("desk:flex desk:items-start desk:gap-8 desk:px-[clamp(20px,3vw,40px)] desk:pt-7 desk:pb-10", className)}>
       <main className="min-w-0 desk:flex-1">{children}</main>
+      {!rail && reserveRail && <div aria-hidden="true" className="hidden desk:block desk:w-[300px] desk:shrink-0" />}
       {rail && <aside className={cn("flex flex-col gap-5 px-5 pt-6 desk:sticky desk:top-7 desk:w-[300px] desk:shrink-0 desk:px-0 desk:pt-0", railClassName)}>{rail}</aside>}
     </div>
   );

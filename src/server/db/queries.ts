@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "./client.ts";
-import { budgets, categories, merchantRules, meta, TXN_TYPES, transactions, transactionSplits, type MerchantRule } from "./schema.ts";
+import { attachments, budgets, categories, merchantRules, meta, reimbursements, TXN_TYPES, transactions, transactionSplits, type MerchantRule } from "./schema.ts";
 
 /** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
 function realDate(value: string): boolean {
@@ -176,6 +176,7 @@ export const addSchema = z.object({
   accountLast4: z.string().regex(/^\d{4}$/).optional(),
   currency: z.string().regex(/^[A-Z]{3}$/).optional(),
   originalAmount: z.number().positive().optional(),
+  excluded: z.boolean().optional(),
 });
 
 /** Returns the new row id. */
@@ -193,6 +194,7 @@ export async function addTxn(db: Db, a: z.infer<typeof addSchema>): Promise<numb
       accountLast4: a.accountLast4 ?? null,
       currency: a.currency ?? null,
       originalAmount: a.originalAmount ?? null,
+      excluded: a.excluded ?? false,
       editedAt: sql`(datetime('now'))`,
     })
     .returning({ id: transactions.id });
@@ -287,6 +289,9 @@ export async function monthSummary(db: Db, month: string) {
   return { month, totals, categories, reviewCount: review?.n ?? 0, lastIngestAt: last?.value ?? null };
 }
 
+/** Status chips (Activity filter screen). Accepts a comma list ("review,split") or an array. */
+export const STATUSES = ["review", "receipt", "split", "reimbursable"] as const;
+const statusList = z.preprocess((v) => (typeof v === "string" ? v.split(",").filter(Boolean) : v), z.array(z.enum(STATUSES)).max(4));
 const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => realDate(v), "not a real date");
 const listShape = z.object({
   month: monthSchema.optional(),
@@ -301,6 +306,7 @@ const listShape = z.object({
   min: z.number().finite().min(0).max(1e9).optional(),
   max: z.number().finite().min(0).max(1e9).optional(),
   sort: z.enum(["newest", "oldest", "amount-desc", "amount-asc"]).optional(),
+  status: statusList.optional(),
   tripId: z.number().int().positive().optional(),
   merchant: z.string().trim().max(120).optional(),
   ids: z.array(z.number().int().positive()).max(500).optional(),
@@ -342,7 +348,16 @@ export function listWhere(q: ListQuery) {
     const match = or(like(transactions.merchant, p), like(transactions.category, p), like(transactions.rawText, p));
     if (match) where.push(match);
   }
-  if (q.review) where.push(eq(transactions.needsReview, true));
+  // Statuses OR together. `review=1` is the older alias for status review.
+  const statuses = new Set<string>([...(q.status ?? []), ...(q.review ? ["review"] : [])]);
+  const statusMatch = [...statuses].map((status) => {
+    if (status === "review") return eq(transactions.needsReview, true);
+    if (status === "receipt") return sql`EXISTS (SELECT 1 FROM ${attachments} a WHERE a.transaction_id = ${transactions.id})`;
+    if (status === "split") return sql`EXISTS (SELECT 1 FROM transaction_splits ss WHERE ss.transaction_id = ${transactions.id})`;
+    return sql`EXISTS (SELECT 1 FROM ${reimbursements} r WHERE r.transaction_id = ${transactions.id} AND r.status != 'cancelled')`;
+  });
+  const match = or(...statusMatch);
+  if (match) where.push(match);
   if (q.card) where.push(eq(transactions.accountLast4, q.card));
   if (q.type === "transfer") where.push(eq(transactions.excluded, true));
   else if (q.type) where.push(eq(transactions.type, q.type));

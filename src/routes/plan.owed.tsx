@@ -75,7 +75,7 @@ function OwedScreen() {
   );
 
   return (
-    <DeskPage rail={rail}>
+    <DeskPage reserveRail rail={rail}>
       <PlanHeader sub={monthLabel(thisMonth())} />
 
       {/* Header totals */}
