@@ -7,6 +7,7 @@ import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
+import { getSyncStatus } from "../server/daily/sync";
 import {
   deleteCategory,
   getCategoryDeleteCounts,
@@ -24,7 +25,7 @@ import { SwatchPicker } from "../components/swatch-picker";
 import { SyncSection } from "../components/sync-section";
 
 export const Route = createFileRoute("/settings")({
-  loader: () => getSettings(),
+  loader: async () => { const [settings, syncStatus] = await Promise.all([getSettings(), getSyncStatus().catch(() => undefined)]); return { ...settings, syncStatus }; }, // sync row falls back to client polling
   pendingComponent: () => <Skeleton rows={7} />,
   errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load settings."} retry={() => void router.invalidate()} />; },
   component: Settings,
@@ -161,7 +162,7 @@ function Settings() {
     <main>
       <PageHeader back="/" title="Settings" />
       <div className="space-y-7 px-5 pb-10 tablet:mx-auto tablet:max-w-[720px] desk:px-0">
-        <SyncSection />
+        <SyncSection initial={data.syncStatus} />
 
         <section aria-labelledby="settings-app">
           <SectionHead id="settings-app" title="App" />

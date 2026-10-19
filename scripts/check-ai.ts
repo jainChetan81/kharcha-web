@@ -38,7 +38,7 @@ const db = openDb(":memory:");
 const now = new Date();
 const date = (days: number) => new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
 for (let week = 1; week <= 8; week++) await db.insert(transactions).values({ source: "manual", type: "expense", amount: 100, merchant: "Test store", category: "Food", date: `${date(week * 7)} 12:00` });
-await db.insert(transactions).values({ source: "manual", type: "expense", amount: 300, merchant: "Test store", category: "Food", date: `${date(1)} 12:00` });
+await db.insert(transactions).values({ source: "manual", type: "expense", amount: 300, merchant: "Test store", category: "Food", date: `${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(now)} 00:00` }); // this IST week, whatever the weekday
 await runDetectors(db);
 const unusual = await db.select().from(insights).where(eq(insights.detector, "unusual"));
 assert.ok(unusual.length >= 1);

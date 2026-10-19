@@ -180,3 +180,30 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 @media (prefers-reduced-motion: reduce) {
   .ai-orb { animation: none; }
 }
+
+/* AI look (DESIGN.md §20): Ask pill fill is the same in both modes; tokens differ per mode. */
+@theme {
+  --color-ai-1: #2F4A7A;
+  --color-ai-2: #5B3FC4;
+  --color-ai-3: #8A3FA8;
+  --color-ai-text: #5B3FC4;
+  --color-ai-glow: rgba(91, 63, 196, 0.38);
+  --color-scrim: rgba(28, 34, 48, 0.45);
+}
+.dark {
+  --color-ai-1: #8FA6D8; --color-ai-2: #A58CF2; --color-ai-3: #D08AE6;
+  --color-ai-text: #B9A6F7; --color-ai-glow: rgba(150, 120, 255, 0.42);
+}
+.ai-button {
+  background: linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8);
+  box-shadow: 0 0 12px var(--color-ai-glow);
+  background-size: 200% 200%;
+  animation: ai-shift 6s ease-in-out infinite alternate;
+}
+@keyframes ai-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-button { animation: none; }
+}

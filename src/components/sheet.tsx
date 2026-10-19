@@ -28,7 +28,7 @@ export function Sheet({
     <Dialog.Root open onOpenChange={(o) => !o && close()}>
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div className="fixed inset-0 z-40 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={reduced ? { duration: 0 } : { duration: 0.22 }} />
+          <motion.div className="fixed inset-0 z-40 bg-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={reduced ? { duration: 0 } : { duration: 0.22 }} />
         </Dialog.Overlay>
         {/* Snackbars sit outside the sheet: tapping Undo/Retry must not close it. */}
         <Dialog.Content asChild onInteractOutside={(event) => { if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault(); }}>

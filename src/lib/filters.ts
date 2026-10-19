@@ -15,6 +15,7 @@ export const scopeShape = z.object({
   merchant: z.string().trim().max(120).optional(),
   card: z.string().regex(/^\d{4}$/).optional(),
   type: z.enum(["income", "expense", "investment", "transfer"]).optional(),
+  status: z.preprocess((v) => (typeof v === "string" ? v.split(",").filter(Boolean) : v), z.array(z.enum(["review", "receipt", "split", "reimbursable"])).max(4)).optional(),
   tripId: z.number().int().positive().optional(),
   min: z.number().finite().min(0).max(1e9).optional(),
   max: z.number().finite().min(0).max(1e9).optional(),

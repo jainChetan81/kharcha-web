@@ -14,7 +14,7 @@ export function DigestCard({ digest }: { digest: Digest }) {
         {digest.lines.map((line, index) => <li key={`${line.pre}-${line.num}-${line.post}`} className="grid grid-cols-[20px_1fr] gap-2 text-[15px] leading-6"><span className="font-serif text-ink-3">{["I", "II", "III"][index]}</span><span>{line.pre} <Link to={line.href} className="font-medium text-brand underline decoration-brand/50 underline-offset-2">{line.num}</Link>{line.post}</span></li>)}
       </ol>
       <span className="flex flex-col gap-0.5 text-xs text-ink-3">Numbers from your ledger · words by AI{digest.model && <AiProvenance model={digest.model} tokensIn={digest.tokensIn} tokensOut={digest.tokensOut} costUsd={digest.costUsd} when={digest.createdAt} />}</span>
-      <Link to="/ask" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand"><AiMark />Ask a follow-up</Link>
+      <Link to="/ask" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-ai-text"><AiMark />Ask a follow-up</Link>
     </Card>
   );
 }

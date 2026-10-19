@@ -1,7 +1,7 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, aiCost, card, compact, dayMonth, evalAmount, foreign, money, monthName, navsOf, statementOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, time, weekday, weekdayDate,
+  ago, aiCost, card, compact, dayMonth, evalAmount, foreign, fromSource, money, monthName, navsOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, statementOf, time, weekday, weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -37,6 +37,7 @@ assert.equal(evalAmount("450+120"), 570);
 assert.equal(evalAmount("450+120-20.5"), 549.5);
 assert.equal(evalAmount("4++5"), undefined);
 assert.equal(evalAmount(""), undefined);
+assert.equal(fromSource("sms", "2026-10-18 19:47"), "From SMS · 18 Oct, 7:47 PM");
 
 // Dates, times and numbers are formatted only in src/lib/format.ts.
 const { readdirSync, readFileSync } = await import("node:fs");

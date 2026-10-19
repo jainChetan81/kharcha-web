@@ -58,6 +58,8 @@ export function time(value: string | Date): string {
 }
 /** "15 Oct, 2:44 PM". */
 export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)}, ${time(date)}` : dayMonth(date));
+/** Edit source line: "From SMS · 18 Oct, 7:47 PM". */
+export const fromSource = (source: string, date: string) => `From ${source === "sms" ? "SMS" : source} · ${shortDate(date)}`;
 /** "Thu". */
 export const weekday = (date: string) => day(date).toLocaleDateString("en-IN", { weekday: "short" });
 /** Prices carry their date: "NAVs of 15 Oct". */
