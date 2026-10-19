@@ -663,14 +663,6 @@
    "title": "AI off · not installed · mini offline",
    "is_interactive": true
   },
-  "SettingsPicker.dc.html": {
-   "x": 940,
-   "y": 37880,
-   "w": 390,
-   "h": 2300,
-   "title": "Colour picker",
-   "is_interactive": true
-  },
   "SetModel.dc.html": {
    "x": 1410,
    "y": 37880,
@@ -701,14 +693,6 @@
    "w": 390,
    "h": 2300,
    "title": "AI off · dark",
-   "is_interactive": true
-  },
-  "SettingsPickerDark.dc.html": {
-   "x": 3290,
-   "y": 37880,
-   "w": 390,
-   "h": 2300,
-   "title": "Colour picker · dark",
    "is_interactive": true
   },
   "SetModelDark.dc.html": {
@@ -835,6 +819,125 @@
    "title": "Desktop activity · filters hidden",
    "expand": "fill",
    "is_interactive": true
+  },
+  "SetCategoriesPicker.dc.html": {
+   "x": 940,
+   "y": 37880,
+   "w": 390,
+   "h": 2300,
+   "title": "Settings · categories · colour picker",
+   "is_interactive": true
+  },
+  "SetCategoriesPickerDark.dc.html": {
+   "x": 3290,
+   "y": 37880,
+   "w": 390,
+   "h": 2300,
+   "title": "Settings · categories · colour picker · dark",
+   "is_interactive": true
+  },
+  "ReviewEmpty.dc.html": {
+   "x": 0,
+   "y": 42640,
+   "w": 390,
+   "h": 1200,
+   "title": "Review · nothing to review",
+   "is_interactive": true
+  },
+  "SetCategories.dc.html": {
+   "x": 470,
+   "y": 42640,
+   "w": 390,
+   "h": 1200,
+   "title": "Settings · categories",
+   "is_interactive": true
+  },
+  "SetCategoriesDark.dc.html": {
+   "x": 940,
+   "y": 42640,
+   "w": 390,
+   "h": 1200,
+   "title": "Settings · categories · dark",
+   "is_interactive": true
+  },
+  "SetRules.dc.html": {
+   "x": 1410,
+   "y": 42640,
+   "w": 390,
+   "h": 1200,
+   "title": "Settings · merchant rules · 23",
+   "is_interactive": true
+  },
+  "SetRulesDark.dc.html": {
+   "x": 1880,
+   "y": 42640,
+   "w": 390,
+   "h": 1200,
+   "title": "Settings · merchant rules · dark",
+   "is_interactive": true
+  },
+  "DeskAdd.dc.html": {
+   "x": 0,
+   "y": 43980,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop add transaction",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskAddDark.dc.html": {
+   "x": 1520,
+   "y": 43980,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop add transaction · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskEdit.dc.html": {
+   "x": 3040,
+   "y": 43980,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop edit transaction",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskReviewEmpty.dc.html": {
+   "x": 0,
+   "y": 45080,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop review · nothing to review",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskSetCategories.dc.html": {
+   "x": 1520,
+   "y": 45080,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop settings · categories",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskSetCategoriesDark.dc.html": {
+   "x": 3040,
+   "y": 45080,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop settings · categories · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskSetRules.dc.html": {
+   "x": 0,
+   "y": 46180,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop settings · merchant rules · 23",
+   "expand": "fill",
+   "is_interactive": true
   }
  },
  "order": [
@@ -920,12 +1023,12 @@
   "DeskHomeNoBudgetDark.dc.html",
   "Settings.dc.html",
   "SettingsOff.dc.html",
-  "SettingsPicker.dc.html",
+  "SetCategoriesPicker.dc.html",
   "SetModel.dc.html",
   "SetCatDelete.dc.html",
   "SettingsDark.dc.html",
   "SettingsOffDark.dc.html",
-  "SettingsPickerDark.dc.html",
+  "SetCategoriesPickerDark.dc.html",
   "SetModelDark.dc.html",
   "SetCatDeleteDark.dc.html",
   "DeskSettings.dc.html",
@@ -940,7 +1043,19 @@
   "ActFilterAmountErrorDark.dc.html",
   "DeskHistoryDetail.dc.html",
   "DeskHistoryDetailDark.dc.html",
-  "DeskHistoryNoRail.dc.html"
+  "DeskHistoryNoRail.dc.html",
+  "ReviewEmpty.dc.html",
+  "SetCategories.dc.html",
+  "SetCategoriesDark.dc.html",
+  "SetRules.dc.html",
+  "SetRulesDark.dc.html",
+  "DeskAdd.dc.html",
+  "DeskAddDark.dc.html",
+  "DeskEdit.dc.html",
+  "DeskReviewEmpty.dc.html",
+  "DeskSetCategories.dc.html",
+  "DeskSetCategoriesDark.dc.html",
+  "DeskSetRules.dc.html"
  ],
  "notes": {
   "tSystem": {

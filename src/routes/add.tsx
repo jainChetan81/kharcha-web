@@ -9,6 +9,6 @@ function Add() {
   const navigate = useNavigate();
   const dirty = useRef(false);
   const close = () => void navigate({ to: "/" });
-  const confirm = () => !dirty.current || window.confirm("Discard this transaction?");
-  return <Sheet title="Add transaction" onClose={close} confirmClose={confirm} className="tablet:min-h-[640px]"><TxnForm mode="add" categories={categories} onDone={close} onCancel={() => { if (confirm()) close(); }} onDirtyChange={(d) => { dirty.current = d; }} /></Sheet>;
+  const confirmDiscard = () => !dirty.current || window.confirm("Discard this transaction?");
+  return <Sheet title="Add transaction" onClose={close} confirmClose={confirmDiscard} className="tablet:min-h-[640px]"><TxnForm mode="add" categories={categories} onDone={close} onCancel={() => { if (confirmDiscard()) close(); }} onDirtyChange={(d) => { dirty.current = d; }} /></Sheet>;
 }

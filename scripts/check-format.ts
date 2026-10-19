@@ -48,3 +48,23 @@ const offenders = (readdirSync("src", { recursive: true }) as string[])
 assert.deepEqual(offenders, [], "format dates, times and numbers via src/lib/format.ts");
 console.log("check-format: ok");
 assert.equal(aiCost(0), money(0));
+
+// Activity filter helpers (src/lib/filters.ts, §16).
+{
+  const { countFor, preset, presetOn, today } = await import("../src/lib/filters.ts");
+  const now = today();
+  assert.deepEqual(preset("This month"), { from: undefined, to: undefined, month: now.slice(0, 7) });
+  assert.equal(preset("Last month").month, shiftMonth(now.slice(0, 7), -1));
+  assert.deepEqual(preset("Today"), { from: now, to: now, month: undefined });
+  assert.ok(presetOn({ month: now.slice(0, 7) }, "This month"));
+  assert.ok(!presetOn({ month: now.slice(0, 7), from: now, to: now }, "This month"));
+  assert.ok(presetOn({ from: now, to: now }, "Today"));
+  assert.ok(!presetOn({}, "Today"));
+  assert.equal(countFor({ month: "2026-10" }), 0);
+  assert.equal(countFor({ from: "2026-10-01", to: "2026-10-05", categories: ["Food", "Travel"], status: ["review", "split"], min: 100 }), 6);
+  assert.equal(countFor({ review: true, status: ["review"] }), 1);
+  assert.equal(countFor({ review: true }), 1);
+  assert.equal(countFor({ sort: "oldest" }), 1);
+  assert.equal(countFor({ sort: "oldest" }, false), 0);
+  assert.equal(countFor({ sort: "newest" }), 0);
+}

@@ -2,6 +2,7 @@ import { Dialog } from "radix-ui";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
+import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
 
 type Status = "review" | "receipt" | "split" | "reimbursable";
@@ -26,20 +27,6 @@ type Filter = (typeof filters)[number];
 const sortOptions = [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount-desc", "Highest amount"], ["amount-asc", "Lowest amount"]] as const;
 const typeOptions = [["expense", "Expense"], ["income", "Income"], ["investment", "Investment"], ["transfer", "Not counted"]] as const;
 const statusOptions: { id: Status; label: string }[] = [{ id: "review", label: "Needs review" }, { id: "receipt", label: "Has a receipt" }, { id: "split", label: "Split" }, { id: "reimbursable", label: "Reimbursable" }];
-const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-const shiftDay = (date: string, delta: number) => { const d = new Date(`${date}T12:00:00`); d.setDate(d.getDate() + delta); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-function preset(label: string) {
-  const now = today(); const d = new Date(`${now}T12:00:00`); const weekday = (d.getDay() + 6) % 7;
-  if (label === "Today") return { from: now, to: now, month: undefined };
-  if (label === "This week") return { from: shiftDay(now, -weekday), to: now, month: undefined };
-  if (label === "Last 7 days") return { from: shiftDay(now, -6), to: now, month: undefined };
-  if (label === "This month") return { from: `${now.slice(0, 7)}-01`, to: now, month: undefined };
-  if (label === "Last month") { const first = new Date(d.getFullYear(), d.getMonth() - 1, 1); const last = new Date(d.getFullYear(), d.getMonth(), 0); const fmt = (v: Date) => `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}`; return { from: fmt(first), to: fmt(last), month: undefined }; }
-  if (label === "This year") return { from: `${now.slice(0, 4)}-01-01`, to: now, month: undefined };
-  return { from: undefined, to: undefined, month: undefined };
-}
-const selectedCategories = (s: SearchState) => s.categories ?? (s.category ? [s.category] : []);
-const countFor = (s: SearchState, includeSort = true) => Number(Boolean((s.from || s.to) && !s.month)) + selectedCategories(s).length + Number(Boolean(s.card)) + Number(Boolean(s.type)) + Number(Boolean(s.tripId)) + Number(s.min !== undefined || s.max !== undefined) + (s.status?.length ?? 0) + Number(Boolean(s.review && !s.status?.includes("review"))) + Number(Boolean(includeSort && s.sort && s.sort !== "newest"));
 const compactRange = (s: SearchState) => s.min !== undefined || s.max !== undefined ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}` : "";
 const chipBase = "inline-flex min-h-11 shrink-0 items-center justify-center rounded-chip border px-3 text-[13px] font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
 
@@ -165,7 +152,7 @@ function OptionRow({ label, checked, onClick, mode = "checkbox", secondary }: { 
 
 function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Partial<SearchState>) => void }) {
   const [calendar, setCalendar] = useState(false);
-  return <div className="p-3"><div className="flex flex-wrap gap-2">{["Today", "This week", "Last 7 days", "This month", "Last month", "This year"].map((label) => <Chip key={label} on={value.from === preset(label).from && value.to === preset(label).to} onClick={() => onPatch(preset(label))}>{label}</Chip>)}</div><div className="my-4 grid grid-cols-2 gap-2"><label className="flex flex-col gap-1 text-[12px] text-ink-2">From<input type="date" max={value.to || today()} value={value.from ?? ""} onChange={(e) => onPatch({ from: e.target.value || undefined, month: undefined })} className="field min-h-11 w-full px-2 text-[13px]" /></label><label className="flex flex-col gap-1 text-[12px] text-ink-2">To<input type="date" min={value.from} max={today()} value={value.to ?? ""} onChange={(e) => onPatch({ to: e.target.value || undefined, month: undefined })} className="field min-h-11 w-full px-2 text-[13px]" /></label></div><button type="button" onClick={() => setCalendar(true)} className="flex min-h-11 items-center gap-2 text-sm font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"><CalendarDays size={16} />Pick on a calendar</button>{calendar && <RangeCalendar from={value.from} to={value.to} close={() => setCalendar(false)} choose={(from, to) => { onPatch({ from, to, month: undefined }); setCalendar(false); }} />}</div>;
+  return <div className="p-3"><div className="flex flex-wrap gap-2">{["Today", "This week", "Last 7 days", "This month", "Last month", "This year"].map((label) => <Chip key={label} on={presetOn(value, label)} onClick={() => onPatch(preset(label))}>{label}</Chip>)}</div><div className="my-4 grid grid-cols-2 gap-2"><label className="flex flex-col gap-1 text-[12px] text-ink-2">From<input type="date" max={value.to || today()} value={value.from ?? ""} onChange={(e) => onPatch({ from: e.target.value || undefined, month: undefined })} className="field min-h-11 w-full px-2 text-[13px]" /></label><label className="flex flex-col gap-1 text-[12px] text-ink-2">To<input type="date" min={value.from} max={today()} value={value.to ?? ""} onChange={(e) => onPatch({ to: e.target.value || undefined, month: undefined })} className="field min-h-11 w-full px-2 text-[13px]" /></label></div><button type="button" onClick={() => setCalendar(true)} className="flex min-h-11 items-center gap-2 text-sm font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"><CalendarDays size={16} />Pick on a calendar</button>{calendar && <RangeCalendar from={value.from} to={value.to} close={() => setCalendar(false)} choose={(from, to) => { onPatch({ from, to, month: undefined }); setCalendar(false); }} />}</div>;
 }
 
 function CategoryFields({ categories, selected, onToggle }: { categories: Category[]; selected: string[]; onToggle: (cat: Category) => void }) {

@@ -121,8 +121,10 @@ function Activity() {
   const clearFilters = () => void router.navigate({ to: "/activity", search: { month: search.month, search: search.search } });
   const getCount = async (draft: Record<string, unknown>) => {
     const { review, ids, sort, ...rest } = draft as ActivitySearch;
-    void review; void ids; void sort;
-    const data = { ...rest, month: rest.from || rest.to ? undefined : rest.month ?? month };
+    void ids; void sort;
+    // The Needs review pill sets review=true; count it the way the list does.
+    const status = review && !rest.status?.includes("review") ? [...(rest.status ?? []), "review" as const] : rest.status;
+    const data = { ...rest, status, month: rest.from || rest.to ? undefined : rest.month ?? month };
     return (await getTransactionSummary({ data })).count;
   };
   const remove = (row: Row) => {
