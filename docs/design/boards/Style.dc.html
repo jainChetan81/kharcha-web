@@ -97,10 +97,11 @@ button{font:inherit;cursor:pointer}
           <button type="button" aria-pressed="false" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230; font-size: 14px">Shopping</button>
           <button type="button" style="min-height: 38px; padding: 0 12px; border-radius: 999px; border: 1px solid #8A8576; background: #FBFAF6; color: #1C2230; font-size: 14px; display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F4A7A"></span>Needs review</button>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #EEEBE2">
           <span style="min-height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; background: #FBFAF6; box-shadow: 0 1px 2px rgba(28,34,48,0.12)">Budgets</span>
           <span style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5163">Recurring</span>
           <span style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5163">Trips</span>
+          <span style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5163">Owed</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px">
           <label for="sty-m" style="font-size: 13px; color: #4A5163">Merchant</label>
@@ -165,7 +166,7 @@ button{font:inherit;cursor:pointer}
   <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; border-top: 1px solid #1C2230; padding-top: 16px; font-size: 14px; line-height: 1.5; color: #4A5163">
     <div><div style="font-weight: 600; color: #1C2230">Copy</div>Sentence case. One short label, no helper text under headings. Dates as “Thu 15 Oct”.</div>
     <div><div style="font-weight: 600; color: #1C2230">Icons</div>Stroke 1.75 on a 24 grid, round caps. Lucide set. Never emoji.</div>
-    <div><div style="font-weight: 600; color: #1C2230">Build</div>Tailwind 4 and shadcn restyled with these tokens. motion for swipe, sheets and snackbars: 150 ms state, 220 ms sheets, reduced motion respected. Charts are plain SVG.</div>
+    <div><div style="font-weight: 600; color: #1C2230">Build</div>Tailwind 4 and shadcn restyled with these tokens. motion springs for swipe, sheets, popovers and the summary strip (values in DESIGN §19). Reduced motion turns every animation off. Charts are plain SVG.</div>
     <div><div style="font-weight: 600; color: #1C2230">Access</div>Text measured at 4.9:1 or better. Field and chip borders 3.3:1. Colour never alone: words, signs or ticks too. 44 px targets.</div>
   </section>
 </div>
@@ -233,11 +234,11 @@ class Component extends DCLogic {
         { k: 'Avoid on phones', v: 'Sankey, streamgraph and anything that needs hover to read.' }
       ],
       layout: [
-        { k: 'Phone · under 600', v: '20 px gutter. 5-tab bar (80 px) plus a 56 px add button bottom right.' },
+        { k: 'Phone · under 600', v: '20 px gutter. 5-tab bar, 84 px with the 34 px safe area, plus a 56 px add button bottom right.' },
         { k: 'Tablet · 600 to 839', v: 'Same tabs, content max 640 px centred. Sheets become centred dialogs.' },
         { k: 'Desktop · 840 up', v: '240 px sidebar: Today, Review, Activity, Plan, Wealth, Insights, Ask, then Settings. Main column plus a 300 px right rail.' },
         { k: 'Keys', v: 'N add, / ask, R review, J K move, X select, C category, E not a spend. Lives in keybindings.ts.' },
-        { k: 'Sheets', v: 'Bottom sheets on phone for add, start trip, receipt. Radius 20, grab handle.' },
+        { k: 'Sheets', v: 'Phone: bottom sheets, radius 20, grab handle. Desktop: centred dialogs, radius 16, solid card behind a scrim.' },
         { k: 'Spacing', v: '4 · 8 · 12 · 16 · 20 · 24 · 28 · 48.' },
         { k: 'Radius', v: 'Chips 999 · buttons 10 · cards 12 · hero 14 · sheets 20.' }
       ]

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Desktop review · nothing to review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@keyframes ai-shift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+</style>
+</helmet>
+<div style="{{vars}} display: flex; flex-wrap: wrap; position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums lining-nums; min-height: 100vh">
+  <aside style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; padding: 28px 16px; border-right: 1px solid var(--rule); background: var(--card); display: flex; flex-direction: column; gap: 24px">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; padding: 0 12px">Kharcha</span>
+    <nav aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="DeskHome.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Today</span></a>
+      <a href="DeskReview.dc.html" aria-current="page" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: var(--brand-soft); color: var(--brand); font-weight: 600"><span style="display: flex; align-items: center; gap: 8px">Review</span></a>
+      <a href="DeskHistory.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Activity</span></a>
+      <a href="DeskPlan.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Plan</span></a>
+      <a href="DeskWealth.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Wealth</span></a>
+      <a href="DeskInsights.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Insights<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="aig1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--ai-1, #2F4A7A)"></stop><stop offset="0.55" style="stop-color: var(--ai-2, #5B3FC4)"></stop><stop offset="1" style="stop-color: var(--ai-3, #8A3FA8)"></stop></linearGradient></defs><g fill="url(#aig1)"><path d="M12 2.5c.7 5 2.5 6.8 7.5 7.5-5 .7-6.8 2.5-7.5 7.5-.7-5-2.5-6.8-7.5-7.5 5-.7 6.8-2.5 7.5-7.5z"/><path d="M19 15.2c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z"/></g></svg></span></a>
+      <a href="DeskAsk.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; text-decoration: none; background: transparent; color: var(--ink)"><span style="display: flex; align-items: center; gap: 8px">Ask<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="aig2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--ai-1, #2F4A7A)"></stop><stop offset="0.55" style="stop-color: var(--ai-2, #5B3FC4)"></stop><stop offset="1" style="stop-color: var(--ai-3, #8A3FA8)"></stop></linearGradient></defs><g fill="url(#aig2)"><path d="M12 2.5c.7 5 2.5 6.8 7.5 7.5-5 .7-6.8 2.5-7.5 7.5-.7-5-2.5-6.8-7.5-7.5 5-.7 6.8-2.5 7.5-7.5z"/><path d="M19 15.2c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z"/></g></svg></span></a>
+    </nav>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px">
+      <a href="DeskSettings.dc.html" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 999px; background: var(--sunken); font-size: 12px; color: var(--ink2); text-decoration: none"><span style="width: 7px; height: 7px; border-radius: 999px; background: var(--earn)"></span>Mini online · 3 min ago</a>
+      <a href="DeskSettings.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 15px; text-decoration: none; color: var(--ink)">Settings</a>
+    </div>
+  </aside>
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 48px; display: flex; flex-direction: column; gap: 24px">
+    <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 30px">Review</h1>
+    <section style="max-width: 520px; padding: 32px; border-radius: 14px; border: 1px solid var(--rule); background: var(--card); display: flex; flex-direction: column; gap: 12px; align-items: flex-start">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--earn)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+      <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 26px">Nothing to review</h2>
+      <p style="margin: 0; font-size: 15px; color: var(--ink2)">New SMS rows land here first.</p>
+      <div style="display: flex; gap: 10px; margin-top: 8px">
+        <a href="DeskHistory.dc.html" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--ink); color: var(--ink); display: flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none">Open Activity</a>
+        <a href="DeskHome.dc.html" style="min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--btn); color: var(--on-btn); display: flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none">Back to Today</a>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1440, "height": 900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  renderVals() {
+    const L = { paper: '#F6F4EE', card: '#FBFAF6', sunken: '#EEEBE2', rule: '#D9D5C8', hair: '#E2DED3', field: '#8A8576', input: '#FFFFFF', track: '#E6E2D7', raised: '#FBFAF6', ink: '#1C2230', ink2: '#4A5163', ink3: '#5E6272', brand: '#2F4A7A', 'on-brand': '#FFFFFF', 'brand-soft': '#E3E8F1', earn: '#2D6B4A', 'earn-soft': '#E2EFE6', over: '#A3402D', 'over-soft': '#F6E3DE', 'on-over': '#FFFFFF', watch: '#8A5A12', 'watch-text': '#7A4F0E', 'watch-soft': '#F4E9D2', btn: '#1C2230', 'on-btn': '#F6F4EE', hero: '#1C2230', 'on-hero': '#F6F4EE', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#FFFFFF', 'ai-1': '#2F4A7A', 'ai-2': '#5B3FC4', 'ai-3': '#8A3FA8', 'ai-text': '#5B3FC4', 'ai-glow': 'rgba(91,63,196,0.38)', 'ai-soft': 'rgba(91,63,196,0.08)', scrim: 'rgba(28,34,48,0.45)', shadow: 'rgba(28,34,48,0.14)', focus: '#2F4A7A',
+      'c-food': '#B4572E', 'c-shopping': '#6B4C8A', 'c-transport': '#2F6F8F', 'c-utilities': '#8A6A1F', 'c-entertainment': '#9B3D5C', 'c-home': '#4F7A4A', 'c-health': '#3D8077', 'c-sports': '#6B7A2A', 'c-work': '#55606E', 'c-other': '#8A8576', 'c-salary': '#2D6B4A', 'c-refunds': '#1F7A63', 'c-interest': '#4B7432', 'c-other-income': '#8A8576' };
+    const D = { paper: '#12151C', card: '#191D26', sunken: '#222733', rule: '#323848', hair: '#282E3B', field: '#737A8C', input: '#12151C', track: '#2A303D', raised: '#363D4D', ink: '#ECE8DF', ink2: '#BFC2CC', ink3: '#A0A4B0', brand: '#9DB3DA', 'on-brand': '#12151C', 'brand-soft': '#243149', earn: '#74C595', 'earn-soft': '#1D3326', over: '#F08C76', 'over-soft': '#3A1F1A', 'on-over': '#12151C', watch: '#C99A3A', 'watch-text': '#E6B864', 'watch-soft': '#3A2F18', btn: '#ECE8DF', 'on-btn': '#12151C', hero: '#232937', 'on-hero': '#ECE8DF', 'on-hero-2': '#A9AEBB', 'on-hero-gain': '#8FD1A8', 'on-hero-month': '#F2C879', 'on-hero-pace': '#8FA6CF', 'on-hero-over': '#F2A08C', 'on-cat': '#12151C', 'ai-1': '#8FA6D8', 'ai-2': '#A58CF2', 'ai-3': '#D08AE6', 'ai-text': '#B9A6F7', 'ai-glow': 'rgba(150,120,255,0.42)', 'ai-soft': 'rgba(165,140,242,0.12)', scrim: 'rgba(0,0,0,0.6)', shadow: 'rgba(0,0,0,0.5)', focus: '#9DB3DA',
+      'c-food': '#E08A60', 'c-shopping': '#B497D6', 'c-transport': '#66AFD0', 'c-utilities': '#D2AE55', 'c-entertainment': '#DB86A2', 'c-home': '#8CC487', 'c-health': '#63BFB1', 'c-sports': '#B2C46A', 'c-work': '#A3ACBC', 'c-other': '#8F8B80', 'c-salary': '#74C595', 'c-refunds': '#5FC4A6', 'c-interest': '#A4C97E', 'c-other-income': '#8F8B80' };
+    const T = this.props.dark ? D : L;
+    const vars = Object.keys(T).map((k) => '--' + k + ': ' + T[k] + ';').join(' ');
+    const col = (c) => 'var(--c-' + c.toLowerCase().replace(/ /g, '-') + ')';
+
+    return { vars };
+  }
+}
+</script>
+</body>
+</html>

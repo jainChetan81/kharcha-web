@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Desktop activity · date popover</title>
+<title>Desktop activity · filters hidden</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -14,10 +14,10 @@ body{margin:0;background:#F6F4EE}
 </style>
 </helmet>
 <div style="min-height: 100vh; background: #F6F4EE">
-<dc-import name="DeskHistory" datepop="{{ true }}" hint-size="100%,1100px"></dc-import>
+<dc-import name="DeskHistory" norail="{{ true }}" hint-size="100%,1000px"></dc-import>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
   renderVals() {
     return {};

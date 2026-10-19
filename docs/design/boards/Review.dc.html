@@ -81,18 +81,19 @@ button{font:inherit;cursor:pointer}
       <span style="font-family: 'Newsreader', Georgia, serif; font-size: 26px; font-weight: 500">{{doneTitle}}</span>
       <span style="font-size: 15px; color: #4A5163; line-height: 1.5">{{doneBody}}</span>
       <div style="display: flex; gap: 10px; margin-top: 8px">
-        <button type="button" onClick="{{restart}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; font-size: 15px; font-weight: 500; color: #1C2230">Start over</button>
+        <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><a href="History.dc.html" data-live="1" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1C2230; display: flex; align-items: center; font-size: 15px; font-weight: 500; color: #1C2230; text-decoration: none">Open Activity</a></sc-if>
+        <sc-if value="{{notEmpty}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{restart}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1C2230; background: transparent; font-size: 15px; font-weight: 500; color: #1C2230">Start over</button></sc-if>
         <a href="Main.dc.html" style="min-height: 44px; padding: 0 18px; border-radius: 10px; background: #1C2230; color: #F6F4EE; display: flex; align-items: center; font-size: 15px; font-weight: 500; text-decoration: none">Back to home</a>
       </div>
     </div>
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"empty":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { i: 0, picks: {}, smsOpen: true, ruleOn: true, confirmed: 0 };
+    this.state = { i: props.empty ? 99 : 0, picks: {}, smsOpen: true, ruleOn: true, confirmed: 0 };
   }
   renderVals() {
     const cats = ['Food', 'Shopping', 'Transport', 'Utilities', 'Entertainment', 'Home', 'Health', 'Work', 'Other'];
@@ -112,7 +113,7 @@ class Component extends DCLogic {
       item,
       current,
       counter: hasItem ? (s.i + 1) + ' of 115' : '',
-      progress: ((s.i / items.length) * 100).toFixed(0) + '%',
+      progress: Math.min(100, (s.i / items.length) * 100).toFixed(0) + '%',
       smsOpen: s.smsOpen,
       smsLabel: s.smsOpen ? 'Hide' : 'Show',
       ruleOn: s.ruleOn,
@@ -126,8 +127,8 @@ class Component extends DCLogic {
       skip: () => next('skip'),
       notSpend: () => next('skip'),
       restart: () => this.setState({ i: 0, picks: {}, smsOpen: true, confirmed: 0 }),
-      doneTitle: 'Nice. ' + s.confirmed + ' filed.',
-      doneBody: '112 still waiting in this demo. Rules you saved will file the next ones on arrival.'
+      doneTitle: this.props.empty ? 'Nothing to review' : 'Nice. ' + s.confirmed + ' filed.', notEmpty: !this.props.empty, empty: !!this.props.empty,
+      doneBody: this.props.empty ? 'New SMS rows land here first.' : '112 still waiting in this demo. Rules you saved will file the next ones on arrival.'
     };
   }
 }

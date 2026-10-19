@@ -32,7 +32,7 @@ Mobile has a bottom tab bar with 5 tabs, plus the add button. Desktop (≥840px)
 |---|---|---|---|
 | Today | Today | `/` | `Main`, `DeskHome` |
 | card on Today | Review | `/review` | `Review`, `DeskReview` |
-| Activity | Activity | `/activity?…` (filters in the address, §16) | `History` + sheets `ActFilter` `ActDate` `ActCategory` `ActAmount` `ActSort`, `DeskHistory` `DeskActDate` |
+| Activity | Activity | `/activity?…` (filters in the address, §16) | `History`, filter screen `ActFilter`, `ActSort`, `ActDate`; `DeskHistory` |
 | Plan | Plan | `/plan/budgets` · `/plan/recurring` · `/plan/trips` · `/plan/owed` | `Budgets` `Recurring` `Trips` `RbList`, `DeskPlan` `DeskOwed` |
 | Wealth | Wealth | `/wealth` | `Wealth`, `DeskWealth` |
 | Insights | Insights | `/insights` | `Insights`, `DeskInsights` |
@@ -196,10 +196,10 @@ All of these are on the `RcComponents` board in light and dark.
 
 | Activity and Settings | Notes (`ActComponents`, `PtrStates` boards) |
 |---|---|
-| `FilterChip` | 44px. Empty (field border on `card`), with a value (`brand` fill, shows the value), pressed (scale 0.96), focus (2px `focus` ring, 2px offset). Toggle variant for Needs review (brand fill). |
-| `AppliedChip` | `brand-soft` pill with the value and ×. Row hidden when nothing is applied. |
-| `FilterSheet`, `ListSheet` | Bottom sheet on phones, popover anchored to the chip at ≥840px. Footer: Clear / Show N transactions. N is live. |
-| `RangeCalendar` | Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted and not selectable. Fallback: two `input type=date`. |
+| `FilterPill` | 36px pill inside a 44px target. `Filter` (icon; `brand` fill and a count when anything is set), `Sort`, quick pills (Category, Card, Type with ▾), the Needs review toggle, and applied pills (`brand` fill, value and ×). One row, scrolls sideways, fade on the right edge. |
+| `AppliedChip` | Inside the filter screen and above the desktop table: `brand-soft` pill with the value and ×. |
+| `FilterScreen` | Phones: full screen. Header ✕, "Filters", Clear all; selected chips under it; left rail of filter types (124px, `sunken`; active one on `card` with a 3px `brand` bar; a count when set); options on the right; sticky "Show N transactions". Desktop: `FilterRail`, a 248px card beside the table with sections that open and close, live updates, Clear all and a hide button. |
+| `RangeCalendar` | Opened from Date › Custom range › Pick on a calendar (`ActDate`). Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted. The From and To date fields in the Date pane are the fallback. |
 | `SummaryStrip` | Collapsed: one row of stats (count, spent, income, transferred; zero figures hidden except spent). Expanded: net, top 4 categories, biggest, most frequent, avg/day, See insights. |
 | `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-3`, weight 400, never struck through. |
 | `SwipeRow` | §19. |
@@ -220,17 +220,19 @@ Every list screen needs an empty state (one line plus one action), a loading ske
   - Next 10 days of recurring payments.
   - Review strip.
   - Treemap.
-  - Wealth row.
+  - Wealth card: value, gain, next SIP, allocation bar with a legend, NAV date.
   - Recent rows.
 - **Review**
   - Mobile: card deck. Right confirms, left skips. Not a spend, Duplicate, Edit (`/txn/$id/edit`). An "Always file X as Y" checkbox creates a rule.
   - Desktop: table plus detail pane, with J/K/X/R/C/E shortcuts and bulk confirm.
+  - Nothing to review: tick, "Nothing to review", Open Activity and Back to Today (`ReviewEmpty`, `DeskReviewEmpty`).
 - **Activity:** §16.
 - **Detail**
   - Amount, fields, source SMS, rename note, receipt entry, more rows from this merchant.
   - Mark reimbursable, Not a spend, Delete. Edit opens `Edit`.
   - With a split: "Expense · split in N", `SplitBar`, item groups by category, receipt thumbnails, Remove split (`RcSaved`).
   - With a claim: header reads "₹3,000 paid · ₹1,800 yours" and the claim card sits under the amount (`RbStatus`).
+- **Add and Edit on desktop:** a centred dialog over the page, never the phone keypad (`DeskAdd`, `DeskEdit`). Type segment, Merchant, Amount (accepts `250+210` and shows `= ₹460`), category chips, Date, Card, Not a spend. Esc cancels, Enter saves. Edit adds the source line ("From SMS · 18 Oct, 7:47 PM") and Delete.
 - **Edit:** `TxnForm` in edit mode, prefilled. Delete asks once, then shows an undo snackbar.
 - **Receipt reading:** §14.
 - **Reimbursements:** §15.
@@ -252,11 +254,11 @@ Every list screen needs an empty state (one line plus one action), a loading ske
 - **Start a trip:** name, dates, budget per day, auto-tag and leave-recurring-out switches, bookings found before the trip.
 - **Wealth**
   - Ink hero: value, day change with NAV date, invested / gain / XIRR, GainChart (1Y/2Y/All). Holdings with only a statement value show "Statement of 9 Oct · not live"; XIRR stays — until real buys exist.
-  - SIPs: planned mandates (`sip_mandates`), monthly total, next listed date. Planned dates only, never shown as paid.
   - Allocation vs target.
   - Holdings rows open `Fund`.
   - Add holding, Import CSV.
   - NPS financial-year cap tracker.
+  - SIPs: planned mandates (`sip_mandates`), one row per mandate (fund, "Day 20 · next 20 Oct", amount), sorted by next date. Planned dates only, never shown as paid. "Bank mandate not checked" in watch text when the mandate is unseen. Footer: "Mandates as seen 11 Oct. Planned dates, not confirmed debits."
 - **Holding** (add or edit)
   - Kind: Fund, NPS, Gold, Other.
   - **Fund and Gold:** search by name, results show the AMFI code and current NAV.
@@ -265,6 +267,7 @@ Every list screen needs an empty state (one line plus one action), a loading ske
   - CSV import (`date, fund, amount, units, nav`) with a preview and an error count.
 - **Fund:** value, NAV line with SIP buys and average cost, stats, SIP mandates, instalments. No NAV history hides the chart.
 - **Insights**
+  - Filter bar under the title, the same `FilterPill` row as Activity: Filter, the month, Category, Card, Type, Trip. Ask from Insights carries the filters.
   - KPI tiles.
   - Worth-a-look cards (dismissable).
   - Fig. 1 waterfall, Fig. 2 day rings, Fig. 3 beeswarm, Fig. 4 six months.
@@ -279,13 +282,13 @@ Every list screen needs an empty state (one line plus one action), a loading ske
 |---|---|---|
 | Today | ink hero + pace, then review / next 10 days / wealth, treemap, recent | digest card next to the hero |
 | Review | table | detail pane for the selected row |
-| Activity | filter bar (one row, wraps), applied chips, summary strip, day-grouped table; chips open popovers | detail pane |
-| Settings | one 680px column of the same sections | — |
+| Activity | filter rail (248px, can hide) beside the table; above the table: count, applied chips, Clear all, Sort | detail drawer (380px) over the page when a row is picked |
+| Settings | one 680px column of the same sections; Categories and Merchant rules open centred dialogs (`DeskSetCategories`, `DeskSetRules`) | — |
 | Plan | segmented Budgets/Recurring/Trips/Owed; budgets table (category, spent, limit, pace bar, status, edit) | trip card, next 10 days, "Other has no budget" |
 | Plan › Owed | KPI row (owed, overdue, oldest, back this month); table (date, spend, from, paid, yours, due, status) | owed by person, credits that might match |
 | Receipt | photo viewer (hovered row highlights its line on the image) and items table side by side | — |
-| Wealth | ink hero with wide GainChart; holdings table with XIRR bars | Add holding / Import CSV, allocation vs target, NPS cap, price sources with dates |
-| Insights | KPI row; Fig. 1 + Fig. 2 side by side; Fig. 3 full width | worth-a-look cards, top merchants |
+| Wealth | ink hero with wide GainChart; holdings table with XIRR bars | Add holding / Import CSV, allocation vs target, NPS cap, SIPs schedule, price sources with dates |
+| Insights | filter bar; KPI row; Fig. 1 + Fig. 2 side by side; Fig. 3 full width | worth-a-look cards, top merchants |
 | Ask | thread at max 760px, input pinned at the bottom | suggested questions, earlier questions, AI usage and privacy note |
 
 ## 7. Data model (Drizzle)
@@ -425,7 +428,7 @@ Remaining dependencies:
 
 ## 14. Receipt reading
 
-Read a receipt into items, give each item a category, and split the transaction by category. Boards: `RcCapture`, `RcCrop`, `RcReading`, `RcResult`, `RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`, `RcSaved`, `RcActivity`, `DeskReceipt`, `RcComponents`, and a `…Dark` board for each.
+Read a receipt into items, give each item a category, and split the transaction by category. Boards: `RcCapture`, `RcCrop`, `RcReading`, `RcResult`, `RcLowConf`, `RcEdit`, `RcFailed`, `RcManual`, `RcSaved`, `DeskReceipt`, `RcComponents`, and a `…Dark` board for each.
 
 **Flow**
 
@@ -439,7 +442,7 @@ Read a receipt into items, give each item a category, and split the transaction 
 5. **Edit** (`RcEdit`). Select lines, then Merge (sums amounts, keeps the first name) or Delete. Swipe a line to delete it, with undo. Add a missed item: name, amount, category.
 6. **Failed** (`RcFailed`). Three causes with one line each: unreadable, not a receipt, AI busy or over the daily cap. Primary action "Enter items by hand" opens `RcManual`. Retry stays available. The images are kept.
 7. **AI off** (`RcManual`). Same screen as Result with manual rows only, and one quiet line: "Receipt reading is off on this server. Add items by hand." Photos can still be attached. Un-itemised money stays in the transaction's own category ("₹X not itemised · Stays in Food").
-8. **Saved** (`RcSaved`, `RcActivity`). Detail shows the split bar and item groups. Activity filtered by a category shows only that category's part of a split row ("₹210 of ₹2,340"), with a small split bar. Remove split puts the full amount back in one category.
+8. **Saved** (`RcSaved`, `ActFiltered`). Detail shows the split bar and item groups. Activity filtered by a category shows only that category's part of a split row ("₹210 of ₹2,340"), with a small split bar. Remove split puts the full amount back in one category.
 
 **Rules**
 
@@ -447,7 +450,6 @@ Read a receipt into items, give each item a category, and split the transaction 
 - Budgets, Insights and Activity totals use splits when they exist.
 - Editing the transaction amount after a split asks to re-check the split.
 - **Privacy line**, on receipt capture: "Photos stay on your server. Kharcha reads the text there, removes card, account and UPI numbers, and sends only the remaining text to the AI service."
-  - What it means: the cropped photo goes to the AI service as it is. Kharcha drops any digit run that looks like a card number and any UPI ID from the model output before saving items, and stores the photo itself only on the VPS. It cannot stop the AI service from seeing what is in the photo, so the copy tells you to crop.
 - **Offline:** saved items and photos are viewable. Read, Save, Merge and Delete are disabled, with the standard offline line from §9. See §13 on this reading of the brief.
 - **Empty:** a transaction without a receipt shows only the Add receipt entry on Detail.
 
@@ -506,29 +508,42 @@ Mark part or all of a spend as money coming back, track it until it does, and co
 
 ## 16. Activity
 
-Boards: `History`, `ActFiltered` (filters applied, summary open), `ActCustomRange`, `ActFilter`, `ActDate`, `ActDateNative`, `ActCategory`, `ActAmount`, `ActAmountError`, `ActSort`, `DeskHistory`, `DeskActDate`, each with a `…Dark` board.
+Boards: `History`, `ActFiltered` (filters applied, summary open), `ActCustomRange`, `ActFilter` (category), `ActFilterDate`, `ActFilterAmountError`, `ActSort`, `ActDate` (custom range calendar), `DeskHistory`, `DeskHistoryDetail`, `DeskHistoryNoRail`, with `…Dark` boards.
 
-**Header:** title, then the `MonthStepper` chip on the right ("October 2026", ‹ ›). Tapping the label opens the date sheet.
-- Picking Custom (or Today, This week, Last 7 days, This year) replaces the chip with the range ("12–14 Oct") and drops ‹ ›. The range also shows as an applied chip in row 2 (`ActCustomRange`).
-- Picking This month or Last month, removing the range chip, or Clear brings back the month label and ‹ ›.
+The model is Spinny's listing page: filters are rarely changed, so they cost one row on the list and live on their own screen.
 
-**Filter bar**
+**Header:** title, a search icon, and the `MonthStepper` chip ("October 2026", ‹ ›).
+- The search icon swaps the header for a search field with Cancel. Search is not a filter pill.
+- A range other than a whole month replaces the chip with the range ("12–14 Oct"), drops ‹ ›, and adds an applied pill (`ActCustomRange`). This month, Last month, removing that pill, or Clear all bring ‹ › back.
 
-- **Row 1** scrolls sideways (fade on the right edge): Needs review (toggle, count), Filter · n, Sort (shows the current order), then Category, Card, Type, Trip, Amount. A chip with a value shows the value in ink fill.
-- **Row 2:** applied filters as removable chips, then Clear. Hidden when nothing is applied. The default month is not an applied filter; a custom range is.
-- **Filter · n** opens one sheet with every filter: date presets, category, card, type (expense, income, investment, transfer), trip, amount presets, sort.
-- **Category sheet:** search, Spending and Income groups, colour dot, count, multi-select.
-- **Amount sheet:** Under ₹500, ₹500–5K, ₹5K–25K, Over ₹25K, Custom (min and max). Min above max shows an inline error and disables Show.
-- **Date sheet:** Today, This week, Last 7 days, This month, Last month, This year, Custom. Custom shows the range calendar; `ActDateNative` shows the fallback.
-- **State lives in the address**, so back, reload and shared links keep it: `/activity?from=2026-10-01&to=2026-10-15&cat=food,health&card=2047&type=expense&trip=odisha&min=100&max=2000&sort=amount-desc&review=1`. No saved filters.
+**Filter bar:** one row, sticky under the header while the list scrolls.
+- `Filter` (with a count) · `Sort` · divider · applied pills, newest first, each with × · quick pills for what is not applied yet: Category, Card, Type, Needs review · `Clear all` once anything is set.
+- Quick pills open the filter screen on that filter. Needs review toggles in place.
+- No second row of chips: applied filters live in the same row, so the list starts higher.
 
-**Summary strip:** under the filters; covers exactly the rows the filters select, from one SQL query with the same `WHERE`. No raw codes such as `2026-10`.
+**Filter screen** (`ActFilter`), full screen:
+- Left rail: Sort, Date, Category, Card, Type, Trip, Amount, Status. A count shows on each one that is set.
+- Right pane: the options for the selected filter, as 48px rows with a checkbox (multi) or radio (single). Category has a search field and Spending and Income groups with colour dots and counts.
+- **Date:** Today, This week, Last 7 days, This month, Last month, This year, Custom range. Custom shows From and To fields and "Pick on a calendar" (`ActDate`).
+- **Amount:** Under ₹500, ₹500–5K, ₹5K–25K, Over ₹25K, Custom with min and max. Min above max shows the error inline and disables Show (`ActFilterAmountError`).
+- **Status:** Needs review, Has a receipt, Split, Reimbursable.
+- Selected chips sit under the header, each removable. Clear all resets to This month, Newest first.
+- Changes apply when you tap "Show N transactions"; N updates live. Closing with ✕ discards them.
+- **Sort** also has a small sheet (`ActSort`) from the bar's Sort pill.
+
+**State lives in the address**, so back, reload and shared links keep it: `/activity?from=2026-10-12&to=2026-10-14&cat=food,health&card=2047&type=expense&trip=odisha&min=100&max=2000&status=review&sort=amount-desc`. No saved filters.
+
+**Summary strip:** under the filter bar; covers exactly the rows the filters select, from one SQL query with the same `WHERE`. No raw codes such as `2026-10`.
 
 **Rows:** 12-hour time; category dot and name (Other stays `field` grey); card. Card bills (CRED, "HDFC Credit Card" payments) and self transfers: muted amount and a `Card bill` or `Transfer` tag. The first time one shows, a dismissable line under it: "Not counted as spend; the purchases already are." Split rows show the mini split bar and the first two categories ("Food, Shopping +2"). Reimbursable rows: see §15.
 
-**Desktop:** filters fit one row and wrap. Chips open popovers; the date popover has presets on the left and the calendar on the right. Rows select into the detail pane. Visible focus ring on every control.
+**Desktop** (`DeskHistory`):
+- Header: title, search (`/` focuses it), month stepper.
+- Left of the table, the `FilterRail`: the same filters as sections that open and close, each showing its value when closed ("Food", "Any"). Changes apply live; no Show button. The rail can hide; then a `Filters · n` pill appears in the toolbar (`DeskHistoryNoRail`).
+- Above the table: result count, applied chips with ×, Clear all, and a Sort select.
+- Picking a row opens a 380px detail drawer over the right side (`DeskHistoryDetail`); Esc or ✕ closes it.
 
-**States:** empty filter result: "Nothing matches these filters." with Clear. Error: "Couldn't load transactions." with Retry. Offline: rows already loaded stay visible; filters still work on them; Delete and swipe are disabled.
+**States:** empty filter result: "Nothing matches these filters." with Clear all. Error: "Couldn't load transactions." with Retry. Offline: rows already loaded stay visible; filters still work on them; Delete and swipe are disabled.
 
 ## 17. Today
 
@@ -542,17 +557,18 @@ Boards: `Main`, `MainDark`, `TodayHero` (four budget states, light and dark), `T
 
 ## 18. Settings
 
-Boards: `Settings` (AI on, installed, mini online), `SettingsOff` (AI off, not installed, mini offline), `SettingsPicker`, `SetModel`, `SetCatDelete`, `DeskSettings`, each with a dark board.
+Boards: `Settings` (AI on, installed, mini online), `SettingsOff` (AI off, not installed, mini offline), `SetModel`, `SetCategories`, `SetCategoriesPicker`, `SetCatDelete`, `SetRules`, `DeskSettings`, `DeskSetCategories`, `DeskSetRules`, each with a dark board.
 
 - **Sync:** Mac mini row with the pill state; "Last new transaction 2 h ago" as its own row. **Sync now:** requested ("Asked the mini to check for new SMS.") → waiting ("Usually under a minute.") → synced ("Synced · 3 new transactions") or mini offline ("The mini is offline. Sync runs when it's back.").
   - Server: `POST /api/sync` stores a request. The mini calls `GET /api/mini/poll` every 30 s; the call records `last_seen_at` and returns any request. Online = seen in the last 2 minutes. "Offline since" = `last_seen_at`. "Last new transaction" = newest ingested row.
-- **App:** Install (Installed ✓, or Install plus the iPhone line when not installed), Theme (Light / Dark / System), Export CSV.
+- **App:** Install (Installed ✓, or Install plus the iPhone line when not installed), Theme (Light / Dark / System), Export CSV, Sign out.
 - **AI off:** one quiet card: "AI is off. Ask, the weekly digest and receipt reading need the server switch." Nothing else in the section.
 - **AI on:** Model (`ModelSelect` with presets: name, provider, rough cost), Daily call cap (50 / 100 / 200 / 500), usage bar "12 of 200 used today".
   - Cost per call = OpenRouter `/api/v1/models` prompt and completion prices × a typical call (1,500 tokens in, 300 out) × the day's USD→INR rate. Recompute daily; show "about".
-- **Categories:** one line of explanation; Spending and Income groups; per row: drag handle, colour swatch (opens `SwatchPicker`), name in an editable field (dashed underline), "412 transactions", delete. Other and Other income cannot be deleted.
+- **Data:** two rows, "Categories 14 ›" and "Merchant rules 23 ›". Each opens a sheet on phone and a centred dialog on desktop. The lists stay off the page.
+- **Categories** (sheet): Add in the header; Spending and Income groups; per row: drag handle, colour swatch (opens `SwatchPicker`), name in an editable field (dashed underline), "412 transactions", delete. Other and Other income cannot be deleted.
   - Delete asks first (`SetCatDelete`): "Its 9 transactions move to Other. Its budget and 1 merchant rule are removed."
-- **Merchant rules:** unchanged.
+- **Merchant rules** (sheet): search field, then rows: raw match in mono, clean name, category dot, edit.
 
 ## 19. Motion
 
@@ -567,3 +583,48 @@ Use `motion` springs. Every animation is off under `prefers-reduced-motion: redu
 | Pull to refresh | Threshold 72px. The ring fills with distance; past the threshold the arrow flips and a light haptic fires where supported. The list holds at 56px while refreshing, then springs back. Done or failed shows for 1.2 s. |
 | Filter chips | Press scales to 0.96. A chip that gains a value cross-fades its label. |
 
+## 20. AI look
+
+AI gets one mark and one fill, used only where AI acts. Boards: `ActComponents` (AI section), `Main`, `DeskHome`, `Ask`, `DeskAsk`, `Insights`, `DeskInsights`, `Settings`.
+
+- **Spark:** a four-point star with a small companion star. Filled with the AI gradient (`ai-1` → `ai-2` → `ai-3`), or white on the AI fill.
+- **AI fill:** `linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8)`, white text (6.3:1 or better at every stop), soft `ai-glow` shadow. It is the same in both modes.
+- **Ask button:** a pill with the AI fill, spark and "Ask"; on desktop it shows the `/` shortcut. The fill drifts slowly (`ai-shift`, 6 s, alternate). Reduced motion stops it.
+- **Insights:** the tab bar and sidebar icons carry the spark. Insight cards stay plain: their numbers come from SQL, not the model.
+- **AI-written content:** the weekly digest gets a 4px AI strip on top and a "Written by AI" tag; Ask answers get a gradient edge (4px on top, 1px elsewhere). "Ask a follow-up" uses `ai-text`.
+- **Settings › AI:** the section title carries the spark.
+- **Tokens:** `ai-1/2/3` light `#2F4A7A #5B3FC4 #8A3FA8`, dark `#8FA6D8 #A58CF2 #D08AE6`; `ai-text` light `#5B3FC4` (6.8:1 on card), dark `#B9A6F7` (7.9:1); `ai-glow` light `rgba(91,63,196,.38)`, dark `rgba(150,120,255,.42)`.
+
+
+## 21. Live audit, 19 Oct 2026
+
+Checked kharcha.chetan-vps.tech at 1512px, 1200px and 390px against the canvas. The canvas now holds only current boards, grouped by area (phone row, then desktop row) with every dark board in one section at the end.
+
+**Taken from live into the boards:** Today wealth card (allocation bar, next SIP), Wealth SIPs schedule, Settings › Data sheets and Sign out, the Insights filter scope, desktop Add/Edit dialog, Review empty state.
+
+**Bugs on live** (the boards are already right):
+
+| Where | What is wrong | Fix |
+|---|---|---|
+| Sidebar, every desktop page | Sync pill truncates: "last new 16 h ag" | Pill reads "Mini online · 3 min ago". "Last new" lives in Settings › Sync |
+| Today hero, 1200px | Month wraps to two lines; sync pill overlaps the chevrons | `DeskHome` header: month stepper left, Ask and Add right; no pill in the hero |
+| Activity table, desktop | Time wraps ("7:47 / PM") | `white-space: nowrap` and a fixed time column (`DeskHistory`) |
+| Activity date dialog, Merchant rules dialog | See-through surface; the page shows through | Solid `--card` surface over `--scrim` |
+| Add, desktop | Phone keypad in a modal; a control shows under Save | `DeskAdd` |
+| Edit | "From SMS · 2026-10-18" | "From SMS · 18 Oct, 7:47 PM" (`format.ts`) |
+| Wealth hero | "−₹71,217 gain" | "−₹71,217 · −4.5%" under a "Gain" label |
+| Ask answer | "Based on 1 transactions"; "SCOPE NOT RECORDED" in the meta line | Plural rule; omit the scope when it is missing |
+| Detail | "Parsed by regex" on phone, "Regex" on desktop | One casing: "Regex" |
+| Digest | "of your total layout"; "Keep it up with 0 rows waiting" | Prompt: say "spend"; drop the review line at 0 |
+| Plan tabs | Empty states show a link and a button for the same action; empty "Coming up" card; Trips is full width, the others two-thirds | One action per empty state; hide empty cards; one column width |
+| Review | Bare "Nothing needs review." | `ReviewEmpty`, `DeskReviewEmpty` |
+| Activity and Insights, phone | Filter chips wrap to three rows | One-row filter bar plus the filter screen (§16) |
+| Settings, phone | First paint shows "Not seen yet · Loading" | Render mini status on the server |
+| Ask buttons | Dark pill on Insights, white pill on Today | Gradient Ask pill everywhere (§20) |
+| Sidebar | No review count | Count beside Review |
+| Merchants | "Flipkar" from the SMS shows up in the digest and links | Merchant rename (Detail rename note) applies before the digest runs |
+
+**Open choices** (live and boards differ on purpose; decide before building):
+
+- **Wealth freshness.** Decided: statements. Keep "Statement of 9 Oct · not live" and XIRR "—" until a NAV job exists; the boards' daily-NAV hero is the later state.
+- **Where it went on phone.** Live shows a list; the boards show the treemap used on desktop.

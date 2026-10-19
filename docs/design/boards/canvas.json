@@ -295,14 +295,6 @@
    "title": "Receipt · saved",
    "is_interactive": true
   },
-  "RcActivity.dc.html": {
-   "x": 3760,
-   "y": 15000,
-   "w": 390,
-   "h": 860,
-   "title": "Activity · split rows",
-   "is_interactive": true
-  },
   "RcCaptureDark.dc.html": {
    "x": 0,
    "y": 17100,
@@ -364,14 +356,6 @@
    "w": 390,
    "h": 1260,
    "title": "Receipt · saved · dark",
-   "is_interactive": true
-  },
-  "RcActivityDark.dc.html": {
-   "x": 3760,
-   "y": 17100,
-   "w": 390,
-   "h": 860,
-   "title": "Activity · split rows · dark",
    "is_interactive": true
   },
   "RbMark.dc.html": {
@@ -522,8 +506,8 @@
    "x": 940,
    "y": 25720,
    "w": 390,
-   "h": 1160,
-   "title": "Filter · all",
+   "h": 844,
+   "title": "Filters · category",
    "is_interactive": true
   },
   "ActDate.dc.html": {
@@ -531,39 +515,7 @@
    "y": 25720,
    "w": 390,
    "h": 844,
-   "title": "Date range",
-   "is_interactive": true
-  },
-  "ActDateNative.dc.html": {
-   "x": 1880,
-   "y": 25720,
-   "w": 390,
-   "h": 844,
-   "title": "Date fields fallback",
-   "is_interactive": true
-  },
-  "ActCategory.dc.html": {
-   "x": 2350,
-   "y": 25720,
-   "w": 390,
-   "h": 1100,
-   "title": "Category",
-   "is_interactive": true
-  },
-  "ActAmount.dc.html": {
-   "x": 2820,
-   "y": 25720,
-   "w": 390,
-   "h": 844,
-   "title": "Amount",
-   "is_interactive": true
-  },
-  "ActAmountError.dc.html": {
-   "x": 3290,
-   "y": 25720,
-   "w": 390,
-   "h": 844,
-   "title": "Amount · error",
+   "title": "Custom range calendar",
    "is_interactive": true
   },
   "ActSort.dc.html": {
@@ -594,8 +546,8 @@
    "x": 940,
    "y": 27240,
    "w": 390,
-   "h": 1160,
-   "title": "Filter · dark",
+   "h": 844,
+   "title": "Filters · category · dark",
    "is_interactive": true
   },
   "ActDateDark.dc.html": {
@@ -603,31 +555,7 @@
    "y": 27240,
    "w": 390,
    "h": 844,
-   "title": "Date range · dark",
-   "is_interactive": true
-  },
-  "ActDateNativeDark.dc.html": {
-   "x": 1880,
-   "y": 27240,
-   "w": 390,
-   "h": 844,
-   "title": "Date fields · dark",
-   "is_interactive": true
-  },
-  "ActCategoryDark.dc.html": {
-   "x": 2350,
-   "y": 27240,
-   "w": 390,
-   "h": 1100,
-   "title": "Category · dark",
-   "is_interactive": true
-  },
-  "ActAmountDark.dc.html": {
-   "x": 2820,
-   "y": 27240,
-   "w": 390,
-   "h": 844,
-   "title": "Amount · dark",
+   "title": "Custom range calendar · dark",
    "is_interactive": true
   },
   "ActSortDark.dc.html": {
@@ -642,17 +570,8 @@
    "x": 0,
    "y": 28760,
    "w": 1440,
-   "h": 1100,
+   "h": 1000,
    "title": "Desktop · activity",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "DeskActDate.dc.html": {
-   "x": 1520,
-   "y": 28760,
-   "w": 1440,
-   "h": 1100,
-   "title": "Desktop · date popover",
    "expand": "fill",
    "is_interactive": true
   },
@@ -660,17 +579,8 @@
    "x": 0,
    "y": 29980,
    "w": 1440,
-   "h": 1100,
+   "h": 1000,
    "title": "Desktop · activity · dark",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "DeskActDateDark.dc.html": {
-   "x": 1520,
-   "y": 29980,
-   "w": 1440,
-   "h": 1100,
-   "title": "Desktop · date popover · dark",
    "expand": "fill",
    "is_interactive": true
   },
@@ -685,26 +595,26 @@
    "x": 1520,
    "y": 31200,
    "w": 1640,
-   "h": 2080,
+   "h": 2400,
    "title": "Components · activity and settings · light and dark"
   },
   "TodayHero.dc.html": {
    "x": 0,
-   "y": 33880,
+   "y": 34200,
    "w": 1740,
    "h": 960,
    "title": "Hero · budget states"
   },
   "TodaySpec.dc.html": {
    "x": 1820,
-   "y": 33880,
+   "y": 34200,
    "w": 1640,
    "h": 1000,
    "title": "Labels, spacing, safe area"
   },
   "MainDark.dc.html": {
    "x": 3540,
-   "y": 33880,
+   "y": 34200,
    "w": 390,
    "h": 1960,
    "title": "Today · dark",
@@ -712,7 +622,7 @@
   },
   "DeskHomeNoBudget.dc.html": {
    "x": 0,
-   "y": 35960,
+   "y": 36280,
    "w": 1440,
    "h": 1000,
    "title": "Desktop · no budget",
@@ -721,7 +631,7 @@
   },
   "DeskHomeDark.dc.html": {
    "x": 1520,
-   "y": 35960,
+   "y": 36280,
    "w": 1440,
    "h": 1000,
    "title": "Desktop · today · dark",
@@ -730,7 +640,7 @@
   },
   "DeskHomeNoBudgetDark.dc.html": {
    "x": 3040,
-   "y": 35960,
+   "y": 36280,
    "w": 1440,
    "h": 1000,
    "title": "Desktop · no budget · dark",
@@ -739,7 +649,7 @@
   },
   "Settings.dc.html": {
    "x": 0,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "Settings",
@@ -747,7 +657,7 @@
   },
   "SettingsOff.dc.html": {
    "x": 470,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "AI off · not installed · mini offline",
@@ -755,7 +665,7 @@
   },
   "SettingsPicker.dc.html": {
    "x": 940,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "Colour picker",
@@ -763,7 +673,7 @@
   },
   "SetModel.dc.html": {
    "x": 1410,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 844,
    "title": "Model picker",
@@ -771,7 +681,7 @@
   },
   "SetCatDelete.dc.html": {
    "x": 1880,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 844,
    "title": "Delete category",
@@ -779,7 +689,7 @@
   },
   "SettingsDark.dc.html": {
    "x": 2350,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "Settings · dark",
@@ -787,7 +697,7 @@
   },
   "SettingsOffDark.dc.html": {
    "x": 2820,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "AI off · dark",
@@ -795,7 +705,7 @@
   },
   "SettingsPickerDark.dc.html": {
    "x": 3290,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 2300,
    "title": "Colour picker · dark",
@@ -803,7 +713,7 @@
   },
   "SetModelDark.dc.html": {
    "x": 3760,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 844,
    "title": "Model picker · dark",
@@ -811,7 +721,7 @@
   },
   "SetCatDeleteDark.dc.html": {
    "x": 4230,
-   "y": 37560,
+   "y": 37880,
    "w": 390,
    "h": 844,
    "title": "Delete category · dark",
@@ -819,7 +729,7 @@
   },
   "DeskSettings.dc.html": {
    "x": 0,
-   "y": 39980,
+   "y": 40300,
    "w": 1440,
    "h": 2200,
    "title": "Desktop · settings",
@@ -828,7 +738,7 @@
   },
   "DeskSettingsDark.dc.html": {
    "x": 1520,
-   "y": 39980,
+   "y": 40300,
    "w": 1440,
    "h": 2200,
    "title": "Desktop · settings · dark",
@@ -836,7 +746,7 @@
    "is_interactive": true
   },
   "RcCrop.dc.html": {
-   "x": 4230,
+   "x": 3760,
    "y": 15000,
    "w": 390,
    "h": 844,
@@ -844,7 +754,7 @@
    "is_interactive": true
   },
   "RcCropDark.dc.html": {
-   "x": 4230,
+   "x": 3760,
    "y": 17100,
    "w": 390,
    "h": 844,
@@ -859,20 +769,71 @@
    "title": "Activity · custom range",
    "is_interactive": true
   },
-  "ActAmountErrorDark.dc.html": {
-   "x": 3760,
-   "y": 27240,
-   "w": 390,
-   "h": 844,
-   "title": "Amount · error · dark",
-   "is_interactive": true
-  },
   "ActCustomRangeDark.dc.html": {
    "x": 4230,
    "y": 27240,
    "w": 390,
    "h": 1400,
    "title": "Custom range · dark",
+   "is_interactive": true
+  },
+  "ActFilterDate.dc.html": {
+   "x": 2350,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Filters · date",
+   "is_interactive": true
+  },
+  "ActFilterDateDark.dc.html": {
+   "x": 2350,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Filters · date · dark",
+   "is_interactive": true
+  },
+  "ActFilterAmountError.dc.html": {
+   "x": 2820,
+   "y": 25720,
+   "w": 390,
+   "h": 844,
+   "title": "Filters · amount error",
+   "is_interactive": true
+  },
+  "ActFilterAmountErrorDark.dc.html": {
+   "x": 2820,
+   "y": 27240,
+   "w": 390,
+   "h": 844,
+   "title": "Filters · amount error · dark",
+   "is_interactive": true
+  },
+  "DeskHistoryDetail.dc.html": {
+   "x": 1520,
+   "y": 28760,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop activity · detail drawer",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskHistoryDetailDark.dc.html": {
+   "x": 1520,
+   "y": 29980,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop activity · detail drawer · dark",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "DeskHistoryNoRail.dc.html": {
+   "x": 3040,
+   "y": 28760,
+   "w": 1440,
+   "h": 1000,
+   "title": "Desktop activity · filters hidden",
+   "expand": "fill",
    "is_interactive": true
   }
  },
@@ -913,7 +874,6 @@
   "RcFailed.dc.html",
   "RcManual.dc.html",
   "RcSaved.dc.html",
-  "RcActivity.dc.html",
   "RcCaptureDark.dc.html",
   "RcReadingDark.dc.html",
   "RcResultDark.dc.html",
@@ -922,7 +882,6 @@
   "RcFailedDark.dc.html",
   "RcManualDark.dc.html",
   "RcSavedDark.dc.html",
-  "RcActivityDark.dc.html",
   "RbMark.dc.html",
   "RbStatus.dc.html",
   "RbShare.dc.html",
@@ -943,23 +902,14 @@
   "ActFiltered.dc.html",
   "ActFilter.dc.html",
   "ActDate.dc.html",
-  "ActDateNative.dc.html",
-  "ActCategory.dc.html",
-  "ActAmount.dc.html",
-  "ActAmountError.dc.html",
   "ActSort.dc.html",
   "HistoryDark.dc.html",
   "ActFilteredDark.dc.html",
   "ActFilterDark.dc.html",
   "ActDateDark.dc.html",
-  "ActDateNativeDark.dc.html",
-  "ActCategoryDark.dc.html",
-  "ActAmountDark.dc.html",
   "ActSortDark.dc.html",
   "DeskHistory.dc.html",
-  "DeskActDate.dc.html",
   "DeskHistoryDark.dc.html",
-  "DeskActDateDark.dc.html",
   "PtrStates.dc.html",
   "ActComponents.dc.html",
   "TodayHero.dc.html",
@@ -983,8 +933,14 @@
   "RcCrop.dc.html",
   "RcCropDark.dc.html",
   "ActCustomRange.dc.html",
-  "ActAmountErrorDark.dc.html",
-  "ActCustomRangeDark.dc.html"
+  "ActCustomRangeDark.dc.html",
+  "ActFilterDate.dc.html",
+  "ActFilterDateDark.dc.html",
+  "ActFilterAmountError.dc.html",
+  "ActFilterAmountErrorDark.dc.html",
+  "DeskHistoryDetail.dc.html",
+  "DeskHistoryDetailDark.dc.html",
+  "DeskHistoryNoRail.dc.html"
  ],
  "notes": {
   "tSystem": {
@@ -1066,14 +1022,14 @@
   },
   "tToday": {
    "x": 0,
-   "y": 33580,
+   "y": 33900,
    "text": "Today fixes",
    "kind": "title1",
    "maxW": 4480
   },
   "tSet": {
    "x": 0,
-   "y": 37260,
+   "y": 37580,
    "text": "Settings",
    "kind": "title1",
    "maxW": 4620
