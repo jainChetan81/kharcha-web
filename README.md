@@ -22,7 +22,7 @@ Every page is server-rendered with live data and sent `Cache-Control: no-store`.
 
 Finance data. Two ways in:
 
-- **Public**: `https://kharcha.chetan-vps.tech` via Caddy (`deploy/kharcha.caddy`, installed to `/etc/caddy/sites.d/`). Every page and server function requires a password login: scrypt hash in `APP_PASSWORD_HASH`, HMAC-signed 90-day `HttpOnly; Secure; SameSite=Lax` cookie keyed by `SESSION_SECRET`. Login is rate-limited (5 per IP and 30 global per 15 minutes). `/api/ingest` and `/api/health` return 404 publicly. If either env var is missing, the app fails closed.
+- **Public**: `https://kharcha.chetan-vps.tech` via Coolify's Traefik proxy. Every page and server function requires a password login: scrypt hash in `APP_PASSWORD_HASH`, HMAC-signed 90-day `HttpOnly; Secure; SameSite=Lax` cookie keyed by `SESSION_SECRET`. Login is rate-limited (5 per IP and 30 global per 15 minutes). `/api/ingest`, `/api/health`, `/api/jobs` and `/api/mini` return 403 publicly (Traefik rule `/data/coolify/proxy/dynamic/kharcha-guard.yaml`). If either env var is missing, the app fails closed.
 - **Tailnet**: `https://vps.bullhead-mine.ts.net:8790` (`tailscale serve`). Same login. The mini pushes to `/api/ingest` here with `INGEST_TOKEN`.
 
 Log out everywhere: change `SESSION_SECRET` and restart. Change password: `printf %s 'new password' | node --experimental-strip-types scripts/hash-password.ts`, put the output in `APP_PASSWORD_HASH`, restart.
@@ -47,24 +47,22 @@ npm run build
 
 ## Deploy (VPS)
 
-Live since 2026-10-15:
+Coolify on the VPS builds `main` with Railpack (no Dockerfile) since 2026-10-20. Live since 2026-10-15.
 
-- `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Caddy handles TLS)
-- `https://vps.bullhead-mine.ts.net:8790` (tailnet)
+- Push or merge to `main`: Coolify GitHub App `chetan-vps-coolify` deploys it.
+- Pull requests: Coolify deploys a preview at `https://kharcha-<pr>.chetan-vps.tech` and comments its URL on the PR. Closing the PR deletes it. Previews get the same secrets and login, and their own empty database.
+- `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Traefik handles TLS)
+- `https://vps.bullhead-mine.ts.net:8790` (tailnet; Tailscale Serve to `127.0.0.1:8790`)
 
-Login is on. Data: `/var/lib/kharcha-web/kharcha.db` (mode 600). Secrets: `/etc/kharcha-web/env` (root:chetan 640) holds `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`.
+Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`.
 
-Receipt reading runs OCR on the VPS and sends only redacted text to OpenRouter. It needs `sudo apt install tesseract-ocr`; without it receipts fail as unreadable and nothing is sent.
+Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. The Railpack image does not install it yet, so receipt OCR is off in the Coolify container.
 
-First install, from the Mac (already done):
+Job timers (`kharcha-web-job-*.timer`) run on the VPS host and POST to `127.0.0.1:8790` with `INGEST_TOKEN`.
 
-1. On the VPS, create `/etc/kharcha-web/env` (root:chetan, 640) containing `INGEST_TOKEN=<openssl rand -hex 32>`.
-2. Run `bash deploy/release.sh`. It installs the units, `/usr/local/lib/kharcha-web/activate.sh`, then enables the autodeploy timer once the first release is healthy. Needs passwordless sudo for `chetan` (same as odisha-travel).
-3. On the VPS, run `sudo tailscale serve --bg --https=8790 http://127.0.0.1:8790`.
+Operate: logs, redeploy and rollback in the Coolify dashboard (app `kharcha-web`). Health: `curl https://vps.bullhead-mine.ts.net:8790/api/health`. Nightly `vps-backup` copies the database and files to R2.
 
-Operate: `systemctl status kharcha-web`, `journalctl -u kharcha-web`, `curl https://vps.bullhead-mine.ts.net:8790/api/health`. Backup: `sqlite3 /var/lib/kharcha-web/kharcha.db ".backup /tmp/kharcha.bak"`.
-
-Routine deploys: merge to `main`. The VPS timer builds and activates within about 3 minutes. Unit and script changes need `release.sh` again.
+Legacy: `deploy/` holds the retired `/srv/kharcha-web` + Caddy release scripts. Their units are disabled, not deleted, as a rollback path.
 
 Connect the mini (in the kharcha-mini repo, never commit these values):
 
