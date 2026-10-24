@@ -68,9 +68,9 @@ export function PullRefresh() {
   return (
     <>
       <motion.div aria-hidden style={{ y, opacity }} className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-40 flex justify-center desk:hidden">
-        <span className="flex size-9 items-center justify-center rounded-full border border-rule bg-card text-ink shadow-[0_2px_8px_rgba(28,34,48,0.12)]">
+        <span className="flex size-9 items-center justify-center rounded-full border border-rule bg-card text-ink shadow-popover">
           <motion.span style={{ rotate }} className="flex">
-            <span className={busy ? "flex animate-spin" : "flex"}><RefreshCw size={18} strokeWidth={1.75} /></span>
+            <span className={busy ? "flex animate-spin motion-reduce:animate-none" : "flex"}><RefreshCw size={18} strokeWidth={1.75} /></span>
           </motion.span>
         </span>
       </motion.div>

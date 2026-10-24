@@ -74,7 +74,7 @@ export function ReviewDeck({
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.16}
           onDragEnd={dragEnd}
-          className="relative flex flex-col gap-4 rounded-hero border border-rule bg-card p-5 shadow-[0_8px_24px_rgba(28,34,48,0.08)]"
+          className="relative flex flex-col gap-4 rounded-hero border border-rule bg-card p-5 shadow-card"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -83,7 +83,7 @@ export function ReviewDeck({
                 {shortDate(row.date)} · {row.accountLast4 ? `Card ${card(row.accountLast4)}` : "Manual"}
               </p>
             </div>
-            <strong className="shrink-0 font-serif text-[28px] font-medium">{money(row.amount)}</strong>
+            <strong className="shrink-0 font-serif text-[26px] font-medium">{money(row.amount)}</strong>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -131,7 +131,7 @@ export function ReviewDeck({
                 <span>Source SMS</span>
                 <span>{smsOpen ? "Hide" : "Show"}</span>
               </button>
-              {smsOpen && <p className="m-0 rounded-[8px] bg-sunken p-3 font-mono text-[12.5px] leading-5 text-ink-2">{row.rawText}</p>}
+              {smsOpen && <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">{row.rawText}</p>}
             </div>
           )}
 
@@ -184,7 +184,7 @@ export function ReviewDeck({
         </motion.article>
       </div>
 
-      <div className="flex flex-col gap-2.5 pt-4 pb-7">
+      <div className="flex flex-col gap-2.5 pt-4 pb-[max(28px,env(safe-area-inset-bottom))]">
         <span className="text-center text-xs text-ink-3">Swipe right to confirm · left to skip</span>
         <div className="grid grid-cols-3 gap-2.5">
           <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-[52px] px-2 text-base">

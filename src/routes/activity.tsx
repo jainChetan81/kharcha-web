@@ -154,7 +154,7 @@ function Activity() {
         <span className="sr-only">Search transactions</span>
         <input ref={searchRef} aria-label="Search transactions" placeholder="Merchant, category, SMS text" value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-3" />
         {query && <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="flex size-9 shrink-0 items-center justify-center text-ink-3"><X size={16} /></button>}
-        <kbd className="hidden rounded-[4px] border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
+        <kbd className="hidden rounded-mark border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
       </label>
       <button type="button" onClick={() => { setSearchOpen(false); setQuery(""); }} className="min-h-11 shrink-0 px-2 text-sm font-medium text-brand desk:hidden">Cancel</button>
     </div>
@@ -241,7 +241,7 @@ function Activity() {
             ["Status", active.needsReview ? "Needs review" : active.excluded ? "Not counted" : "Reviewed"],
           ].map(([label, value]) => <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-sm"><dt className="text-ink-2">{label}</dt><dd className="m-0 truncate text-right font-medium">{value}</dd></div>)}
         </dl>
-        {active.rawText && <p className="m-0 rounded-[8px] bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2">{active.rawText}</p>}
+        {active.rawText && <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 break-words [overflow-wrap:anywhere] text-ink-2">{active.rawText}</p>}
         <div className="flex items-center justify-between gap-3 text-[13px] text-ink-2"><span className="truncate">{active.merchant} this month</span><strong className="shrink-0 text-ink">{money(merchantTotal)} · {merchantRows.length} {merchantRows.length === 1 ? "row" : "rows"}</strong></div>
         <Button variant="danger" disabled={!online} onClick={() => remove(active)}>Delete</Button>
       </section>}
@@ -287,7 +287,7 @@ function ActivityRow({ row, color, splitOnly, active, swiped, canDelete, onSelec
         <button type="button" onClick={onSelect} className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-sm text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid" style={active ? { background: "var(--color-brand-soft)" } : undefined}>
           <span className="w-16 shrink-0 whitespace-nowrap text-ink-3">{time(row.date)}</span>
           <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">{row.needsReview && <><span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" /><span className="sr-only">Needs review</span></>}<span className="truncate">{row.merchant}</span></span>
-          <span className="flex min-w-0 items-center gap-1.5 truncate">{row.excluded && cardBill(row) ? <span className="inline-flex items-center rounded-[4px] bg-sunken px-1.5 text-[12px] text-ink-2">Card bill</span> : <><CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />{row.category ?? "Other"}</>}</span>
+          <span className="flex min-w-0 items-center gap-1.5 truncate">{row.excluded && cardBill(row) ? <span className="inline-flex items-center rounded-mark bg-sunken px-1.5 text-[12px] text-ink-2">Card bill</span> : <><CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />{row.category ?? "Other"}</>}</span>
           <span className="whitespace-nowrap text-ink-3">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />
         </button>

@@ -86,10 +86,10 @@ export function Snackbars() {
       toastOptions={{
         unstyled: true,
         classNames: {
-          toast: "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-lg",
+          toast: "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-popover",
           title: "leading-snug",
-          actionButton: "min-h-10 px-2.5 font-semibold text-on-ink-pace",
-          cancelButton: "min-h-10 px-2.5 text-on-ink-2",
+          actionButton: "min-h-11 px-2.5 font-semibold text-on-ink-pace",
+          cancelButton: "min-h-11 px-2.5 text-on-ink-2",
         },
       }}
     />

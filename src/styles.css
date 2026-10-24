@@ -73,6 +73,16 @@
   --radius-card: 12px;
   --radius-hero: 14px;
   --radius-sheet: 20px;
+  --radius-fab: 16px;
+  --radius-inner: 8px;
+  --radius-mark: 4px;
+  --radius-dot: 2px;
+
+  --color-thumb: #FFFFFF;
+  --shadow-control: 0 1px 2px rgba(28, 34, 48, 0.14);
+  --shadow-card: 0 8px 24px rgba(28, 34, 48, 0.08);
+  --shadow-popover: 0 6px 16px rgba(28, 34, 48, 0.16);
+  --shadow-fab: 0 6px 16px rgba(28, 34, 48, 0.22);
 
   --breakpoint-tablet: 600px;
   --breakpoint-desk: 840px;
@@ -114,7 +124,10 @@
   --color-rule: #323848; --color-hairline: #282E3B; --color-field: #737A8C;
   --color-input: #12151C;
   --color-ink: #ECE8DF; --color-ink-2: #BFC2CC; --color-ink-3: #A0A4B0;
-  --color-brand: #9DB3DA; --color-on-brand: #12151C; --color-brand-soft: #243149;
+  --color-brand: #9DB3DA; --color-on-brand: #12151C; --color-brand-soft: #243149; --color-brand-deep: #C3D2EC;
+  --color-thumb: #ECE8DF;
+  --shadow-control: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-popover: 0 6px 16px rgba(0, 0, 0, 0.45); --shadow-fab: 0 6px 16px rgba(0, 0, 0, 0.5);
   --color-ai-accent: #C9A0F0;
   --color-earn: #74C595; --color-earn-soft: #1D3326;
   --color-over: #F08C76; --color-over-soft: #3A1F1A; --color-on-over: #12151C;
@@ -137,9 +150,10 @@ body {
 @layer base {
   a { color: var(--color-brand); text-decoration: none; }
   a:hover { color: var(--color-brand-deep); }
+  /* In base so text-* utilities on buttons and inputs win. */
+  input, select, button, textarea { font: inherit; }
 }
 :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
-input, select, button, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
 

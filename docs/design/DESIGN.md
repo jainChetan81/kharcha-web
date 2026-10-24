@@ -26,18 +26,18 @@ TanStack Start (SSR), React 19, Drizzle over `node:sqlite`, and Zod, as today.
 
 ## 2. Information architecture
 
-Mobile has a bottom tab bar with 5 tabs, plus the add button. Desktop (≥840px) has a sidebar with 7 items, then Settings.
+Mobile has a bottom tab bar with 5 tabs and More, plus the add button. More opens a sheet with Ask, Review, Paste SMS and Settings, so every top-level route has a persistent way in. Desktop (≥840px) has a sidebar with 7 items, then Settings.
 
 | Mobile | Desktop | Route | Boards |
 |---|---|---|---|
 | Today | Today | `/` | `Main`, `DeskHome` |
-| card on Today | Review | `/review` | `Review`, `DeskReview` |
+| card on Today, More | Review | `/review` | `Review`, `DeskReview` |
 | Activity | Activity | `/activity?…` (filters in the address, §16) | `History`, filter screen `ActFilter`, `ActSort`, `ActDate`; `DeskHistory` |
 | Plan | Plan | `/plan/budgets` · `/plan/recurring` · `/plan/trips` · `/plan/owed` | `Budgets` `Recurring` `Trips` `RbList`, `DeskPlan` `DeskOwed` |
 | Wealth | Wealth | `/wealth` | `Wealth`, `DeskWealth` |
 | Insights | Insights | `/insights` | `Insights`, `DeskInsights` |
-| header button | Ask | `/ask` | `Ask`, `DeskAsk` |
-| gear on Today | Settings | `/settings` | `Settings` |
+| header button, More | Ask | `/ask` | `Ask`, `DeskAsk` |
+| gear on Today, More | Settings | `/settings` | `Settings` |
 
 Detail and form routes:
 
@@ -125,6 +125,17 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --radius-card: 12px;
   --radius-hero: 14px;
   --radius-sheet: 20px;
+  --radius-fab: 16px;          /* add button */
+  --radius-inner: 8px;         /* segment, SMS block, small swatch */
+  --radius-mark: 4px;          /* kbd, inline tag, skeleton bar */
+  --radius-dot: 2px;           /* category square */
+
+  --color-thumb: #FFFFFF;      /* switch thumb; #ECE8DF in dark */
+  --shadow-control: 0 1px 2px rgba(28,34,48,.14);  /* selected segment, switch thumb */
+  --shadow-card: 0 8px 24px rgba(28,34,48,.08);    /* review card */
+  --shadow-popover: 0 6px 16px rgba(28,34,48,.16); /* snackbar, popover, pull ring */
+  --shadow-fab: 0 6px 16px rgba(28,34,48,.22);
+  /* Dark: shadows use rgba(0,0,0,.35–.5); same names. */
 }
 body { font-variant-numeric: tabular-nums lining-nums; }
 ```
@@ -143,6 +154,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
   --color-input: #12151C;
   --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;  --color-ink-3: #A0A4B0;
   --color-brand: #9DB3DA;  --color-on-brand: #12151C; --color-brand-soft: #243149;
+  --color-brand-deep: #C3D2EC; /* link hover, tags on brand-soft: 8.5:1 */
   --color-earn: #74C595;   --color-earn-soft: #1D3326;
   --color-over: #F08C76;   --color-over-soft: #3A1F1A; --color-on-over: #12151C;
   --color-watch: #C99A3A;  --color-watch-text: #E6B864; --color-watch-soft: #3A2F18;
@@ -159,6 +171,9 @@ body { font-variant-numeric: tabular-nums lining-nums; }
   - Primary buttons use `ink` fill with `paper` text in both modes, so they invert in dark.
   - Drawn in dark: Today, Activity, Settings, receipt reading and reimbursements (the `…Dark` boards). Port the rest with the same tokens; no screen hard-codes a hex.
   - The hero stays dark in both modes (`hero` lifts to #232937 in dark so it separates from the page).
+  - Hex exceptions: browser `theme-color` meta, the fixed AI gradient (§20) and the receipt crop canvas. Everything else is a token; no arbitrary `rounded-[…]`, `shadow-[…]` or colour classes.
+- **Spacing:** Tailwind's 4px scale only. Page gutter 20px (`px-5`), card padding 16px, sheet padding 16px, row height 56px.
+- **One look per kind:** buttons are `Button`/`ButtonLink` (`buttonClass` for anchors); inputs are `Field`; selection is `Chip` or `Segmented`; surfaces are `Card` or `Sheet`. Do not restyle them per screen.
 
 ## 4. Formatting (`src/lib/format.ts`, unit-tested)
 
@@ -210,7 +225,7 @@ All of these are on the `RcComponents` board in light and dark.
 
 ## 6. Screens
 
-Every list screen needs an empty state (one line plus one action), a loading skeleton, and an error state with retry.
+Every list screen needs an empty state (one line plus one action), a loading skeleton, and an error state with retry. Detail routes whose record is gone show "… not found" with a Back action. Forms: errors sit under the field (`Field error`), Save reads "Saving…" and is disabled while pending, success is a snackbar, failure is "Couldn't save · Retry" with the form kept.
 
 - **Today** (§17)
   - Ink hero: spend, budget state, pace chart.
@@ -396,7 +411,9 @@ Jobs run on a systemd timer next to autodeploy.
 - Targets: 44px on phones; 36px minimum for desktop buttons. Inline text links on desktop may be shorter. Measured on every board.
 - Charts get `role="img"` with an `aria-label` stating the finding.
 - Swipe actions also exist as buttons.
-- Respect `prefers-reduced-motion`; `motion` handles it.
+- Respect `prefers-reduced-motion`; `motion` handles it. CSS animations need `motion-reduce:animate-none`.
+- Text can grow to 200%: rows truncate names (`min-w-0 truncate`) and keep amounts whole; header rows wrap; long raw text wraps anywhere. No sideways page scroll at 320px.
+- Phones honour `env(safe-area-inset-*)` on top and on every bottom action bar.
 
 ## 12. Build
 
@@ -582,6 +599,8 @@ Use `motion` springs. Every animation is off under `prefers-reduced-motion: redu
 | Swipe to delete | Delete is hidden at rest. While dragging, it fades in and scales from 0.8 to 1 over the first 88px. Release past 44px: springs open to 88px with about 6% overshoot (stiffness 500, damping 22). Beyond 88px the row follows at ⅓ of the finger. Release under 44px: springs shut. A full swipe past 60% of the width deletes, with an undo snackbar. |
 | Pull to refresh | Threshold 72px. The ring fills with distance; past the threshold the arrow flips and a light haptic fires where supported. The list holds at 56px while refreshing, then springs back. Done or failed shows for 1.2 s. |
 | Filter chips | Press scales to 0.96. A chip that gains a value cross-fades its label. |
+| Buttons | Hover: fills lighten to 85%, outline and text buttons get `sunken` or `brand-soft`. Press scales to 0.97 (icon buttons 0.94). Disabled: 55% opacity, no press. Focus: 3px `brand` ring. |
+| Tabs and segments | Selected surface cross-fades in 150 ms. |
 
 ## 20. AI look
 

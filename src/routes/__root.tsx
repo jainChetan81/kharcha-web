@@ -1,11 +1,10 @@
 import { PullRefresh } from "../components/pull-refresh";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
-import { Dialog } from "radix-ui";
 import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { Pwa, setBadge } from "../components/pwa";
-import { Snackbars } from "../components/sheet";
+import { Sheet, Snackbars } from "../components/sheet";
 import { HealthProvider, useHealth } from "../components/sync-pill";
 import { Button } from "../components/ui";
 import { KEYS, useGlobalKeys } from "../keybindings";
@@ -68,31 +67,20 @@ function Layout() {
         <PullRefresh />
         <Snackbars />
         <Pwa />
-        <ShortcutsDialog open={help} onOpenChange={setHelp} />
+        {help && (
+          <Sheet title="Shortcuts" onClose={() => setHelp(false)}>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
+              {KEYS.map((k) => (
+                <div key={k.key} className="contents">
+                  <dt><kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
+                  <dd className="m-0">{k.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </Sheet>
+        )}
       </HealthProvider>
     </MotionConfig>
-  );
-}
-
-function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-sheet bg-card p-6 text-ink">
-          <Dialog.Title className="m-0 font-serif text-[22px] font-medium">Shortcuts</Dialog.Title>
-          <Dialog.Description className="sr-only">Keyboard shortcuts</Dialog.Description>
-          <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
-            {KEYS.map((k) => (
-              <div key={k.key} className="contents">
-                <dt><kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
-                <dd className="m-0">{k.label}</dd>
-              </div>
-            ))}
-          </dl>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 }
 

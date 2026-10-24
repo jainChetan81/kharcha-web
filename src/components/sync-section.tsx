@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ago, time } from "../lib/format";
 import { getSyncStatus, syncNow } from "../server/daily/sync";
 import { saveFailed } from "./sheet";
-import { SectionHead } from "./ui";
+import { Button, SectionHead } from "./ui";
 import { checkedLabel, useOnline, useSync } from "./sync-pill";
 
 type Status = Awaited<ReturnType<typeof getSyncStatus>>;
@@ -56,10 +56,10 @@ export function SyncSection({ initial }: { initial?: Status }) {
         <span className="text-right text-sm text-ink-2">{status ? checkedLabel(status.seenAt, status.lastIngestAt) : "Loading"}</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-3">
-        <button type="button" onClick={() => void ask()} disabled={!online || waiting || state === "unknown"} aria-busy={waiting} className="inline-flex min-h-11 items-center gap-1.5 rounded-button border border-ink px-3.5 text-sm font-medium whitespace-nowrap text-ink">
+        <Button variant="outline" onClick={() => void ask()} disabled={!online || waiting || state === "unknown"} aria-busy={waiting} className="min-h-11 px-3.5 text-sm whitespace-nowrap">
           {waiting && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="animate-spin motion-reduce:animate-none"><circle cx="12" cy="12" r="9" stroke="var(--color-track)" strokeWidth="2.5" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" /></svg>}
           {waiting ? (asked ? "Requested" : "Waiting") : "Sync now"}
-        </button>
+        </Button>
         <span role="status" className={`flex-[1_1_160px] text-[13px] ${msg?.tone ?? ""}`}>{msg?.text}</span>
       </div>
     </section>

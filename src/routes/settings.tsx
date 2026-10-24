@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { Button, ErrorState, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
+import { Button, buttonClass, ErrorState, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
 import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
@@ -168,7 +168,7 @@ function Settings() {
           <SectionHead id="settings-app" title="App" />
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Install app</span>
-            {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-10 text-sm" onClick={() => void promptInstall().then((result) => {
+            {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-11 text-sm" onClick={() => void promptInstall().then((result) => {
               if (result === "ios") setIos(true);
               else if (result === "installed") setInstalled(true);
               else if (result === "unavailable") snack("Install is available from your browser menu.");
@@ -180,11 +180,11 @@ function Settings() {
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Export CSV</span>
-            <a href="/api/export" className="inline-flex min-h-10 items-center rounded-button border border-ink px-3.5 text-sm font-medium text-ink">Download</a>
+            <a href="/api/export" className={buttonClass("outline", "min-h-11 text-sm")}>Download</a>
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Sign out</span>
-            <form method="post" action="/api/logout"><button type="submit" className="inline-flex min-h-10 items-center rounded-button border border-ink px-3.5 text-sm font-medium text-ink">Sign out</button></form>
+            <form method="post" action="/api/logout"><Button type="submit" variant="outline" className="min-h-11 text-sm">Sign out</Button></form>
           </div>
         </section>
 
@@ -239,14 +239,14 @@ function Settings() {
         <div className="mt-2 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
           <label className="sr-only" htmlFor="new-category-name">New category name</label>
           <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
-          <button type="button" aria-label="Colour for new category" aria-expanded={colorPicker === "__new"} disabled={!online} onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")} className="size-11 self-center rounded-[7px]" style={{ background: `var(--color-${categoryDraft.colorToken})` }} />
+          <button type="button" aria-label="Colour for new category" aria-expanded={colorPicker === "__new"} disabled={!online} onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")} className="size-11 self-center rounded-inner" style={{ background: `var(--color-${categoryDraft.colorToken})` }} />
           <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
         </div>
         {colorPicker === "__new" && <SwatchPicker label="Colours for new category" value={categoryDraft.colorToken} onChange={(token) => { setColorPicker(null); setCategoryDraft({ ...categoryDraft, colorToken: token }); }} />}
         {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
           <div className="grid grid-cols-2 gap-2.5 pt-1.5">
-            <Button variant="outline" className="min-h-11 rounded-xl" onClick={() => setDeleteTarget(null)}>Keep</Button>
-            <Button variant="danger" className="min-h-11 rounded-xl bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
+            <Button variant="outline" className="min-h-11" onClick={() => setDeleteTarget(null)}>Keep</Button>
+            <Button variant="danger" className="min-h-11 bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
           </div>
         </Sheet>}
         </div>
@@ -304,9 +304,9 @@ function CategoryItem({
     <div className="flex min-h-14 items-center gap-1">
       <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => { onDragging(true); controls.start(event); }} onPointerUp={() => onDragging(false)} onPointerCancel={() => onDragging(false)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
       <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
-        <span className="size-6 rounded-[7px]" style={{ background: `var(--color-${item.colorToken})` }} />
+        <span className="size-6 rounded-inner" style={{ background: `var(--color-${item.colorToken})` }} />
       </button>
-      <input aria-label={`${item.name} category name`} className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-focus" defaultValue={item.name} disabled={!online} onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)} />
+      <input aria-label={`${item.name} category name`} className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand" defaultValue={item.name} disabled={!online} onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)} />
       <span className="shrink-0 text-xs text-ink-3">{item.transactionCount} transactions</span>
       {!isOther && <button type="button" aria-label={`Delete ${item.name}`} disabled={!online} className="flex size-11 shrink-0 items-center justify-center text-ink-3" onClick={onDelete}><Trash2 size={18} /></button>}
     </div>

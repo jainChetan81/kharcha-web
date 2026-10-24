@@ -12,3 +12,4 @@ export const PlanIcon = () => <I><rect x="3.5" y="5" width="17" height="15" rx="
 export const WealthIcon = () => <I><path d="M3 17l6-6 4 4 8-8M15 7h6v6" /></I>;
 export const InsightsIcon = () => <I><path d="M5 20V10M12 20V4M19 20v-7" /></I>;
 export const PlusIcon = () => <I size={24} strokeWidth={2}><path d="M12 5v14M5 12h14" /></I>;
+export const MoreIcon = () => <I><circle cx="5" cy="12" r="1.25" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1.25" fill="currentColor" stroke="none" /></I>;

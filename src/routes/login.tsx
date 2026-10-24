@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
+import { Button } from "../components/ui";
 
 const MESSAGES = {
   wrong: "Wrong password.",
@@ -17,18 +19,19 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { next, error } = Route.useSearch();
+  const [signingIn, setSigningIn] = useState(false);
   return (
-    <section className="mx-auto mt-16 max-w-sm rounded-2xl bg-card p-6 shadow-sm">
+    <section className="mx-auto mt-16 max-w-sm rounded-card border border-rule bg-card p-6">
       <h1 className="text-xl font-semibold">Kharcha</h1>
       {/* Plain form post: works before hydration and without JS. */}
-      <form method="post" action="/api/login" className="mt-4 space-y-4">
+      <form method="post" action="/api/login" className="mt-4 space-y-4" onSubmit={() => setSigningIn(true)}>
         <input type="hidden" name="next" value={next ?? "/"} />
         <label className="block text-sm font-medium">
           Password
           <input name="password" type="password" autoComplete="current-password" required className="field mt-1" />
         </label>
-        <button type="submit" className="btn w-full">Sign in</button>
-        <p role="alert" className="text-sm text-spend">{error ? MESSAGES[error] : ""}</p>
+        <Button type="submit" disabled={signingIn} className="w-full">{signingIn ? "Signing in…" : "Sign in"}</Button>
+        <p role="alert" className="text-sm text-over">{error ? MESSAGES[error] : ""}</p>
       </form>
     </section>
   );
