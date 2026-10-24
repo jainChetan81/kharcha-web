@@ -44,8 +44,8 @@ export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boole
     <span className="flex min-w-0 items-center gap-1.5 truncate text-[13px] text-ink-3">
       <span className="shrink-0">{withDate ? shortDate(t.date) : time(t.date)}</span>
       <span aria-hidden>·</span>
-      <span className={cn("inline-flex min-w-0 items-center gap-1 truncate", t.excluded ? "rounded-[4px] bg-sunken px-1.5 text-ink-2" : "text-ink-2")}>
-        {tone && <i aria-hidden className="inline-block size-2 shrink-0 rounded-[2px]" style={{ background: `var(--color-${tone})` }} />}
+      <span className={cn("inline-flex min-w-0 items-center gap-1 truncate", t.excluded ? "rounded-mark bg-sunken px-1.5 text-ink-2" : "text-ink-2")}>
+        {tone && <i aria-hidden className="inline-block size-2 shrink-0 rounded-dot" style={{ background: `var(--color-${tone})` }} />}
         <span className="truncate">{label(t)}</span>
       </span>
       {t.accountLast4 && <><span aria-hidden>·</span><span className="shrink-0">{card(t.accountLast4)}</span></>}
@@ -105,9 +105,9 @@ export function LedgerRow({ t, withDate, trailing, className, color }: { t: Ledg
 
 export function DayHeader({ date, total, label }: { date: string; total: number; label?: string }) {
   return (
-    <div className="flex justify-between border-b border-ink pt-[18px] pb-1.5 text-xs tracking-[0.06em] text-ink-2 uppercase">
-      <span>{label ?? weekdayDate(date)}</span>
-      <span className="font-semibold text-ink">{money(total)}</span>
+    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-[18px] pb-1.5 text-xs tracking-[0.06em] text-ink-2 uppercase">
+      <span className="min-w-0 truncate">{label ?? weekdayDate(date)}</span>
+      <span className="shrink-0 font-semibold text-ink">{money(total)}</span>
     </div>
   );
 }

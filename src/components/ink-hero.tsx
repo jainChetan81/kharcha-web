@@ -14,8 +14,8 @@ export function InkHero({ children, className }: { children: ReactNode; classNam
 export function HeroAmount({ value, size = "md" }: { value: string; size?: "md" | "lg" }) {
   const [sign, rest] = value.startsWith("₹") ? ["₹", value.slice(1)] : ["", value];
   return (
-    <span className={cn("font-serif leading-none font-medium tracking-[-0.02em]", size === "lg" ? "text-[56px] desk:text-[64px]" : "text-[44px]")}>
-      {sign && <span className={cn("text-on-ink-2", size === "lg" ? "text-[30px] desk:text-[34px]" : "text-[26px]")}>{sign}</span>}
+    <span className={cn("inline-block font-serif leading-none font-medium tracking-[-0.02em] min-w-0 break-words", size === "lg" ? "text-[clamp(34px,11vw,44px)] desk:text-[56px]" : "text-[clamp(34px,11vw,44px)] desk:text-[44px]")}>
+      {sign && <span className={cn("text-on-ink-2", size === "lg" ? "text-[clamp(20px,6vw,26px)] desk:text-[30px]" : "text-[26px]")}>{sign}</span>}
       {rest}
     </span>
   );

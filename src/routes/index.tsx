@@ -41,12 +41,12 @@ function Today() {
   const budget = today.limit <= 0 ? "none" : today.spent > today.limit ? "over" : today.spent >= today.limit * 0.9 ? "near" : "under";
   const tone = { none: "text-on-ink-2", under: "text-on-ink-gain", near: "text-on-ink-month", over: "text-on-ink-over" }[budget];
   const hero = <InkHero className="desk:gap-5">
-    <header className="-ml-3 flex min-w-0 items-center justify-between gap-1 desk:ml-0">
+    <header className="-ml-3 flex min-w-0 flex-wrap items-center justify-between gap-2 desk:ml-0">
       <MonthSwitcher month={month} compact />
       <div className="flex shrink-0 items-center gap-0 desk:gap-3">
         <span className="hidden min-[420px]:inline-flex desk:hidden"><SyncPill onInk short /></span>
         <Link to="/settings" aria-label="Settings" className="flex size-11 items-center justify-center text-on-ink hover:text-on-ink desk:hidden"><Settings size={20} strokeWidth={1.75} /></Link>
-        <Link to="/ask" className="ai-button flex min-h-9 items-center gap-1.5 rounded-chip px-3 text-sm font-medium text-white hover:text-white"><AiMark />Ask<span className="hidden pl-1 font-mono text-xs opacity-75 desk:inline">/</span></Link>
+        <Link to="/ask" className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-sm font-medium text-white hover:text-white"><AiMark />Ask<span className="hidden pl-1 font-mono text-xs opacity-75 desk:inline">/</span></Link>
         <Link to="/add" className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-sm font-medium text-ink hover:text-ink desk:flex"><Plus size={16} />Add</Link>
       </div>
     </header>

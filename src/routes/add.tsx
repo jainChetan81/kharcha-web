@@ -1,9 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useRef } from "react";
 import { Sheet } from "../components/sheet";
 import { TxnForm } from "../components/txn-form";
+import { ErrorState, Skeleton } from "../components/ui";
 import { getCategories } from "../server/fns";
-export const Route = createFileRoute("/add")({ loader: () => getCategories(), component: Add });
+export const Route = createFileRoute("/add")({
+  loader: () => getCategories(),
+  pendingComponent: () => <Skeleton rows={6} />,
+  errorComponent: ({ error }) => {
+    const router = useRouter();
+    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load categories."} retry={() => void router.invalidate()} />;
+  },
+  component: Add,
+});
 function Add() {
   const categories = Route.useLoaderData();
   const navigate = useNavigate();

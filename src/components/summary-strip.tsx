@@ -69,23 +69,23 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
             <div key={item.category} className="grid grid-cols-[minmax(88px,1fr)_2fr_auto] items-center gap-2">
               <span className="flex min-w-0 items-center gap-1.5 truncate">
                 <i aria-hidden className="size-2 shrink-0 rounded-sm" style={{ background: tone(item.category) }} />
-                {item.category}
+                <span className="truncate">{item.category}</span>
               </span>
               <span className="h-1 overflow-hidden rounded-full bg-track">
                 <span className="block h-full rounded-full" style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }} />
               </span>
-              <strong>{money(item.total)}</strong>
+              <strong className="shrink-0">{money(item.total)}</strong>
             </div>
           ))}
           {summary.biggest && (
-            <div className="flex justify-between gap-3">
-              <span className="text-ink-2">Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}</span>
+            <div className="flex min-w-0 justify-between gap-3">
+              <span className="min-w-0 truncate text-ink-2">Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}</span>
               <strong className="shrink-0">{money(summary.biggest.amount)}</strong>
             </div>
           )}
           {summary.frequent && (
-            <div className="flex justify-between gap-3">
-              <span className="text-ink-2">Most frequent · {summary.frequent.merchant}</span>
+            <div className="flex min-w-0 justify-between gap-3">
+              <span className="min-w-0 truncate text-ink-2">Most frequent · {summary.frequent.merchant}</span>
               <strong className="shrink-0">{summary.frequent.n} rows</strong>
             </div>
           )}

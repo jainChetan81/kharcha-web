@@ -69,7 +69,7 @@ export function PaceChart({ month, points, previous, limit }: { month: string; p
       {currentDay > 1 && currentDay < days && <text x={Math.max(0, x(currentDay) - 12)} y="143" fill="var(--color-on-ink)" fontSize="10">Today</text>}
       <text x="297" y="143" fill="var(--color-on-ink-2)" fontSize="10">{days} {monthName(month, "short")}</text>
     </svg>
-    <figcaption className="mt-1 flex gap-3 text-xs text-on-ink-2">
+    <figcaption className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-on-ink-2">
       <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-month align-middle" />{monthName(month)}</span>
       {limit > 0 && <span><i className="mr-1 inline-block w-3 border-t-2 border-dotted border-on-ink-pace align-middle" />Budget pace</span>}
       <span><i className="mr-1 inline-block w-3 border-t-2 border-on-ink-2 align-middle" />{monthName(lastMonth)}</span>

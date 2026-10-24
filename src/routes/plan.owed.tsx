@@ -60,12 +60,12 @@ function OwedScreen() {
             {data.byPerson.map((p) => (
               <div
                 key={p.counterparty}
-                className="flex min-h-11 items-center justify-between text-sm"
+                className="flex min-h-11 items-center justify-between gap-2 text-sm"
               >
-                <span>
+                <span className="min-w-0 truncate">
                   {p.counterparty} · {p.count}
                 </span>
-                <strong className="font-semibold">{money(p.totalDue)}</strong>
+                <strong className="shrink-0 font-semibold">{money(p.totalDue)}</strong>
               </div>
             ))}
           </div>
@@ -99,9 +99,9 @@ function OwedScreen() {
         {data.byPerson.length > 0 && (
           <div className="flex flex-wrap gap-3 pt-1 text-sm desk:hidden">
             {data.byPerson.map((p) => (
-              <span key={p.counterparty} className="inline-flex items-center gap-1.5">
-                <span className="size-2 rounded-[2px] bg-brand" />
-                {p.counterparty} <strong className="font-semibold">{money(p.totalDue)}</strong>
+              <span key={p.counterparty} className="inline-flex min-w-0 items-center gap-1.5">
+                <span className="size-2 shrink-0 rounded-dot bg-brand" />
+                <span className="truncate">{p.counterparty}</span> <strong className="shrink-0 font-semibold">{money(p.totalDue)}</strong>
               </span>
             ))}
           </div>
@@ -141,7 +141,15 @@ function OwedScreen() {
                 <Link to="/activity" className="text-sm font-medium text-brand">
                   Mark a transaction
                 </Link>
-              ) : undefined
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setView("pending")}
+                  className="text-sm font-medium text-brand"
+                >
+                  View pending
+                </button>
+              )
             }
           />
         ) : (
@@ -169,21 +177,21 @@ function OwedScreen() {
                   className="flex flex-col gap-1 py-3 text-ink hover:bg-sunken/40 desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px] desk:items-center desk:gap-3.5 desk:py-2.5"
                 >
                   {/* Mobile Row */}
-                  <div className="flex items-baseline justify-between desk:hidden">
-                    <span className="text-[15px] font-medium">{r.merchant}</span>
-                    <strong className="text-[15px] font-semibold">
+                  <div className="flex min-w-0 items-baseline justify-between gap-2 desk:hidden">
+                    <span className="min-w-0 truncate text-[15px] font-medium">{r.merchant}</span>
+                    <strong className="shrink-0 text-[15px] font-semibold">
                       {r.status === "extra"
                         ? `+${money(r.linkedTotal - r.claimAmount)}`
                         : money(r.dueAmount)}
                     </strong>
                   </div>
 
-                  <div className="flex items-center justify-between text-[13px] text-ink-3 desk:hidden">
-                    <span>
+                  <div className="flex min-w-0 items-center justify-between gap-2 text-[13px] text-ink-3 desk:hidden">
+                    <span className="min-w-0 truncate">
                       {shortDate(r.spendDate)} · {r.counterparty}
                       {r.note ? ` · ${r.note}` : ""}
                     </span>
-                    <StatusTag tone={tagTone(r.status, r.isOverdue)}>
+                    <StatusTag tone={tagTone(r.status, r.isOverdue)} className="shrink-0">
                       {tagLabel(r.status, r.isOverdue, r.daysOld)}
                     </StatusTag>
                   </div>

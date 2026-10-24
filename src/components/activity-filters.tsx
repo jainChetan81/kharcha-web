@@ -1,4 +1,5 @@
 import { Dialog } from "radix-ui";
+import { motion, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
@@ -35,7 +36,7 @@ function FilterPill({ label, active, onClick, icon, value }: { label: string; ac
 }
 // Bar pills are brand-filled (§16); chips in the filter screen and desktop toolbar are brand-soft (§6).
 function AppliedChip({ label, remove, filled }: { label: string; remove: () => void; filled?: boolean }) {
-  return <button type="button" onClick={remove} aria-label={`Remove ${label} filter`} className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-chip px-3 text-[13px] font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}>{label}<X size={14} aria-hidden="true" /></button>;
+  return <button type="button" onClick={remove} aria-label={`Remove ${label} filter`} className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-chip px-3 text-[13px] font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}>{label}<X size={14} aria-hidden="true" /></button>;
 }
 function useDesktop() {
   const [desktop, setDesktop] = useState(false);
@@ -147,7 +148,7 @@ export function FilterToolbar({ search, trips, resultCount, onApply, onClear, on
 }
 
 function OptionRow({ label, checked, onClick, mode = "checkbox", secondary }: { label: string; checked: boolean; onClick: () => void; mode?: "checkbox" | "radio"; secondary?: string }) {
-  return <button type="button" aria-pressed={checked} onClick={onClick} className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"><span aria-hidden="true" className={`flex size-[18px] shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-[4px]"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}>{checked && <Check size={13} />}</span><span className="min-w-0 flex-1">{label}</span>{secondary && <span className="text-xs text-ink-3">{secondary}</span>}</button>;
+  return <button type="button" aria-pressed={checked} onClick={onClick} className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"><span aria-hidden="true" className={`flex size-[18px] shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-mark"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}>{checked && <Check size={13} />}</span><span className="min-w-0 flex-1 truncate">{label}</span>{secondary && <span className="shrink-0 text-xs text-ink-3">{secondary}</span>}</button>;
 }
 
 function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Partial<SearchState>) => void }) {
@@ -158,12 +159,15 @@ function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Pa
 function CategoryFields({ categories, selected, onToggle }: { categories: Category[]; selected: string[]; onToggle: (cat: Category) => void }) {
   const [catQuery, setCatQuery] = useState("");
   const filtered = categories.filter((item) => item.name.toLowerCase().includes(catQuery.toLowerCase()));
-  return <div><label className="flex min-h-12 items-center gap-2 border-b border-hairline bg-card px-3"><Search size={16} className="text-ink-3" aria-hidden="true" /><span className="sr-only">Search categories</span><input value={catQuery} onChange={(e) => setCatQuery(e.target.value)} placeholder="Search categories" aria-label="Search categories" className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></label>{(["expense", "income"] as const).map((type) => <fieldset key={type} className="m-0 border-0 p-0"><legend className="w-full bg-sunken px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-3">{type === "expense" ? "Spending" : "Income"}</legend>{filtered.filter((item) => item.type === type).map((item) => { const on = selected.includes(`${type}:${item.name}`) || selected.includes(item.name); return <button key={`${type}:${item.name}`} type="button" aria-pressed={on} onClick={() => onToggle(item)} className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"><span aria-hidden="true" className={`flex size-[18px] items-center justify-center rounded-[4px] border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}>{on && <Check size={13} />}</span><i aria-hidden="true" className="size-2.5 rounded-sm" style={{ background: `var(--color-${item.colorToken})` }} /><span>{item.name}</span></button>; })}</fieldset>)}</div>;
+  return <div><label className="flex min-h-12 items-center gap-2 border-b border-hairline bg-card px-3"><Search size={16} className="text-ink-3" aria-hidden="true" /><span className="sr-only">Search categories</span><input value={catQuery} onChange={(e) => setCatQuery(e.target.value)} placeholder="Search categories" aria-label="Search categories" className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></label>{(["expense", "income"] as const).map((type) => <fieldset key={type} className="m-0 border-0 p-0"><legend className="w-full bg-sunken px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-3">{type === "expense" ? "Spending" : "Income"}</legend>{filtered.filter((item) => item.type === type).map((item) => { const on = selected.includes(`${type}:${item.name}`) || selected.includes(item.name); return <button key={`${type}:${item.name}`} type="button" aria-pressed={on} onClick={() => onToggle(item)} className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"><span aria-hidden="true" className={`flex size-[18px] shrink-0 items-center justify-center rounded-mark border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}>{on && <Check size={13} />}</span><i aria-hidden="true" className="size-2.5 shrink-0 rounded-sm" style={{ background: `var(--color-${item.colorToken})` }} /><span className="min-w-0 truncate">{item.name}</span></button>; })}</fieldset>)}</div>;
 }
+
+// Digits and one decimal point; "." alone or "1.2.3" never reach the URL schema as NaN.
+const amountText = (raw: string) => raw.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
 
 function AmountFields({ minText, maxText, setMinText, setMaxText, draft, onPatch }: { minText: string; maxText: string; setMinText: (v: string) => void; setMaxText: (v: string) => void; draft: SearchState; onPatch: (next: Partial<SearchState>) => void }) {
   const badAmount = minText !== "" && maxText !== "" && Number(minText) > Number(maxText);
-  return <div className="space-y-4 p-3"><div className="flex flex-wrap gap-2">{[["Under ₹500", undefined, 499], ["₹500–5K", 500, 5000], ["₹5K–25K", 5001, 25000], ["Over ₹25K", 25001, undefined]].map(([label, min, max]) => <Chip key={String(label)} on={draft.min === min && draft.max === max} onClick={() => { onPatch({ min: min as number | undefined, max: max as number | undefined }); setMinText(min === undefined ? "" : String(min)); setMaxText(max === undefined ? "" : String(max)); }}>{label}</Chip>)}</div><div className="grid grid-cols-2 gap-2"><label className="flex flex-col gap-1 text-[12px] text-ink-2">Minimum<input aria-label="Minimum amount" inputMode="decimal" value={minText} onChange={(e) => { const value = e.target.value.replace(/[^\d.]/g, ""); setMinText(value); if (!(value !== "" && maxText !== "" && Number(value) > Number(maxText))) onPatch({ min: value ? Number(value) : undefined }); }} className="field min-h-11 px-2" /></label><label className="flex flex-col gap-1 text-[12px] text-ink-2">Maximum<input aria-label="Maximum amount" inputMode="decimal" value={maxText} onChange={(e) => { const value = e.target.value.replace(/[^\d.]/g, ""); setMaxText(value); if (!(minText !== "" && value !== "" && Number(minText) > Number(value))) onPatch({ max: value ? Number(value) : undefined }); }} className="field min-h-11 px-2" /></label></div>{badAmount && <p role="alert" className="m-0 text-sm text-over">Minimum is more than maximum.</p>}</div>;
+  return <div className="space-y-4 p-3"><div className="flex flex-wrap gap-2">{[["Under ₹500", undefined, 499], ["₹500–5K", 500, 5000], ["₹5K–25K", 5001, 25000], ["Over ₹25K", 25001, undefined]].map(([label, min, max]) => <Chip key={String(label)} on={draft.min === min && draft.max === max} onClick={() => { onPatch({ min: min as number | undefined, max: max as number | undefined }); setMinText(min === undefined ? "" : String(min)); setMaxText(max === undefined ? "" : String(max)); }}>{label}</Chip>)}</div><div className="grid grid-cols-2 gap-2"><label className="flex flex-col gap-1 text-[12px] text-ink-2">Minimum<input aria-label="Minimum amount" inputMode="decimal" value={minText} onChange={(e) => { const value = amountText(e.target.value); setMinText(value); if (!(value !== "" && maxText !== "" && Number(value) > Number(maxText))) onPatch({ min: Number.isFinite(Number(value)) && value !== "" && value !== "." ? Number(value) : undefined }); }} className="field min-h-11 px-2" /></label><label className="flex flex-col gap-1 text-[12px] text-ink-2">Maximum<input aria-label="Maximum amount" inputMode="decimal" value={maxText} onChange={(e) => { const value = amountText(e.target.value); setMaxText(value); if (!(minText !== "" && value !== "" && Number(minText) > Number(value))) onPatch({ max: Number.isFinite(Number(value)) && value !== "" && value !== "." ? Number(value) : undefined }); }} className="field min-h-11 px-2" /></label></div>{badAmount && <p role="alert" className="m-0 text-sm text-over">Minimum is more than maximum.</p>}</div>;
 }
 
 function RailSection({ name, search, categories, cards, trips, onApply }: { name: Filter; search: SearchState; categories: Category[]; cards: string[]; trips: Props["trips"]; onApply: Props["onApply"] }) {
@@ -193,6 +197,8 @@ function FilterScreen({ initial, section: initialSection, categories, cards, tri
   initial: SearchState; section: Filter; categories: Category[]; cards: string[]; trips: Props["trips"]; resultCount: number;
   getCount?: Props["getCount"]; onClose: () => void; onApply: (next: Partial<SearchState>) => void; onClear: () => void;
 }) {
+  const desktop = useDesktop();
+  const reduced = useReducedMotion();
   const [draft, setDraft] = useState<SearchState>(initial);
   const [section, setSection] = useState<Filter>(initialSection);
   const [minText, setMinText] = useState(initial.min?.toString() ?? "");
@@ -238,7 +244,30 @@ function FilterScreen({ initial, section: initialSection, categories, cards, tri
     if (section === "Amount") return <AmountFields minText={minText} maxText={maxText} setMinText={setMinText} setMaxText={setMaxText} draft={draft} onPatch={patch} />;
     return statusOptions.map((item) => row(item.label, statuses.includes(item.id), () => setStatus(item.id)));
   };
-  return <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" /><Dialog.Content aria-describedby={undefined} className="fixed inset-0 z-50 flex flex-col bg-paper text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand"><header className="flex min-h-14 shrink-0 items-center justify-between border-b border-hairline px-4"><button type="button" aria-label="Close filters without applying" onClick={onClose} className="flex size-11 items-center justify-center rounded-button focus-visible:outline-2 focus-visible:outline-brand"><X size={20} /></button><Dialog.Title className="m-0 font-serif text-xl font-medium">Filters</Dialog.Title><button type="button" onClick={() => { clearDraft(); onClear(); }} className="min-h-11 px-2 text-[13px] font-semibold text-brand">Clear all</button></header>{selected.length > 0 && <ul aria-label="Selected filters" className="flex shrink-0 gap-2 overflow-x-auto border-b border-hairline px-3 py-2 [scrollbar-width:none]">{selected.map((item, i) => <li key={`${item.name}-${item.key ?? i}`} className="shrink-0"><AppliedChip label={item.value} remove={() => removeChip(item.name, item.key)} /></li>)}</ul>}<div className="flex min-h-0 flex-1"><nav aria-label="Filter categories" className="w-[124px] shrink-0 overflow-y-auto bg-sunken">{filters.map((name) => { const n = activeCount(draft, name); return <button type="button" key={name} aria-current={section === name ? "page" : undefined} onClick={() => focus(name)} className={`relative flex min-h-12 w-full items-center justify-between gap-1 px-3 text-left text-[13px] ${section === name ? "bg-card font-semibold text-ink" : "text-ink-2"}`}><span className="absolute inset-y-0 left-0 w-[3px] bg-transparent" style={section === name ? { background: "var(--color-brand)" } : undefined} />{name}<span className="text-[11px] text-brand">{n || ""}</span></button>; })}</nav><div className="min-w-0 flex-1 overflow-y-auto">{options()}</div></div><footer className="shrink-0 border-t border-hairline bg-paper px-4 pt-2 pb-[max(12px,env(safe-area-inset-bottom))]"><Button disabled={badAmount || Boolean(draft.from && draft.to && draft.from > draft.to)} onClick={() => onApply({ ...draft, min: minText ? Number(minText) : undefined, max: maxText ? Number(maxText) : undefined })} className="w-full">{count === undefined ? "Show results" : `Show ${count} ${count === 1 ? "transaction" : "transactions"}`}</Button></footer></Dialog.Content></Dialog.Portal></Dialog.Root>;
+  return (
+    <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="fixed inset-0 z-40 bg-scrim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduced ? { duration: 0 } : { duration: 0.22 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild aria-describedby={undefined}>
+          <motion.div
+            initial={desktop ? { opacity: 0, y: 4 } : { opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduced ? { duration: 0 } : desktop ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 36 }}
+            className="fixed inset-0 z-50 flex flex-col bg-paper text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <header className="flex min-h-14 shrink-0 items-center justify-between border-b border-hairline px-4"><button type="button" aria-label="Close filters without applying" onClick={onClose} className="flex size-11 items-center justify-center rounded-button focus-visible:outline-2 focus-visible:outline-brand"><X size={20} /></button><Dialog.Title className="m-0 font-serif text-xl font-medium">Filters</Dialog.Title><button type="button" onClick={() => { clearDraft(); onClear(); }} className="min-h-11 px-2 text-[13px] font-semibold text-brand">Clear all</button></header>{selected.length > 0 && <ul aria-label="Selected filters" className="flex shrink-0 gap-2 overflow-x-auto border-b border-hairline px-3 py-2 [scrollbar-width:none]">{selected.map((item, i) => <li key={`${item.name}-${item.key ?? i}`} className="shrink-0"><AppliedChip label={item.value} remove={() => removeChip(item.name, item.key)} /></li>)}</ul>}<div className="flex min-h-0 flex-1"><nav aria-label="Filter categories" className="w-[124px] shrink-0 overflow-y-auto bg-sunken">{filters.map((name) => { const n = activeCount(draft, name); return <button type="button" key={name} aria-current={section === name ? "page" : undefined} onClick={() => focus(name)} className={`relative flex min-h-12 w-full items-center justify-between gap-1 px-3 text-left text-[13px] ${section === name ? "bg-card font-semibold text-ink" : "text-ink-2"}`}><span className="absolute inset-y-0 left-0 w-[3px] bg-transparent" style={section === name ? { background: "var(--color-brand)" } : undefined} />{name}<span className="text-[11px] text-brand">{n || ""}</span></button>; })}</nav><div className="min-w-0 flex-1 overflow-y-auto">{options()}</div></div><footer className="shrink-0 border-t border-hairline bg-paper px-4 pt-2 pb-[max(12px,env(safe-area-inset-bottom))]"><Button disabled={badAmount || Boolean(draft.from && draft.to && draft.from > draft.to)} onClick={() => onApply({ ...draft, min: minText ? Number(minText) : undefined, max: maxText ? Number(maxText) : undefined })} className="w-full">{count === undefined ? "Show results" : `Show ${count} ${count === 1 ? "transaction" : "transactions"}`}</Button></footer>
+          </motion.div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }
 
 function RangeCalendar({ from, to, choose, close }: { from?: string; to?: string; choose: (from: string, to: string) => void; close: () => void }) {
@@ -252,6 +281,37 @@ function RangeCalendar({ from, to, choose, close }: { from?: string; to?: string
   return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-scrim p-4"><section role="dialog" aria-modal="true" aria-label="Choose date range" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } }} className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-xl"><div className="mb-2 flex items-center justify-between"><button type="button" aria-label="Previous month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="size-11">‹</button><strong>{monthLabel(key(1).slice(0, 7))}</strong><button type="button" aria-label="Next month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="size-11">›</button></div><div className="grid grid-cols-7 text-center text-[11px] text-ink-3">{[["Mon", "M"], ["Tue", "T"], ["Wed", "W"], ["Thu", "T"], ["Fri", "F"], ["Sat", "S"], ["Sun", "S"]].map(([name, d]) => <span key={name} className="py-1">{d}</span>)}{offset > 0 && <span key="pad" style={{ gridColumn: `span ${offset}` }} />}{Array.from({ length: days }, (_, i) => { const day = i + 1; const value = key(day); const selected = value === start || value === end; const between = start && end && value > start && value < end; const future = value > today(); return <button key={value} type="button" disabled={future} aria-pressed={selected} onClick={() => chooseDay(value)} className={`size-10 justify-self-center rounded-full text-[13px] disabled:text-ink-3/40 ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}>{day}</button>; })}</div><button type="button" onClick={close} className="mt-2 min-h-11 w-full text-sm text-brand">Cancel</button></section></div>;
 }
 function SortDialog({ value, onClose, onSelect }: { value: SearchState["sort"]; onClose: () => void; onSelect: (value: NonNullable<SearchState["sort"]>) => void }) {
+  const desktop = useDesktop();
+  const reduced = useReducedMotion();
   useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc); }, [onClose]);
-  return <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" /><Dialog.Content aria-describedby={undefined} className="fixed inset-x-0 bottom-0 z-50 rounded-t-sheet bg-card p-4 pb-[max(20px,env(safe-area-inset-bottom))] text-ink outline-none tablet:inset-auto tablet:top-1/2 tablet:left-1/2 tablet:w-[min(420px,calc(100vw-40px))] tablet:-translate-x-1/2 tablet:-translate-y-1/2 tablet:rounded-sheet"><header className="mb-2 flex items-center justify-between"><Dialog.Title className="font-serif text-xl">Sort</Dialog.Title><button type="button" aria-label="Close sort options" onClick={onClose} className="size-11"><X size={18} /></button></header>{sortOptions.map(([key, label]) => <button type="button" key={key} aria-pressed={value === key} onClick={() => onSelect(key)} className="flex min-h-12 w-full items-center justify-between border-b border-hairline text-left text-sm">{label}{value === key && <Check size={18} className="text-brand" />}</button>)}</Dialog.Content></Dialog.Portal></Dialog.Root>;
+  return (
+    <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="fixed inset-0 z-40 bg-scrim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduced ? { duration: 0 } : { duration: 0.22 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild aria-describedby={undefined}>
+          <motion.div
+            initial={desktop ? { opacity: 0, y: 4 } : { opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduced ? { duration: 0 } : desktop ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 36 }}
+            className="fixed inset-x-0 bottom-0 z-50 rounded-t-sheet bg-card p-4 pb-[max(20px,env(safe-area-inset-bottom))] text-ink outline-none tablet:inset-auto tablet:top-1/2 tablet:left-1/2 tablet:w-[min(420px,calc(100vw-40px))] tablet:-translate-x-1/2 tablet:-translate-y-1/2 tablet:rounded-sheet"
+          >
+            <header className="mb-2 flex items-center justify-between"><Dialog.Title className="font-serif text-xl">Sort</Dialog.Title><button type="button" aria-label="Close sort options" onClick={onClose} className="size-11"><X size={18} /></button></header>
+            {sortOptions.map(([key, label]) => (
+              <button type="button" key={key} aria-pressed={value === key} onClick={() => onSelect(key)} className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-hairline text-left text-sm">
+                <span className="min-w-0 truncate">{label}</span>
+                {value === key && <Check size={18} className="shrink-0 text-brand" />}
+              </button>
+            ))}
+          </motion.div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }

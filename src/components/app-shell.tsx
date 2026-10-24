@@ -1,11 +1,12 @@
 // AppShell (§5): phone tab bar + add button; ≥840px sidebar with trip card, sync pill, Settings.
 import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { dayMonth } from "../lib/format";
-import { ActivityIcon, InsightsIcon, PlanIcon, PlusIcon, TodayIcon, WealthIcon } from "./icons";
+import { ActivityIcon, InsightsIcon, MoreIcon, PlanIcon, PlusIcon, TodayIcon, WealthIcon } from "./icons";
 import { SyncPill } from "./sync-pill";
 import { AiMark } from "./ai-mark";
+import { Sheet } from "./sheet";
 
 export type ShellData = { reviewCount: number; trip: { id: number; name: string; startDate: string; endDate: string; autoTag: boolean; active: boolean } | null };
 
@@ -27,13 +28,24 @@ const side = [
   { to: "/ask", label: "Ask", match: (p: string) => p.startsWith("/ask") },
 ] as const;
 
+const tabClass = "-mt-px flex flex-col items-center justify-center gap-[3px] text-[11px] transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
+
 /** Full-screen routes on phones: no tab bar, no add button. */
 const bare = (p: string) => /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
 
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [moreOpen, setMoreOpen] = useState(false);
+  const prevPath = useRef(path);
+  useEffect(() => {
+    if (prevPath.current !== path) {
+      prevPath.current = path;
+      setMoreOpen(false);
+    }
+  }, [path]);
   const hideChrome = bare(path);
   const planAction = path === "/plan/trips" || path === "/plan/recurring";
+  const moreOn = path.startsWith("/ask") || path.startsWith("/paste") || path.startsWith("/settings");
   const { trip } = data;
   return (
     <div className="min-h-dvh desk:flex">
@@ -66,11 +78,11 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
         )}
         <div className="mt-auto flex flex-col gap-2.5 px-3">
           <span className="self-start"><SyncPill /></span>
-          <Link to="/settings" className="flex min-h-10 items-center self-start text-sm font-medium">Settings</Link>
+          <Link to="/settings" className="flex min-h-11 items-center self-start text-sm font-medium">Settings</Link>
         </div>
       </aside>
 
-      <div className={cn("mx-auto w-full min-w-0 tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1", !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0", planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]")}>
+      <div className={cn("mx-auto w-full min-w-0 pt-[env(safe-area-inset-top)] tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1 desk:pt-0", !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0", planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]")}>
         {children}
       </div>
 
@@ -79,11 +91,11 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-2xl bg-ink text-paper shadow-[0_6px_16px_rgba(28,34,48,0.22)] hover:text-paper desk:hidden"
+            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 hover:text-paper motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
           >
             <PlusIcon />
           </Link>
-          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
+          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-6 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
             {tabs.map((t) => {
               const on = t.match(path);
               const Icon = t.icon;
@@ -92,14 +104,76 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   key={t.to}
                   to={t.to}
                   aria-current={on ? "page" : undefined}
-                  className={cn("-mt-px flex flex-col items-center justify-center gap-[3px] text-[11px]", on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3")}
+                  className={cn(
+                    tabClass,
+                    on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3",
+                  )}
                 >
                   <Icon />
                   {t.label}
                 </Link>
               );
             })}
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-current={moreOn ? "page" : undefined}
+              className={cn(
+                tabClass,
+                moreOn ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3",
+              )}
+            >
+              <MoreIcon />
+              More
+            </button>
           </nav>
+          {moreOpen && (
+            <Sheet title="More" onClose={() => setMoreOpen(false)}>
+              <nav aria-label="More" className="flex flex-col gap-1 py-1">
+                <Link
+                  to="/ask"
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                  )}
+                >
+                  <span className="inline-flex items-center gap-1.5"><AiMark />Ask</span>
+                </Link>
+                <Link
+                  to="/review"
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                  )}
+                >
+                  <span>Review</span>
+                  {data.reviewCount > 0 && <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>}
+                </Link>
+                <Link
+                  to="/paste"
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                  )}
+                >
+                  <span>Paste SMS</span>
+                </Link>
+                <Link
+                  to="/settings"
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    path.startsWith("/settings") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                  )}
+                >
+                  <span>Settings</span>
+                </Link>
+              </nav>
+            </Sheet>
+          )}
         </>
       )}
     </div>

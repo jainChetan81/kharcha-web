@@ -20,6 +20,8 @@ function Paste() {
   const [text, setText] = useState(Route.useSearch().text ?? "");
   const [bank, setBank] = useState<"axis" | "hdfc" | "indusind" | "">("");
   const [result, setResult] = useState<{ key: string; parsed: Result }>();
+  const [parsing, setParsing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const key = `${bank}\n${text}`;
   // A late response for edited text is ignored: only the result for the current text shows or saves.
   const parsed = result?.key === key ? result.parsed : undefined;
@@ -29,22 +31,26 @@ function Paste() {
   useHoldsInput();
   const reset = () => setResult(undefined);
   const parse = async () => {
-    if (!online || !text.trim()) return;
+    if (!online || !text.trim() || parsing || saving) return;
+    setParsing(true);
     try {
       setResult({ key, parsed: await parsePasted({ data: { text, bank: bank || undefined } }) });
     } catch { saveFailed(parse); }
+    finally { setParsing(false); }
   };
   const paste = async () => {
     try { setText(await navigator.clipboard.readText()); reset(); }
     catch { snack("Couldn't read clipboard. Paste into message field instead."); }
   };
   const save = async () => {
-    if (!parsed || parsed.status !== "parsed" || !online) return;
+    if (!parsed || parsed.status !== "parsed" || !online || saving || parsing) return;
+    setSaving(true);
     try {
       await savePasted({ data: { text, bank: bank || undefined } });
       snack(`Saved ${money(parsed.amount)} · ${parsed.category}`);
       void navigate({ to: "/" });
     } catch { saveFailed(save); }
+    finally { setSaving(false); }
   };
   return <main className="flex min-h-dvh flex-col">
     <PageHeader back="/add" title="Paste SMS" />
@@ -57,7 +63,7 @@ function Paste() {
       <label htmlFor="paste-sms" className="flex flex-col gap-1.5 text-[13px] text-ink-2">Message
         <textarea id="paste-sms" value={text} onChange={(event) => { setText(event.target.value); reset(); }} rows={5} maxLength={2000} className="field min-h-32 resize-y font-mono text-[13px] leading-relaxed text-ink" />
       </label>
-      <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void paste()}>Paste from clipboard</Button><Button variant="text" onClick={() => { setText(""); reset(); }}>Clear</Button><Button onClick={() => void parse()} disabled={!online || !text.trim()}>Parse</Button></div>
+      <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={saving || parsing} onClick={() => void paste()}>Paste from clipboard</Button><Button variant="text" disabled={saving || parsing} onClick={() => { setText(""); reset(); }}>Clear</Button><Button onClick={() => void parse()} disabled={!online || !text.trim() || parsing || saving}>{parsing ? "Parsing…" : "Parse"}</Button></div>
       {failed && <Card className="p-4 text-[15px]">Couldn’t parse this SMS. Add it manually below.</Card>}
       {parsed && <Card className="mt-2 flex flex-col gap-3.5 p-5">
         <span className="label-caps text-ink-3">Parsed on server · {parsed.bankName}</span>
@@ -65,7 +71,7 @@ function Paste() {
         <div className="flex justify-between text-sm"><span>{parsed.type} · {parsed.category ?? "Other"}</span><span>{parsed.date ?? "Date unavailable"}</span></div>
         <p className="m-0 text-[13px] text-ink-2">{parsed.status === "foreign" ? "Foreign amount has no verified rupee conversion. Add it manually after checking the card statement." : "Check details before saving. The original message stays on your server."}</p>
       </Card>}
-      <div className="mt-auto grid grid-cols-2 gap-2.5 pt-5"><Button variant="outline" onClick={() => void navigate({ to: "/add" })}>Add manually</Button><Button onClick={() => void save()} disabled={!online || parsed?.status !== "parsed"}>Save</Button></div>
+      <div className="mt-auto grid grid-cols-2 gap-2.5 pt-5"><Button variant="outline" disabled={saving || parsing} onClick={() => void navigate({ to: "/add" })}>Add manually</Button><Button onClick={() => void save()} disabled={!online || parsed?.status !== "parsed" || saving || parsing}>{saving ? "Saving…" : "Save"}</Button></div>
     </div>
   </main>;
 }

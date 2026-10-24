@@ -196,7 +196,7 @@ function Review() {
   if (!rows.length) {
     return (
       <DeskPage>
-        <PageHeader title="Review" />
+        <PageHeader title="Review" back="/" />
         <div className="px-5 desk:px-0">
           <div className="flex flex-col items-center gap-3 pt-8 pb-4 text-center">
             <span className="flex size-10 items-center justify-center rounded-full bg-earn text-paper">
@@ -230,14 +230,14 @@ function Review() {
                   {shortDate(open.date)}{open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} · {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
                 </span>
               </div>
-              <strong className="shrink-0 font-serif text-[28px] font-medium">{money(open.amount)}</strong>
+              <strong className="shrink-0 font-serif text-[26px] font-medium">{money(open.amount)}</strong>
             </div>
             <CategoryPicker categories={categories} value={suggested} onChange={(name) => setCategory({ id: open.id, name })} />
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input type="checkbox" checked={makeRule} disabled={!online} onChange={(event) => setRule({ id: open.id, on: event.target.checked })} className="size-[18px] accent-brand" />
               Always file this merchant as {suggested}
             </label>
-            {open.rawText && <p className="m-0 rounded-[8px] bg-sunken p-3 font-mono text-[12.5px] leading-6 text-ink-2">{open.rawText}</p>}
+            {open.rawText && <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">{open.rawText}</p>}
             <div className="flex flex-wrap gap-2">
               <Button disabled={!online} onClick={() => confirmOne(open, suggested, makeRule)} className="flex-1">
                 Confirm · {suggested}
@@ -253,26 +253,29 @@ function Review() {
         ) : null
       }
     >
-      <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3 desk:hidden">
-        <Link to="/" aria-label="Back" className="-ml-3 flex size-11 items-center justify-center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </Link>
-        <h1 className="m-0 font-serif text-[22px] font-medium">Review</h1>
-        <span className="text-[13px] text-ink-3">{Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}</span>
-      </header>
+      <div className="desk:hidden">
+        <PageHeader
+          title="Review"
+          back="/"
+          actions={<span className="text-[13px] text-ink-3">{Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}</span>}
+        />
+      </div>
       <div aria-hidden className="mx-5 h-[3px] rounded-sm bg-hairline desk:hidden">
         <div className="h-full rounded-sm bg-brand" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="hidden desk:block">
         <header className="flex flex-wrap items-baseline justify-between gap-3 pt-7">
-          <h1 className="m-0 font-serif text-[30px] font-medium">Review <span className="text-[22px] text-ink-3">{remaining}</span></h1>
+          <div className="flex items-center gap-2">
+            <Link to="/" aria-label="Back" className="-ml-2 flex size-9 items-center justify-center text-ink hover:text-brand">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+            </Link>
+            <h1 className="m-0 font-serif text-[30px] font-medium">Review <span className="text-[22px] text-ink-3">{remaining}</span></h1>
+          </div>
           <div className="flex flex-wrap gap-2 text-xs text-ink-2">
             {keys.map((item) => (
               <span key={item.key} className="flex items-center gap-1.5">
-                <span className="rounded-[4px] border border-field bg-card px-1.5 py-0.5 font-mono text-ink">{item.key}</span>
+                <span className="rounded-mark border border-field bg-card px-1.5 py-0.5 font-mono text-ink">{item.key}</span>
                 {item.label}
               </span>
             ))}

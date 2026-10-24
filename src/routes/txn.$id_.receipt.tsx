@@ -3,7 +3,7 @@ import { Check, ImagePlus, LoaderCircle, Plus, RotateCcw, RotateCw, Trash2, Wand
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, Empty, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, ErrorState, PageHeader, Skeleton } from "../components/ui";
 import { money } from "../lib/format";
 import { getDetail } from "../server/daily/fns";
 import { getCategories } from "../server/fns";
@@ -135,7 +135,7 @@ function Receipt() {
   }, [crop, activeDraft]);
 
   dirtyRef.current = sig(items) !== baseline;
-  if (!data) return <main className="p-5"><Empty text="Transaction not found." /></main>;
+  if (!data) return <ErrorState text="Transaction not found." back="/activity" backLabel="Back to Activity" />;
   const categories = data.categories.filter((item) => item.type === (data.txn.type === "income" ? "income" : "expense")).map((item) => item.name);
   const total = items.reduce((sum, item) => sum + (Number.isFinite(item.amount) ? item.amount : 0), 0);
   const agrees = Math.abs(total - data.txn.amount) < 0.01;
@@ -286,7 +286,7 @@ function Receipt() {
   };
 
   return <main>
-    <PageHeader back="/txn/$id" title="Receipt" sub={`${data.txn.merchant} · ${money(data.txn.amount)}`} />
+    <PageHeader back="/txn/$id" backParams={{ id: String(data.txn.id) }} title="Receipt" sub={`${data.txn.merchant} · ${money(data.txn.amount)}`} />
     <div className="space-y-6 px-5 pb-10 tablet:mx-auto tablet:max-w-[960px]">
       <div className="grid gap-6 desk:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
         <section className="space-y-3 rounded-card border border-dashed border-field bg-card p-4">
@@ -336,10 +336,10 @@ function Receipt() {
             <div className="space-y-2">{items.map((item, index) => <div key={item.key} onTouchStart={(event) => { (event.currentTarget as HTMLDivElement).dataset.touchX = String(event.touches[0]?.clientX ?? 0); }} onTouchEnd={(event) => { const start = Number((event.currentTarget as HTMLDivElement).dataset.touchX); if (online && start - event.changedTouches[0]!.clientX > 70) deleteItems([item.key]); }} className={`grid grid-cols-[28px_minmax(0,1fr)_80px] gap-2 rounded-card border p-2 ${item.confidence !== null && item.confidence < 0.7 ? "border-watch bg-watch-soft" : "border-hairline bg-card"}`}>
               <input type="checkbox" aria-label={`Select item ${index + 1}`} checked={selected.includes(item.key)} disabled={!online} onChange={(e) => setSelected((old) => e.currentTarget.checked ? [...old, item.key] : old.filter((key) => key !== item.key))} className="size-5 self-center accent-brand" />
               <div className="grid min-w-0 grid-cols-2 gap-2"><input aria-label={`Item ${index + 1} name`} className="field col-span-2 min-w-0" value={item.name} placeholder="Item name" disabled={!online} onChange={(e) => updateItem(index, { name: e.currentTarget.value, confidence: null })} /><input aria-label={`Item ${index + 1} quantity`} className="field min-w-0 text-sm" inputMode="decimal" value={item.qty ?? ""} placeholder="Qty" disabled={!online} onChange={(e) => updateItem(index, { qty: Number(e.currentTarget.value) || null })} /><select aria-label={`Item ${index + 1} category`} className="field min-w-0 px-2 text-sm" value={item.category} disabled={!online} onChange={(e) => updateItem(index, { category: e.currentTarget.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></div>
-              <div><input aria-label={`Item ${index + 1} amount`} className="field min-w-0 text-right" inputMode="decimal" value={item.amount || ""} placeholder="₹0" disabled={!online} onChange={(e) => updateItem(index, { amount: Number(e.currentTarget.value) || 0 })} />{item.confidence !== null && item.confidence < 0.7 && <button type="button" className="min-h-11 text-sm text-watch" disabled={!online} onClick={() => updateItem(index, { confidence: null })}>? Looks right</button>}</div>
+              <div><input aria-label={`Item ${index + 1} amount`} className="field min-w-0 text-right" inputMode="decimal" value={item.amount || ""} placeholder="₹0" disabled={!online} onChange={(e) => updateItem(index, { amount: Number(e.currentTarget.value) || 0 })} />{item.confidence !== null && item.confidence < 0.7 && <button type="button" className="min-h-11 text-sm text-watch-text" disabled={!online} onClick={() => updateItem(index, { confidence: null })}>? Looks right</button>}</div>
             </div>)}</div>
             <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={addItem} disabled={!online}><Plus size={17} />Add a missed item</Button></div>
-            <Button className="min-h-[52px] w-full" disabled={!online || busy || items.some((item) => !item.name.trim() || !Number.isFinite(item.amount) || item.amount <= 0) || (split && !agrees)} onClick={() => void save()}>{low ? "Save anyway" : split ? "Save split" : "Save items"}</Button>
+            <Button className="min-h-[52px] w-full" disabled={!online || busy || items.some((item) => !item.name.trim() || !Number.isFinite(item.amount) || item.amount <= 0) || (split && !agrees)} onClick={() => void save()}>{busy ? "Saving…" : low ? "Save anyway" : split ? "Save split" : "Save items"}</Button>
             <label className="flex min-h-11 items-center justify-between gap-3 border-y border-hairline py-2"><span><strong className="block text-[15px]">Split by category</strong><span className="text-sm text-ink-3">Use item totals in spending views</span></span><input aria-label="Split by category" type="checkbox" checked={split} disabled={!online} onChange={(e) => setSplit(e.currentTarget.checked)} className="size-6 accent-brand" /></label>
           </> : <div className="space-y-3 rounded-card border border-hairline bg-card p-4"><h2 className="m-0 font-serif text-xl">Add items by hand</h2><p className="m-0 text-sm text-ink-2">{files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}</p>{!data.aiOn && <p className="m-0 text-sm text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}<Button variant="outline" onClick={addItem} disabled={!online}><Plus size={17} />Add item</Button></div>}
         </section>
