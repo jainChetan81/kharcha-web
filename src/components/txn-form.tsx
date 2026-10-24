@@ -61,7 +61,7 @@ export function TxnForm({ mode, initial, categories, onDone, onCancel, onDeleted
   const amountError = tried && amount <= 0 ? "Enter an amount to save" : undefined;
   const cannotSubmit = !online || saving || deleting || (tried && (amount <= 0 || !value.merchant.trim()));
   const setDate = (v: string) => set("date", v.replace("T", " "));
-  return <form className="flex min-h-0 flex-1 flex-col gap-3.5" onSubmit={(e) => { e.preventDefault(); void save(); }}>
+  return <form noValidate className="flex min-h-0 flex-1 flex-col gap-3.5" onSubmit={(e) => { e.preventDefault(); void save(); }}>
     <Segmented label="Type" value={value.type} onChange={(type) => set("type", type)} options={[{ value: "expense", label: "Expense" }, { value: "income", label: "Income" }, { value: "investment", label: "Investment" }]} />
     {mode === "add" && <div className="border-b-[3px] border-double border-ink px-1 pt-1 text-right desk:hidden"><span className="block min-h-5 font-mono text-sm text-ink-3">{expr}</span><p className="m-0 pb-1.5 font-serif text-5xl leading-none font-medium tracking-tight">{value.type === "income" && "+"}{money(amount)}</p></div>}
     {mode === "add" && <div className="desk:hidden"><Keypad value={expr} onChange={setExpr} /></div>}

@@ -99,7 +99,7 @@ export function ReviewDeck({
                   dot={`var(--color-${item.colorToken})`}
                   disabled={disabled}
                   onClick={() => setCategory(item.name)}
-                  className="min-h-10"
+                  className="min-h-11"
                 >
                   {item.name}
                 </Chip>

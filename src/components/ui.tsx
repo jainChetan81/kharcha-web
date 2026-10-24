@@ -111,7 +111,7 @@ export function SectionHead({ title, action, as: H = "h2", id }: { title: ReactN
   return (
     <div className="flex items-baseline justify-between border-b border-ink pb-2">
       <H id={id} className="m-0 font-serif text-lg font-medium">{title}</H>
-      {action && <span className="text-sm">{action}</span>}
+      {action && <span className="text-sm [&>a]:-my-3 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center">{action}</span>}
     </div>
   );
 }
@@ -172,7 +172,7 @@ export function Empty({ text, action }: { text: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-start gap-2 py-8 text-[15px] text-ink-2">
       <p className="m-0">{text}</p>
-      {action}
+      {action && <span className="-ml-2.5 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:px-2.5 [&>button]:min-h-11 [&>button]:px-2.5">{action}</span>}
     </div>
   );
 }
