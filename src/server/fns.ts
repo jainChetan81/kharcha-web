@@ -33,6 +33,8 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
       .get(),
   ]);
   return {
+    // Umami (self-hosted, cookieless). Unset: no analytics script at all.
+    umamiWebsiteId: process.env.UMAMI_WEBSITE_ID?.match(/^[0-9a-f-]{36}$/i)?.[0] ?? null,
     reviewCount: review?.n ?? 0,
     trip: trip
       ? { id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate, autoTag: trip.autoTag, active: trip.startDate <= today }

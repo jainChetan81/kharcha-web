@@ -13,7 +13,7 @@ import stylesheet from "../styles.css?url";
 import { themeBoot, watchSystemTheme } from "../lib/theme";
 
 export const Route = createRootRoute({
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
@@ -29,6 +29,10 @@ export const Route = createRootRoute({
       { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
+    // Page views only: no query string (Activity search can hold merchant names), production host only.
+    scripts: loaderData?.umamiWebsiteId
+      ? [{ src: "https://umami.chetan-vps.tech/script.js", defer: true, "data-website-id": loaderData.umamiWebsiteId, "data-domains": "kharcha.chetan-vps.tech", "data-exclude-search": "true", "data-exclude-hash": "true" }]
+      : [],
   }),
   // Finance pages: never keep a copy in the browser or any proxy cache.
   headers: () => ({
