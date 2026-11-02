@@ -33,7 +33,7 @@ Today, Review, Activity, Plan (budgets, recurring, trips, owed), Wealth, Insight
 
 ## Wealth data
 
-Live fund values come from a CAMS/KFintech **Detailed CAS** (PDF, from inception): Wealth → Import CAS. The server decrypts it with `pdftotext` (password used once, never stored; the PDF is deleted at once), matches each ISIN to its AMFI scheme code, replaces that fund's buys up to the statement date with exact units and cost, backfills NAV history from MFAPI, and clears `manual_value`/`manual_invested`/`manual_value_date`. After that the nightly price job gives live value, day change and XIRR. Funds whose statement does not start at zero units, or whose units do not add up, are skipped and listed. Funds not in a CAS (NPS, gold, broker statements) keep the manual statement value, loaded by an agent on the VPS after a `.backup`. Parser line shapes follow casparser (MIT).
+Live fund values come from a CAMS/KFintech **Detailed CAS** (PDF, from inception): Wealth → Import CAS. The server reads it with [casparser](https://github.com/codereverser/casparser) (`scripts/cas-to-json.py`, venv at `.cas/`; password on stdin, never stored; the PDF is deleted at once), takes each fund's AMFI scheme code, replaces that fund's buys up to the statement date with exact units and cost, backfills NAV history from MFAPI, and clears `manual_value`/`manual_invested`/`manual_value_date`. After that the nightly price job gives live value, day change and XIRR. Funds whose statement does not start at zero units, or whose units do not add up, are skipped and listed. Funds not in a CAS (NPS, gold, broker statements) keep the manual statement value, loaded by an agent on the VPS after a `.backup`.  Local dev: `uv venv .cas && uv pip install --python .cas/bin/python casparser==1.4.1` (or set `CAS_PYTHON`).
 
 ## Develop
 
@@ -56,7 +56,7 @@ Coolify on the VPS builds `main` with Railpack (no Dockerfile) since 2026-10-20.
 
 Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`.
 
-Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` and `poppler-utils` (CAS import) in the image.
+Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` in the image, plus Python 3.12 with casparser in `/app/.cas` for CAS import.
 
 Job timers (`kharcha-web-job-*.timer`) run on the VPS host and POST to `127.0.0.1:8790` with `INGEST_TOKEN`.
 
