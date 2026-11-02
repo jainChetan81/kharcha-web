@@ -25,7 +25,7 @@ function ImportSheet({ names, onClose }: { names: Set<string>; onClose: () => vo
 function CasSheet({ onClose }: { onClose: () => void }) {
   const router = useRouter(); const online = useOnline(); const [file, setFile] = useState<File | null>(null); const [password, setPassword] = useState(""); const [pending, setPending] = useState(false); const [error, setError] = useState<string | null>(null); const [skipped, setSkipped] = useState<{ name: string; reason: string }[]>([]);
   const run = async () => {
-    if (!file) return; setPending(true); setError(null);
+    if (!file) return; setPending(true); setError(null); setSkipped([]);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer()); let binary = ""; for (let at = 0; at < bytes.length; at += 0x8000) binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
       const result = await importCas({ data: { base64: btoa(binary), password } }); setPassword(""); void router.invalidate();

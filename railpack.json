@@ -1,12 +1,22 @@
 {
   "$schema": "https://schema.railpack.com",
-  "packages": { "python": "3.12" },
+  "packages": {
+    "python": "3.12"
+  },
   "steps": {
     "build": {
-      "commands": ["...", { "cmd": "python -m venv /app/.cas && /app/.cas/bin/pip install --no-cache-dir casparser==1.4.1", "customName": "Install casparser" }]
+      "commands": [
+        "...",
+        {
+          "cmd": "sh -c 'python -m venv /app/.cas && /app/.cas/bin/pip install --no-cache-dir casparser==1.4.1'",
+          "customName": "Install casparser"
+        }
+      ]
     }
   },
   "deploy": {
-    "aptPackages": ["tesseract-ocr"]
+    "aptPackages": [
+      "tesseract-ocr"
+    ]
   }
 }

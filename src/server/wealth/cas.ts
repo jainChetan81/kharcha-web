@@ -31,7 +31,7 @@ export function casSchemes(json: CasJson): CasScheme[] {
       if (row.type === "STAMP_DUTY_TAX") { const last = txns.at(-1); if (last?.date === row.date && last.units > 0) last.amount += Math.abs(n(row.amount)); continue; }
       if (!units || !realDay(row.date)) continue;
       // Gifts and mergers can carry no amount: value them at their NAV.
-      const amount = row.amount == null ? units * nav : Math.abs(n(row.amount));
+      const amount = Math.abs(row.amount == null ? units * nav : n(row.amount));
       txns.push({ date: row.date, amount: Math.sign(units) * amount, units, nav: nav > 0 ? nav : Math.abs(amount / units) });
     }
     const scheme: CasScheme = { name: raw.scheme.replace(/\s{2,}/g, " ").trim(), isin: raw.isin, amfi: raw.amfi, opening: n(raw.open), closing: n(raw.close), closingCalculated: n(raw.close_calculated), nav: n(raw.valuation.nav) || null, navDate: realDay(raw.valuation.date) ? raw.valuation.date : null, txns };
@@ -49,6 +49,7 @@ export function casProblem(scheme: CasScheme): string | null {
   const sum = scheme.txns.reduce((total, txn) => total + txn.units, 0);
   if (Math.abs(sum - scheme.closing) > 0.005 || Math.abs(scheme.closingCalculated - scheme.closing) > 0.005) return "Units do not add up to the closing balance.";
   if (!scheme.amfi) return "No AMFI scheme code for this ISIN.";
+  if (!scheme.txns.length) return "No transactions in this statement.";
   return null;
 }
 
@@ -62,7 +63,8 @@ async function readCasPdf(bytes: Uint8Array, password: string): Promise<CasJson>
       const child = spawn(CAS_PYTHON, ["-I", path.resolve("scripts/cas-to-json.py"), file], { stdio: ["pipe", "pipe", "ignore"], timeout: 60_000, killSignal: "SIGKILL" });
       let out = ""; child.stdout.setEncoding("utf8").on("data", (chunk: string) => { if (out.length < 16 * 1024 * 1024) out += chunk; });
       child.on("error", reject).on("close", (exit) => resolve({ code: exit, stdout: out }));
-      child.stdin.end(`${password}\n`);
+      // Python can exit before reading; EPIPE must not crash the server.
+      child.stdin.on("error", () => {}).end(`${password}\n`);
     }).catch((error: { code?: string }) => { throw new Error(error.code === "ENOENT" ? "CAS reading is not installed on the server (casparser)." : "Couldn't read this PDF."); });
     if (code === 2) throw new Error("Wrong PDF password. CAS passwords are usually your PAN in capitals.");
     if (code !== 0) throw new Error("Couldn't read this PDF as a CAS.");
@@ -91,9 +93,9 @@ export async function applyCas(db: Db, schemes: CasScheme[]): Promise<CasResult>
   for (const scheme of schemes) {
     const problem = casProblem(scheme); if (problem) { result.skipped.push({ name: scheme.name, reason: problem }); continue; }
     const code = scheme.amfi!;
-    let holding = all.find((row) => row.schemeCode === code) ?? all.find((row) => row.name.toLowerCase() === scheme.name.toLowerCase());
+    let holding = all.find((row) => row.schemeCode === code) ?? all.find((row) => row.kind === "fund" && row.name.toLowerCase() === scheme.name.toLowerCase());
     if (!holding) { [holding] = await db.insert(holdings).values({ name: scheme.name.slice(0, 120), kind: "fund", assetClass: "Mutual funds", schemeCode: code }).returning(); all.push(holding!); }
-    const id = holding!.id; const cutoff = scheme.navDate ?? scheme.txns.at(-1)?.date ?? "9999-12-31";
+    const id = holding!.id; const cutoff = scheme.navDate ?? scheme.txns.at(-1)!.date;
     const history = await navHistory(code, scheme.txns[0]?.date ?? cutoff);
     const ops = [
       // SMS-linked buys up to the statement date are inside the CAS already; later ones stay.
