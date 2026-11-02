@@ -300,7 +300,6 @@ console.log("check-db: ok");
   const { matchRecurring, nextDue, scheduleSeries } = await import("../src/server/plan/jobs.ts");
   const { eq } = await import("drizzle-orm");
   const { mock } = await import("node:test");
-  const actualToday = new Date().toISOString().slice(0, 10);
   const addTxnRow = (id: number, merchant: string, date: string, amount = 50, fields: Partial<typeof transactions.$inferInsert> = {}) =>
     db.insert(transactions).values({ id, source: "sms", type: "expense", amount, merchant, category: "", date, ...fields });
   const seriesRow = (id: number, name: string, match: string, cadence: "monthly" | "quarterly" | "yearly" | "weekly", usualDay: number | null, expectedAmount = 50) => ({
@@ -329,7 +328,7 @@ console.log("check-db: ok");
       addTxnRow(9212, "Yearly Vendor", "2026-03-15 10:00"),
       addTxnRow(9213, "Yearly Vendor", "2026-10-15 10:00"),
       addTxnRow(9221, "Weekly Vendor", "2026-01-01 10:00", 70),
-      addTxnRow(9231, "Scoped Vendor", `${actualToday} 10:00`),
+      addTxnRow(9231, "Scoped Vendor", "2026-10-16 10:00"),
       addTxnRow(9241, "Guard Vendor", "2026-10-16 10:00", 20, { type: "income" }),
       addTxnRow(9242, "Guard Vendor", "2026-10-16 11:00", 20, { excluded: true }),
       addTxnRow(9243, "Guard Vendor", "2026-10-16 12:00", 20, { deletedAt: "2026-10-16 12:01" }),

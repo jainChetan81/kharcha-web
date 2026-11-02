@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { nextDue } from "../src/server/plan/jobs.ts";
 import { amfiLine, mfapiNav, navDate, runPrices } from "../src/server/wealth/jobs.ts";
 import { openDb } from "../src/server/db/client.ts";
-import { holdings, prices } from "../src/server/db/schema.ts";
+import { holdingTxns, holdings, prices } from "../src/server/db/schema.ts";
+import { amfiCodeForIsin, applyCas, casProblem, parseCasText } from "../src/server/wealth/cas.ts";
 import { isNotFutureDateInIST, navDayChange, nextSipDate, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
 import { realDay, xirr } from "../src/server/wealth/xirr.ts";
 import { holdingCsvRows } from "../src/lib/csv.ts";
@@ -58,4 +59,51 @@ try {
     assert.equal((await db.select().from(prices).get())?.source, "amfi");
   }
 } finally { globalThis.fetch = savedFetch; }
+
+// CAS import (synthetic statement text in `pdftotext -layout` shape).
+const casText = `
+Folio No: 1234567 / 89          PAN: ABCDE1234F   KYC: OK  PAN: OK
+B205RGDG-Synthetic Index Fund - Direct Plan Growth - ISIN: INF000A01AB2(Advisor: DIRECT)   Registrar : CAMS
+Opening Unit Balance: 0.000
+05-Jan-2026    Purchase - Systematic              4,999.75        49.998        100.0000        49.998
+05-Jan-2026    *** Stamp Duty ***                     0.25
+05-Feb-2026    Purchase - Systematic              4,999.75        45.452        110.0000        95.450
+10-Mar-2026    Redemption                        (2,400.00)       (20.000)        120.0000        75.450
+Closing Unit Balance: 75.450     NAV on 31-Oct-2026: INR 125.0000     Total Cost Value: 7,600.00
+Folio No: 7654321
+Synthetic Index Fund - Direct Plan Growth
+- ISIN: INF000A01AB2
+Opening Unit Balance: 0.000
+01-Apr-2026    Purchase                           1,000.00        10.000        100.0000        10.000
+Closing Unit Balance: 10.000     NAV on 31-Oct-2026: INR 125.0000
+Folio No: 1111111
+B9-Synthetic Debt Fund - ISIN: INF000B01CD3
+Opening Unit Balance: 12.000
+Closing Unit Balance: 12.000     NAV on 31-Oct-2026: INR 30.0000
+`;
+const [index, debt] = parseCasText(casText);
+assert.equal(index?.name, "Synthetic Index Fund - Direct Plan Growth");
+assert.equal(index?.txns.length, 4, "two folios of one ISIN merge");
+assert.deepEqual(index?.txns[0], { date: "2026-01-05", amount: 5000, units: 49.998, nav: 100 }, "stamp duty joins the buy");
+assert.equal(index?.txns[2]?.amount, -2400, "redemption is negative");
+assert.equal(index?.closing, 85.45);
+assert.equal(casProblem(index!), null);
+assert.match(casProblem(debt!) ?? "", /inception/);
+assert.equal(amfiCodeForIsin("999;INF000A01AB2;-;Synthetic;125;31-Oct-2026", "INF000A01AB2"), "999");
+{
+  const db = openDb(":memory:");
+  const [old] = await db.insert(holdings).values({ name: "Index fund", kind: "fund", schemeCode: "999", manualValue: 9000, manualValueDate: "2026-09-30", manualInvested: 8000 }).returning();
+  await db.insert(holdingTxns).values([{ holdingId: old!.id, date: "2026-01-05", amount: 5000, source: "sms" }, { holdingId: old!.id, date: "2026-11-05", amount: 5000, source: "sms" }]);
+  globalThis.fetch = async () => new Response("{}");
+  try {
+    const result = await applyCas(db, [index!, debt!], "999;INF000A01AB2;-;Synthetic;125;31-Oct-2026");
+    assert.equal(result.imported.length, 1); assert.equal(result.skipped.length, 1);
+  } finally { globalThis.fetch = savedFetch; }
+  const after = await db.select().from(holdings).get();
+  assert.deepEqual([after?.manualValue, after?.manualValueDate, after?.manualInvested], [null, null, null], "CAS clears the statement value");
+  const txns = await db.select().from(holdingTxns);
+  assert.equal(txns.length, 5, "4 CAS rows replace pre-statement buys; the later SMS buy stays");
+  const live = valueHolding(after!, txns, { date: "2026-10-31", nav: 125, prev: null, prev_date: null });
+  assert.equal(Math.round(live.value), Math.round(85.45 * 125), "value is units × NAV");
+}
 console.log("wealth checks passed");
