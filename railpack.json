@@ -16,7 +16,8 @@
   },
   "deploy": {
     "aptPackages": [
-      "tesseract-ocr"
+      "tesseract-ocr",
+      "curl"
     ]
   }
 }

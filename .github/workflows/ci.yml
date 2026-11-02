@@ -42,4 +42,10 @@ jobs:
       - run: railpack prepare . --plan-out railpack-plan.json
       - run: docker buildx build --load -t kharcha-ci --build-arg BUILDKIT_SYNTAX=ghcr.io/railwayapp/railpack-frontend:v$RAILPACK_VERSION -f railpack-plan.json .
       - name: Runtime tools exist in the image
-        run: docker run --rm --entrypoint sh kharcha-ci -c 'tesseract --version | head -1 && cd /app && .cas/bin/python -I -c "import casparser; print(casparser.__version__)" && test -f scripts/cas-to-json.py'
+        run: docker run --rm --entrypoint sh kharcha-ci -c 'tesseract --version | head -1 && curl --version | head -1 && cd /app && .cas/bin/python -I -c "import casparser; print(casparser.__version__)" && test -f scripts/cas-to-json.py'
+      # Coolify's healthcheck runs curl inside the container; an unhealthy container gets no Traefik route (503).
+      - name: Container passes the Coolify healthcheck
+        run: |
+          docker run -d --name app -e STATE_DIRECTORY=/tmp/data kharcha-ci
+          for i in $(seq 1 30); do docker exec app curl -sf http://localhost:3000/api/health && exit 0; sleep 2; done
+          docker logs app; exit 1
