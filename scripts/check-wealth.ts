@@ -1,8 +1,10 @@
+import { eq } from "drizzle-orm";
 import assert from "node:assert/strict";
 import { nextDue } from "../src/server/plan/jobs.ts";
 import { amfiLine, mfapiNav, navDate, runPrices } from "../src/server/wealth/jobs.ts";
 import { openDb } from "../src/server/db/client.ts";
-import { holdings, prices } from "../src/server/db/schema.ts";
+import { holdingTxns, holdings, prices } from "../src/server/db/schema.ts";
+import { applyCas, casProblem, casSchemes } from "../src/server/wealth/cas.ts";
 import { isNotFutureDateInIST, navDayChange, nextSipDate, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
 import { realDay, xirr } from "../src/server/wealth/xirr.ts";
 import { holdingCsvRows } from "../src/lib/csv.ts";
@@ -58,4 +60,40 @@ try {
     assert.equal((await db.select().from(prices).get())?.source, "amfi");
   }
 } finally { globalThis.fetch = savedFetch; }
+
+// CAS import (synthetic casparser JSON).
+const t = (date: string, type: string, amount: string | null, units: string | null, nav: string | null) => ({ date, type, amount, units, nav });
+const raw = (isin: string, open: string, close: string, txns: ReturnType<typeof t>[]) => ({ scheme: "Synthetic Index Fund - Direct Plan Growth", isin, amfi: isin === "INF000A01AB2" ? "999" : null, open, close, close_calculated: close, valuation: { date: "2026-10-31", nav: "125" }, transactions: txns });
+const casJson = { cas_type: "DETAILED", folios: [
+  { schemes: [raw("INF000A01AB2", "0", "75.45", [t("2026-01-05", "PURCHASE_SIP", "4999.75", "49.998", "100"), t("2026-01-05", "STAMP_DUTY_TAX", "0.25", null, null), t("2026-02-05", "PURCHASE_SIP", "4999.75", "45.452", "110"), t("2026-03-10", "REDEMPTION", "-2400.00", "-20.000", "120")])] },
+  { schemes: [raw("INF000A01AB2", "0", "10", [t("2026-04-01", "PURCHASE", "1000.00", "10", "100")]), raw("INF000B01CD3", "12", "12", [])] },
+] };
+const [index, debt] = casSchemes(casJson);
+assert.equal(index?.txns.length, 4, "two folios of one ISIN merge");
+assert.deepEqual(index?.txns[0], { date: "2026-01-05", amount: 5000, units: 49.998, nav: 100 }, "stamp duty joins the buy");
+assert.equal(index?.txns[2]?.amount, -2400, "redemption is negative");
+assert.equal(index?.closing, 85.45);
+assert.equal(casProblem(index!), null);
+assert.match(casProblem(debt!) ?? "", /inception/);
+assert.match(casProblem({ ...index!, closingCalculated: 80 }) ?? "", /add up/, "casparser's own balance check is honoured");
+assert.equal(casSchemes({ cas_type: "DETAILED", folios: [{ schemes: [raw("INF000A01AB2", "0", "0", [t("2026-01-05", "PURCHASE", "1000", "10", "100"), t("2026-02-05", "SWITCH_OUT_MERGER", null, "-10", "110")])] }] })[0]?.txns[1]?.amount, -1100, "a sell without an amount stays negative");
+assert.match(casProblem({ ...index!, txns: [], closing: 0, closingCalculated: 0, navDate: null }) ?? "", /No transactions/, "an empty scheme never wipes history");
+{
+  const db = openDb(":memory:");
+  const [old] = await db.insert(holdings).values({ name: "Index fund", kind: "fund", schemeCode: "999", manualValue: 9000, manualValueDate: "2026-09-30", manualInvested: 8000 }).returning();
+  await db.insert(holdingTxns).values([{ holdingId: old!.id, date: "2026-01-05", amount: 5000, source: "sms" }, { holdingId: old!.id, date: "2026-11-05", amount: 5000, source: "sms" }]);
+  globalThis.fetch = async () => new Response("{}");
+  try {
+    await db.insert(holdings).values({ name: "Synthetic Index Fund - Direct Plan Growth", kind: "gold", manualValue: 777 });
+    const result = await applyCas(db, [index!, debt!]);
+    assert.equal(result.imported.length, 1); assert.equal(result.skipped.length, 1);
+  } finally { globalThis.fetch = savedFetch; }
+  const after = await db.select().from(holdings).where(eq(holdings.id, old!.id)).get();
+  assert.equal((await db.select().from(holdings).where(eq(holdings.kind, "gold")).get())?.manualValue, 777, "a same-named non-fund holding is never taken over");
+  assert.deepEqual([after?.manualValue, after?.manualValueDate, after?.manualInvested], [null, null, null], "CAS clears the statement value");
+  const txns = await db.select().from(holdingTxns);
+  assert.equal(txns.length, 5, "4 CAS rows replace pre-statement buys; the later SMS buy stays");
+  const live = valueHolding(after!, txns, { date: "2026-10-31", nav: 125, prev: null, prev_date: null });
+  assert.equal(Math.round(live.value), Math.round(85.45 * 125), "value is units × NAV");
+}
 console.log("wealth checks passed");

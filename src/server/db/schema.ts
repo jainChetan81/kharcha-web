@@ -174,7 +174,7 @@ export const holdingTxns = sqliteTable(
     amount: real("amount").notNull(),
     units: real("units"),
     nav: real("nav"),
-    source: text("source", { enum: ["sms", "csv", "manual"] }).notNull(),
+    source: text("source", { enum: ["sms", "csv", "manual", "cas"] }).notNull(),
   },
   (t) => [index("holding_txns_holding_idx").on(t.holdingId, t.date)],
 );
@@ -185,7 +185,7 @@ export const prices = sqliteTable(
     schemeCode: text("scheme_code").notNull(),
     date: text("date").notNull(),
     nav: real("nav").notNull(),
-    source: text("source", { enum: ["mfapi", "amfi"] }).notNull(),
+    source: text("source", { enum: ["mfapi", "amfi", "cas"] }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.schemeCode, t.date] })],
 );

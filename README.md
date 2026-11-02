@@ -33,7 +33,7 @@ Today, Review, Activity, Plan (budgets, recurring, trips, owed), Wealth, Insight
 
 ## Wealth data
 
-Fund values and SIPs come from broker statements, not live prices: there are no units or purchase history yet, so Wealth shows "Statement of <date> · not live" and XIRR —. To refresh, hand the new statement to an agent; it loads `holdings.manual_value`/`manual_invested`/`manual_value_date` and upserts `sip_mandates` (keyed by hashed `source_key`) on the VPS after a `.backup`. There is no import screen for this on purpose. Live value needs units per fund (then `scheme_code` + nightly prices take over).
+Live fund values come from a CAMS/KFintech **Detailed CAS** (PDF, from inception): Wealth → Import CAS. The server reads it with [casparser](https://github.com/codereverser/casparser) (`scripts/cas-to-json.py`, venv at `.cas/`; password on stdin, never stored; the PDF is deleted at once), takes each fund's AMFI scheme code, replaces that fund's buys up to the statement date with exact units and cost, backfills NAV history from MFAPI, and clears `manual_value`/`manual_invested`/`manual_value_date`. After that the nightly price job gives live value, day change and XIRR. Funds whose statement does not start at zero units, or whose units do not add up, are skipped and listed. Funds not in a CAS (NPS, gold, broker statements) keep the manual statement value, loaded by an agent on the VPS after a `.backup`.  Local dev: `uv venv .cas && uv pip install --python .cas/bin/python casparser==1.4.1` (or set `CAS_PYTHON`).
 
 ## Develop
 
@@ -54,9 +54,9 @@ Coolify on the VPS builds `main` with Railpack (no Dockerfile) since 2026-10-20.
 - `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Traefik handles TLS)
 - `https://vps.bullhead-mine.ts.net:8790` (tailnet; Tailscale Serve to `127.0.0.1:8790`)
 
-Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`.
+Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`. Optional `UMAMI_WEBSITE_ID`: adds the self-hosted Umami script (`umami.chetan-vps.tech`, cookieless, page paths only, no query strings, production host only); unset means no analytics.
 
-Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. The Railpack image does not install it yet, so receipt OCR is off in the Coolify container.
+Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` in the image, plus Python 3.12 with casparser in `/app/.cas` for CAS import.
 
 Job timers (`kharcha-web-job-*.timer`) run on the VPS host and POST to `127.0.0.1:8790` with `INGEST_TOKEN`.
 

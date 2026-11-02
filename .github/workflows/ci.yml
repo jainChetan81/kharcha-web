@@ -26,3 +26,26 @@ jobs:
       - run: npm ci
       - run: npm run quality
       - run: npm run build
+  # Same build Coolify runs (Railpack + BuildKit), so a broken railpack.json fails here, not in a deploy.
+  image:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RAILPACK_VERSION: 0.43.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - run: mkdir -p "$HOME/.local/bin" && curl -fsSL https://railpack.com/install.sh | RAILPACK_VERSION=$RAILPACK_VERSION bash -s -- --yes --bin-dir "$HOME/.local/bin"
+      - run: railpack prepare . --plan-out railpack-plan.json
+      - run: docker buildx build --load -t kharcha-ci --build-arg BUILDKIT_SYNTAX=ghcr.io/railwayapp/railpack-frontend:v$RAILPACK_VERSION -f railpack-plan.json .
+      - name: Runtime tools exist in the image
+        run: docker run --rm --entrypoint sh kharcha-ci -c 'tesseract --version | head -1 && curl --version | head -1 && cd /app && .cas/bin/python -I -c "import casparser; print(casparser.__version__)" && test -f scripts/cas-to-json.py'
+      # Coolify's healthcheck runs curl inside the container; an unhealthy container gets no Traefik route (503).
+      - name: Container passes the Coolify healthcheck
+        run: |
+          docker run -d --name app -e STATE_DIRECTORY=/tmp/data kharcha-ci
+          for i in $(seq 1 30); do docker exec app curl -sf http://localhost:3000/api/health && exit 0; sleep 2; done
+          docker logs app; exit 1
