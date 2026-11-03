@@ -117,6 +117,21 @@ assert.equal(escaped.merchant, "Swiggy");
 assert.equal(escaped.date, "2026-04-01 19:03");
 assert.equal(decodeHtmlEntities("A&amp;B&#39;s"), "A&B's");
 
+// Axis: card cashback credit is income; the "earned ... next statement" notice is not a second credit.
+const axisCb = parse(
+  "axis",
+  "Congratulations! Cashback of INR 455 has been credited to your Axis Bank Flipkart Credit Card XX1111 towards your last month spends - Axis Bank",
+);
+assert.equal(axisCb.amount, 455);
+assert.equal(axisCb.type, "income");
+assert.equal(axisCb.category, "Refunds");
+assert.equal(axisCb.merchant, "Axis Flipkart Card Cashback");
+assert.equal(axisCb.accountLast4, "1111");
+assert.equal(
+  parseMessage("axis", "Cashback of INR 105.00 earned in September on Flipkart Axis Bank Credit Card no. XX1111 will reflect in your next statement.").parsedBy,
+  "failed",
+);
+
 // Date and amount helpers.
 assert.equal(parseIndianDate("11-08-26"), "2026-08-11 00:00");
 assert.equal(parseIndianDate("11/08/2026", "13:05:07"), "2026-08-11 13:05");
