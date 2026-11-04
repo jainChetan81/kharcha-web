@@ -14,7 +14,6 @@ export function ModelSelect({ id, label, value, placeholder, disabled, onChange 
   const selected = presets.find((model) => model.id === value);
   const filtered = useMemo(() => presets.filter((model) => `${model.name} ${model.provider} ${model.id}`.toLowerCase().includes(query.trim().toLowerCase())), [query]);
   const choose = (modelId: string) => { onChange(modelId); setOpen(false); setQuery(""); };
-  const custom = query.trim();
   return <>
     <div className="flex flex-col gap-1.5">
       <span className="text-[13px] text-ink-2">{label}</span>
@@ -25,7 +24,7 @@ export function ModelSelect({ id, label, value, placeholder, disabled, onChange 
     {open && <Sheet title={label} onClose={() => { setOpen(false); setQuery(""); }} className="gap-2">
       <label htmlFor={searchId} className="flex min-h-11 items-center gap-2 rounded-button border border-field bg-input px-3">
         <Search size={18} className="text-ink-3" aria-hidden /><span className="sr-only">Search models</span>
-        <input id={searchId} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list" className="min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search models or model ID" value={query} onChange={(event) => setQuery(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); if (event.key === "ArrowDown") (document.querySelector<HTMLElement>(`#${listId} button`) ?? event.currentTarget).focus(); if (event.key === "Enter" && custom && filtered.length === 0) choose(custom); }} />
+        <input id={searchId} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list" className="min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search models" value={query} onChange={(event) => setQuery(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); if (event.key === "ArrowDown") (document.querySelector<HTMLElement>(`#${listId} button`) ?? event.currentTarget).focus(); }} />
       </label>
       <div id={listId} className="m-0 max-h-[min(60dvh,520px)] overflow-y-auto">
         {filtered.map((model) => <div key={model.id} aria-current={value === model.id ? "true" : undefined} className="border-b border-hairline">
@@ -34,10 +33,7 @@ export function ModelSelect({ id, label, value, placeholder, disabled, onChange 
             <span className="text-brand">{value === model.id && <Check size={20} aria-label="Selected" />}</span>
           </button>
         </div>)}
-        {custom && !presets.some((model) => model.id === custom) && <div className="border-b border-hairline">
-          <button type="button" className="flex min-h-16 w-full items-center gap-2 text-left" onClick={() => choose(custom)}><span className="min-w-0 flex-1 truncate text-sm">Use “{custom}”</span><Check size={20} className="text-brand" aria-hidden /></button>
-        </div>}
-        {!filtered.length && !custom && <p className="m-0 py-5 text-sm text-ink-2">No preset matches.</p>}
+        {!filtered.length && <p className="m-0 py-5 text-sm text-ink-2">No preset matches.</p>}
       </div>
     </Sheet>}
   </>;
