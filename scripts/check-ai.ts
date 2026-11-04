@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+process.env.AI_BASE_URL ??= "http://ai.test/v1"; // synthetic: fetch is mocked below, nothing leaves the box.
 import { mock } from "node:test";
 import { eq } from "drizzle-orm";
 import { askLedger, askSpecSchema, describeScope, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
-import { callOpenRouter } from "../src/server/ai/client.ts";
+import { callAi } from "../src/server/ai/client.ts";
 import { attachments, receiptJobs } from "../src/server/db/schema.ts";
 import { categorize, receiptOutput, receiptSplitMatches, redactReceiptText, runReceiptJob, scrubItemName } from "../src/server/ai/receipt.ts";
 import { spendByCategory } from "../src/server/db/queries.ts";
@@ -44,13 +45,13 @@ const unusual = await db.select().from(insights).where(eq(insights.detector, "un
 assert.ok(unusual.length >= 1);
 
 // Synthetic clock, key and fetch: no outbound AI calls, even when testing enabled paths.
-const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.OPENROUTER_API_KEY; const savedFetch = globalThis.fetch;
+const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.AI_API_KEY; const savedFetch = globalThis.fetch;
 try {
   mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-19T01:30:00Z") });
   const digestDb = openDb(":memory:"); let requests = 0; let payload = "";
   globalThis.fetch = async (_input, init) => { requests++; payload = String(init?.body); return Response.json({ choices: [{ message: { content: "{}" } }] }); };
-  process.env.KHARCHA_AI = "off"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
-  assert.deepEqual(await callOpenRouter([], { db: digestDb }), { ok: false, reason: "disabled" });
+  process.env.KHARCHA_AI = "off"; process.env.AI_API_KEY = "synthetic-test-key";
+  assert.deepEqual(await callAi([], { db: digestDb }), { ok: false, reason: "disabled" });
   await runDigest(digestDb);
   assert.equal(requests, 0, "AI off blocks Ask and digest HTTP requests");
   await digestDb.insert(transactions).values([
@@ -67,7 +68,7 @@ try {
 } finally {
   mock.timers.reset(); globalThis.fetch = savedFetch;
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-  if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+  if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
 }
 
 // Receipt reading: synthetic inputs only, no network.
@@ -112,7 +113,7 @@ async function receiptHarness(text: string | null) {
   await rdb.insert(receiptJobs).values({ transactionId: 1, status: "queued" });
   let calls = 0; let body = "";
   globalThis.fetch = async (_input, init) => { calls++; body = String(init?.body); return Response.json({ choices: [{ message: { content: JSON.stringify({ isReceipt: true, total: 60, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] }) } }] }); };
-  process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+  process.env.KHARCHA_AI = "on"; process.env.AI_API_KEY = "synthetic-test-key";
   await runReceiptJob(rdb, 1, 1, async () => text);
   const job = await rdb.select().from(receiptJobs).get();
   return { job, calls, body };
@@ -130,12 +131,12 @@ try {
 } finally {
   globalThis.fetch = savedFetch;
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-  if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+  if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
 }
 
 // Ask scope: server enforces it, the planner's period can't widen it, card digits never reach the model.
 {
-  const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.OPENROUTER_API_KEY; const savedFetch = globalThis.fetch;
+  const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.AI_API_KEY; const savedFetch = globalThis.fetch;
   try {
     mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-19T01:30:00Z") });
     const sdb = openDb(":memory:"); const bodies: string[] = [];
@@ -148,14 +149,14 @@ try {
     // Planner asks for everything, all time; scope must still win.
     const replies = [JSON.stringify({ queries: [{ metric: "sum", period: "all", filters: {} }] }), JSON.stringify({ answer: "In scope you spent ₹100.", followUps: [] })];
     globalThis.fetch = async (_input, init) => { bodies.push(String(init?.body)); return Response.json({ choices: [{ message: { content: replies[(bodies.length - 1) % 2] } }] }); };
-    process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+    process.env.KHARCHA_AI = "on"; process.env.AI_API_KEY = "synthetic-test-key";
     const result = await askLedger(sdb, "How much?", { month: "2026-10", categories: ["expense:Food"], card: "4242" });
     assert.equal(result.ok, true);
     if (result.ok) {
       assert.deepEqual(result.rows.map((r) => r.value), [100], "scope: Oct + Food + card 4242 only");
       assert.equal(result.answer, "In scope you spent ₹100.", "figure from scoped rows passes the check");
     }
-    assert.ok(bodies.every((b) => !b.includes("4242")), "card digits never reach OpenRouter");
+    assert.ok(bodies.every((b) => !b.includes("4242")), "card digits never reach the AI model");
     assert.ok(bodies[0]?.includes("one card") && bodies[0]?.includes("Food"), "planner told the scope by name");
     replies[1] = JSON.stringify({ answer: "Total ₹1,500.", followUps: [] });
     const all = await askLedger(sdb, "How much?");
@@ -175,7 +176,7 @@ try {
   } finally {
     mock.timers.reset(); globalThis.fetch = savedFetch;
     if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-    if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+    if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
   }
 }
 

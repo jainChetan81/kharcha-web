@@ -3,13 +3,9 @@ import { useId, useMemo, useState } from "react";
 import { Sheet } from "./sheet";
 import { cn } from "../lib/cn";
 
-// Presets are a short list of common OpenRouter IDs; cost comes from the server (daily OpenRouter pricing), never from this file.
+// 9Router models the restricted `kharcha` key may call. Add an ID here after adding it to the key's allow list.
 export const presets = [
-  { id: "google/gemini-3.5-flash", name: "Gemini 3.5 Flash", provider: "Google" },
-  { id: "openai/gpt-5-mini", name: "GPT-5 mini", provider: "OpenAI" },
-  { id: "anthropic/claude-haiku-4.5", name: "Claude Haiku 4.5", provider: "Anthropic" },
-  { id: "deepseek/deepseek-v3.2", name: "DeepSeek V3.2", provider: "DeepSeek" },
-  { id: "meta-llama/llama-4-maverick", name: "Llama 4 Maverick", provider: "Meta" },
+  { id: "ag/gemini-3.8-flash-high", name: "Gemini 3.8 Flash", provider: "9Router · Antigravity" },
 ] as const;
 
 /** `costs` maps model id to a server estimate per call (e.g. "about ₹0.03 per call"); a missing entry hides the cost. */
