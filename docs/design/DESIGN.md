@@ -423,7 +423,7 @@ Remaining dependencies:
 
 | Needed | For | Owner |
 |---|---|---|
-| `OPENROUTER_API_KEY` in `/etc/kharcha-web/env` | Ask, Receipts, digest | you |
+| `AI_BASE_URL` and `AI_API_KEY` (9Router key `kharcha`) in Coolify | Ask, Receipts, digest | you |
 | AMFI scheme codes for your funds (or pick them in Add holding) | Wealth prices, SIP units | you |
 | CSV of past SIP buys (`date, fund, amount, units, nav`), optional | Wealth history before SMS | you |
 | Login (auth) | Ask, receipt reading and the weekly digest are off until it exists. Settings shows one quiet line. | deferred, §13 |

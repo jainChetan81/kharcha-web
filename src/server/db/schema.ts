@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { blob, check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const TXN_TYPES = ["income", "expense", "investment"] as const;
 
@@ -307,5 +307,14 @@ export const askLog = sqliteTable("ask_log", {
   tokensIn: integer("tokens_in"),
   tokensOut: integer("tokens_out"),
   costUsd: real("cost_usd"),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+});
+
+/** One embedding per distinct merchant name (9Router, local model). Used for search by meaning. */
+export const merchantVectors = sqliteTable("merchant_vectors", {
+  merchant: text("merchant").primaryKey(),
+  model: text("model").notNull(),
+  // Float32 little-endian, 768 numbers.
+  vector: blob("vector", { mode: "buffer" }).notNull(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });

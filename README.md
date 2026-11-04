@@ -54,11 +54,13 @@ Coolify on the VPS builds `main` with Railpack (no Dockerfile) since 2026-10-20.
 - `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Traefik handles TLS)
 - `https://vps.bullhead-mine.ts.net:8790` (tailnet; Tailscale Serve to `127.0.0.1:8790`)
 
-Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `PROXY_SECRET`, `ADMIN_EMAIL`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`. Optional `UMAMI_WEBSITE_ID`: adds the self-hosted Umami script (`umami.chetan-vps.tech`, cookieless, page paths only, no query strings, production host only); unset means no analytics.
+Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `PROXY_SECRET`, `ADMIN_EMAIL`, `AI_BASE_URL` (`http://10.0.0.1:20128/v1`, the 9Router bridge on the Docker host), `AI_API_KEY` (restricted 9Router key `kharcha`), `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`. Optional `UMAMI_WEBSITE_ID`: adds the self-hosted Umami script (`umami.chetan-vps.tech`, cookieless, page paths only, no query strings, production host only); unset means no analytics.
 
-Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` in the image, plus Python 3.12 with casparser in `/app/.cas` for CAS import.
+Receipt reading runs OCR (`tesseract`) and sends only redacted text to the AI model. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` in the image, plus Python 3.12 with casparser in `/app/.cas` for CAS import.
 
 Job timers (`kharcha-web-job-*.timer`) run on the VPS host and POST to `127.0.0.1:8790` with `INGEST_TOKEN`.
+
+Search by meaning: Activity search and the Ask merchant filter also match merchants whose name means the same (local `embeddinggemma:300m` through 9Router; text stays on the VPS). One vector per merchant in `merchant_vectors`. New merchants are embedded after each write. Backfill once after deploy: `sudo systemctl start kharcha-web-job@embeddings` (about 25 s for 435 merchants). Off when `KHARCHA_AI` is not `on` or 9Router fails; plain text search still works.
 
 Operate: logs, redeploy and rollback in the Coolify dashboard (app `kharcha-web`). Health: `curl https://vps.bullhead-mine.ts.net:8790/api/health`. Nightly `vps-backup` copies the database and files to R2.
 

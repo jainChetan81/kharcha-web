@@ -4,8 +4,7 @@ import { getDb, type Db } from "../db/client.ts";
 import { shareSql, spendByCategory } from "../db/queries.ts";
 import { budgets, digests, holdings, holdingTxns, insights, recurringSeries, transactions } from "../db/schema.ts";
 import { scrub } from "../ai/ask.ts";
-import { callOpenRouter } from "../ai/client.ts";
-import { callCostUsd } from "../ai/pricing.ts";
+import { callAi } from "../ai/client.ts";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const localDate = () => new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date())}T00:00:00Z`);
@@ -88,7 +87,7 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
   const links = { topMerchant: top ? `/activity?merchant=${encodeURIComponent(top.merchant)}` : "/activity", category: cat ? `/activity?category=${encodeURIComponent(cat.category)}` : "/activity", budgetForecast: "/plan/budgets", reviewBacklog: "/review" };
   // Context lets the model judge which facts matter; only facts values may appear as figures.
   const context = { dayOfMonth: day, daysInMonth: daysIn(now), weekCategory: cat ? { category: scrub(cat.category), thisWeek: Math.round(cat.total), usualWeek: Math.round(cat.total - cat.change) } : null, budgets: limits.map((limit) => ({ category: scrub(limit.category), limit: limit.monthlyLimit, spent: Math.round(monthSpend.find((row) => row.category === limit.category)?.total ?? 0) })) };
-  const response = await callOpenRouter([{ role: "system", content: `You write a Monday money digest for one person in India. Return JSON only: {"lines":[{"pre","num","post","factKey"}]} with exactly 3 lines.
+  const response = await callAi([{ role: "system", content: `You write a Monday money digest for one person in India. Return JSON only: {"lines":[{"pre","num","post","factKey"}]} with exactly 3 lines.
 Pick the 3 facts that matter most this week, most important first, using context to judge (a category well above its usual week, a budget about to be crossed, a big review backlog). Each line reads pre + num + post as one short sentence (under 14 words) that says what happened and, where useful, what to do next, e.g. "Review " + "12 rows" + " so Other stops hiding spend." Say "spend" for money out, never "layout". Never pick reviewBacklog when its value is "0 rows".
 num must be copied verbatim from the chosen facts value, and factKey must be that fact's key. Use each fact at most once. No other figures in pre or post.` }, { role: "user", content: JSON.stringify({ facts, context }) }], { db });
   let text: string | null = null; let model: string | null = null;
@@ -96,7 +95,7 @@ num must be copied verbatim from the chosen facts value, and factKey must be tha
   // Provenance only when the model's words were kept; a rejected reply still cost money but is not shown.
   const tokensIn = text !== null && response.ok ? response.tokensIn : null;
   const tokensOut = text !== null && response.ok ? response.tokensOut : null;
-  const costUsd = text !== null && response.ok ? await callCostUsd(db, response.model, response.tokensIn, response.tokensOut, response.costUsd) : null;
+  const costUsd = text !== null && response.ok ? response.costUsd : null;
   const row = { factsJson: JSON.stringify({ ...facts, links }), text, model, tokensIn, tokensOut, costUsd };
   await db.insert(digests).values({ weekStart: iso(week), ...row }).onConflictDoUpdate({ target: digests.weekStart, set: { ...row, createdAt: sql`(datetime('now'))` } });
   return { written: text !== null };

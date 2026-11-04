@@ -6,6 +6,7 @@ import { getDb, type Db } from "../db/client.ts";
 import { filteredAmount, listWhere, type Scope, scopeSchema, splitShareOf } from "../db/queries.ts";
 import { dayMonth, shiftMonth } from "../../lib/format.ts";
 import { digests, insights } from "../db/schema.ts";
+import { merchantsByMeaning } from "../ai/embed.ts";
 
 export type DigestLine = { pre: string; num: string; post: string; href: string };
 export type Digest =
@@ -40,12 +41,12 @@ const moneyRows = <T,>(rows: T[]) => rows.map((row) => {
 /** Same filters as Activity (listWhere), so "See insights" shows the rows Activity showed. Default period: this month. */
 export const getInsights = createServerFn({ method: "GET" })
   .validator(scopeSchema)
-  .handler(({ data }) => insightsFor(getDb(), data));
+  .handler(async ({ data }) => insightsFor(getDb(), data, data.search ? await merchantsByMeaning(getDb(), data.search) : undefined));
 
-export async function insightsFor(db: Db, data: Scope) {
+export async function insightsFor(db: Db, data: Scope, meaningMerchants?: string[]) {
     const now = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7);
     const ranged = Boolean(data.from || data.to);
-    const q = ranged ? { ...data, month: undefined } : { ...data, month: data.month ?? now };
+    const q = { ...(ranged ? { ...data, month: undefined } : { ...data, month: data.month ?? now }), meaningMerchants };
     // Anchor month for the calendar and the six-month bars: the month the period ends in (open end = now).
     const month = data.to?.slice(0, 7) ?? (data.from ? now : q.month ?? now);
     const { counted, splitFilter } = filteredAmount(q);

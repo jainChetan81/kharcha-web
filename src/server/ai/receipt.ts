@@ -5,8 +5,7 @@ import { z } from "zod";
 import type { Db } from "../db/client.ts";
 import { ruleMatches } from "../db/queries.ts";
 import { attachments, categories, merchantRules, receiptJobs, reimbursements, transactionItems, transactions } from "../db/schema.ts";
-import { callOpenRouter } from "./client.ts";
-import { callCostUsd } from "./pricing.ts";
+import { callAi } from "./client.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -131,7 +130,7 @@ export async function runReceiptJob(db: Db, jobId: number, transactionId: number
 
   const type = txn.type === "income" ? "income" : "expense";
   const names = new Set(known.filter((c) => c.type === type).map((c) => c.name));
-  const reply = await callOpenRouter([{ role: "user", content: `${prompt([...names])}\n\nReceipt text:\n${text}` }], { db });
+  const reply = await callAi([{ role: "user", content: `${prompt([...names])}\n\nReceipt text:\n${text}` }], { db });
   if (!reply.ok) { await fail("ai_unavailable"); return; }
   let json: unknown;
   try {
@@ -161,7 +160,7 @@ export async function runReceiptJob(db: Db, jobId: number, transactionId: number
     })
     .filter((row) => row.name && row.amount > 0);
 
-  const costUsd = await callCostUsd(db, reply.model, reply.tokensIn, reply.tokensOut, reply.costUsd);
+  const costUsd = reply.costUsd;
   const provenance = { model: reply.model, tokensIn: reply.tokensIn, tokensOut: reply.tokensOut, costUsd };
   const itemClaim = await db.select({ id: reimbursements.id }).from(reimbursements)
     .where(and(eq(reimbursements.transactionId, transactionId), sql`${reimbursements.itemIds} IS NOT NULL`, sql`${reimbursements.status} != 'cancelled'`)).get();

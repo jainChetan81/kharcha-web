@@ -3,7 +3,6 @@ import { and, count, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
-import { modelCosts } from "../ai/pricing";
 import { getMeta, sameMatch, setMeta } from "../db/queries";
 import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
 
@@ -41,7 +40,6 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
     values: Object.fromEntries(entries),
     aiOn,
     ai,
-    costs: await modelCosts(db, aiOn),
   };
 });
 

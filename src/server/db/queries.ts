@@ -320,7 +320,8 @@ export type ListQuery = z.infer<typeof listSchema>;
 export const scopeSchema = ordered(listShape.omit({ sort: true, ids: true, review: true }));
 export type Scope = z.infer<typeof scopeSchema>;
 
-export function listWhere(q: ListQuery) {
+/** meaningMerchants: server-only, from merchantsByMeaning. Widens text search; never set from the client. */
+export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
   const where = [live];
   if (q.from) where.push(gte(transactions.date, `${q.from} 00`));
   if (q.to) where.push(lt(transactions.date, `${q.to} 24`));
@@ -345,7 +346,8 @@ export function listWhere(q: ListQuery) {
   }
   if (q.search) {
     const p = `%${q.search}%`;
-    const match = or(like(transactions.merchant, p), like(transactions.category, p), like(transactions.rawText, p));
+    const meaning = q.meaningMerchants?.length ? [inArray(transactions.merchant, q.meaningMerchants)] : [];
+    const match = or(like(transactions.merchant, p), like(transactions.category, p), like(transactions.rawText, p), ...meaning);
     if (match) where.push(match);
   }
   // Statuses OR together. `review=1` is the older alias for status review.
@@ -370,7 +372,7 @@ export function listWhere(q: ListQuery) {
 }
 
 /** withRaw adds the SMS text; only Detail, Review and Activity's pane need it. */
-export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean }) {
+export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean; meaningMerchants?: string[] }) {
   const where = listWhere(q);
   const order = q.sort === "oldest" ? [transactions.date, transactions.id] :
     q.sort === "amount-desc" ? [desc(transactions.amount), desc(transactions.date)] :
@@ -439,7 +441,7 @@ export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
   return { counted, splitFilter };
 }
 
-export async function summarizeTxns(db: Db, q: ListQuery) {
+export async function summarizeTxns(db: Db, q: ListQuery & { meaningMerchants?: string[] }) {
   const where = and(...listWhere(q)) ?? sql`1 = 1`;
   const { counted, splitFilter } = filteredAmount(q);
   const [row] = await db.all<{ n: number; spent: number; income: number; transferred: number; top: string; biggest: string | null; frequent: string | null }>(sql`

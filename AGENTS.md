@@ -9,5 +9,5 @@
 - Changes do not authorize push, merge, or deploy. Keep unrelated VPS services and port 20128 running.
 - `src/server/parsers/` is a copy of the mini's regex parsers, used by Paste. A parser fix in `kharcha-mini/src/parsers/` must be copied over.
 - UI follows `docs/design/DESIGN.md` and its boards. Tokens live in `src/styles.css`; formatting in `src/lib/format.ts` (`npm run check:format`).
-- AI: OpenRouter only from `src/server/ai/`. Never send raw SMS, card numbers or UPI IDs. Ask and Receipts stay off unless `KHARCHA_AI=on`.
+- AI: 9Router only (`AI_BASE_URL`, `AI_API_KEY`), from `src/server/ai/`. Never send raw SMS, card numbers or UPI IDs. Ask and Receipts stay off unless `KHARCHA_AI=on`.
 - `/api/jobs/*` are bearer-token endpoints for the systemd timer; keep them blocked in `deploy/kharcha.caddy`.

@@ -192,7 +192,7 @@ function Settings() {
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
           {data.aiOn && <div className="space-y-3 pt-3.5">
-            <ModelSelect id="model" label="Model" value={data.values.openrouter_model ?? ""} placeholder={presets.find((m) => m.id === data.ai.model)?.name ?? data.ai.model} disabled={!online} costs={data.costs.text} onChange={(value) => void save("openrouter_model", value)} />
+            <ModelSelect id="model" label="Model" value={data.values.openrouter_model ?? ""} placeholder={presets.find((m) => m.id === data.ai.model)?.name ?? data.ai.model} disabled={!online} onChange={(value) => void save("openrouter_model", value)} />
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[13px] text-ink-2">Daily call cap</span>

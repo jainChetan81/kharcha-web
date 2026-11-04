@@ -1,9 +1,9 @@
-import { and, count, desc, eq, gte, isNull, like, lt, lte, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
-import { callOpenRouter } from "./client.ts";
-import { callCostUsd } from "./pricing.ts";
+import { callAi } from "./client.ts";
+import { merchantsByMeaning } from "./embed.ts";
 import type { Db } from "../db/client.ts";
 
 const filterSchema = z.object({
@@ -26,7 +26,7 @@ const parseJson = (value: string): unknown => {
 // Models emit null for unused fields; the strict schema wants them absent.
 const dropNulls = (value: unknown): unknown =>
   Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
-/** Merchant labels can carry UPI IDs or account numbers; neither may reach OpenRouter. */
+/** Merchant labels can carry UPI IDs or account numbers; neither may reach the AI model. */
 export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}|\d{4}/.test(label) ? "[private payee]" : label); // 4 digits: card last-4 in labels like "Visa 4242".
 /** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
 export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
@@ -57,7 +57,11 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<Result
   if (period.from) where.push(gte(transactions.date, period.from));
   if (period.to) where.push(period.explicitTo ? lte(transactions.date, `${period.to} 23:59`) : lt(transactions.date, period.to));
   if (spec.filters.category) where.push(eq(transactions.category, spec.filters.category));
-  if (spec.filters.merchant) where.push(like(transactions.merchant, `%${spec.filters.merchant}%`));
+  if (spec.filters.merchant) {
+    const meaning = await merchantsByMeaning(db, spec.filters.merchant);
+    const match = or(like(transactions.merchant, `%${spec.filters.merchant}%`), ...(meaning.length ? [inArray(transactions.merchant, meaning)] : []));
+    if (match) where.push(match);
+  }
   if (spec.filters.type) where.push(eq(transactions.type, spec.filters.type));
   if (spec.filters.trip) where.push(sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`);
   const group = spec.groupBy ?? null;
@@ -166,7 +170,7 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const context = await ledgerContext(db);
   const asked = redact(question);
   const scoped = describeScope(scope);
-  const planned = await callOpenRouter([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
+  const planned = await callAi([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
   if (!planned.ok) return planned;
   const raw = dropNulls(parseJson(planned.content));
   const parsed = plan.safeParse(raw);
@@ -177,7 +181,7 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
   const shown = results.map((list, index) => ({ spec: queries[index], rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })) }));
-  const narrated = await callOpenRouter([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, results: shown, context }) }], { db });
+  const narrated = await callAi([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, results: shown, context }) }], { db });
   const answerData = narrated.ok ? z.object({ answer: z.string().max(700), followUps: z.array(z.string().trim().min(3).max(120)).max(3).default([]) }).safeParse(parseJson(narrated.content)) : null;
   const ok = answerData?.success && figuresMatchRows(answerData.data.answer, [...results.flat(), ...contextFigures(context)]);
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";
@@ -187,7 +191,7 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const calls = [planned, narrated].flatMap((call) => (call.ok ? [call] : []));
   const tokensIn = sumKnown(calls.map((call) => call.tokensIn));
   const tokensOut = sumKnown(calls.map((call) => call.tokensOut));
-  const costUsd = sumKnown(await Promise.all(calls.map((call) => callCostUsd(db, call.model, call.tokensIn, call.tokensOut, call.costUsd))));
+  const costUsd = sumKnown(calls.map((call) => call.costUsd));
   await db.insert(askLog).values({ question, scopeJson: JSON.stringify(scope), specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model, tokensIn, tokensOut, costUsd });
   return { ok: true, question, answer, rows, transactionIds, followUps, model, tokensIn, tokensOut, costUsd };
 }

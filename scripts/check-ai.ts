@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { askLedger, askSpecSchema, describeScope, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
-import { callOpenRouter } from "../src/server/ai/client.ts";
+import { callAi } from "../src/server/ai/client.ts";
 import { attachments, receiptJobs } from "../src/server/db/schema.ts";
 import { categorize, receiptOutput, receiptSplitMatches, redactReceiptText, runReceiptJob, scrubItemName } from "../src/server/ai/receipt.ts";
 import { spendByCategory } from "../src/server/db/queries.ts";
@@ -44,13 +44,13 @@ const unusual = await db.select().from(insights).where(eq(insights.detector, "un
 assert.ok(unusual.length >= 1);
 
 // Synthetic clock, key and fetch: no outbound AI calls, even when testing enabled paths.
-const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.OPENROUTER_API_KEY; const savedFetch = globalThis.fetch;
+const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.AI_API_KEY; const savedFetch = globalThis.fetch;
 try {
   mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-19T01:30:00Z") });
   const digestDb = openDb(":memory:"); let requests = 0; let payload = "";
   globalThis.fetch = async (_input, init) => { requests++; payload = String(init?.body); return Response.json({ choices: [{ message: { content: "{}" } }] }); };
-  process.env.KHARCHA_AI = "off"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
-  assert.deepEqual(await callOpenRouter([], { db: digestDb }), { ok: false, reason: "disabled" });
+  process.env.KHARCHA_AI = "off"; process.env.AI_BASE_URL = "http://ai.test/v1"; process.env.AI_API_KEY = "synthetic-test-key";
+  assert.deepEqual(await callAi([], { db: digestDb }), { ok: false, reason: "disabled" });
   await runDigest(digestDb);
   assert.equal(requests, 0, "AI off blocks Ask and digest HTTP requests");
   await digestDb.insert(transactions).values([
@@ -67,7 +67,8 @@ try {
 } finally {
   mock.timers.reset(); globalThis.fetch = savedFetch;
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-  if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+  if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
+  delete process.env.AI_BASE_URL; // synthetic, set only for this block
 }
 
 // Receipt reading: synthetic inputs only, no network.
@@ -112,7 +113,7 @@ async function receiptHarness(text: string | null) {
   await rdb.insert(receiptJobs).values({ transactionId: 1, status: "queued" });
   let calls = 0; let body = "";
   globalThis.fetch = async (_input, init) => { calls++; body = String(init?.body); return Response.json({ choices: [{ message: { content: JSON.stringify({ isReceipt: true, total: 60, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] }) } }] }); };
-  process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+  process.env.KHARCHA_AI = "on"; process.env.AI_BASE_URL = "http://ai.test/v1"; process.env.AI_API_KEY = "synthetic-test-key";
   await runReceiptJob(rdb, 1, 1, async () => text);
   const job = await rdb.select().from(receiptJobs).get();
   return { job, calls, body };
@@ -130,12 +131,13 @@ try {
 } finally {
   globalThis.fetch = savedFetch;
   if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-  if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+  if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
+  delete process.env.AI_BASE_URL; // synthetic, set only for this block
 }
 
 // Ask scope: server enforces it, the planner's period can't widen it, card digits never reach the model.
 {
-  const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.OPENROUTER_API_KEY; const savedFetch = globalThis.fetch;
+  const savedAi = process.env.KHARCHA_AI; const savedKey = process.env.AI_API_KEY; const savedFetch = globalThis.fetch;
   try {
     mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-19T01:30:00Z") });
     const sdb = openDb(":memory:"); const bodies: string[] = [];
@@ -148,14 +150,14 @@ try {
     // Planner asks for everything, all time; scope must still win.
     const replies = [JSON.stringify({ queries: [{ metric: "sum", period: "all", filters: {} }] }), JSON.stringify({ answer: "In scope you spent ₹100.", followUps: [] })];
     globalThis.fetch = async (_input, init) => { bodies.push(String(init?.body)); return Response.json({ choices: [{ message: { content: replies[(bodies.length - 1) % 2] } }] }); };
-    process.env.KHARCHA_AI = "on"; process.env.OPENROUTER_API_KEY = "synthetic-test-key";
+    process.env.KHARCHA_AI = "on"; process.env.AI_BASE_URL = "http://ai.test/v1"; process.env.AI_API_KEY = "synthetic-test-key";
     const result = await askLedger(sdb, "How much?", { month: "2026-10", categories: ["expense:Food"], card: "4242" });
     assert.equal(result.ok, true);
     if (result.ok) {
       assert.deepEqual(result.rows.map((r) => r.value), [100], "scope: Oct + Food + card 4242 only");
       assert.equal(result.answer, "In scope you spent ₹100.", "figure from scoped rows passes the check");
     }
-    assert.ok(bodies.every((b) => !b.includes("4242")), "card digits never reach OpenRouter");
+    assert.ok(bodies.every((b) => !b.includes("4242")), "card digits never reach the AI model");
     assert.ok(bodies[0]?.includes("one card") && bodies[0]?.includes("Food"), "planner told the scope by name");
     replies[1] = JSON.stringify({ answer: "Total ₹1,500.", followUps: [] });
     const all = await askLedger(sdb, "How much?");
@@ -175,7 +177,58 @@ try {
   } finally {
     mock.timers.reset(); globalThis.fetch = savedFetch;
     if (savedAi === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = savedAi;
-    if (savedKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = savedKey;
+    if (savedKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = savedKey;
+    delete process.env.AI_BASE_URL; // synthetic, set only for this block
+  }
+}
+
+// Search by meaning: ranking, the off switch, and the on path with mocked 9Router.
+{
+  const { cosine, fillMissing, merchantsByMeaning, pickMerchants } = await import("../src/server/ai/embed.ts");
+  const { merchantVectors } = await import("../src/server/db/schema.ts");
+  assert.equal(cosine(Float32Array.from([1, 0]), Float32Array.from([1, 0])), 1);
+  assert.equal(cosine(Float32Array.from([1, 0]), Float32Array.from([0, 1])), 0);
+  assert.deepEqual(pickMerchants([{ merchant: "Uber", score: 0.44 }, { merchant: "Ola", score: 0.38 }, { merchant: "Rent", score: 0.26 }]), ["Uber", "Ola"], "floor and window drop weak matches");
+  assert.deepEqual(pickMerchants([{ merchant: "A", score: 0.29 }]), [], "below floor: nothing");
+  const saved = { ai: process.env.KHARCHA_AI, base: process.env.AI_BASE_URL, key: process.env.AI_API_KEY }; const savedFetch = globalThis.fetch;
+  const restore = (k: "KHARCHA_AI" | "AI_BASE_URL" | "AI_API_KEY", v: string | undefined) => { if (v === undefined) delete process.env[k]; else process.env[k] = v; };
+  try {
+    // Synthetic URL and key, fetch mocked: nothing leaves the box. Off switch is the only blocker.
+    process.env.AI_BASE_URL = "http://ai.test/v1"; process.env.AI_API_KEY = "synthetic-key";
+    let calls = 0;
+    globalThis.fetch = async () => { calls++; return Response.json({}); };
+    process.env.KHARCHA_AI = "off";
+    assert.deepEqual(await merchantsByMeaning(openDb(":memory:"), "off switch check"), []);
+    assert.equal(calls, 0, "AI off: no embedding call");
+
+    // On path: "pharmacy" vector sits next to "Apollo Pharmacy", far from "Uber".
+    const vec = (x: number) => Array.from({ length: 768 }, (_, i) => (i === 0 ? x : i === 1 ? 1 - x : 0));
+    const known: Record<string, number[]> = { "Apollo Pharmacy": vec(1), Uber: vec(0) };
+    globalThis.fetch = async (_input, init) => {
+      calls++;
+      const input = (JSON.parse(String(init?.body)) as { input: string[] }).input;
+      return Response.json({ data: input.map((t) => ({ embedding: t.startsWith("task:") ? vec(0.95) : known[t.replace("title: none | text: ", "")] })) });
+    };
+    process.env.KHARCHA_AI = "on";
+    const edb = openDb(":memory:");
+    await edb.insert(transactions).values([
+      { source: "manual", type: "expense", amount: 300, merchant: "Apollo Pharmacy", category: "Health", date: "2026-10-05 10:00" },
+      { source: "manual", type: "expense", amount: 200, merchant: "Uber", category: "Travel", date: "2026-10-05 11:00" },
+    ]);
+    assert.deepEqual(await fillMissing(edb), { embedded: 2, missing: 2 });
+    const stored = await edb.select().from(merchantVectors);
+    assert.equal(stored.length, 2);
+    assert.equal(new Float32Array(stored[0].vector.buffer.slice(stored[0].vector.byteOffset, stored[0].vector.byteOffset + stored[0].vector.byteLength)).length, 768, "blob round-trip keeps 768 numbers");
+    assert.deepEqual(await merchantsByMeaning(edb, "pharmacy"), ["Apollo Pharmacy"]);
+    assert.deepEqual(await fillMissing(edb), { embedded: 0, missing: 0 }, "second run: nothing to embed");
+
+    // Wrong dimension from the endpoint: rejected, not stored as NaN scores.
+    await edb.insert(transactions).values({ source: "manual", type: "expense", amount: 50, merchant: "Odd", category: "Other", date: "2026-10-06 10:00" });
+    globalThis.fetch = async () => Response.json({ data: [{ embedding: [1, 2, 3] }] });
+    assert.deepEqual(await fillMissing(edb), { embedded: 0, missing: 1 });
+  } finally {
+    globalThis.fetch = savedFetch;
+    restore("KHARCHA_AI", saved.ai); restore("AI_BASE_URL", saved.base); restore("AI_API_KEY", saved.key);
   }
 }
 
