@@ -49,7 +49,7 @@ function dates(spec: AskSpec) {
 /** Scope dates win over the planner's period: the page's filter is what the person is looking at. */
 const scopeDated = (scope: Scope) => Boolean(scope.month || scope.from || scope.to);
 
-async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<ResultRow[]> {
+async function runSpec(db: Db, spec: AskSpec, scope: Scope & { meaningMerchants?: string[] } = {}): Promise<ResultRow[]> {
   // Scope is applied here, server-side, so the model can't widen it and card digits never leave the box.
   const where = [isNull(transactions.deletedAt), isNull(transactions.duplicateOf), ...listWhere(scope)];
   if (scope.type !== "transfer") where.push(eq(transactions.excluded, false)); // "Not counted" scope asks about exactly those rows.
@@ -177,7 +177,9 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const single = parsed.success ? null : askSpecSchema.safeParse(raw);
   const queries = parsed.success ? parsed.data.queries : single?.success ? [single.data] : null;
   if (!queries) return { ok: false, reason: "invalid" };
-  const results = await Promise.all(queries.map((spec) => runSpec(db, spec, scope)));
+  // Same meaning search as Activity and Insights, so an Ask from a searched view covers the same rows.
+  const meaningMerchants = scope.search ? await merchantsByMeaning(db, scope.search) : undefined;
+  const results = await Promise.all(queries.map((spec) => runSpec(db, spec, { ...scope, meaningMerchants })));
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
   const shown = results.map((list, index) => ({ spec: queries[index], rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })) }));

@@ -112,7 +112,8 @@ async function receiptHarness(text: string | null) {
   await rdb.insert(attachments).values({ transactionId: 1, path: "/synthetic/none.jpg", mime: "image/jpeg", bytes: 1 });
   await rdb.insert(receiptJobs).values({ transactionId: 1, status: "queued" });
   let calls = 0; let body = "";
-  globalThis.fetch = async (_input, init) => { calls++; body = String(init?.body); return Response.json({ choices: [{ message: { content: JSON.stringify({ isReceipt: true, total: 60, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] }) } }] }); };
+  // 9Router Gemini wraps JSON in a fence; callAi strips it.
+  globalThis.fetch = async (_input, init) => { calls++; body = String(init?.body); return Response.json({ choices: [{ message: { content: "```json\n" + JSON.stringify({ isReceipt: true, total: 60, currency: "INR", items: [{ name: "Milk", qty: 1, amount: 60, confidence: 0.9 }] }) + "\n```" } }] }); };
   process.env.KHARCHA_AI = "on"; process.env.AI_BASE_URL = "http://ai.test/v1"; process.env.AI_API_KEY = "synthetic-test-key";
   await runReceiptJob(rdb, 1, 1, async () => text);
   const job = await rdb.select().from(receiptJobs).get();

@@ -3,6 +3,7 @@ import { and, count, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { aiConfig } from "../ai/client";
+import { presets } from "../../lib/ai-models";
 import { getMeta, sameMatch, setMeta } from "../db/queries";
 import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
 
@@ -17,7 +18,8 @@ const ruleFields = z.object({
 });
 const settingKey = z.enum(["openrouter_model", "openrouter_daily_cap"]);
 const settingsSchema = z.discriminatedUnion("key", [
-  z.object({ key: z.literal("openrouter_model"), value: z.string().trim().max(100) }),
+  // Only models the restricted 9Router key allows; "" resets to the default.
+  z.object({ key: z.literal("openrouter_model"), value: z.union([z.literal(""), z.enum(presets.map((m) => m.id) as [string, ...string[]])]) }),
   z.object({ key: z.literal("openrouter_daily_cap"), value: z.enum(["50", "100", "200", "500"]) }),
 ]);
 
