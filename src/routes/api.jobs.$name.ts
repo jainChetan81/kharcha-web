@@ -8,6 +8,13 @@ import { fillMissing } from "../server/ai/embed";
 import { getDb } from "../server/db/client";
 
 const name = z.enum(["prices", "recurring", "detectors", "digest", "embeddings"]);
+const jobs: Record<z.infer<typeof name>, () => Promise<unknown>> = {
+  prices: () => runPrices(),
+  recurring: async () => (await matchRecurring([]), { ok: true }),
+  detectors: () => runDetectors(),
+  digest: () => runDigest(),
+  embeddings: () => fillMissing(getDb()),
+};
 const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
 const json = (value: unknown, status = 200) => Response.json(value, status === 200 ? { headers: { "Cache-Control": "no-store" } } : { status, headers: { "Cache-Control": "no-store" } });
 function auth(request: Request): Response | undefined {
@@ -22,8 +29,8 @@ export const Route = createFileRoute("/api/jobs/$name")({
     const denied = auth(request); if (denied) return denied;
     const parsed = name.safeParse((params as { name: string }).name); if (!parsed.success) return json({ error: "Unknown job." }, 404);
     try {
-      const result = parsed.data === "prices" ? await runPrices() : parsed.data === "recurring" ? (await matchRecurring([]), { ok: true }) : parsed.data === "detectors" ? await runDetectors() : parsed.data === "embeddings" ? (await fillMissing(getDb()), { ok: true }) : await runDigest();
+      const result = await jobs[parsed.data]();
       return json({ ok: true, result });
-    } catch { return json({ error: "Job failed." }, 500); }
+    } catch (error) { console.error(`job ${parsed.data} failed`, error); return json({ error: "Job failed." }, 500); }
   } } },
 });

@@ -54,7 +54,10 @@ export const getTransactions = createServerFn({ method: "GET" })
 
 export const getTransactionSummary = createServerFn({ method: "GET" })
   .validator(listSchema)
-  .handler(async ({ data }) => summarizeTxns(getDb(), { ...data, meaningMerchants: data.search ? await merchantsByMeaning(getDb(), data.search) : undefined }));
+  .handler(async ({ data }) => {
+    const meaningMerchants = data.search ? await merchantsByMeaning(getDb(), data.search) : undefined;
+    return summarizeTxns(getDb(), { ...data, meaningMerchants });
+  });
 
 export const getTransaction = createServerFn({ method: "GET" })
   .validator(id)

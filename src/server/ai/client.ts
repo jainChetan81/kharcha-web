@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client.ts";
 import { meta } from "../db/schema.ts";
+import { presets } from "../../lib/ai-models.ts";
 
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 
@@ -11,7 +12,8 @@ export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
   const value = new Map(rows.map((row) => [row.key, row.value]));
   const raw = value.get("openrouter_daily_cap"); const cap = raw ? Number(raw) : 200; // "0" is a real cap: AI off.
   return {
-    model: value.get("openrouter_model") || "ag/gemini-3.8-flash-high",
+    // A saved OpenRouter id (from before 9Router) would 403 on the restricted key, so only presets count.
+    model: presets.find((m) => m.id === value.get("openrouter_model"))?.id ?? presets[0].id,
     cap: Number.isFinite(cap) && cap >= 0 ? cap : 200,
     used: Number(value.get(`ai_calls_${today()}`) ?? 0),
   };
