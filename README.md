@@ -60,6 +60,8 @@ Receipt reading runs OCR (`tesseract`) and sends only redacted text to the AI mo
 
 Job timers (`kharcha-web-job-*.timer`) run on the VPS host and POST to `127.0.0.1:8790` with `INGEST_TOKEN`.
 
+Search by meaning: Activity search and the Ask merchant filter also match merchants whose name means the same (local `embeddinggemma:300m` through 9Router; text stays on the VPS). One vector per merchant in `merchant_vectors`. New merchants are embedded after each write. Backfill once after deploy: `sudo systemctl start kharcha-web-job@embeddings` (about 25 s for 435 merchants). Off when `KHARCHA_AI` is not `on` or 9Router fails; plain text search still works.
+
 Operate: logs, redeploy and rollback in the Coolify dashboard (app `kharcha-web`). Health: `curl https://vps.bullhead-mine.ts.net:8790/api/health`. Nightly `vps-backup` copies the database and files to R2.
 
 Legacy: `deploy/` holds the retired `/srv/kharcha-web` + Caddy release scripts. Their units are disabled, not deleted, as a rollback path.

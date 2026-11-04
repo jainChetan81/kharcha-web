@@ -181,3 +181,20 @@ try {
 }
 
 console.log("ai checks passed");
+
+// Search by meaning: pure ranking, and the off switch never calls 9Router.
+{
+  const { cosine, merchantsByMeaning, pickMerchants } = await import("../src/server/ai/embed.ts");
+  assert.equal(cosine(Float32Array.from([1, 0]), Float32Array.from([1, 0])), 1);
+  assert.equal(cosine(Float32Array.from([1, 0]), Float32Array.from([0, 1])), 0);
+  assert.deepEqual(pickMerchants([{ merchant: "Uber", score: 0.44 }, { merchant: "Ola", score: 0.38 }, { merchant: "Rent", score: 0.26 }]), ["Uber", "Ola"], "floor and window drop weak matches");
+  assert.deepEqual(pickMerchants([{ merchant: "A", score: 0.29 }]), [], "below floor: nothing");
+  const saved = process.env.KHARCHA_AI; const savedFetch = globalThis.fetch; let calls = 0;
+  globalThis.fetch = async () => { calls++; return Response.json({}); };
+  process.env.KHARCHA_AI = "off";
+  assert.deepEqual(await merchantsByMeaning(openDb(":memory:"), "cab ride"), []);
+  assert.equal(calls, 0, "AI off: no embedding call");
+  globalThis.fetch = savedFetch;
+  if (saved === undefined) delete process.env.KHARCHA_AI; else process.env.KHARCHA_AI = saved;
+}
+console.log("embedding checks passed");

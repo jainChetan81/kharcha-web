@@ -10,6 +10,7 @@ import {
 } from "./db/queries";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
+import { merchantsByMeaning } from "./ai/embed";
 
 const id = z.object({ id: z.number().int().positive() });
 const localToday = () => {
@@ -45,14 +46,15 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
 export const getTransactions = createServerFn({ method: "GET" })
   .validator(listSchema.safeExtend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
   .handler(async ({ data }) => {
-    const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500 });
+    const meaningMerchants = data.search ? await merchantsByMeaning(getDb(), data.search) : undefined;
+    const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500, meaningMerchants });
     const splits = await splitsByTxnIds(getDb(), rows.map((r) => r.id));
     return rows.map((r) => ({ ...r, splits: splits[r.id] ?? [] }));
   });
 
 export const getTransactionSummary = createServerFn({ method: "GET" })
   .validator(listSchema)
-  .handler(({ data }) => summarizeTxns(getDb(), data));
+  .handler(async ({ data }) => summarizeTxns(getDb(), { ...data, meaningMerchants: data.search ? await merchantsByMeaning(getDb(), data.search) : undefined }));
 
 export const getTransaction = createServerFn({ method: "GET" })
   .validator(id)

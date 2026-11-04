@@ -1,8 +1,9 @@
-import { and, count, desc, eq, gte, isNull, like, lt, lte, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callAi } from "./client.ts";
+import { merchantsByMeaning } from "./embed.ts";
 import type { Db } from "../db/client.ts";
 
 const filterSchema = z.object({
@@ -56,7 +57,11 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope = {}): Promise<Result
   if (period.from) where.push(gte(transactions.date, period.from));
   if (period.to) where.push(period.explicitTo ? lte(transactions.date, `${period.to} 23:59`) : lt(transactions.date, period.to));
   if (spec.filters.category) where.push(eq(transactions.category, spec.filters.category));
-  if (spec.filters.merchant) where.push(like(transactions.merchant, `%${spec.filters.merchant}%`));
+  if (spec.filters.merchant) {
+    const meaning = await merchantsByMeaning(db, spec.filters.merchant);
+    const match = or(like(transactions.merchant, `%${spec.filters.merchant}%`), ...(meaning.length ? [inArray(transactions.merchant, meaning)] : []));
+    if (match) where.push(match);
+  }
   if (spec.filters.type) where.push(eq(transactions.type, spec.filters.type));
   if (spec.filters.trip) where.push(sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`);
   const group = spec.groupBy ?? null;
