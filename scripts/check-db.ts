@@ -271,9 +271,9 @@ assert.notEqual((await db.select().from(meta).where(eq(meta.key, "last_ingest_at
 }
 console.log("check-db: ok");
 
-// Auth helpers: session signing, expiry, tamper, password hash, redirect safety.
+// Auth helpers: session signing, expiry, tamper, password hash, redirect safety, proxy auth.
 {
-  const { makeSession, validSession, checkPassword, safeNext } = await import("../src/server/auth.ts");
+  const { makeSession, validSession, checkPassword, safeNext, proxyAuth, isSignedIn } = await import("../src/server/auth.ts");
   const crypto = await import("node:crypto");
   const secret = "x".repeat(40);
   const s = makeSession(secret, Date.UTC(2026, 9, 15));
@@ -291,6 +291,58 @@ console.log("check-db: ok");
   // Expired session on client navigation: start.ts sends the browser to /login?next=<page>.
   const next = new URLSearchParams(`next=${encodeURIComponent("/wealth?tab=sip&x=1")}`).get("next");
   assert.equal(safeNext(next), "/wealth?tab=sip&x=1", "login next round-trips the current page");
+
+  // Forward-auth proxy login (Tinyauth via Traefik).
+  const origProxySecret = process.env.PROXY_SECRET;
+  const origAdminEmail = process.env.ADMIN_EMAIL;
+  try {
+    const validSecret = "s".repeat(32);
+    const validEmail = "admin@example.com";
+    const goodReq = (secret = validSecret, email = validEmail) =>
+      new Request("http://localhost/", {
+        headers: {
+          ...(secret ? { "x-kharcha-proxy": secret } : {}),
+          ...(email ? { "remote-email": email } : {}),
+        },
+      });
+
+    // 1. no env = false (fail closed if either is missing or short)
+    delete process.env.PROXY_SECRET;
+    delete process.env.ADMIN_EMAIL;
+    assert.equal(proxyAuth(goodReq()), false, "no env = false");
+    assert.equal(isSignedIn(goodReq()), false, "no env fails isSignedIn");
+
+    process.env.PROXY_SECRET = "short-secret";
+    process.env.ADMIN_EMAIL = validEmail;
+    assert.equal(proxyAuth(goodReq()), false, "short secret env = false");
+
+    process.env.PROXY_SECRET = validSecret;
+    process.env.ADMIN_EMAIL = "a";
+    assert.equal(proxyAuth(goodReq()), false, "short email env = false");
+
+    // Configure both env vars
+    process.env.PROXY_SECRET = validSecret;
+    process.env.ADMIN_EMAIL = `  ${validEmail.toUpperCase()}  `;
+
+    // 2. wrong secret = false
+    assert.equal(proxyAuth(goodReq("w".repeat(32), validEmail)), false, "wrong secret = false");
+    assert.equal(proxyAuth(goodReq("", validEmail)), false, "missing secret = false");
+
+    // 3. wrong email = false
+    assert.equal(proxyAuth(goodReq(validSecret, "other@example.com")), false, "wrong email = false");
+    assert.equal(proxyAuth(goodReq(validSecret, "")), false, "missing email = false");
+
+    // 4. both right = true (case-insensitive, trimmed email; constant-time secret)
+    const authedReq = goodReq(validSecret, `  ${validEmail.toLowerCase()}  `);
+    assert.equal(proxyAuth(authedReq), true, "both right = true");
+    assert.equal(isSignedIn(authedReq), true, "both right signs in without cookie");
+  } finally {
+    if (origProxySecret !== undefined) process.env.PROXY_SECRET = origProxySecret;
+    else delete process.env.PROXY_SECRET;
+    if (origAdminEmail !== undefined) process.env.ADMIN_EMAIL = origAdminEmail;
+    else delete process.env.ADMIN_EMAIL;
+  }
+
   console.log("check-auth: ok");
 }
 

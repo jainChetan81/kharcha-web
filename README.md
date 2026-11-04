@@ -22,7 +22,7 @@ Every page is server-rendered with live data and sent `Cache-Control: no-store`.
 
 Finance data. Two ways in:
 
-- **Public**: `https://kharcha.chetan-vps.tech` via Coolify's Traefik proxy. Every page and server function requires a password login: scrypt hash in `APP_PASSWORD_HASH`, HMAC-signed 90-day `HttpOnly; Secure; SameSite=Lax` cookie keyed by `SESSION_SECRET`. Login is rate-limited (5 per IP and 30 global per 15 minutes). `/api/ingest`, `/api/health`, `/api/jobs` and `/api/mini` return 403 publicly (Traefik rule `/data/coolify/proxy/dynamic/kharcha-guard.yaml`). If either env var is missing, the app fails closed.
+- **Public**: `https://kharcha.chetan-vps.tech` via Coolify's Traefik proxy. Forward-auth proxy login: when `PROXY_SECRET` (min 32 chars) and `ADMIN_EMAIL` are configured, requests with `X-Kharcha-Proxy` matching `PROXY_SECRET` and `Remote-Email` matching `ADMIN_EMAIL` (set by Traefik forwardAuth via Tinyauth) sign in without a password. Password login remains as fallback: scrypt hash in `APP_PASSWORD_HASH`, HMAC-signed 90-day `HttpOnly; Secure; SameSite=Lax` cookie keyed by `SESSION_SECRET`. Login is rate-limited (5 per IP and 30 global per 15 minutes). `/api/ingest`, `/api/health`, `/api/jobs` and `/api/mini` return 403 publicly (Traefik rule `/data/coolify/proxy/dynamic/kharcha-guard.yaml`). If auth env vars are missing, the app fails closed.
 - **Tailnet**: `https://vps.bullhead-mine.ts.net:8790` (`tailscale serve`). Same login. The mini pushes to `/api/ingest` here with `INGEST_TOKEN`.
 
 Log out everywhere: change `SESSION_SECRET` and restart. Change password: `printf %s 'new password' | node --experimental-strip-types scripts/hash-password.ts`, put the output in `APP_PASSWORD_HASH`, restart.
@@ -54,7 +54,7 @@ Coolify on the VPS builds `main` with Railpack (no Dockerfile) since 2026-10-20.
 - `https://kharcha.chetan-vps.tech` (Hostinger A record `kharcha` → `200.234.46.235`; Traefik handles TLS)
 - `https://vps.bullhead-mine.ts.net:8790` (tailnet; Tailscale Serve to `127.0.0.1:8790`)
 
-Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`. Optional `UMAMI_WEBSITE_ID`: adds the self-hosted Umami script (`umami.chetan-vps.tech`, cookieless, page paths only, no query strings, production host only); unset means no analytics.
+Login is on. Data: SQLite in Docker volume `kharcha-web-data` at `/data/kharcha.db`, attachments in `/data/attachments`. Secrets are runtime environment variables in Coolify: `INGEST_TOKEN`, `SESSION_SECRET`, `APP_PASSWORD_HASH`, `PROXY_SECRET`, `ADMIN_EMAIL`, `OPENROUTER_API_KEY`, `KHARCHA_AI=on`, `STATE_DIRECTORY=/data`. Optional `UMAMI_WEBSITE_ID`: adds the self-hosted Umami script (`umami.chetan-vps.tech`, cookieless, page paths only, no query strings, production host only); unset means no analytics.
 
 Receipt reading runs OCR (`tesseract`) and sends only redacted text to OpenRouter. Without `tesseract`, receipts fail as unreadable and nothing is sent. `railpack.json` installs `tesseract-ocr` in the image, plus Python 3.12 with casparser in `/app/.cas` for CAS import.
 

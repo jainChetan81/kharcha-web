@@ -47,6 +47,19 @@ function readCookie(request: Request): string | undefined {
     if (part.startsWith(`${COOKIE}=`)) return part.slice(COOKIE.length + 1);
 }
 
+/** Header login from forward-auth proxy (Traefik/Tinyauth). Fails closed unless both env vars are configured. */
+// ponytail: single admin email; upgrade to ADMIN_EMAILS list if multi-user ever needed.
+export function proxyAuth(request: Request): boolean {
+  const secret = process.env.PROXY_SECRET;
+  const admin = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!secret || secret.length < 32 || !admin || admin.length < 3) return false;
+  const givenSecret = request.headers.get("x-kharcha-proxy");
+  const givenEmail = request.headers.get("remote-email")?.trim().toLowerCase();
+  if (!givenSecret || !givenEmail) return false;
+  const digest = (v: string) => crypto.createHash("sha256").update(v).digest();
+  return crypto.timingSafeEqual(digest(givenSecret), digest(secret)) && givenEmail === admin;
+}
+
 /** Config from env; undefined means login is not configured and the app fails closed. */
 export function authConfig() {
   const secret = process.env.SESSION_SECRET;
@@ -56,6 +69,7 @@ export function authConfig() {
 }
 
 export const isSignedIn = (request: Request) => {
+  if (proxyAuth(request)) return true;
   const config = authConfig();
   return !!config && validSession(config.secret, readCookie(request));
 };
