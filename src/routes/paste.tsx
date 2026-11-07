@@ -1,19 +1,14 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, Card, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, Card, PageHeader } from "../components/ui";
 import { foreign, money } from "../lib/format";
 import { parsePasted, savePasted } from "../server/daily/fns";
 
 export const Route = createFileRoute("/paste")({
   validateSearch: z.object({ text: z.string().max(2000).optional() }),
-  pendingComponent: () => <Skeleton rows={4} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load Paste."} retry={() => void router.invalidate()} />;
-  },
   component: Paste,
 });
 
@@ -53,7 +48,7 @@ function Paste() {
     }
   };
   const save = async () => {
-    if (!parsed || parsed.status !== "parsed" || !online || saving || parsing) return;
+    if (parsed?.status !== "parsed" || !online || saving || parsing) return;
     setSaving(true);
     try {
       await savePasted({ data: { text, bank: bank || undefined } });
@@ -66,10 +61,10 @@ function Paste() {
     }
   };
   return (
-    <main className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col">
       <PageHeader back="/add" title="Paste SMS" />
       <div className="flex flex-1 flex-col gap-4 px-5 pb-7 tablet:mx-auto tablet:w-full tablet:max-w-[640px]">
-        <label htmlFor="paste-bank" className="flex flex-col gap-1.5 text-[13px] text-ink-2">
+        <label htmlFor="paste-bank" className="flex flex-col gap-1.5 text-meta text-ink-2">
           Bank (optional) · leave on Detect for Axis, HDFC, IndusInd messages
           <select
             id="paste-bank"
@@ -86,7 +81,7 @@ function Paste() {
             <option value="indusind">IndusInd</option>
           </select>
         </label>
-        <label htmlFor="paste-sms" className="flex flex-col gap-1.5 text-[13px] text-ink-2">
+        <label htmlFor="paste-sms" className="flex flex-col gap-1.5 text-meta text-ink-2">
           Message
           <textarea
             id="paste-sms"
@@ -97,7 +92,7 @@ function Paste() {
             }}
             rows={5}
             maxLength={2000}
-            className="field min-h-32 resize-y font-mono text-[13px] leading-relaxed text-ink"
+            className="field min-h-32 resize-y font-mono text-meta leading-relaxed text-ink"
           />
         </label>
         <div className="flex flex-wrap gap-2">
@@ -118,26 +113,26 @@ function Paste() {
             {parsing ? "Parsing…" : "Parse"}
           </Button>
         </div>
-        {failed && <Card className="p-4 text-[15px]">Couldn’t parse this SMS. Add it manually below.</Card>}
+        {failed && <Card className="p-4 text-body">Couldn’t parse this SMS. Add it manually below.</Card>}
         {parsed && (
           <Card className="mt-2 flex flex-col gap-3.5 p-5">
             <span className="label-caps text-ink-3">Parsed on server · {parsed.bankName}</span>
             <div className="flex justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
               <span className="min-w-0">
-                <b className="block truncate font-serif text-2xl font-medium">{parsed.merchant}</b>
-                <small className="text-[13px] text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small>
+                <b className="block truncate font-serif text-title font-medium">{parsed.merchant}</b>
+                <small className="text-meta text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small>
               </span>
-              <b className="shrink-0 font-serif text-[28px] font-medium">
+              <b className="shrink-0 font-serif text-page font-medium">
                 {parsed.status === "foreign" ? foreign(parsed.currency, parsed.originalAmount, parsed.amount) : money(parsed.amount)}
               </b>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-control">
               <span>
                 {parsed.type} · {parsed.category ?? "Other"}
               </span>
               <span>{parsed.date ?? "Date unavailable"}</span>
             </div>
-            <p className="m-0 text-[13px] text-ink-2">
+            <p className="m-0 text-meta text-ink-2">
               {parsed.status === "foreign"
                 ? "Foreign amount has no verified rupee conversion. Add it manually after checking the card statement."
                 : "Check details before saving. The original message stays on your server."}
@@ -153,6 +148,6 @@ function Paste() {
           </Button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

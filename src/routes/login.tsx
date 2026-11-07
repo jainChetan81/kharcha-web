@@ -22,18 +22,18 @@ function Login() {
   const [signingIn, setSigningIn] = useState(false);
   return (
     <section className="mx-auto mt-16 max-w-sm rounded-card border border-rule bg-card p-6">
-      <h1 className="text-xl font-semibold">Kharcha</h1>
+      <h1 className="text-title font-semibold">Kharcha</h1>
       {/* Plain form post: works before hydration and without JS. */}
       <form method="post" action="/api/login" className="mt-4 space-y-4" onSubmit={() => setSigningIn(true)}>
         <input type="hidden" name="next" value={next ?? "/"} />
-        <label className="block text-sm font-medium">
+        <label className="block text-control font-medium">
           Password
           <input name="password" type="password" autoComplete="current-password" required className="field mt-1" />
         </label>
         <Button type="submit" disabled={signingIn} className="w-full">
           {signingIn ? "Signing in…" : "Sign in"}
         </Button>
-        <p role="alert" className="text-sm text-over">
+        <p role="alert" className="text-control text-over">
           {error ? MESSAGES[error] : ""}
         </p>
       </form>

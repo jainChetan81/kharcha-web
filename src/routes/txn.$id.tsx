@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button, ButtonLink, Chip, ErrorState, Field, PageHeader, SectionHead, Skeleton, StatusTag } from "../components/ui";
+import { Button, ButtonLink, Chip, ErrorState, Field, PageHeader, SectionHead, StatusTag } from "../components/ui";
 import { LedgerRow } from "../components/ledger";
 import { saveFailed, Sheet, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
@@ -26,13 +26,6 @@ export const Route = createFileRoute("/txn/$id")({
     const claim = detail ? await getClaimDetails({ data: { id } }) : null;
     const suggestions = claim && claim.claim.status !== "cancelled" ? await suggestCredits({ data: { id: claim.claim.id } }) : [];
     return { detail, claim, recent, suggestions };
-  },
-  pendingComponent: () => <Skeleton rows={6} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return (
-      <ErrorState text={error instanceof Error ? error.message : "Couldn't load transaction."} retry={() => void router.invalidate()} />
-    );
   },
   component: Detail,
 });
@@ -228,7 +221,7 @@ function Detail() {
             : "Reimbursed";
 
   return (
-    <main>
+    <div>
       <PageHeader
         back="/activity"
         title=""
@@ -244,8 +237,8 @@ function Detail() {
             {txn.type === "income" ? "Income" : "Expense"} ·{" "}
             {detail.splits.length ? `split in ${detail.splits.length}` : (txn.category ?? "Other")}
           </span>
-          <h1 className="m-0 font-serif text-3xl font-medium break-words">{txn.merchant}</h1>
-          <strong className="font-serif text-5xl leading-none font-medium tracking-tight">
+          <h1 className="m-0 font-serif text-page-lg font-medium break-words">{txn.merchant}</h1>
+          <strong className="font-serif text-figure leading-none font-medium tracking-tight">
             {foreign(txn.currency, txn.originalAmount, txn.amount)}
           </strong>
         </section>
@@ -267,7 +260,7 @@ function Detail() {
             ],
             ["Status", txn.needsReview ? "Needs review" : txn.excluded ? "Not a spend" : "Reviewed"],
           ].map(([key, value]) => (
-            <div key={key} className="flex min-h-12 items-center justify-between gap-4 border-b border-hairline text-[15px]">
+            <div key={key} className="flex min-h-12 items-center justify-between gap-4 border-b border-hairline text-body">
               <dt className="text-ink-2">{key}</dt>
               <dd className="m-0 text-right font-medium">{value}</dd>
             </div>
@@ -276,11 +269,11 @@ function Detail() {
         {txn.rawText && (
           <details className="flex flex-col gap-2">
             <summary className="label-caps min-h-11 cursor-pointer text-ink-3">Source SMS</summary>
-            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
+            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
               {txn.rawText}
             </p>
             {txn.rawMerchant && txn.rawMerchant !== txn.merchant && (
-              <p className="m-0 text-[13px] text-ink-2">
+              <p className="m-0 text-meta text-ink-2">
                 You renamed “{txn.rawMerchant}” to {txn.merchant}. New SMS rows keep your edit.
               </p>
             )}
@@ -295,7 +288,7 @@ function Detail() {
               </ButtonLink>
             </div>
             {splitStale && (
-              <p role="alert" className="m-0 rounded-card bg-watch-soft p-3 text-sm text-ink">
+              <p role="alert" className="m-0 rounded-card bg-watch-soft p-3 text-control text-ink">
                 Amount changed since this split was saved. Re-check the split.
               </p>
             )}
@@ -313,7 +306,7 @@ function Detail() {
                     />
                   ))}
                 </div>
-                <ul className="m-0 list-none space-y-1 p-0 text-sm">
+                <ul className="m-0 list-none space-y-1 p-0 text-control">
                   {detail.splits.map((row) => (
                     <li key={row.category} className="flex justify-between">
                       <span>{row.category}</span>
@@ -330,7 +323,7 @@ function Detail() {
               <div className="space-y-0">
                 {groups.map((group) => (
                   <details key={group.category} className="border-b border-hairline" open={groups.length === 1}>
-                    <summary className="grid min-h-13 cursor-pointer grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 text-[15px]">
+                    <summary className="grid min-h-13 cursor-pointer grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 text-body">
                       <span
                         aria-hidden
                         className="size-2.5 rounded-[2px]"
@@ -338,13 +331,13 @@ function Detail() {
                       />
                       <span className="font-medium">
                         {group.category}{" "}
-                        <span className="text-[13px] font-normal text-ink-3">
+                        <span className="text-meta font-normal text-ink-3">
                           · {group.items.length} item{group.items.length === 1 ? "" : "s"}
                         </span>
                       </span>
                       <strong className="font-semibold">{money(group.amount)}</strong>
                     </summary>
-                    <ul className="m-0 list-none space-y-1 pt-1 pb-2.5 pl-5 text-sm text-ink-2">
+                    <ul className="m-0 list-none space-y-1 pt-1 pb-2.5 pl-5 text-control text-ink-2">
                       {group.items.map((item) => (
                         <li key={item.id} className="flex min-h-8 items-center justify-between">
                           <span className="min-w-0 truncate">
@@ -364,7 +357,7 @@ function Detail() {
           <Link
             to="/txn/$id/receipt"
             params={{ id: String(txn.id) }}
-            className="flex min-h-16 items-center gap-3 rounded-card border border-dashed border-field px-4 text-[15px] font-medium"
+            className="flex min-h-16 items-center gap-3 rounded-card border border-dashed border-field px-4 text-body font-medium"
           >
             <svg
               width="22"
@@ -396,11 +389,11 @@ function Detail() {
               <SectionHead title="Reimbursement" />
               <StatusTag tone={statusTone}>{statusText}</StatusTag>
             </div>
-            <p className="m-0 text-sm text-ink-2">
+            <p className="m-0 text-control text-ink-2">
               From <strong className="font-medium text-ink">{claim.counterparty}</strong>
               {claim.note ? ` · ${claim.note}` : ""}
             </p>
-            <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-sm">
+            <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-control">
               <div>
                 <dt className="text-ink-3">Paid</dt>
                 <dd className="m-0 font-semibold">{money(txn.amount)}</dd>
@@ -419,7 +412,7 @@ function Detail() {
                 <h3 className="label-caps mb-1 text-ink-3">Repayments</h3>
                 <ul className="m-0 list-none divide-y divide-hairline p-0">
                   {claimInfo.links.map((link) => (
-                    <li key={link.creditId} className="flex min-h-12 items-center justify-between gap-2 text-sm">
+                    <li key={link.creditId} className="flex min-h-12 items-center justify-between gap-2 text-control">
                       <span className="min-w-0 truncate">
                         {link.merchant} · {shortDate(link.date)}
                       </span>
@@ -446,7 +439,7 @@ function Detail() {
                   {data.suggestions.map((credit) => (
                     <li
                       key={credit.id}
-                      className="flex min-h-14 items-center justify-between gap-2 rounded-card border border-dashed border-field px-3 text-sm"
+                      className="flex min-h-14 items-center justify-between gap-2 rounded-card border border-dashed border-field px-3 text-control"
                     >
                       <span className="min-w-0 truncate">
                         {credit.merchant} · {shortDate(credit.date)} · {money(credit.amount)}
@@ -472,7 +465,7 @@ function Detail() {
                 {busy ? "Restoring…" : "Undo cancel"}
               </Button>
             )}
-            {!online && <p className="m-0 text-[13px] text-ink-3">Offline · reimbursement changes unavailable.</p>}
+            {!online && <p className="m-0 text-meta text-ink-3">Offline · reimbursement changes unavailable.</p>}
           </section>
         )}
         <section>
@@ -501,7 +494,7 @@ function Detail() {
           onClose={() => setMarkOpen(false)}
         >
           <fieldset className="m-0 grid grid-cols-3 gap-2 border-0 p-0">
-            <legend className="mb-1 text-[13px] text-ink-2">Amount to claim</legend>
+            <legend className="mb-1 text-meta text-ink-2">Amount to claim</legend>
             {(
               [
                 ["full", "Full"],
@@ -548,9 +541,9 @@ function Detail() {
           )}
           {mode === "items" && (
             <fieldset className="m-0 max-h-40 space-y-1 overflow-y-auto border-0 p-0">
-              <legend className="mb-1 text-[13px] text-ink-2">Items in your claim</legend>
+              <legend className="mb-1 text-meta text-ink-2">Items in your claim</legend>
               {detail.items.map((item) => (
-                <label key={item.id} className="flex min-h-11 items-center gap-3 border-b border-hairline text-sm">
+                <label key={item.id} className="flex min-h-11 items-center gap-3 border-b border-hairline text-control">
                   <input
                     type="checkbox"
                     checked={selectedItems.includes(item.id)}
@@ -590,7 +583,7 @@ function Detail() {
             </div>
           )}
           <Field id="claim-note" label="Note (optional)" value={note} onChange={(event) => setNote(event.target.value)} maxLength={300} />
-          <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-sm">
+          <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-control">
             <div>
               <dt className="text-ink-3">Paid</dt>
               <dd className="m-0 font-semibold">{money(txn.amount)}</dd>
@@ -604,7 +597,7 @@ function Detail() {
               <dd className="m-0 font-semibold">{money(Math.max(0, txn.amount - amountToClaim))}</dd>
             </div>
           </dl>
-          {!online && <p className="m-0 text-[13px] text-ink-3">Offline · save unavailable.</p>}
+          {!online && <p className="m-0 text-meta text-ink-3">Offline · save unavailable.</p>}
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setMarkOpen(false)}>
               Cancel
@@ -625,6 +618,6 @@ function Detail() {
           </div>
         </Sheet>
       )}
-    </main>
+    </div>
   );
 }

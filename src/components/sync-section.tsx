@@ -64,16 +64,16 @@ export function SyncSection({ initial }: { initial?: Status }) {
       <SectionHead id="settings-sync" title="Sync" />
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
         <span className="flex flex-col gap-0.5">
-          <span className="text-[15px] font-medium">Mac mini</span>
-          <span className="flex items-center gap-1.5 text-[13px] text-ink-2">
+          <span className="text-body font-medium">Mac mini</span>
+          <span className="flex items-center gap-1.5 text-meta text-ink-2">
             <span aria-hidden className={`size-2 rounded-full ${mini.dot}`} />
             {mini.line}
           </span>
         </span>
       </div>
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline">
-        <span className="text-[15px]">Status</span>
-        <span className="text-right text-sm text-ink-2">{status ? checkedLabel(status.seenAt, status.lastIngestAt) : "Loading"}</span>
+        <span className="text-body">Status</span>
+        <span className="text-right text-control text-ink-2">{status ? checkedLabel(status.seenAt, status.lastIngestAt) : "Loading"}</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-3">
         <Button
@@ -81,7 +81,7 @@ export function SyncSection({ initial }: { initial?: Status }) {
           onClick={() => void ask()}
           disabled={!online || waiting || state === "unknown"}
           aria-busy={waiting}
-          className="min-h-11 px-3.5 text-sm whitespace-nowrap"
+          className="min-h-11 px-3.5 text-control whitespace-nowrap"
         >
           {waiting && (
             <svg
@@ -98,7 +98,7 @@ export function SyncSection({ initial }: { initial?: Status }) {
           )}
           {waiting ? (asked ? "Requested" : "Waiting") : "Sync now"}
         </Button>
-        <span role="status" className={`flex-[1_1_160px] text-[13px] ${msg?.tone ?? ""}`}>
+        <span role="status" className={`flex-[1_1_160px] text-meta ${msg?.tone ?? ""}`}>
           {msg?.text}
         </span>
       </div>

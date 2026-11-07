@@ -16,9 +16,9 @@ export function Waterfall({ values }: { values: { income: number; investments: n
     >
       {rows.map(([label, value, color]) => (
         <div key={label} className="grid grid-cols-[76px_1fr] items-center gap-3">
-          <span className="text-[13px] font-medium">
+          <span className="text-meta font-medium">
             {label}
-            <small className="block text-xs font-normal text-ink-2">{money(value)}</small>
+            <small className="block text-caption font-normal text-ink-2">{money(value)}</small>
           </span>
           <span className="h-[18px] rounded-sm bg-sunken">
             <span className={`block h-[18px] rounded-sm ${color}`} style={{ width: `${(Math.abs(value) / max) * 100}%` }} />

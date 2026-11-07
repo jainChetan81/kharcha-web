@@ -32,7 +32,7 @@ export function BudgetBar({
       className={cn("flex flex-col gap-1.5", className)}
     >
       {showLabels && (
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-control">
           <span className="font-medium">{money(spent)}</span>
           <span className="text-ink-3">/ {money(limit)}</span>
         </div>

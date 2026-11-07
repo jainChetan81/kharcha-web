@@ -19,9 +19,9 @@ function NewSeries() {
   return (
     <>
       <PageHeader title="Add recurring" back="/plan/recurring" />
-      <main className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
+      <div className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
         <SeriesForm onSave={save} />
-      </main>
+      </div>
     </>
   );
 }

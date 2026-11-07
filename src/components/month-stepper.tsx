@@ -30,7 +30,7 @@ export function MonthStepper({
       <button
         type="button"
         onClick={onOpen}
-        className={`min-h-11 ${label ? "px-4" : "px-1"} rounded-button text-[14px] font-medium whitespace-nowrap transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100`}
+        className={`min-h-11 ${label ? "px-4" : "px-1"} rounded-button text-control font-medium whitespace-nowrap transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100`}
       >
         {text}
       </button>

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowUp, History } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { AiUnavailable } from "../components/ai-unavailable";
 import { AnswerCard, type Answer } from "../components/answer-card";
 import { AiMark } from "../components/ai-mark";
 import { DeskPage } from "../components/app-shell";
-import { Button, Card, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, Card, PageHeader } from "../components/ui";
 import { scopeSearch, type ScopeSearch } from "../lib/filters";
 import { money, monthLabel, rangeLabel, shortDate } from "../lib/format";
 import { ask, getAskHistory } from "../server/ai/fns";
@@ -13,15 +13,6 @@ import { ask, getAskHistory } from "../server/ai/fns";
 export const Route = createFileRoute("/ask")({
   validateSearch: scopeSearch,
   loader: () => getAskHistory(),
-  pendingComponent: () => (
-    <div className="p-5">
-      <Skeleton rows={5} />
-    </div>
-  ),
-  errorComponent: () => {
-    const router = useRouter();
-    return <ErrorState retry={() => router.invalidate()} />;
-  },
   component: Ask,
 });
 
@@ -138,27 +129,27 @@ function Ask() {
   const rail = (
     <>
       <section>
-        <h2 className="m-0 border-b border-ink pb-2 font-serif text-lg font-medium">Try</h2>
+        <h2 className="m-0 border-b border-ink pb-2 font-serif text-section font-medium">Try</h2>
         {shown.map((idea) => (
           <button
             key={idea}
             type="button"
             onClick={() => submit(undefined, idea)}
-            className="block min-h-11 w-full border-b border-hairline bg-transparent text-left text-sm text-brand"
+            className="block min-h-11 w-full border-b border-hairline bg-transparent text-left text-control text-brand"
           >
             {idea}
           </button>
         ))}
       </section>
       <section>
-        <h2 className="m-0 border-b border-ink pb-2 font-serif text-lg font-medium">Earlier</h2>
+        <h2 className="m-0 border-b border-ink pb-2 font-serif text-section font-medium">Earlier</h2>
         {initial.history.slice(0, 4).map((item) => (
-          <span key={item.id} className="flex min-h-11 items-center border-b border-hairline text-sm">
+          <span key={item.id} className="flex min-h-11 items-center border-b border-hairline text-control">
             {item.question}
           </span>
         ))}
       </section>
-      <Card className="flex flex-col gap-2 p-4 text-[13px]">
+      <Card className="flex flex-col gap-2 p-4 text-meta">
         <span className="flex justify-between font-semibold">
           AI calls today{" "}
           <span className="font-normal">
@@ -184,7 +175,7 @@ function Ask() {
           title="Ask your ledger"
           actions={
             <>
-              <button type="button" onClick={back} className="min-h-11 px-2 text-sm font-medium text-brand">
+              <button type="button" onClick={back} className="min-h-11 px-2 text-control font-medium text-brand">
                 Back
               </button>
               <History size={18} className="text-brand" />
@@ -193,7 +184,7 @@ function Ask() {
         />
         <div className="flex flex-1 flex-col gap-4 px-5 pb-4 desk:max-w-[760px] desk:px-0">
           {chips.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 text-[13px]">
+            <div className="flex flex-wrap items-center gap-2 text-meta">
               <span className="text-ink-3">Answers within</span>
               {chips.map((chip) => (
                 <button
@@ -218,7 +209,7 @@ function Ask() {
           )}
           {answers.map((item, index) => (
             <div key={item.id} className="flex flex-col gap-4">
-              <div className="self-end rounded-[14px_14px_4px_14px] bg-ink px-3.5 py-2.5 text-[15px] leading-6 text-paper">
+              <div className="self-end rounded-[14px_14px_4px_14px] bg-ink px-3.5 py-2.5 text-body leading-6 text-paper">
                 {item.question}
               </div>
               <AnswerCard
@@ -234,14 +225,14 @@ function Ask() {
           {sending && (
             <Card className="flex items-center gap-3 p-4">
               <AiMark className="size-5" />
-              <span role="status" className="text-[15px] text-ink-2">
+              <span role="status" className="text-body text-ink-2">
                 Thinking…
               </span>
             </Card>
           )}
           {unavailable && <AiUnavailable />}
           {!answers.length && !unavailable && (
-            <p className="mt-8 text-[15px] text-ink-2">Ask about spending, merchants, categories, or dates.</p>
+            <p className="mt-8 text-body text-ink-2">Ask about spending, merchants, categories, or dates.</p>
           )}
           {!sending && (
             <div className="flex flex-wrap gap-2">
@@ -251,7 +242,7 @@ function Ask() {
                   variant="outline"
                   onClick={() => submit(undefined, idea)}
                   disabled={sending || !initial.enabled}
-                  className="min-h-11 rounded-chip px-3 text-sm text-brand border-brand desk:min-h-10"
+                  className="min-h-11 rounded-chip px-3 text-control text-brand border-brand desk:min-h-10"
                 >
                   {idea}
                 </Button>
@@ -270,7 +261,7 @@ function Ask() {
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="Ask about your money"
               disabled={!initial.enabled}
-              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              className="min-w-0 flex-1 bg-transparent text-entry outline-none"
             />
             <button
               type="submit"
@@ -281,7 +272,7 @@ function Ask() {
               {sending ? <AiMark /> : <ArrowUp size={18} />}
             </button>
           </label>
-          <p className="mb-0 mt-2 text-xs leading-4 text-ink-3">
+          <p className="mb-0 mt-2 text-caption leading-4 text-ink-3">
             Sends your question and spending totals to Gemini through 9Router. Never SMS text, card numbers or UPI IDs.
           </p>
         </form>

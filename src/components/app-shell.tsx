@@ -32,7 +32,7 @@ const side = [
 ] as const;
 
 const tabClass =
-  "-mt-px flex flex-col items-center justify-center gap-[3px] text-[11px] transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
+  "-mt-px flex flex-col items-center justify-center gap-[3px] text-tab transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
 
 /** Full-screen routes on phones: no tab bar, no add button. */
 const bare = (p: string) =>
@@ -55,7 +55,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
   return (
     <div className="min-h-dvh desk:flex">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-rule bg-card px-4 py-7 desk:flex">
-        <span className="px-3 font-serif text-[26px] font-medium">Kharcha</span>
+        <span className="px-3 font-serif text-page font-medium">Kharcha</span>
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           {side.map((n) => {
             const on = n.match(path);
@@ -65,7 +65,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                 to={n.to}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                  "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
                   on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
                 )}
               >
@@ -74,7 +74,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   {n.label}
                 </span>
                 {n.to === "/review" && data.reviewCount > 0 && (
-                  <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>
+                  <span className="text-meta font-semibold text-brand">{data.reviewCount}</span>
                 )}
               </Link>
             );
@@ -86,8 +86,8 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
             params={{ id: String(trip.id) }}
             className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink hover:text-on-ink"
           >
-            <span className="font-serif text-[18px]">{trip.name}</span>
-            <span className="text-xs text-trip-muted">
+            <span className="font-serif text-section">{trip.name}</span>
+            <span className="text-caption text-trip-muted">
               {trip.active ? `Until ${dayMonth(trip.endDate)}` : `Starts ${dayMonth(trip.startDate)}`}
               {trip.autoTag ? " · auto-tag on" : ""}
             </span>
@@ -97,7 +97,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <span className="self-start">
             <SyncPill />
           </span>
-          <Link to="/settings" className="flex min-h-11 items-center self-start text-sm font-medium">
+          <Link to="/settings" className="flex min-h-11 items-center self-start text-control font-medium">
             Settings
           </Link>
         </div>
@@ -158,7 +158,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/ask"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
                     path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
                   )}
                 >
@@ -171,18 +171,18 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/review"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
                     path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
                   )}
                 >
                   <span>Review</span>
-                  {data.reviewCount > 0 && <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>}
+                  {data.reviewCount > 0 && <span className="text-meta font-semibold text-brand">{data.reviewCount}</span>}
                 </Link>
                 <Link
                   to="/paste"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
                     path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
                   )}
                 >
@@ -192,7 +192,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/settings"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
                     path.startsWith("/settings")
                       ? "bg-brand-soft font-semibold text-brand-deep"
                       : "text-ink hover:bg-sunken hover:text-ink",
@@ -226,7 +226,9 @@ export function DeskPage({
 }) {
   return (
     <div className={cn("desk:flex desk:items-start desk:gap-8 desk:px-[clamp(20px,3vw,40px)] desk:pt-7 desk:pb-10", className)}>
-      <main className="min-w-0 desk:flex-1">{children}</main>
+      <main id="main" tabIndex={-1} className="min-w-0 outline-none desk:flex-1">
+        {children}
+      </main>
       {!rail && reserveRail && <div aria-hidden="true" className="hidden desk:block desk:w-[300px] desk:shrink-0" />}
       {rail && (
         <aside

@@ -66,7 +66,7 @@ const compactRange = (s: SearchState) =>
     ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}`
     : "";
 const chipBase =
-  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-chip border px-3 text-[13px] font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
+  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-chip border px-3 text-meta font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
 
 function FilterPill({
   label,
@@ -99,7 +99,7 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
       type="button"
       onClick={remove}
       aria-label={`Remove ${label} filter`}
-      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-chip px-3 text-[13px] font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
+      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-chip px-3 text-meta font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
     >
       {label}
       <X size={14} aria-hidden="true" />
@@ -309,7 +309,7 @@ export function ActivityFilters({
             <button
               type="button"
               onClick={onClear}
-              className="min-h-11 shrink-0 px-2 text-[13px] font-semibold text-brand focus-visible:outline-2 focus-visible:outline-brand"
+              className="min-h-11 shrink-0 px-2 text-meta font-semibold text-brand focus-visible:outline-2 focus-visible:outline-brand"
             >
               Clear all
             </button>
@@ -331,12 +331,12 @@ export function ActivityFilters({
     <aside aria-label="Activity filter rail" className="flex flex-col gap-3">
       <div className="rounded-card border border-rule bg-card p-3">
         <div className="mb-2 flex items-center justify-between">
-          <strong className="text-sm">Filters</strong>
+          <strong className="text-control">Filters</strong>
           <button
             type="button"
             aria-label="Hide filters"
             onClick={() => setHiddenRail(true)}
-            className="min-h-11 px-2 text-sm text-brand focus-visible:outline-2 focus-visible:outline-brand"
+            className="min-h-11 px-2 text-control text-brand focus-visible:outline-2 focus-visible:outline-brand"
           >
             Hide
           </button>
@@ -352,7 +352,7 @@ export function ActivityFilters({
           type="button"
           onClick={onClear}
           disabled={!count}
-          className="mt-2 min-h-11 w-full text-left text-sm font-semibold text-brand disabled:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
+          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
         >
           Clear all
         </button>
@@ -405,7 +405,7 @@ export function FilterToolbar({
     } else onApply(without(search, name));
   };
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-hairline pb-2 text-[13px]">
+    <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-hairline pb-2 text-meta">
       {railHidden && onShowRail && (
         <button
           type="button"
@@ -462,7 +462,7 @@ function OptionRow({
       type="button"
       aria-pressed={checked}
       onClick={onClick}
-      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"
+      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
     >
       <span
         aria-hidden="true"
@@ -471,7 +471,7 @@ function OptionRow({
         {checked && <Check size={13} />}
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {secondary && <span className="shrink-0 text-xs text-ink-3">{secondary}</span>}
+      {secondary && <span className="shrink-0 text-caption text-ink-3">{secondary}</span>}
     </button>
   );
 }
@@ -488,17 +488,17 @@ function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Pa
         ))}
       </div>
       <div className="my-4 grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1 text-[12px] text-ink-2">
+        <label className="flex flex-col gap-1 text-caption text-ink-2">
           From
           <input
             type="date"
             max={value.to || today()}
             value={value.from ?? ""}
             onChange={(e) => onPatch({ from: e.target.value || undefined, month: undefined })}
-            className="field min-h-11 w-full px-2 text-[13px]"
+            className="field min-h-11 w-full px-2 text-meta"
           />
         </label>
-        <label className="flex flex-col gap-1 text-[12px] text-ink-2">
+        <label className="flex flex-col gap-1 text-caption text-ink-2">
           To
           <input
             type="date"
@@ -506,14 +506,14 @@ function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Pa
             max={today()}
             value={value.to ?? ""}
             onChange={(e) => onPatch({ to: e.target.value || undefined, month: undefined })}
-            className="field min-h-11 w-full px-2 text-[13px]"
+            className="field min-h-11 w-full px-2 text-meta"
           />
         </label>
       </div>
       <button
         type="button"
         onClick={() => setCalendar(true)}
-        className="flex min-h-11 items-center gap-2 text-sm font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 items-center gap-2 text-control font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"
       >
         <CalendarDays size={16} />
         Pick on a calendar
@@ -554,12 +554,12 @@ function CategoryFields({
           onChange={(e) => setCatQuery(e.target.value)}
           placeholder="Search categories"
           aria-label="Search categories"
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          className="min-w-0 flex-1 bg-transparent text-control outline-none"
         />
       </label>
       {(["expense", "income"] as const).map((type) => (
         <fieldset key={type} className="m-0 border-0 p-0">
-          <legend className="w-full bg-sunken px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-3">
+          <legend className="w-full bg-sunken px-3 py-2 text-tab font-semibold uppercase tracking-wide text-ink-3">
             {type === "expense" ? "Spending" : "Income"}
           </legend>
           {filtered
@@ -572,7 +572,7 @@ function CategoryFields({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onToggle(item)}
-                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-sm focus-visible:outline-2 focus-visible:outline-brand"
+                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
                 >
                   <span
                     aria-hidden="true"
@@ -637,7 +637,7 @@ function AmountFields({
         ))}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1 text-[12px] text-ink-2">
+        <label className="flex flex-col gap-1 text-caption text-ink-2">
           Minimum
           <input
             aria-label="Minimum amount"
@@ -652,7 +652,7 @@ function AmountFields({
             className="field min-h-11 px-2"
           />
         </label>
-        <label className="flex flex-col gap-1 text-[12px] text-ink-2">
+        <label className="flex flex-col gap-1 text-caption text-ink-2">
           Maximum
           <input
             aria-label="Maximum amount"
@@ -669,7 +669,7 @@ function AmountFields({
         </label>
       </div>
       {badAmount && (
-        <p role="alert" className="m-0 text-sm text-over">
+        <p role="alert" className="m-0 text-control text-over">
           Minimum is more than maximum.
         </p>
       )}
@@ -718,7 +718,7 @@ function RailSection({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-[13px] focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-meta focus-visible:outline-2 focus-visible:outline-brand"
       >
         <span className="font-medium">{name}</span>
         <span className="flex min-w-0 items-center gap-1">
@@ -741,22 +741,19 @@ function RailSection({
                   onClick={() => onApply({ card: search.card === v ? undefined : v })}
                 />
               ))}
-              {cards.length === 0 && <p className="p-3 text-sm text-ink-3">No cards found.</p>}
+              {cards.length === 0 && <p className="p-3 text-control text-ink-3">No cards found.</p>}
             </>
           )}
-          {name === "Type" && (
-            <>
-              {typeOptions.map(([key, label]) => (
-                <OptionRow
-                  key={key}
-                  label={label}
-                  checked={search.type === key}
-                  mode="radio"
-                  onClick={() => onApply({ type: search.type === key ? undefined : key })}
-                />
-              ))}
-            </>
-          )}
+          {name === "Type" &&
+            typeOptions.map(([key, label]) => (
+              <OptionRow
+                key={key}
+                label={label}
+                checked={search.type === key}
+                mode="radio"
+                onClick={() => onApply({ type: search.type === key ? undefined : key })}
+              />
+            ))}
           {name === "Trip" && (
             <>
               {trips.map((trip) => (
@@ -768,7 +765,7 @@ function RailSection({
                   onClick={() => onApply({ tripId: search.tripId === trip.id ? undefined : trip.id })}
                 />
               ))}
-              {trips.length === 0 && <p className="p-3 text-sm text-ink-3">No trips found.</p>}
+              {trips.length === 0 && <p className="p-3 text-control text-ink-3">No trips found.</p>}
             </>
           )}
           {name === "Amount" && (
@@ -781,26 +778,20 @@ function RailSection({
               onPatch={onApply}
             />
           )}
-          {name === "Status" && (
-            <>
-              {statusOptions.map((item) => (
-                <OptionRow key={item.id} label={item.label} checked={statuses.includes(item.id)} onClick={() => toggleStatus(item.id)} />
-              ))}
-            </>
-          )}
-          {name === "Sort" && (
-            <>
-              {sortOptions.map(([key, label]) => (
-                <OptionRow
-                  key={key}
-                  label={label}
-                  checked={(search.sort ?? "newest") === key}
-                  mode="radio"
-                  onClick={() => onApply({ sort: key })}
-                />
-              ))}
-            </>
-          )}
+          {name === "Status" &&
+            statusOptions.map((item) => (
+              <OptionRow key={item.id} label={item.label} checked={statuses.includes(item.id)} onClick={() => toggleStatus(item.id)} />
+            ))}
+          {name === "Sort" &&
+            sortOptions.map(([key, label]) => (
+              <OptionRow
+                key={key}
+                label={label}
+                checked={(search.sort ?? "newest") === key}
+                mode="radio"
+                onClick={() => onApply({ sort: key })}
+              />
+            ))}
         </div>
       )}
     </section>
@@ -922,7 +913,7 @@ function FilterScreen({
       return (
         <>
           {cards.map((v) => row(`••${v}`, draft.card === v, () => patch({ card: draft.card === v ? undefined : v }), "radio"))}
-          {cards.length === 0 && <p className="p-3 text-sm text-ink-3">No cards found.</p>}
+          {cards.length === 0 && <p className="p-3 text-control text-ink-3">No cards found.</p>}
         </>
       );
     if (section === "Type")
@@ -935,7 +926,7 @@ function FilterScreen({
           {trips.map((trip) =>
             row(trip.name, draft.tripId === trip.id, () => patch({ tripId: draft.tripId === trip.id ? undefined : trip.id }), "radio"),
           )}
-          {trips.length === 0 && <p className="p-3 text-sm text-ink-3">No trips found.</p>}
+          {trips.length === 0 && <p className="p-3 text-control text-ink-3">No trips found.</p>}
         </>
       );
     if (section === "Amount")
@@ -976,14 +967,14 @@ function FilterScreen({
               >
                 <X size={20} />
               </button>
-              <Dialog.Title className="m-0 font-serif text-xl font-medium">Filters</Dialog.Title>
+              <Dialog.Title className="m-0 font-serif text-title font-medium">Filters</Dialog.Title>
               <button
                 type="button"
                 onClick={() => {
                   clearDraft();
                   onClear();
                 }}
-                className="min-h-11 px-2 text-[13px] font-semibold text-brand"
+                className="min-h-11 px-2 text-meta font-semibold text-brand"
               >
                 Clear all
               </button>
@@ -1010,14 +1001,14 @@ function FilterScreen({
                       key={name}
                       aria-current={section === name ? "page" : undefined}
                       onClick={() => focus(name)}
-                      className={`relative flex min-h-12 w-full items-center justify-between gap-1 px-3 text-left text-[13px] ${section === name ? "bg-card font-semibold text-ink" : "text-ink-2"}`}
+                      className={`relative flex min-h-12 w-full items-center justify-between gap-1 px-3 text-left text-meta ${section === name ? "bg-card font-semibold text-ink" : "text-ink-2"}`}
                     >
                       <span
                         className="absolute inset-y-0 left-0 w-[3px] bg-transparent"
                         style={section === name ? { background: "var(--color-brand)" } : undefined}
                       />
                       {name}
-                      <span className="text-[11px] text-brand">{n || ""}</span>
+                      <span className="text-tab text-brand">{n || ""}</span>
                     </button>
                   );
                 })}
@@ -1103,7 +1094,7 @@ function RangeCalendar({
             ›
           </button>
         </div>
-        <div className="grid grid-cols-7 text-center text-[11px] text-ink-3">
+        <div className="grid grid-cols-7 text-center text-tab text-ink-3">
           {[
             ["Mon", "M"],
             ["Tue", "T"],
@@ -1131,14 +1122,14 @@ function RangeCalendar({
                 disabled={future}
                 aria-pressed={selected}
                 onClick={() => chooseDay(value)}
-                className={`size-10 justify-self-center rounded-full text-[13px] disabled:text-ink-3/40 ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
+                className={`size-10 justify-self-center rounded-full text-meta disabled:text-ink-3/40 ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
               >
                 {day}
               </button>
             );
           })}
         </div>
-        <button type="button" onClick={close} className="mt-2 min-h-11 w-full text-sm text-brand">
+        <button type="button" onClick={close} className="mt-2 min-h-11 w-full text-control text-brand">
           Cancel
         </button>
       </section>
@@ -1187,7 +1178,7 @@ function SortDialog({
             className="fixed inset-x-0 bottom-0 z-50 rounded-t-sheet bg-card p-4 pb-[max(20px,env(safe-area-inset-bottom))] text-ink outline-none tablet:inset-auto tablet:top-1/2 tablet:left-1/2 tablet:w-[min(420px,calc(100vw-40px))] tablet:-translate-x-1/2 tablet:-translate-y-1/2 tablet:rounded-sheet"
           >
             <header className="mb-2 flex items-center justify-between">
-              <Dialog.Title className="font-serif text-xl">Sort</Dialog.Title>
+              <Dialog.Title className="font-serif text-title">Sort</Dialog.Title>
               <button type="button" aria-label="Close sort options" onClick={onClose} className="size-11">
                 <X size={18} />
               </button>
@@ -1198,7 +1189,7 @@ function SortDialog({
                 key={key}
                 aria-pressed={value === key}
                 onClick={() => onSelect(key)}
-                className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-hairline text-left text-sm"
+                className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-hairline text-left text-control"
               >
                 <span className="min-w-0 truncate">{label}</span>
                 {value === key && <Check size={18} className="shrink-0 text-brand" />}

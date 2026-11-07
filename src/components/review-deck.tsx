@@ -78,16 +78,16 @@ export function ReviewDeck({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="m-0 font-serif text-2xl leading-[1.15] font-medium">{row.merchant}</h2>
-              <p className="mt-1 text-[13px] text-ink-3">
+              <h2 className="m-0 font-serif text-title leading-[1.15] font-medium">{row.merchant}</h2>
+              <p className="mt-1 text-meta text-ink-3">
                 {shortDate(row.date)} · {row.accountLast4 ? `Card ${card(row.accountLast4)}` : "Manual"}
               </p>
             </div>
-            <strong className="shrink-0 font-serif text-[26px] font-medium">{money(row.amount)}</strong>
+            <strong className="shrink-0 font-serif text-page font-medium">{money(row.amount)}</strong>
           </div>
 
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between gap-3 text-[13px] text-ink-2">
+            <div className="flex justify-between gap-3 text-meta text-ink-2">
               <span>Category</span>
               <span>{category === row.suggestion ? "Suggested" : "Changed"}</span>
             </div>
@@ -107,7 +107,7 @@ export function ReviewDeck({
             </div>
           </div>
 
-          <label className="flex min-h-11 items-center gap-2.5 border-t border-hairline pt-1 text-sm">
+          <label className="flex min-h-11 items-center gap-2.5 border-t border-hairline pt-1 text-control">
             <input
               type="checkbox"
               checked={rule}
@@ -126,13 +126,13 @@ export function ReviewDeck({
                 type="button"
                 aria-expanded={smsOpen}
                 onClick={() => setSmsOpen((open) => !open)}
-                className="flex min-h-11 w-full items-center justify-between text-sm font-medium text-brand"
+                className="flex min-h-11 w-full items-center justify-between text-control font-medium text-brand"
               >
                 <span>Source SMS</span>
                 <span>{smsOpen ? "Hide" : "Show"}</span>
               </button>
               {smsOpen && (
-                <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">
+                <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">
                   {row.rawText}
                 </p>
               )}
@@ -149,7 +149,7 @@ export function ReviewDeck({
                 value={duplicateOf ?? ""}
                 disabled={disabled || !duplicates.length}
                 onChange={(event) => setDuplicateOf(Number(event.target.value))}
-                className="min-w-0 rounded-button border border-field bg-card px-2 text-sm text-ink"
+                className="min-w-0 rounded-button border border-field bg-card px-2 text-control text-ink"
               >
                 {duplicates.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -170,7 +170,7 @@ export function ReviewDeck({
             <Link
               to="/txn/$id/edit"
               params={{ id: String(row.id) }}
-              className="inline-flex min-h-11 items-center justify-center text-sm font-medium text-brand"
+              className="inline-flex min-h-11 items-center justify-center text-control font-medium text-brand"
             >
               Edit
             </Link>
@@ -189,12 +189,12 @@ export function ReviewDeck({
       </div>
 
       <div className="flex flex-col gap-2.5 pt-4 pb-[max(28px,env(safe-area-inset-bottom))]">
-        <span className="text-center text-xs text-ink-3">Swipe right to confirm · left to skip</span>
+        <span className="text-center text-caption text-ink-3">Swipe right to confirm · left to skip</span>
         <div className="grid grid-cols-3 gap-2.5">
-          <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-[52px] px-2 text-base">
+          <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-[52px] px-2 text-entry">
             Skip
           </Button>
-          <Button disabled={disabled} onClick={confirm} className="col-span-2 min-h-[52px] px-3 text-base">
+          <Button disabled={disabled} onClick={confirm} className="col-span-2 min-h-[52px] px-3 text-entry">
             Confirm · {category}
           </Button>
         </div>

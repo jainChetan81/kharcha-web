@@ -1,19 +1,14 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, ButtonLink, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, ButtonLink, ErrorState, PageHeader } from "../components/ui";
 import { money, navsOf, statementOf } from "../lib/format";
 import { SipList } from "../components/sip-list";
 import { closeHolding, getHolding } from "../server/wealth/fns";
 
 export const Route = createFileRoute("/wealth_/$id")({
   loader: ({ params }) => getHolding({ data: { id: Number(params.id) } }),
-  pendingComponent: () => <Skeleton rows={6} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load holding."} retry={() => void router.invalidate()} />;
-  },
   component: Holding,
 });
 function Holding() {
@@ -50,10 +45,10 @@ function Holding() {
           </ButtonLink>
         }
       />
-      <main className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[760px]">
+      <div className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[760px]">
         <section className="rounded-hero bg-hero p-5 text-on-ink">
-          <strong className="font-serif text-[40px] font-medium">{money(data.value)}</strong>
-          <p className="mb-0 text-sm text-on-ink-2">
+          <strong className="font-serif text-figure font-medium">{money(data.value)}</strong>
+          <p className="mb-0 text-control text-on-ink-2">
             {data.price
               ? navsOf(data.price.date)
               : data.manualValueDate
@@ -85,12 +80,12 @@ function Holding() {
           <SipList sips={data.sips.map((row) => ({ ...row, name: data.name }))} named={false} />
         </div>
         <section>
-          <h2 className="font-serif text-lg">Instalments</h2>
+          <h2 className="font-serif text-section">Instalments</h2>
           {data.txns.length ? null : (
-            <p className="text-sm text-ink-3">No purchase history yet. Value and invested come from the statement.</p>
+            <p className="text-control text-ink-3">No purchase history yet. Value and invested come from the statement.</p>
           )}
           {data.txns.map((row) => (
-            <div key={row.id} className="flex min-h-11 items-center justify-between border-b border-hairline text-sm">
+            <div key={row.id} className="flex min-h-11 items-center justify-between border-b border-hairline text-control">
               <span>{row.date}</span>
               <span>
                 {money(row.amount)} · {row.units?.toFixed(2) ?? "—"} units
@@ -101,7 +96,7 @@ function Holding() {
         <Button variant="danger" className="self-start" disabled={!online || closing} onClick={() => void close()}>
           {closing ? "Closing…" : "Close holding"}
         </Button>
-      </main>
+      </div>
     </>
   );
 }

@@ -77,9 +77,9 @@ export function Sheet({
             )}
           >
             <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-sm bg-rule tablet:hidden" />
-            <Dialog.Title className="m-0 font-serif text-[22px] font-medium">{title}</Dialog.Title>
+            <Dialog.Title className="m-0 font-serif text-title font-medium">{title}</Dialog.Title>
             {description ? (
-              <Dialog.Description className="-mt-2 text-[13px] text-ink-3">{description}</Dialog.Description>
+              <Dialog.Description className="-mt-2 text-meta text-ink-3">{description}</Dialog.Description>
             ) : (
               <Dialog.Description className="sr-only">{title}</Dialog.Description>
             )}
@@ -117,7 +117,7 @@ export function Snackbars() {
         unstyled: true,
         classNames: {
           toast:
-            "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-popover",
+            "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-control text-on-ink shadow-popover",
           title: "leading-snug",
           actionButton: "min-h-11 px-2.5 font-semibold text-on-ink-pace",
           cancelButton: "min-h-11 px-2.5 text-on-ink-2",

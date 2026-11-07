@@ -74,9 +74,9 @@ export function TripForm({
       </div>
       {bookings?.length ? (
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">Bookings found before the trip</legend>
+          <legend className="mb-2 text-control font-medium">Bookings found before the trip</legend>
           {bookings.map((row) => (
-            <label key={row.id} className="flex min-h-11 items-center gap-2 border-b border-hairline text-sm">
+            <label key={row.id} className="flex min-h-11 items-center gap-2 border-b border-hairline text-control">
               <input
                 type="checkbox"
                 checked={picked.includes(row.id)}

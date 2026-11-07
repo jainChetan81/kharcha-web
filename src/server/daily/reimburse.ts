@@ -122,7 +122,7 @@ export const undoCancelReimbursement = createServerFn({ method: "POST" })
       .from(reimbursements)
       .where(eq(reimbursements.id, data.id))
       .get();
-    if (!claim || claim.status !== "cancelled") throw new Error("Reimbursement is not cancelled.");
+    if (claim?.status !== "cancelled") throw new Error("Reimbursement is not cancelled.");
     // One UPDATE checks credit availability under SQLite's write lock. Cancelled
     // claims release credits; undo fails if another claim already reused them.
     const restored = await db.all<{ id: number }>(sql`

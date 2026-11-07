@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Settings } from "lucide-react";
 import { AiMark } from "../components/ai-mark";
 import { z } from "zod";
@@ -11,7 +11,7 @@ import { TripBand } from "../components/trip-band";
 import { MonthSwitcher } from "../components/month-switcher";
 import { PaceChart } from "../components/pace-chart";
 import { SyncPill } from "../components/sync-pill";
-import { Card, Empty, ErrorState, SectionHead, Skeleton } from "../components/ui";
+import { Card, Empty, SectionHead } from "../components/ui";
 import { Treemap } from "../components/treemap";
 import { dayMonth, money, navsOf, overOrLeft, signed, statementOf, thisMonth, weekday } from "../lib/format";
 import { getTodayData } from "../server/daily/today";
@@ -35,15 +35,6 @@ export const Route = createFileRoute("/")({
       getUpcoming({ data: { days: 10 } }),
       getWealthSummary(),
     ]),
-  pendingComponent: () => (
-    <main className="px-5">
-      <Skeleton rows={8} />
-    </main>
-  ),
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load today."} retry={() => void router.invalidate()} />;
-  },
   component: Today,
 });
 
@@ -72,14 +63,14 @@ function Today() {
           </Link>
           <Link
             to="/ask"
-            className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-sm font-medium text-white hover:text-white"
+            className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-control font-medium text-white hover:text-white"
           >
             <AiMark />
-            Ask<span className="hidden pl-1 font-mono text-xs opacity-75 desk:inline">/</span>
+            Ask<span className="hidden pl-1 font-mono text-caption opacity-75 desk:inline">/</span>
           </Link>
           <Link
             to="/add"
-            className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-sm font-medium text-ink hover:text-ink desk:flex"
+            className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-control font-medium text-ink hover:text-ink desk:flex"
           >
             <Plus size={16} />
             Add
@@ -88,43 +79,43 @@ function Today() {
       </header>
       <div className="flex items-end justify-between gap-2">
         <div className="min-w-0">
-          <span className="text-xs tracking-[0.08em] text-on-ink-2 uppercase">Spent this month</span>
+          <span className="text-caption tracking-[0.08em] text-on-ink-2 uppercase">Spent this month</span>
           <div className="mt-1">
             <HeroAmount value={money(today.spent)} size="lg" />
           </div>
         </div>
         {budget !== "none" ? (
-          <span className="pb-1 text-right text-[13px] whitespace-nowrap text-on-ink-2 desk:hidden">
+          <span className="pb-1 text-right text-meta whitespace-nowrap text-on-ink-2 desk:hidden">
             of {money(today.limit)}
             <br />
             <b className={tone}>{overOrLeft(today.spent, today.limit)}</b>
           </span>
         ) : (
-          <Link to="/plan/budgets" className="pb-1 text-[13px] font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">
+          <Link to="/plan/budgets" className="pb-1 text-meta font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">
             Set a monthly budget
           </Link>
         )}
       </div>
       <div className="hidden grid-cols-3 border-t border-on-ink/20 pt-3 desk:grid">
-        <span className="text-sm text-on-ink-2">
+        <span className="text-control text-on-ink-2">
           Budget{" "}
           {today.limit > 0 ? (
-            <b className="block font-serif text-[22px] font-medium text-on-ink">{money(today.limit)}</b>
+            <b className="block font-serif text-title font-medium text-on-ink">{money(today.limit)}</b>
           ) : (
-            <Link to="/plan/budgets" className="block font-serif text-[22px] font-medium text-on-ink hover:text-on-ink">
+            <Link to="/plan/budgets" className="block font-serif text-title font-medium text-on-ink hover:text-on-ink">
               Set one
             </Link>
           )}
         </span>
-        <span className="text-sm text-on-ink-2">
+        <span className="text-control text-on-ink-2">
           Left{" "}
-          <b className={`block font-serif text-[22px] font-medium ${tone}`}>
+          <b className={`block font-serif text-title font-medium ${tone}`}>
             {budget !== "none" ? overOrLeft(today.spent, today.limit) : "—"}
           </b>
         </span>
-        <span className="text-sm text-on-ink-2">
+        <span className="text-control text-on-ink-2">
           Due in 10 days{" "}
-          <Link to="/plan/recurring" className="block font-serif text-[22px] font-medium text-on-ink hover:text-on-ink">
+          <Link to="/plan/recurring" className="block font-serif text-title font-medium text-on-ink hover:text-on-ink">
             {money(due)}
           </Link>
         </span>
@@ -138,11 +129,11 @@ function Today() {
       <div className="mt-3 grid grid-cols-3 gap-2">
         {upcoming.slice(0, 3).map((item) => (
           <Card key={`${item.seriesId}-${item.date}`} className="flex min-w-0 flex-col gap-1 p-2.5">
-            <span className="font-serif text-[22px] leading-none">
-              {item.date.slice(-2)} <small className="font-sans text-[11px] text-ink-3">{weekday(item.date)}</small>
+            <span className="font-serif text-title leading-none">
+              {item.date.slice(-2)} <small className="font-sans text-tab text-ink-3">{weekday(item.date)}</small>
             </span>
-            <span className="truncate text-[13px] font-medium">{item.name}</span>
-            <span className="text-[13px] text-ink-2">{money(item.amount)}</span>
+            <span className="truncate text-meta font-medium">{item.name}</span>
+            <span className="text-meta text-ink-2">{money(item.amount)}</span>
           </Card>
         ))}
       </div>
@@ -151,33 +142,33 @@ function Today() {
   const review = today.reviewCount > 0 && (
     <Link
       to="/review"
-      className="flex min-h-[52px] items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-[15px] text-ink hover:text-ink"
+      className="flex min-h-[52px] items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink hover:text-ink"
     >
       <span className="flex items-center gap-2">
         <i className="size-2 shrink-0 rounded-full bg-brand" />
         <strong>{today.reviewCount} to review</strong>
         {today.reviewOther > 0 && <span className="text-ink-2">· {today.reviewOther} unreviewed in Other</span>}
       </span>
-      <strong className="text-sm text-brand">Start</strong>
+      <strong className="text-control text-brand">Start</strong>
     </Link>
   );
   const wealthRow = wealth && (
     <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink hover:text-ink">
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0">
-          <small className="text-xs tracking-[0.08em] text-ink-3 uppercase">Wealth</small>
-          <strong className="block font-serif text-[26px] font-medium leading-tight">{money(wealth.value)}</strong>
+          <small className="text-caption tracking-[0.08em] text-ink-3 uppercase">Wealth</small>
+          <strong className="block font-serif text-page font-medium leading-tight">{money(wealth.value)}</strong>
         </span>
         <Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" />
       </div>
       {wealth.gain != null && wealth.gainPct != null && (
-        <div className="mt-1 text-xs text-ink-2">
+        <div className="mt-1 text-caption text-ink-2">
           <span className={wealth.gain >= 0 ? "text-earn" : "text-over"}>{signed(wealth.gain)}</span> · {wealth.gainPct.toFixed(1)}%
           {wealth.xirr != null && <> · XIRR {(wealth.xirr * 100).toFixed(1)}%</>}
         </div>
       )}
       {wealth.nextSip && (
-        <div className="mt-1 text-xs text-ink-2">
+        <div className="mt-1 text-caption text-ink-2">
           Next SIP {money(wealth.nextSip.amount)} · {dayMonth(wealth.nextSip.date)}
         </div>
       )}
@@ -199,7 +190,7 @@ function Today() {
               />
             ))}
           </div>
-          <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] leading-tight text-ink-3">
+          <div className="mt-1 flex flex-wrap gap-x-2 text-tab leading-tight text-ink-3">
             {wealth.allocation.slice(0, 3).map((item, index) => (
               <span key={item.name} className="whitespace-nowrap">
                 <i
@@ -215,7 +206,7 @@ function Today() {
           </div>
         </div>
       )}
-      <div className="mt-1.5 text-[11px] text-ink-3">
+      <div className="mt-1.5 text-tab text-ink-3">
         {wealth.holdings} holdings
         {wealth.navDate
           ? ` · ${navsOf(wealth.navDate)} · ${signed(wealth.dayChange)} since previous NAV`

@@ -6,7 +6,7 @@ type Category = { category: string; total: number; colorToken: string };
 export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; month: string; reviewOther?: number }) {
   const ranked = rows.filter((row) => row.total > 0).sort((a, b) => b.total - a.total);
   const total = ranked.reduce((sum, row) => sum + row.total, 0);
-  if (!total) return <p className="text-sm text-ink-2">No spending this month.</p>;
+  if (!total) return <p className="text-control text-ink-2">No spending this month.</p>;
   const other = ranked.find((row) => row.category === "Other");
   const second = ranked.find((row) => row !== other);
   const tiles = [...(other ? [other] : []), ...(second ? [second] : [])];
@@ -21,10 +21,10 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
       className={`flex min-w-0 flex-col justify-between rounded-lg p-3 transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${row.category === "Other" ? "hatch text-ink" : "text-on-cat"}`}
       style={row.category === "Other" ? undefined : { background: `var(--color-${row.colorToken})` }}
     >
-      <b className="truncate text-sm">{row.category}</b>
+      <b className="truncate text-control">{row.category}</b>
       <span className="flex flex-col">
-        <span className="font-serif text-[26px] leading-none">{money(row.total)}</span>
-        <span className="mt-1 text-xs">
+        <span className="font-serif text-page leading-none">{money(row.total)}</span>
+        <span className="mt-1 text-caption">
           {Math.round((row.total / total) * 100)}%{row.category === "Other" && reviewOther > 0 ? ` · ${reviewOther} unreviewed` : ""}
         </span>
       </span>
@@ -38,7 +38,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
             <Link
               to="/activity"
               search={{ month, category: row.category }}
-              className="flex min-h-11 items-center justify-between gap-2 border-b border-hairline text-[13px] transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
+              className="flex min-h-11 items-center justify-between gap-2 border-b border-hairline text-meta transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <span className="flex min-w-0 items-center gap-1.5">
                 <i className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-${row.colorToken})` }} />
@@ -73,7 +73,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
         </div>
       </div>
       {rest.length > 0 && (
-        <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-1.5 text-[13px] text-ink-2 max-[600px]:hidden">
+        <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-1.5 text-meta text-ink-2 max-[600px]:hidden">
           {rest.map((row) => (
             <Link
               key={row.category}

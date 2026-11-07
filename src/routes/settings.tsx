@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { Button, buttonClass, ErrorState, PageHeader, SectionHead, Segmented, Skeleton } from "../components/ui";
+import { Button, buttonClass, PageHeader, SectionHead, Segmented } from "../components/ui";
 import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
@@ -29,11 +29,6 @@ export const Route = createFileRoute("/settings")({
     const [settings, syncStatus] = await Promise.all([getSettings(), getSyncStatus().catch(() => undefined)]);
     return { ...settings, syncStatus };
   }, // sync row falls back to client polling
-  pendingComponent: () => <Skeleton rows={7} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load settings."} retry={() => void router.invalidate()} />;
-  },
   component: Settings,
 });
 
@@ -195,7 +190,7 @@ function Settings() {
   const rules = data.rules.filter((x) => `${x.match} ${x.displayMerchant} ${x.category}`.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <main>
+    <div>
       <PageHeader back="/" title="Settings" />
       <div className="space-y-7 px-5 pb-10 tablet:mx-auto tablet:max-w-[720px] desk:px-0">
         <SyncSection initial={data.syncStatus} />
@@ -203,13 +198,13 @@ function Settings() {
         <section aria-labelledby="settings-app">
           <SectionHead id="settings-app" title="App" />
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
-            <span className="text-[15px] font-medium">Install app</span>
+            <span className="text-body font-medium">Install app</span>
             {installed ? (
-              <span className="text-[13px] font-semibold text-earn">Installed</span>
+              <span className="text-meta font-semibold text-earn">Installed</span>
             ) : (
               <Button
                 variant="outline"
-                className="min-h-11 text-sm"
+                className="min-h-11 text-control"
                 onClick={() =>
                   void promptInstall().then((result) => {
                     if (result === "ios") setIos(true);
@@ -223,7 +218,7 @@ function Settings() {
             )}
           </div>
           <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
-            <span className="text-[15px] font-medium">Theme</span>
+            <span className="text-body font-medium">Theme</span>
             <Segmented
               label="Theme"
               className="w-[220px]"
@@ -240,15 +235,15 @@ function Settings() {
             />
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
-            <span className="text-[15px] font-medium">Export CSV</span>
-            <a href="/api/export" className={buttonClass("outline", "min-h-11 text-sm")}>
+            <span className="text-body font-medium">Export CSV</span>
+            <a href="/api/export" className={buttonClass("outline", "min-h-11 text-control")}>
               Download
             </a>
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
-            <span className="text-[15px] font-medium">Sign out</span>
+            <span className="text-body font-medium">Sign out</span>
             <form method="post" action="/api/logout">
-              <Button type="submit" variant="outline" className="min-h-11 text-sm">
+              <Button type="submit" variant="outline" className="min-h-11 text-control">
                 Sign out
               </Button>
             </form>
@@ -258,7 +253,7 @@ function Settings() {
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && (
-            <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">
+            <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-control leading-relaxed">
               AI is off. Ask, the weekly digest and receipt reading need the server switch.
             </p>
           )}
@@ -274,8 +269,8 @@ function Settings() {
               />
               <div className="space-y-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[13px] text-ink-2">Daily call cap</span>
-                  <span className="text-sm">
+                  <span className="text-meta text-ink-2">Daily call cap</span>
+                  <span className="text-control">
                     <strong className="font-semibold">{used}</strong>
                     <span className="text-ink-3"> of {cap} used today</span>
                   </span>
@@ -316,7 +311,7 @@ function Settings() {
               const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
               return (
                 <div key={type} className="mt-4">
-                  <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
+                  <h3 className="m-0 text-caption tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
                   <Reorder.Group
                     axis="y"
                     values={group}
@@ -470,8 +465,8 @@ function Settings() {
                     />
                   ) : (
                     <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                      <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
-                      <span className="flex min-w-0 items-center gap-1.5 text-sm">
+                      <span className="truncate font-mono text-meta text-ink-2">{rule.match}</span>
+                      <span className="flex min-w-0 items-center gap-1.5 text-control">
                         <span aria-hidden className="text-ink-3">
                           →
                         </span>
@@ -505,19 +500,19 @@ function Settings() {
                 </div>
               ))}
             </div>
-            {rules.length === 0 && <p className="py-5 text-sm text-ink-3">No matching rules.</p>}
+            {rules.length === 0 && <p className="py-5 text-control text-ink-3">No matching rules.</p>}
           </div>
         </Sheet>
       )}
-    </main>
+    </div>
   );
 }
 
 function IndexRow({ label, detail, onClick }: { label: string; detail: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-2 border-b border-hairline text-left">
-      <span className="flex-1 text-[15px] font-medium">{label}</span>
-      <span className="text-sm text-ink-3">{detail}</span>
+      <span className="flex-1 text-body font-medium">{label}</span>
+      <span className="text-control text-ink-3">{detail}</span>
       <ChevronRight size={18} className="text-ink-3" aria-hidden />
     </button>
   );
@@ -594,12 +589,12 @@ function CategoryItem({
         </button>
         <input
           aria-label={`${item.name} category name`}
-          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand"
+          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-body font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand"
           defaultValue={item.name}
           disabled={!online}
           onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)}
         />
-        <span className="shrink-0 text-xs text-ink-3">{item.transactionCount} transactions</span>
+        <span className="shrink-0 text-caption text-ink-3">{item.transactionCount} transactions</span>
         {!isOther && (
           <button
             type="button"
@@ -648,7 +643,7 @@ function RuleEditor({
       </label>
       <input
         id={`rule-match-${rule.id}`}
-        className="field font-mono text-sm"
+        className="field font-mono text-control"
         value={match}
         onChange={(event) => setMatch(event.currentTarget.value)}
       />
@@ -658,7 +653,7 @@ function RuleEditor({
         </label>
         <input
           id={`rule-name-${rule.id}`}
-          className="field min-w-0 text-sm"
+          className="field min-w-0 text-control"
           value={displayMerchant}
           onChange={(event) => setDisplayMerchant(event.currentTarget.value)}
         />
@@ -667,7 +662,7 @@ function RuleEditor({
         </label>
         <select
           id={`rule-category-${rule.id}`}
-          className="field min-w-0 px-2 text-sm"
+          className="field min-w-0 px-2 text-control"
           value={category}
           onChange={(event) => setCategory(event.currentTarget.value)}
         >

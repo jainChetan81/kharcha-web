@@ -181,7 +181,7 @@ export const savePasted = createServerFn({ method: "POST" })
   .validator(pastedSchema)
   .handler(async ({ data }) => {
     const parsed = parseBankText(data);
-    if (!parsed || parsed.status !== "parsed") throw new Error("Message needs manual entry.");
+    if (parsed?.status !== "parsed") throw new Error("Message needs manual entry.");
     const db = getDb();
     const known = await db
       .select({ name: categories.name })

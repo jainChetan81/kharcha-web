@@ -1,18 +1,11 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Sheet } from "../components/sheet";
 import { TxnForm } from "../components/txn-form";
-import { ErrorState, Skeleton } from "../components/ui";
+import { ErrorState } from "../components/ui";
 import { fromSource } from "../lib/format";
 import { getCategories, getTransaction } from "../server/fns";
 export const Route = createFileRoute("/txn/$id_/edit")({
   loader: ({ params }) => Promise.all([getTransaction({ data: { id: Number(params.id) } }), getCategories()]),
-  pendingComponent: () => <Skeleton rows={6} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return (
-      <ErrorState text={error instanceof Error ? error.message : "Couldn't load transaction."} retry={() => void router.invalidate()} />
-    );
-  },
   component: Edit,
 });
 function Edit() {

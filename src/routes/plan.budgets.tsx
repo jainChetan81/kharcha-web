@@ -2,7 +2,7 @@ import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router"
 import { useState } from "react";
 import { DeskPage } from "../components/app-shell";
 import { BudgetBar } from "../components/budget-bar";
-import { PlanError, PlanHeader, PlanPending } from "../components/plan-screen";
+import { PlanHeader } from "../components/plan-screen";
 import { saveFailed } from "../components/sheet";
 import { Button, ButtonLink, Field, Suggestion } from "../components/ui";
 import { money, monthLabel, overOrLeft, thisMonth } from "../lib/format";
@@ -11,8 +11,6 @@ import { getPlanBudgets } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/budgets")({
   loader: () => getPlanBudgets({ data: { month: thisMonth() } }),
-  pendingComponent: PlanPending,
-  errorComponent: PlanError,
   component: Budgets,
 });
 function Budgets() {
@@ -51,8 +49,8 @@ function Budgets() {
         otherHint && (
           <Suggestion>
             <b>Other has no budget</b>
-            <p className="mt-1 text-sm text-ink-2">Review files most of it.</p>
-            <ButtonLink to="/review" variant="text" className="text-sm">
+            <p className="mt-1 text-control text-ink-2">Review files most of it.</p>
+            <ButtonLink to="/review" variant="text" className="text-control">
               Review
             </ButtonLink>
           </Suggestion>
@@ -62,11 +60,11 @@ function Budgets() {
       <PlanHeader sub={`${monthLabel(thisMonth())} · day ${days} of ${count}`} />
       <section className="mx-5 mt-4 flex flex-col gap-2.5 border-b-[3px] border-double border-ink pb-5 desk:mx-0">
         <div className="flex items-baseline justify-between">
-          <strong className="font-serif text-[34px] font-medium">{money(spent)}</strong>
-          <span className="text-[15px] text-ink-2">{total ? `of ${money(total)}` : "no budget"}</span>
+          <strong className="font-serif text-figure-sm font-medium">{money(spent)}</strong>
+          <span className="text-body text-ink-2">{total ? `of ${money(total)}` : "no budget"}</span>
         </div>
         <BudgetBar spent={gross} limit={total} reimbursable={totalReimbursable} pacePct={pace} />
-        <div className="flex justify-between text-[13px] text-ink-2">
+        <div className="flex justify-between text-meta text-ink-2">
           <span className="font-medium text-watch-text">
             {total ? `${overOrLeft(spent, total)} for ${count - days} days` : "No budget set yet"}
           </span>
@@ -89,7 +87,7 @@ function Budgets() {
                   setLimit(String(row.limit ?? ""));
                 }}
               >
-                <span className="flex justify-between text-[15px]">
+                <span className="flex justify-between text-body">
                   <span className="font-medium">
                     <i className="mr-2 inline-block size-2 rounded-[2px]" style={{ background: `var(--color-${row.colorToken})` }} />
                     {row.name}
@@ -99,7 +97,7 @@ function Budgets() {
                   </span>
                 </span>
                 {row.limit && <BudgetBar spent={row.gross} limit={row.limit} reimbursable={rowReimbursable} pacePct={pace} />}
-                <span className={`text-[13px] font-medium ${tone}`}>
+                <span className={`text-meta font-medium ${tone}`}>
                   {row.limit
                     ? projected > row.limit
                       ? `${money(projected)} projected`
@@ -136,9 +134,9 @@ function Budgets() {
         <Suggestion className="mx-5 mt-5 flex items-center justify-between desk:mx-0">
           <div>
             <b>Other</b>
-            <p className="m-0 text-sm text-ink-2">No budget. Review files most of it.</p>
+            <p className="m-0 text-control text-ink-2">No budget. Review files most of it.</p>
           </div>
-          <ButtonLink to="/review" variant="text" className="text-sm">
+          <ButtonLink to="/review" variant="text" className="text-control">
             Review
           </ButtonLink>
         </Suggestion>

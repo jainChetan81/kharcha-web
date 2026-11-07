@@ -137,7 +137,7 @@ export function HoldingForm({ initial, onSave }: { initial?: Values; onSave: (va
                 <li key={hit.code} className="border-b border-hairline last:border-b-0">
                   <button
                     type="button"
-                    className="flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm"
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-control"
                     onClick={() => {
                       setValue((old) => ({ ...old, name: hit.name, schemeCode: hit.code }));
                       setQuery("");

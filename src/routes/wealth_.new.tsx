@@ -19,9 +19,9 @@ function NewHolding() {
   return (
     <>
       <PageHeader title="Add holding" back="/wealth" />
-      <main className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
+      <div className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
         <HoldingForm onSave={save} />
-      </main>
+      </div>
     </>
   );
 }

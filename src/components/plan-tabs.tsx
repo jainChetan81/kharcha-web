@@ -18,7 +18,7 @@ export function PlanTabs() {
           to={tab.to}
           aria-current={path === tab.to ? "page" : undefined}
           className={cn(
-            "flex min-h-11 min-w-0 items-center justify-center rounded-inner px-1 text-center text-[13px] font-medium leading-tight transition-colors hover:text-ink motion-reduce:transition-none desk:min-h-9",
+            "flex min-h-11 min-w-0 items-center justify-center rounded-inner px-1 text-center text-meta font-medium leading-tight transition-colors hover:text-ink motion-reduce:transition-none desk:min-h-9",
             path === tab.to ? "bg-raised text-ink shadow-control" : "text-ink-2",
           )}
         >

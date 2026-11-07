@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DeskPage } from "../components/app-shell";
-import { AddPlanLink, PlanError, PlanHeader, PlanPending } from "../components/plan-screen";
+import { AddPlanLink, PlanHeader } from "../components/plan-screen";
 import { Empty, Suggestion } from "../components/ui";
 import { money, monthLabel, thisMonth } from "../lib/format";
 import { getRecurring } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/recurring")({
   loader: () => getRecurring({ data: { month: thisMonth() } }),
-  pendingComponent: PlanPending,
-  errorComponent: PlanError,
   component: Recurring,
 });
 function Recurring() {
@@ -28,7 +26,7 @@ function Recurring() {
             <b>Coming up</b>
             <div className="mt-2 flex flex-col gap-2">
               {upcoming.map((row) => (
-                <span key={`${row.seriesId}-${row.dueDate}`} className="truncate text-sm">
+                <span key={`${row.seriesId}-${row.dueDate}`} className="truncate text-control">
                   {row.dueDate}
                 </span>
               ))}
@@ -40,11 +38,11 @@ function Recurring() {
       <PlanHeader sub={monthLabel(thisMonth())} />
       <section className="mx-5 mt-5 border-b-[3px] border-double border-ink pb-4 desk:mx-0">
         <span className="label-caps text-ink-3">Committed every month</span>
-        <strong className="mt-1 block font-serif text-[44px] font-medium">{money(committed)}</strong>
+        <strong className="mt-1 block font-serif text-figure font-medium">{money(committed)}</strong>
         <div className="mt-3 flex h-2.5 overflow-hidden rounded-chip bg-sunken">
           <span className="bg-brand" style={{ width: `${committed ? (sips / committed) * 100 : 0}%` }} />
         </div>
-        <p className="mb-0 text-[13px] text-ink-2">
+        <p className="mb-0 text-meta text-ink-2">
           <Link to="/wealth" className="text-brand">
             SIPs {money(sips)}
           </Link>{" "}
@@ -52,7 +50,7 @@ function Recurring() {
         </p>
       </section>
       <section className="mx-5 mt-5 desk:mx-0">
-        <h2 className="font-serif text-lg font-medium">Recurring payments</h2>
+        <h2 className="font-serif text-section font-medium">Recurring payments</h2>
         {series.length ? (
           series.map((row) => {
             const occurrence = occurrences.find((item) => item.seriesId === row.id && item.status === "upcoming");
@@ -64,7 +62,7 @@ function Recurring() {
                 className="flex min-h-14 items-center justify-between gap-2 border-b border-hairline"
               >
                 <span className="min-w-0 flex-1">
-                  <b className="block truncate text-[15px]">{row.name}</b>
+                  <b className="block truncate text-body">{row.name}</b>
                   <small className="block truncate text-ink-3">
                     {row.kind} · {row.cadence}
                     {row.status === "paused" ? " · Paused" : ""}
@@ -91,8 +89,8 @@ function Recurring() {
       {suggestion && (
         <Suggestion className="mx-5 mt-5 desk:mx-0">
           <b>Looks recurring</b>
-          <p className="my-1 text-sm text-ink-2">Same merchant appears every month.</p>
-          <Link to="/plan/recurring/new" className="text-sm font-medium text-brand">
+          <p className="my-1 text-control text-ink-2">Same merchant appears every month.</p>
+          <Link to="/plan/recurring/new" className="text-control font-medium text-brand">
             Track it
           </Link>
         </Suggestion>

@@ -84,6 +84,37 @@
   --shadow-popover: 0 6px 16px rgba(28, 34, 48, 0.16);
   --shadow-fab: 0 6px 16px rgba(28, 34, 48, 0.22);
 
+  /* Type scale (DESIGN.md §3). Tailwind's default sizes are cleared so only these exist. */
+  --text-*: initial;
+  --text-chart: 10px;
+  --text-chart--line-height: 14px;
+  --text-tab: 11px;
+  --text-tab--line-height: 14px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-meta: 13px;
+  --text-meta--line-height: 18px;
+  --text-control: 14px;
+  --text-control--line-height: 20px;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-entry: 16px;
+  --text-entry--line-height: 24px;
+  --text-section: 18px;
+  --text-section--line-height: 26px;
+  --text-title: 22px;
+  --text-title--line-height: 28px;
+  --text-page: 26px;
+  --text-page--line-height: 32px;
+  --text-page-lg: 30px;
+  --text-page-lg--line-height: 36px;
+  --text-figure-sm: 34px;
+  --text-figure-sm--line-height: 1.1;
+  --text-figure: 44px;
+  --text-figure--line-height: 1;
+  --text-figure-lg: 56px;
+  --text-figure-lg--line-height: 1;
+
   --breakpoint-tablet: 600px;
   --breakpoint-desk: 840px;
 }

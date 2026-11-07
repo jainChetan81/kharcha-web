@@ -129,8 +129,8 @@ export function TxnForm({
       />
       {mode === "add" && (
         <div className="border-b-[3px] border-double border-ink px-1 pt-1 text-right desk:hidden">
-          <span className="block min-h-5 font-mono text-sm text-ink-3">{expr}</span>
-          <p className="m-0 pb-1.5 font-serif text-5xl leading-none font-medium tracking-tight">
+          <span className="block min-h-5 font-mono text-control text-ink-3">{expr}</span>
+          <p className="m-0 pb-1.5 font-serif text-figure leading-none font-medium tracking-tight">
             {value.type === "income" && "+"}
             {money(amount)}
           </p>
@@ -170,7 +170,7 @@ export function TxnForm({
             onChange={(e) => setExpr(e.target.value)}
             hint={totalHint}
             error={amountError}
-            className="[&_input]:font-serif [&_input]:text-right [&_input]:text-xl"
+            className="[&_input]:font-serif [&_input]:text-right [&_input]:text-title"
           />
         </div>
       )}
@@ -196,10 +196,10 @@ export function TxnForm({
         />
       </div>
       {value.rawMerchant && value.rawMerchant !== value.merchant && (
-        <p className="-mt-2 m-0 text-[13px] text-ink-2">SMS said “{value.rawMerchant}”. New rows from it use your name.</p>
+        <p className="-mt-2 m-0 text-meta text-ink-2">SMS said “{value.rawMerchant}”. New rows from it use your name.</p>
       )}
       <section className="flex flex-col gap-2" aria-labelledby="category-label">
-        <span id="category-label" className="text-[13px] text-ink-2">
+        <span id="category-label" className="text-meta text-ink-2">
           Category
         </span>
         <CategoryPicker
@@ -210,7 +210,7 @@ export function TxnForm({
         />
       </section>
       <details className="rounded-card border border-hairline px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
-        <summary className="min-h-11 text-[15px] font-medium">More details</summary>
+        <summary className="min-h-11 text-body font-medium">More details</summary>
         <div className={mode === "edit" ? "border-y border-hairline" : "flex flex-wrap items-end gap-2 pb-1"}>
           <Field
             id="date"
@@ -222,7 +222,7 @@ export function TxnForm({
           />
           {mode === "edit" ? (
             <div className="flex min-h-[52px] items-center justify-between border-t border-hairline">
-              <span className="text-[15px] text-ink-2">Not a spend</span>
+              <span className="text-body text-ink-2">Not a spend</span>
               <Switch
                 label="Not a spend"
                 checked={Boolean(value.excluded)}
@@ -242,7 +242,7 @@ export function TxnForm({
                 onChange={(e) => set("accountLast4", e.target.value.replace(/\D/g, "").slice(0, 4) || null)}
                 className="w-28"
               />
-              <ButtonLink to="/paste" variant="text" className="text-[13px]">
+              <ButtonLink to="/paste" variant="text" className="text-meta">
                 Paste SMS
               </ButtonLink>
             </>
@@ -271,7 +271,7 @@ export function TxnForm({
           )}
         </div>
         <div className="flex min-h-9 items-center justify-between">
-          <span className="text-sm text-ink-2">Not a spend</span>
+          <span className="text-control text-ink-2">Not a spend</span>
           <Switch
             label="Not a spend"
             checked={Boolean(value.excluded)}
@@ -282,7 +282,7 @@ export function TxnForm({
       </div>
       <div className="sticky bottom-[calc(-16px-env(safe-area-inset-bottom))] -mx-4 mt-auto border-t border-hairline bg-card px-4 pt-2 pb-[env(safe-area-inset-bottom)] desk:hidden">
         {reason && mode === "add" && (
-          <p role="status" className="m-0 pb-1.5 text-center text-[13px] text-ink-3">
+          <p role="status" className="m-0 pb-1.5 text-center text-meta text-ink-3">
             {reason}
           </p>
         )}
@@ -304,7 +304,7 @@ export function TxnForm({
       </div>
       <div className="hidden desk:block mt-auto border-t border-hairline pt-3.5">
         {reason && (
-          <p role="status" className="m-0 pb-2 text-[13px] text-ink-3">
+          <p role="status" className="m-0 pb-2 text-meta text-ink-3">
             {reason}
           </p>
         )}
@@ -333,7 +333,7 @@ export function TxnForm({
   );
 }
 function Kbd({ children }: { children: string }) {
-  return <kbd className="rounded border border-current px-1 font-mono text-[11px] opacity-70">{children}</kbd>;
+  return <kbd className="rounded border border-current px-1 font-mono text-tab opacity-70">{children}</kbd>;
 }
 function Keypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ["1", "2", "3", "back", "4", "5", "6", "+", "7", "8", "9", "-", ".", "0", "00"];
@@ -345,7 +345,7 @@ function Keypad({ value, onChange }: { value: string; onChange: (v: string) => v
           key={key}
           aria-label={key === "back" ? "Delete" : key}
           onClick={() => onChange(key === "back" ? value.slice(0, -1) : value + key)}
-          className="min-h-[52px] rounded-card bg-sunken text-xl font-medium"
+          className="min-h-[52px] rounded-card bg-sunken text-title font-medium"
         >
           {key === "back" ? "⌫" : key}
         </button>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
-import { PlanError, PlanHeader, PlanPending } from "../components/plan-screen";
+import { PlanHeader } from "../components/plan-screen";
 import { Empty, Segmented, StatusTag } from "../components/ui";
 import { money, monthLabel, shortDate, thisMonth } from "../lib/format";
 import { listOwed, type OwedRow } from "../server/daily/reimburse";
@@ -14,8 +14,6 @@ export const Route = createFileRoute("/plan/owed")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ view: search.view ?? "pending" }),
   loader: ({ deps }) => listOwed({ data: { view: deps.view } }),
-  pendingComponent: PlanPending,
-  errorComponent: PlanError,
   component: OwedScreen,
 });
 
@@ -55,10 +53,10 @@ function OwedScreen() {
     <div className="flex flex-col gap-6">
       {data.byPerson.length > 0 && (
         <section>
-          <h2 className="m-0 border-b border-ink pb-2 font-serif text-lg font-medium">By person</h2>
+          <h2 className="m-0 border-b border-ink pb-2 font-serif text-section font-medium">By person</h2>
           <div className="divide-y divide-hairline">
             {data.byPerson.map((p) => (
-              <div key={p.counterparty} className="flex min-h-11 items-center justify-between gap-2 text-sm">
+              <div key={p.counterparty} className="flex min-h-11 items-center justify-between gap-2 text-control">
                 <span className="min-w-0 truncate">
                   {p.counterparty} · {p.count}
                 </span>
@@ -79,18 +77,18 @@ function OwedScreen() {
       <section className="mx-5 mt-4 flex flex-col gap-3 border-b-[3px] border-double border-ink pb-5 desk:mx-0">
         <span className="label-caps text-ink-3">Owed to you</span>
         <div className="flex flex-wrap items-baseline gap-6">
-          <strong className="font-serif text-[44px] leading-none font-medium desk:text-[52px]">{money(data.totalOwed)}</strong>
+          <strong className="font-serif text-figure leading-none font-medium desk:text-figure-lg">{money(data.totalOwed)}</strong>
           {view === "pending" && data.overdueCount > 0 && (
-            <span className="flex items-center gap-1.5 text-sm font-medium text-over">
+            <span className="flex items-center gap-1.5 text-control font-medium text-over">
               Overdue {money(data.overdueTotal)} · {data.overdueCount}
             </span>
           )}
-          {view === "pending" && data.oldestDays > 0 && <span className="text-sm text-ink-2">Oldest: {data.oldestDays} days</span>}
+          {view === "pending" && data.oldestDays > 0 && <span className="text-control text-ink-2">Oldest: {data.oldestDays} days</span>}
         </div>
 
         {/* By person pills/summary on mobile */}
         {data.byPerson.length > 0 && (
-          <div className="flex flex-wrap gap-3 pt-1 text-sm desk:hidden">
+          <div className="flex flex-wrap gap-3 pt-1 text-control desk:hidden">
             {data.byPerson.map((p) => (
               <span key={p.counterparty} className="inline-flex min-w-0 items-center gap-1.5">
                 <span className="size-2 shrink-0 rounded-dot bg-brand" />
@@ -124,11 +122,11 @@ function OwedScreen() {
             text={view === "pending" ? "Nothing owed to you." : "No completed or cancelled reimbursements."}
             action={
               view === "pending" ? (
-                <Link to="/activity" className="text-sm font-medium text-brand">
+                <Link to="/activity" className="text-control font-medium text-brand">
                   Mark a transaction
                 </Link>
               ) : (
-                <button type="button" onClick={() => setView("pending")} className="text-sm font-medium text-brand">
+                <button type="button" onClick={() => setView("pending")} className="text-control font-medium text-brand">
                   View pending
                 </button>
               )
@@ -137,7 +135,7 @@ function OwedScreen() {
         ) : (
           <div>
             {/* Desktop table header */}
-            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink text-xs font-semibold tracking-[0.06em] text-ink-3 uppercase desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
+            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink text-caption font-semibold tracking-[0.06em] text-ink-3 uppercase desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
               <span>Date</span>
               <span>Spend</span>
               <span>From</span>
@@ -158,13 +156,13 @@ function OwedScreen() {
                 >
                   {/* Mobile Row */}
                   <div className="flex min-w-0 items-baseline justify-between gap-2 desk:hidden">
-                    <span className="min-w-0 truncate text-[15px] font-medium">{r.merchant}</span>
-                    <strong className="shrink-0 text-[15px] font-semibold">
+                    <span className="min-w-0 truncate text-body font-medium">{r.merchant}</span>
+                    <strong className="shrink-0 text-body font-semibold">
                       {r.status === "extra" ? `+${money(r.linkedTotal - r.claimAmount)}` : money(r.dueAmount)}
                     </strong>
                   </div>
 
-                  <div className="flex min-w-0 items-center justify-between gap-2 text-[13px] text-ink-3 desk:hidden">
+                  <div className="flex min-w-0 items-center justify-between gap-2 text-meta text-ink-3 desk:hidden">
                     <span className="min-w-0 truncate">
                       {shortDate(r.spendDate)} · {r.counterparty}
                       {r.note ? ` · ${r.note}` : ""}
@@ -175,15 +173,15 @@ function OwedScreen() {
                   </div>
 
                   {/* Desktop columns */}
-                  <span className="hidden text-sm text-ink-2 desk:block">{shortDate(r.spendDate)}</span>
-                  <span className="hidden truncate text-sm font-medium desk:block">
+                  <span className="hidden text-control text-ink-2 desk:block">{shortDate(r.spendDate)}</span>
+                  <span className="hidden truncate text-control font-medium desk:block">
                     {r.merchant}
-                    {r.note && <span className="ml-1 text-xs text-ink-3">({r.note})</span>}
+                    {r.note && <span className="ml-1 text-caption text-ink-3">({r.note})</span>}
                   </span>
-                  <span className="hidden truncate text-sm desk:block">{r.counterparty}</span>
-                  <span className="hidden text-right text-sm desk:block">{money(r.spendAmount)}</span>
-                  <span className="hidden text-right text-sm text-ink-2 desk:block">{money(r.yoursAmount)}</span>
-                  <span className="hidden text-right text-sm font-semibold desk:block">
+                  <span className="hidden truncate text-control desk:block">{r.counterparty}</span>
+                  <span className="hidden text-right text-control desk:block">{money(r.spendAmount)}</span>
+                  <span className="hidden text-right text-control text-ink-2 desk:block">{money(r.yoursAmount)}</span>
+                  <span className="hidden text-right text-control font-semibold desk:block">
                     {r.status === "extra" ? `+${money(r.linkedTotal - r.claimAmount)}` : money(r.dueAmount)}
                   </span>
                   <span className="hidden desk:block">

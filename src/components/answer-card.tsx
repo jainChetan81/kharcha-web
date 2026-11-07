@@ -36,12 +36,12 @@ export function AnswerCard({
         Fig. {figure} · Ledger answer{scope ? ` · ${scope}` : ""}
         {when ? ` · ${when}` : ""}
       </span>
-      <span className="font-serif text-[26px] leading-none">{money(Math.round(total))}</span>
-      <p className="m-0 text-[15px] leading-6 text-ink-2">{answer.answer}</p>
+      <span className="font-serif text-page leading-none">{money(Math.round(total))}</span>
+      <p className="m-0 text-body leading-6 text-ink-2">{answer.answer}</p>
       {answer.rows.length > 1 && (
         <div className="flex flex-col gap-2">
           {answer.rows.slice(0, 7).map((row) => (
-            <div key={row.label} className="grid grid-cols-[70px_1fr_74px] items-center gap-2 text-[13px]">
+            <div key={row.label} className="grid grid-cols-[70px_1fr_74px] items-center gap-2 text-meta">
               <span className="truncate text-ink-2">{row.label}</span>
               <span className="h-2 rounded-sm bg-sunken">
                 <span className="block h-2 rounded-sm bg-brand" style={{ width: `${(row.value / max) * 100}%` }} />
@@ -54,7 +54,7 @@ export function AnswerCard({
       <Link
         to="/activity"
         search={{ ids: answer.transactionIds }}
-        className="min-h-11 border-t border-hairline pt-3 text-sm font-medium text-brand"
+        className="min-h-11 border-t border-hairline pt-3 text-control font-medium text-brand"
       >
         Based on {answer.transactionIds.length} {answer.transactionIds.length === 1 ? "transaction" : "transactions"}
       </Link>
@@ -65,7 +65,7 @@ export function AnswerCard({
               key={q}
               type="button"
               onClick={() => onFollowUp(q)}
-              className="min-h-10 rounded-chip border border-brand px-3 text-left text-sm text-brand"
+              className="min-h-10 rounded-chip border border-brand px-3 text-left text-control text-brand"
             >
               {q}
             </button>
@@ -81,7 +81,7 @@ export function AnswerCard({
           when={askedAt}
         />
       ) : (
-        <span className="text-xs text-ink-3">Numbers from your ledger</span>
+        <span className="text-caption text-ink-3">Numbers from your ledger</span>
       )}
     </Card>
   );

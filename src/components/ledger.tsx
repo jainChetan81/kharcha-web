@@ -40,7 +40,7 @@ export function ReimbursableBadge({ amount, className }: { amount?: number; clas
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-chip border border-brand px-1.5 py-0.5 text-xs font-medium text-brand",
+        "inline-flex shrink-0 items-center gap-1 rounded-chip border border-brand px-1.5 py-0.5 text-caption font-medium text-brand",
         className,
       )}
     >
@@ -66,7 +66,7 @@ export function ReimbursableBadge({ amount, className }: { amount?: number; clas
 export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boolean; color?: string }) {
   const tone = t.excluded || t.type !== "expense" ? undefined : (color ?? "cat-other");
   return (
-    <span className="flex min-w-0 items-center gap-1.5 truncate text-[13px] text-ink-3">
+    <span className="flex min-w-0 items-center gap-1.5 truncate text-meta text-ink-3">
       <span className="shrink-0">{withDate ? shortDate(t.date) : time(t.date)}</span>
       <span aria-hidden>·</span>
       <span
@@ -98,7 +98,7 @@ export function SplitMeta({ splits, only, ofTotal }: { splits: { category: strin
       .map((s) => s.category)
       .join(", ") + (shown.length > 2 ? ` +${shown.length - 2}` : "");
   return (
-    <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-ink-2">
+    <span className="flex min-w-0 items-center gap-1.5 text-meta text-ink-2">
       <span
         role="img"
         aria-label={`Split: ${splits.map((s) => `${s.category} ${money(s.amount)}`).join(", ")}`}
@@ -125,7 +125,7 @@ export function Amount({ t, className }: { t: LedgerTxn; className?: string }) {
   return (
     <span
       className={cn(
-        "shrink-0 text-[15px] font-medium whitespace-nowrap",
+        "shrink-0 text-body font-medium whitespace-nowrap",
         t.type === "income" && "text-earn",
         t.excluded && "font-normal text-ink-3",
         className,
@@ -160,7 +160,7 @@ export function LedgerRow({
       )}
     >
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">
+        <span className="flex items-center gap-1.5 truncate text-body font-medium">
           {t.needsReview && (
             <>
               <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />
@@ -176,7 +176,7 @@ export function LedgerRow({
         (t.reimbursable ? (
           <span className="flex shrink-0 flex-col items-end gap-0.5">
             <Amount t={t} />
-            <span className="text-[13px] whitespace-nowrap text-ink-3">
+            <span className="text-meta whitespace-nowrap text-ink-3">
               {money(t.yours ?? 0)} yours · {money(t.reimbursable)} paid
             </span>
           </span>
@@ -189,7 +189,7 @@ export function LedgerRow({
 
 export function DayHeader({ date, total, label }: { date: string; total: number; label?: string }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-[18px] pb-1.5 text-xs tracking-[0.06em] text-ink-2 uppercase">
+    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-[18px] pb-1.5 text-caption tracking-[0.06em] text-ink-2 uppercase">
       <span className="min-w-0 truncate">{label ?? weekdayDate(date)}</span>
       <span className="shrink-0 font-semibold text-ink">{money(total)}</span>
     </div>

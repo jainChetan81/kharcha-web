@@ -65,9 +65,6 @@ async function storeReceiptFile(transactionId: number, mime: string, bytes: Uint
   }
 }
 
-// Keep manual item and split writes shared with the receipt editor.
-export { saveReceipt } from "./fns";
-
 export const uploadReceipt = createServerFn({ method: "POST" })
   .validator(
     z.object({

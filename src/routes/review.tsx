@@ -29,9 +29,8 @@ export const Route = createFileRoute("/review")({
     return { rows, categories };
   },
   pendingComponent: () => <Skeleton />,
-  errorComponent: ({ error }) => {
+  errorComponent: () => {
     const router = useRouter();
-    console.error(error);
     return (
       <ErrorState
         text="Review hit an error and couldn’t open. Your filed rows are saved."
@@ -221,15 +220,15 @@ function Review() {
                 <path d="M4 12.5l5 5L20 6.5" />
               </svg>
             </span>
-            <p className="m-0 font-serif text-[26px] font-medium">Nothing to review</p>
+            <p className="m-0 font-serif text-page font-medium">Nothing to review</p>
             <div className="flex gap-2">
               <Link
                 to="/activity"
-                className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-[15px] font-medium text-ink"
+                className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-body font-medium text-ink"
               >
                 Open Activity
               </Link>
-              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-[15px] font-medium text-paper">
+              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-body font-medium text-paper">
                 Back to Today
               </Link>
             </div>
@@ -251,17 +250,17 @@ function Review() {
           <section aria-label="Selected transaction" className="flex flex-col gap-3.5 rounded-card border border-field bg-card p-5">
             <div className="flex items-start justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate font-serif text-2xl font-medium">{open.merchant}</span>
-                <span className="text-[13px] text-ink-3">
+                <span className="truncate font-serif text-title font-medium">{open.merchant}</span>
+                <span className="text-meta text-ink-3">
                   {shortDate(open.date)}
                   {open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} ·{" "}
                   {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
                 </span>
               </div>
-              <strong className="shrink-0 font-serif text-[26px] font-medium">{money(open.amount)}</strong>
+              <strong className="shrink-0 font-serif text-page font-medium">{money(open.amount)}</strong>
             </div>
             <CategoryPicker categories={categories} value={suggested} onChange={(name) => setCategory({ id: open.id, name })} />
-            <label className="flex min-h-11 items-center gap-2 text-sm">
+            <label className="flex min-h-11 items-center gap-2 text-control">
               <input
                 type="checkbox"
                 checked={makeRule}
@@ -272,7 +271,7 @@ function Review() {
               Always file this merchant as {suggested}
             </label>
             {open.rawText && (
-              <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">
+              <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">
                 {open.rawText}
               </p>
             )}
@@ -280,14 +279,14 @@ function Review() {
               <Button disabled={!online} onClick={() => confirmOne(open, suggested, makeRule)} className="flex-1">
                 Confirm · {suggested}
               </Button>
-              <Button variant="outline" disabled={!online} onClick={() => excludeOne(open)} className="px-3 text-sm">
+              <Button variant="outline" disabled={!online} onClick={() => excludeOne(open)} className="px-3 text-control">
                 Not a spend
               </Button>
               <Button
                 variant="outline"
                 disabled={!online || !duplicates.length}
                 onClick={() => duplicates[0] && duplicateOne(open, duplicates[0].id)}
-                className="px-3 text-sm"
+                className="px-3 text-control"
               >
                 Duplicate
               </Button>
@@ -301,7 +300,7 @@ function Review() {
           title="Review"
           back="/"
           actions={
-            <span className="text-[13px] text-ink-3">
+            <span className="text-meta text-ink-3">
               {Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}
             </span>
           }
@@ -329,11 +328,11 @@ function Review() {
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </Link>
-            <h1 className="m-0 font-serif text-[30px] font-medium">
-              Review <span className="text-[22px] text-ink-3">{remaining}</span>
+            <h1 className="m-0 font-serif text-page-lg font-medium">
+              Review <span className="text-title text-ink-3">{remaining}</span>
             </h1>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-ink-2">
+          <div className="flex flex-wrap gap-2 text-caption text-ink-2">
             {keys.map((item) => (
               <span key={item.key} className="flex items-center gap-1.5">
                 <span className="rounded-mark border border-field bg-card px-1.5 py-0.5 font-mono text-ink">{item.key}</span>
@@ -344,20 +343,25 @@ function Review() {
         </header>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-button border border-rule px-3 py-1.5">
-          <span className="text-sm font-medium">{selected.length ? `${selected.length} selected` : "Nothing selected"}</span>
-          <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-sm">
+          <span className="text-control font-medium">{selected.length ? `${selected.length} selected` : "Nothing selected"}</span>
+          <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-control">
             Confirm suggested
           </Button>
-          <Button variant="outline" disabled={!online || !selected.length} onClick={() => setSheet(true)} className="min-h-9 px-3 text-sm">
+          <Button
+            variant="outline"
+            disabled={!online || !selected.length}
+            onClick={() => setSheet(true)}
+            className="min-h-9 px-3 text-control"
+          >
             Set category…
           </Button>
-          <button type="button" onClick={selectAll} className="ml-auto min-h-9 px-3 text-sm font-medium text-brand">
+          <button type="button" onClick={selectAll} className="ml-auto min-h-9 px-3 text-control font-medium text-brand">
             Select all
           </button>
         </div>
 
         <ul className="mt-6 min-w-[560px] list-none p-0">
-          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 text-xs tracking-[0.06em] text-ink-3 uppercase`}>
+          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 text-caption tracking-[0.06em] text-ink-3 uppercase`}>
             <span />
             <span>Date</span>
             <span>Merchant</span>
@@ -372,7 +376,7 @@ function Review() {
             return (
               <li
                 key={row.id}
-                className={`grid ${grid} min-h-10 items-center gap-3 border-b border-hairline text-sm`}
+                className={`grid ${grid} min-h-10 items-center gap-3 border-b border-hairline text-control`}
                 style={active ? { background: "var(--color-brand-soft)", boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}
               >
                 <input
@@ -439,7 +443,7 @@ function Review() {
               <path d="M4 12.5l5 5L20 6.5" />
             </svg>
           </span>
-          <p className="m-0 font-serif text-[26px] font-medium">Nice. {picked.length} filed.</p>
+          <p className="m-0 font-serif text-page font-medium">Nice. {picked.length} filed.</p>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -451,7 +455,7 @@ function Review() {
             >
               Start over
             </Button>
-            <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4.5 text-[15px] font-medium text-paper">
+            <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4.5 text-body font-medium text-paper">
               Back to home
             </Link>
           </div>

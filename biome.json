@@ -24,14 +24,29 @@
       "correctness": {
         "preset": "recommended",
         "useExhaustiveDependencies": "error",
-        "useHookAtTopLevel": "error"
+        "useHookAtTopLevel": "error",
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "noNestedComponentDefinitions": "error"
       },
       "security": {
         "preset": "recommended"
       },
       "suspicious": {
         "preset": "recommended",
-        "noArrayIndexKey": "error"
+        "noArrayIndexKey": "error",
+        "noConsole": "error"
+      },
+      "performance": {
+        "noAccumulatingSpread": "error",
+        "noBarrelFile": "error"
+      },
+      "complexity": {
+        "noUselessFragments": "error",
+        "useOptionalChain": "error"
+      },
+      "style": {
+        "useImportType": "error"
       }
     }
   },
@@ -49,5 +64,17 @@
   },
   "assist": {
     "enabled": false
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/**", "src/server/jobs.ts", "src/routes/api.jobs.$name.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
 }

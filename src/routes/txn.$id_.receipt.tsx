@@ -3,18 +3,12 @@ import { Check, ImagePlus, LoaderCircle, Plus, RotateCcw, RotateCw, Trash2, Wand
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { saveFailed, snack, useHoldsInput } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, ErrorState, PageHeader } from "../components/ui";
 import { money } from "../lib/format";
 import { getDetail } from "../server/daily/fns";
 import { getCategories } from "../server/fns";
-import {
-  deleteAttachment,
-  getReceiptAvailability,
-  getReceiptJob,
-  saveReceipt,
-  startReceiptJob,
-  uploadReceipt,
-} from "../server/daily/receipt";
+import { deleteAttachment, getReceiptAvailability, getReceiptJob, startReceiptJob, uploadReceipt } from "../server/daily/receipt";
+import { saveReceipt } from "../server/daily/fns";
 
 type Item = {
   key: string;
@@ -95,11 +89,6 @@ export const Route = createFileRoute("/txn/$id_/receipt")({
       getReceiptAvailability(),
     ]);
     return detail && { ...detail, categories, aiOn: availability.aiOn };
-  },
-  pendingComponent: () => <Skeleton rows={5} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load receipt."} retry={() => void router.invalidate()} />;
   },
   component: Receipt,
 });
@@ -427,7 +416,7 @@ function Receipt() {
   };
 
   return (
-    <main>
+    <div>
       <PageHeader
         back="/txn/$id"
         backParams={{ id: String(data.txn.id) }}
@@ -437,7 +426,7 @@ function Receipt() {
       <div className="space-y-6 px-5 pb-10 tablet:mx-auto tablet:max-w-[960px]">
         <div className="grid gap-6 desk:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
           <section className="space-y-3 rounded-card border border-dashed border-field bg-card p-4">
-            <p className="m-0 text-sm leading-relaxed text-ink-2">{PRIVACY}</p>
+            <p className="m-0 text-control leading-relaxed text-ink-2">{PRIVACY}</p>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: "Camera", capture: "environment" as const },
@@ -446,7 +435,7 @@ function Receipt() {
               ].map((source) => (
                 <label
                   key={source.label}
-                  className="flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-2 rounded-card border border-field bg-input px-2 text-sm font-medium focus-within:ring-2 focus-within:ring-brand"
+                  className="flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-2 rounded-card border border-field bg-input px-2 text-control font-medium focus-within:ring-2 focus-within:ring-brand"
                 >
                   <ImagePlus size={22} aria-hidden="true" />
                   {source.label}
@@ -467,7 +456,7 @@ function Receipt() {
             </div>
             {activeDraft && (
               <div className="space-y-3 rounded-card border border-hairline p-3">
-                <p className="m-0 text-sm font-medium">Crop photo before adding</p>
+                <p className="m-0 text-control font-medium">Crop photo before adding</p>
                 <img
                   ref={imageRef}
                   src={activeDraft.url}
@@ -499,7 +488,7 @@ function Receipt() {
                   aria-label="Drag crop frame corners or edges"
                   role="img"
                 />
-                <p className="m-0 text-sm text-ink-2">Only the part inside the frame is uploaded.</p>
+                <p className="m-0 text-control text-ink-2">Only the part inside the frame is uploaded.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
@@ -530,10 +519,10 @@ function Receipt() {
             )}
             {files.length > 0 && (
               <div className="space-y-2">
-                <p className="m-0 text-sm font-medium">{files.length} of 5 files</p>
+                <p className="m-0 text-control font-medium">{files.length} of 5 files</p>
                 <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
                   {files.map((file, i) => (
-                    <li key={file.id} className="flex min-h-11 items-center gap-2 rounded-chip border border-field px-3 text-sm">
+                    <li key={file.id} className="flex min-h-11 items-center gap-2 rounded-chip border border-field px-3 text-control">
                       <a href={`/api/attachments/${file.id}`} target="_blank" rel="noreferrer" className="text-brand">
                         {file.mime === "application/pdf" ? "PDF" : `Photo ${i + 1}`}
                       </a>
@@ -564,25 +553,25 @@ function Receipt() {
                 </>
               )}
             </Button>
-            {!data.aiOn && <p className="m-0 text-sm text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
+            {!data.aiOn && <p className="m-0 text-control text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
             {!online && (
-              <p className="m-0 text-sm text-ink-3">Offline. Receipt files and saved items remain viewable; editing is disabled.</p>
+              <p className="m-0 text-control text-ink-3">Offline. Receipt files and saved items remain viewable; editing is disabled.</p>
             )}
             {error && (
-              <p role="alert" className="m-0 text-sm text-over">
+              <p role="alert" className="m-0 text-control text-over">
                 {error}
               </p>
             )}
             {job?.status === "failed" && (
               <section className="space-y-2 rounded-card border border-hairline bg-card p-4">
-                <h2 className="m-0 font-serif text-lg">
+                <h2 className="m-0 font-serif text-section">
                   {job.error === "not_receipt"
                     ? "This doesn't look like a bill."
                     : job.error === "ai_unavailable"
                       ? "Receipt reading is unavailable right now."
                       : "Couldn't read this photo."}
                 </h2>
-                <p className="m-0 text-sm text-ink-2">
+                <p className="m-0 text-control text-ink-2">
                   {job.error === "not_receipt"
                     ? "No prices or totals were found. Pick the order summary or invoice instead."
                     : job.error === "ai_unavailable"
@@ -606,12 +595,14 @@ function Receipt() {
                         {i < (job.status === "reading" ? 1 : 0) && <Check />}
                         {i === (job.status === "reading" ? 1 : 0) && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}
                       </div>
-                      <span className="text-center text-xs text-ink-2">{i < 1 ? "Read" : i === 1 ? "Reading" : "Waiting"}</span>
+                      <span className="text-center text-caption text-ink-2">{i < 1 ? "Read" : i === 1 ? "Reading" : "Waiting"}</span>
                     </div>
                   ))}
                 </div>
-                <p className="m-0 font-serif text-xl italic">Reading receipt…</p>
-                <p className="m-0 text-sm text-ink-2">Usually 5–15 seconds. You can leave; items will be waiting on this transaction.</p>
+                <p className="m-0 font-serif text-title italic">Reading receipt…</p>
+                <p className="m-0 text-control text-ink-2">
+                  Usually 5–15 seconds. You can leave; items will be waiting on this transaction.
+                </p>
                 {[1, 2, 3].map((n) => (
                   <div key={n} className="h-11 animate-pulse rounded-lg bg-sunken motion-reduce:animate-none" />
                 ))}
@@ -624,8 +615,8 @@ function Receipt() {
                 <div className="space-y-3 border-b-[3px] border-double border-ink pb-4">
                   <span className="label-caps text-ink-3">Matched to transaction</span>
                   <div className="flex items-baseline justify-between gap-3">
-                    <strong className="font-serif text-2xl font-medium">{data.txn.merchant}</strong>
-                    <strong className="font-serif text-2xl font-medium">{money(data.txn.amount)}</strong>
+                    <strong className="font-serif text-title font-medium">{data.txn.merchant}</strong>
+                    <strong className="font-serif text-title font-medium">{money(data.txn.amount)}</strong>
                   </div>
                   {grouped.length > 0 && (
                     <button
@@ -650,7 +641,7 @@ function Receipt() {
                         ))}
                       </span>
                       {groupsOpen && (
-                        <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                        <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-control">
                           {grouped.map((group) => (
                             <span key={group.category} className="flex items-center gap-1.5">
                               <i
@@ -669,16 +660,16 @@ function Receipt() {
                   )}
                 </div>
                 {low > 0 && (
-                  <p className="m-0 rounded-card bg-watch-soft p-3 text-sm text-ink">
+                  <p className="m-0 rounded-card bg-watch-soft p-3 text-control text-ink">
                     {low} low-confidence line{low === 1 ? "" : "s"}. Check details before saving.
                   </p>
                 )}
                 {!data.aiOn && (
-                  <p className="m-0 rounded-card bg-card p-3 text-sm text-ink-2">
+                  <p className="m-0 rounded-card bg-card p-3 text-control text-ink-2">
                     {money(Math.max(0, data.txn.amount - total))} not itemised · Stays in {fallbackCategory}
                   </p>
                 )}
-                <div className="flex items-center justify-between gap-3 rounded-card bg-watch-soft p-3 text-sm">
+                <div className="flex items-center justify-between gap-3 rounded-card bg-watch-soft p-3 text-control">
                   <span className={agrees ? "flex items-center gap-1 text-earn" : "text-watch-text"}>
                     {agrees ? (
                       <>
@@ -692,7 +683,7 @@ function Receipt() {
                     )}
                   </span>
                   {!agrees && total < data.txn.amount && (
-                    <Button className="shrink-0 text-sm" disabled={!online} onClick={adjustment}>
+                    <Button className="shrink-0 text-control" disabled={!online} onClick={adjustment}>
                       Add as adjustment
                     </Button>
                   )}
@@ -746,7 +737,7 @@ function Receipt() {
                         />
                         <input
                           aria-label={`Item ${index + 1} quantity`}
-                          className="field min-w-0 text-sm"
+                          className="field min-w-0 text-control"
                           inputMode="decimal"
                           value={item.qty ?? ""}
                           placeholder="Qty"
@@ -755,7 +746,7 @@ function Receipt() {
                         />
                         <select
                           aria-label={`Item ${index + 1} category`}
-                          className="field min-w-0 px-2 text-sm"
+                          className="field min-w-0 px-2 text-control"
                           value={item.category}
                           disabled={!online}
                           onChange={(e) => updateItem(index, { category: e.currentTarget.value })}
@@ -778,7 +769,7 @@ function Receipt() {
                         {item.confidence !== null && item.confidence < 0.7 && (
                           <button
                             type="button"
-                            className="min-h-11 text-sm text-watch-text"
+                            className="min-h-11 text-control text-watch-text"
                             disabled={!online}
                             onClick={() => updateItem(index, { confidence: null })}
                           >
@@ -809,8 +800,8 @@ function Receipt() {
                 </Button>
                 <label className="flex min-h-11 items-center justify-between gap-3 border-y border-hairline py-2">
                   <span>
-                    <strong className="block text-[15px]">Split by category</strong>
-                    <span className="text-sm text-ink-3">Use item totals in spending views</span>
+                    <strong className="block text-body">Split by category</strong>
+                    <span className="text-control text-ink-3">Use item totals in spending views</span>
                   </span>
                   <input
                     aria-label="Split by category"
@@ -824,11 +815,11 @@ function Receipt() {
               </>
             ) : (
               <div className="space-y-3 rounded-card border border-hairline bg-card p-4">
-                <h2 className="m-0 font-serif text-xl">Add items by hand</h2>
-                <p className="m-0 text-sm text-ink-2">
+                <h2 className="m-0 font-serif text-title">Add items by hand</h2>
+                <p className="m-0 text-control text-ink-2">
                   {files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}
                 </p>
-                {!data.aiOn && <p className="m-0 text-sm text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
+                {!data.aiOn && <p className="m-0 text-control text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
                 <Button variant="outline" onClick={addItem} disabled={!online}>
                   <Plus size={17} />
                   Add item
@@ -838,6 +829,6 @@ function Receipt() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

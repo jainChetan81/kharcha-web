@@ -12,7 +12,7 @@ export function SixMonths({ rows }: { rows: { month: string; total: number; curr
           />
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-6 gap-3 text-center text-[11px] text-ink-2">
+      <div className="mt-1 grid grid-cols-6 gap-3 text-center text-tab text-ink-2">
         {rows.map((row) => (
           <span key={row.month}>
             {monthLabel(row.month).slice(0, 3)}

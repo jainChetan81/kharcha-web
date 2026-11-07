@@ -22,5 +22,5 @@ export function AiProvenance({
       : null;
   const cost = costUsd !== null && costUsd !== undefined ? aiCost(costUsd) : null;
   const parts = [name, tokens, cost, when ? ago(when) : null].filter(Boolean);
-  return <span className="inline-flex items-center gap-1.5 text-xs text-ink-3">{parts.join(" · ")}</span>;
+  return <span className="inline-flex items-center gap-1.5 text-caption text-ink-3">{parts.join(" · ")}</span>;
 }

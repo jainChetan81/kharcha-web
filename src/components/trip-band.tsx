@@ -9,8 +9,8 @@ export function TripBand({ trip }: { trip: NonNullable<ShellData["trip"]> }) {
       params={{ id: String(trip.id) }}
       className="mx-5 flex min-h-20 min-w-0 flex-col justify-center rounded-card bg-trip px-4 text-on-ink desk:mx-0"
     >
-      <span className="truncate font-serif text-[21px] font-medium">{trip.name}</span>
-      <span className="mt-1 truncate text-[13px] text-trip-muted">
+      <span className="truncate font-serif text-title font-medium">{trip.name}</span>
+      <span className="mt-1 truncate text-meta text-trip-muted">
         {trip.active ? `Day trip · until ${dayMonth(trip.endDate)}` : `${trip.name} starts ${dayMonth(trip.startDate)}`} ·{" "}
         {trip.autoTag ? "auto-tag on" : "auto-tag off"}
       </span>

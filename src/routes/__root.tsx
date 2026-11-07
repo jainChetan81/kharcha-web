@@ -4,7 +4,8 @@ import { MotionConfig } from "motion/react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { Pwa, setBadge } from "../components/pwa";
-import { Sheet, Snackbars } from "../components/sheet";
+import { editingNow, Sheet, Snackbars, snack } from "../components/sheet";
+import { watchStaleChunks } from "../lib/stale-chunk";
 import { HealthProvider, useHealth } from "../components/sync-pill";
 import { Button } from "../components/ui";
 import { KEYS, useGlobalKeys } from "../keybindings";
@@ -70,7 +71,16 @@ function Layout() {
   useGlobalKeys(openHelp);
   useEffect(() => setBadge(shell.reviewCount), [shell.reviewCount]);
   useEffect(() => watchSystemTheme(), []);
-  if (onLogin) return <Outlet />;
+  useEffect(
+    () => watchStaleChunks(() => snack("A new version is out.", { label: "Reload", onClick: () => location.reload() }), editingNow),
+    [],
+  );
+  if (onLogin)
+    return (
+      <main id="main" tabIndex={-1} className="outline-none">
+        <Outlet />
+      </main>
+    );
   return (
     <MotionConfig reducedMotion="user">
       <HealthProvider value={health}>
@@ -82,11 +92,11 @@ function Layout() {
         <Pwa />
         {help && (
           <Sheet title="Shortcuts" onClose={() => setHelp(false)}>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body">
               {KEYS.map((k) => (
                 <div key={k.key} className="contents">
                   <dt>
-                    <kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd>
+                    <kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
                   </dt>
                   <dd className="m-0">{k.label}</dd>
                 </div>
@@ -103,10 +113,10 @@ function RootError({ error, reset }: ErrorComponentProps) {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
     <main role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
-      <p className="m-0 font-serif text-2xl leading-snug">
+      <p className="m-0 font-serif text-title leading-snug">
         {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
       </p>
-      <Button onClick={reset} className="min-h-12 px-7 text-base">
+      <Button onClick={reset} className="min-h-12 px-7 text-entry">
         Retry
       </Button>
       <a href="/login" className="text-ink-2 underline">
@@ -124,6 +134,12 @@ function Document({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-button focus:bg-card focus:px-4 focus:py-2"
+        >
+          Skip to content
+        </a>
         {children}
         <Scripts />
       </body>

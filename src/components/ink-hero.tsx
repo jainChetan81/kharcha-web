@@ -19,12 +19,10 @@ export function HeroAmount({ value, size = "md" }: { value: string; size?: "md" 
     <span
       className={cn(
         "inline-block font-serif leading-none font-medium tracking-[-0.02em] min-w-0 break-words",
-        size === "lg" ? "text-[clamp(34px,11vw,44px)] desk:text-[56px]" : "text-[clamp(34px,11vw,44px)] desk:text-[44px]",
+        size === "lg" ? "text-figure-sm tablet:text-figure desk:text-figure-lg" : "text-figure-sm tablet:text-figure desk:text-figure",
       )}
     >
-      {sign && (
-        <span className={cn("text-on-ink-2", size === "lg" ? "text-[clamp(20px,6vw,26px)] desk:text-[30px]" : "text-[26px]")}>{sign}</span>
-      )}
+      {sign && <span className={cn("text-on-ink-2", size === "lg" ? "text-title desk:text-page-lg" : "text-page")}>{sign}</span>}
       {rest}
     </span>
   );

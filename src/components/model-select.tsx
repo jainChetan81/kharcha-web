@@ -38,7 +38,7 @@ export function ModelSelect({
   return (
     <>
       <div className="flex flex-col gap-1.5">
-        <span className="text-[13px] text-ink-2">{label}</span>
+        <span className="text-meta text-ink-2">{label}</span>
         <button
           id={id}
           type="button"
@@ -48,7 +48,7 @@ export function ModelSelect({
           aria-controls={listId}
           disabled={disabled}
           onClick={() => setOpen(true)}
-          className="field flex min-h-11 items-center justify-between gap-3 text-left font-mono text-sm"
+          className="field flex min-h-11 items-center justify-between gap-3 text-left font-mono text-control"
         >
           <span className={cn("truncate", !value && "text-ink-3")}>
             {selected ? `${selected.name} · ${selected.provider}` : value || placeholder}
@@ -74,7 +74,7 @@ export function ModelSelect({
               aria-expanded="true"
               aria-controls={listId}
               aria-autocomplete="list"
-              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              className="min-w-0 flex-1 bg-transparent text-entry outline-none"
               placeholder="Search models"
               value={query}
               onChange={(event) => setQuery(event.currentTarget.value)}
@@ -93,8 +93,8 @@ export function ModelSelect({
                   onClick={() => choose(model.id)}
                 >
                   <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                    <span className="truncate text-[15px] font-medium">{model.name}</span>
-                    <span className="truncate text-[13px] text-ink-3">
+                    <span className="truncate text-body font-medium">{model.name}</span>
+                    <span className="truncate text-meta text-ink-3">
                       {model.provider} · <span className="font-mono">{model.id}</span>
                     </span>
                   </span>
@@ -102,7 +102,7 @@ export function ModelSelect({
                 </button>
               </div>
             ))}
-            {!filtered.length && <p className="m-0 py-5 text-sm text-ink-2">No preset matches.</p>}
+            {!filtered.length && <p className="m-0 py-5 text-control text-ink-2">No preset matches.</p>}
           </div>
         </Sheet>
       )}

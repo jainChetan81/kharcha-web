@@ -90,3 +90,21 @@ assert.equal(aiCost(0), money(0));
   assert.equal(countFor({ sort: "oldest" }, false), 0);
   assert.equal(countFor({ sort: "newest" }), 0);
 }
+
+// cn() must know the type scale, or twMerge drops text-meta next to a text colour.
+import { cn } from "../src/lib/cn.ts";
+assert.equal(cn("text-meta text-ink-2"), "text-meta text-ink-2");
+assert.equal(cn("text-body", "text-meta"), "text-meta");
+
+// Stale-chunk reload: once per chunk, at most two per path, reset after 30 minutes.
+import { nextReload } from "../src/lib/stale-chunk.ts";
+{
+  const one = nextReload({}, "/a", "c1", 0);
+  assert.ok(one);
+  assert.equal(nextReload(one, "/a", "c1", 1), null);
+  const two = nextReload(one, "/a", "c2", 1);
+  assert.ok(two);
+  assert.equal(nextReload(two, "/a", "c3", 2), null);
+  assert.ok(nextReload(two, "/b", "c3", 2));
+  assert.ok(nextReload(two, "/a", "c1", 31 * 60_000));
+}

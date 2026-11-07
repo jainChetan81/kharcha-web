@@ -40,8 +40,8 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
         <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
           {figures.map((f) => (
             <span key={f.label} className="flex min-w-0 flex-col">
-              <strong className={`truncate text-[14px] font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
-              <span className="text-[11px] text-ink-3">{f.label}</span>
+              <strong className={`truncate text-control font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
+              <span className="text-tab text-ink-3">{f.label}</span>
             </span>
           ))}
         </span>
@@ -60,7 +60,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
         style={{ overflow: "hidden" }}
         inert={!expanded}
       >
-        <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-[13px]">
+        <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-meta">
           <div className="flex justify-between">
             <span className="label-caps text-ink-3">Net</span>
             <strong className={summary.net < 0 ? "text-over" : "text-earn"}>{signed(summary.net)}</strong>

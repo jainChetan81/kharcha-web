@@ -6,7 +6,7 @@ import { SixMonths } from "../components/charts/six-months";
 import { Waterfall } from "../components/charts/waterfall";
 import { DeskPage } from "../components/app-shell";
 import { InsightCard, type InsightView } from "../components/insight-card";
-import { Empty, ErrorState, PageHeader, SectionHead, Skeleton } from "../components/ui";
+import { Empty, PageHeader, SectionHead } from "../components/ui";
 import { compact, money, monthLabel, rangeLabel, signed } from "../lib/format";
 import { ActivityFilters } from "../components/activity-filters";
 import { MonthStepper } from "../components/month-stepper";
@@ -23,15 +23,6 @@ export const Route = createFileRoute("/insights")({
     const [data, meta] = await Promise.all([getInsights({ data: deps }), getActivityMeta()]);
     return { ...data, meta };
   },
-  pendingComponent: () => (
-    <div className="p-5">
-      <Skeleton rows={8} />
-    </div>
-  ),
-  errorComponent: () => {
-    const router = useRouter();
-    return <ErrorState retry={() => router.invalidate()} />;
-  },
   component: Insights,
 });
 
@@ -40,7 +31,7 @@ function Figure({ number, title, children }: { number: number; title: string; ch
     <section className="flex flex-col gap-4">
       <div className="border-b border-ink pb-2">
         <span className="label-caps text-ink-3">Fig. {number}</span>
-        <h2 className="m-0 mt-0.5 font-serif text-xl font-medium">{title}</h2>
+        <h2 className="m-0 mt-0.5 font-serif text-title font-medium">{title}</h2>
       </div>
       {children}
     </section>
@@ -99,7 +90,7 @@ function Insights() {
           <Empty
             text="Nothing needs a closer look."
             action={
-              <Link to="/activity" search={scope} className="text-sm font-medium text-brand">
+              <Link to="/activity" search={scope} className="text-control font-medium text-brand">
                 View activity
               </Link>
             }
@@ -121,7 +112,7 @@ function Insights() {
           <Link
             to="/ask"
             search={scope}
-            className="ai-button inline-flex min-h-11 desk:min-h-10 items-center gap-2 rounded-chip px-3.5 text-sm font-medium text-white hover:text-white"
+            className="ai-button inline-flex min-h-11 desk:min-h-10 items-center gap-2 rounded-chip px-3.5 text-control font-medium text-white hover:text-white"
           >
             <AiMark />
             Ask
@@ -151,8 +142,8 @@ function Insights() {
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule tablet:grid-cols-4">
           {kpis.map(([label, value]) => (
             <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3">
-              <span className="text-xs text-ink-3">{label}</span>
-              <strong className="font-serif text-2xl font-medium whitespace-nowrap">{value}</strong>
+              <span className="text-caption text-ink-3">{label}</span>
+              <strong className="font-serif text-title font-medium whitespace-nowrap">{value}</strong>
             </div>
           ))}
         </div>
@@ -164,7 +155,7 @@ function Insights() {
             <Empty
               text="Nothing needs a closer look."
               action={
-                <Link to="/activity" search={scope} className="text-sm font-medium text-brand">
+                <Link to="/activity" search={scope} className="text-control font-medium text-brand">
                   View activity
                 </Link>
               }
@@ -202,7 +193,7 @@ function MerchantTable({ rows, scope }: { rows: { merchant: string; total: numbe
       <Empty
         text="No spending in this period."
         action={
-          <Link to="/activity" search={scope} className="text-sm font-medium text-brand">
+          <Link to="/activity" search={scope} className="text-control font-medium text-brand">
             View activity
           </Link>
         }
@@ -215,11 +206,11 @@ function MerchantTable({ rows, scope }: { rows: { merchant: string; total: numbe
           key={row.merchant}
           to="/activity"
           search={{ ...scope, merchant: row.merchant }}
-          className="flex min-h-11 items-center justify-between gap-2 border-b border-hairline text-[14px] text-ink"
+          className="flex min-h-11 items-center justify-between gap-2 border-b border-hairline text-control text-ink"
         >
           <span className="min-w-0 truncate">
             {row.merchant}{" "}
-            <small className="text-xs text-ink-3">
+            <small className="text-caption text-ink-3">
               · {row.n} {row.n === 1 ? "row" : "rows"}
             </small>
           </span>

@@ -16,7 +16,7 @@ export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amoun
           />
         ))}
       </div>
-      <div className="mt-2 flex min-w-0 flex-col gap-0.5 font-serif text-sm italic">
+      <div className="mt-2 flex min-w-0 flex-col gap-0.5 font-serif text-control italic">
         {rows.slice(0, 2).map((row) => (
           <span key={`label-${row.id}`} className="flex min-w-0 items-baseline justify-between gap-2">
             <span className="min-w-0 truncate">{row.merchant}</span>
@@ -24,7 +24,7 @@ export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amoun
           </span>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-3">
+      <div className="mt-1 flex justify-between text-chart text-ink-3">
         <span>₹10</span>
         <span>₹100</span>
         <span>₹1K</span>

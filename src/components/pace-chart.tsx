@@ -116,7 +116,7 @@ export function PaceChart({
           {days} {monthName(month, "short")}
         </text>
       </svg>
-      <figcaption className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-on-ink-2">
+      <figcaption className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-caption text-on-ink-2">
         <span>
           <i className="mr-1 inline-block w-3 border-t-2 border-on-ink-month align-middle" />
           {monthName(month)}

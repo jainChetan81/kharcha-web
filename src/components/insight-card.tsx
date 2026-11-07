@@ -32,10 +32,10 @@ export function InsightCard({ insight, onDismiss }: { insight: InsightView; onDi
           <StatusTag tone={item.tag}>
             {insight.detector === "unusual" ? "Unusual" : insight.detector === "recurring" ? "Recurring?" : "Check"}
           </StatusTag>
-          <span className="text-xs text-ink-3">From your data</span>
+          <span className="text-caption text-ink-3">From your data</span>
         </div>
-        <p className="m-0 text-[15px] leading-6">{item.text(insight.payload)}</p>
-        <Link to={item.href(insight.payload)} className="inline-flex min-h-11 items-center text-sm font-medium text-brand">
+        <p className="m-0 text-body leading-6">{item.text(insight.payload)}</p>
+        <Link to={item.href(insight.payload)} className="inline-flex min-h-11 items-center text-control font-medium text-brand">
           See rows
         </Link>
       </div>

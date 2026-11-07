@@ -10,7 +10,7 @@ import { MonthStepper } from "../components/month-stepper";
 import { SummaryStrip } from "../components/summary-strip";
 import { saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, CategoryDot, Empty, ErrorState, Skeleton } from "../components/ui";
+import { Button, CategoryDot, Empty } from "../components/ui";
 import { card, money, rangeLabel, thisMonth, time, weekdayDate } from "../lib/format";
 import { ordered, pickScope, scopeShape } from "../lib/filters";
 import { getActivityMeta } from "../server/daily/fns";
@@ -41,13 +41,6 @@ export const Route = createFileRoute("/activity")({
       getActivityMeta(),
     ]);
     return { rows, summary, meta };
-  },
-  pendingComponent: () => <Skeleton rows={8} />,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return (
-      <ErrorState text={error instanceof Error ? error.message : "Couldn't load transactions."} retry={() => void router.invalidate()} />
-    );
   },
   component: Activity,
 });
@@ -168,7 +161,7 @@ function Activity() {
           placeholder="Merchant, category, SMS text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="min-w-0 flex-1 border-0 bg-transparent text-base text-ink outline-none placeholder:text-ink-3"
+          className="min-w-0 flex-1 border-0 bg-transparent text-entry text-ink outline-none placeholder:text-ink-3"
         />
         {query && (
           <button
@@ -180,7 +173,7 @@ function Activity() {
             <X size={16} />
           </button>
         )}
-        <kbd className="hidden rounded-mark border border-rule px-1.5 py-0.5 font-mono text-xs text-ink-2 desk:inline">/</kbd>
+        <kbd className="hidden rounded-mark border border-rule px-1.5 py-0.5 font-mono text-caption text-ink-2 desk:inline">/</kbd>
       </label>
       <button
         type="button"
@@ -188,7 +181,7 @@ function Activity() {
           setSearchOpen(false);
           setQuery("");
         }}
-        className="min-h-11 shrink-0 px-2 text-sm font-medium text-brand desk:hidden"
+        className="min-h-11 shrink-0 px-2 text-control font-medium text-brand desk:hidden"
       >
         Cancel
       </button>
@@ -201,7 +194,7 @@ function Activity() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           {header || (
             <>
-              <h1 className="m-0 font-serif text-[26px] font-medium">Activity</h1>
+              <h1 className="m-0 font-serif text-page font-medium">Activity</h1>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -272,7 +265,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ ids: undefined })}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand"
+                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand"
                   >
                     {search.ids.length} supporting transactions<span aria-hidden="true">×</span>
                     <span className="sr-only">Show all</span>
@@ -282,7 +275,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ merchant: undefined })}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-[13px] font-medium text-brand"
+                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand"
                   >
                     {search.merchant}
                     <span aria-hidden="true">×</span>
@@ -296,12 +289,12 @@ function Activity() {
             </div>
 
             {!online && (
-              <p role="status" className="mt-3 mb-0 text-[13px] text-ink-3">
+              <p role="status" className="mt-3 mb-0 text-meta text-ink-3">
                 Offline · saved transactions remain available; delete is disabled.
               </p>
             )}
             {showExcludedNote && rows.some((row) => row.excluded) && (
-              <p className="mb-0 mt-3 flex min-h-11 items-center justify-between gap-3 rounded-button bg-sunken px-3 text-[13px] text-ink-2">
+              <p className="mb-0 mt-3 flex min-h-11 items-center justify-between gap-3 rounded-button bg-sunken px-3 text-meta text-ink-2">
                 Not counted as spend; the purchases already are.
                 <button
                   type="button"
@@ -393,7 +386,7 @@ function Activity() {
               <Link
                 to="/txn/$id/edit"
                 params={{ id: String(active.id) }}
-                className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand"
+                className="inline-flex min-h-11 items-center px-2 text-control font-medium text-brand"
               >
                 Edit
               </Link>
@@ -408,8 +401,8 @@ function Activity() {
             </div>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
-            <span className="min-w-0 truncate font-serif text-[26px] font-medium">{active.merchant}</span>
-            <Amount t={active} className="font-serif text-[34px]" />
+            <span className="min-w-0 truncate font-serif text-page font-medium">{active.merchant}</span>
+            <Amount t={active} className="font-serif text-figure-sm" />
           </div>
           <dl className="m-0 flex flex-col">
             {[
@@ -419,18 +412,18 @@ function Activity() {
               ["Parsed by", active.source === "sms" ? "Regex" : active.source === "paste" ? "Paste" : "Manual"],
               ["Status", active.needsReview ? "Needs review" : active.excluded ? "Not counted" : "Reviewed"],
             ].map(([label, value]) => (
-              <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-sm">
+              <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-control">
                 <dt className="text-ink-2">{label}</dt>
                 <dd className="m-0 truncate text-right font-medium">{value}</dd>
               </div>
             ))}
           </dl>
           {active.rawText && (
-            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 break-words [overflow-wrap:anywhere] text-ink-2">
+            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-5 break-words [overflow-wrap:anywhere] text-ink-2">
               {active.rawText}
             </p>
           )}
-          <div className="flex items-center justify-between gap-3 text-[13px] text-ink-2">
+          <div className="flex items-center justify-between gap-3 text-meta text-ink-2">
             <span className="truncate">{active.merchant} this month</span>
             <strong className="shrink-0 text-ink">
               {money(merchantTotal)} · {merchantRows.length} {merchantRows.length === 1 ? "row" : "rows"}
@@ -497,7 +490,7 @@ function ActivityRow({
         disabled={!canDelete}
         onClick={onDelete}
         style={{ opacity: reveal }}
-        className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-sm font-semibold text-on-over disabled:opacity-50 desk:hidden"
+        className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-control font-semibold text-on-over disabled:opacity-50 desk:hidden"
       >
         <motion.span style={{ scale }}>Delete</motion.span>
       </motion.button>
@@ -541,7 +534,7 @@ function ActivityRow({
           className="flex min-h-[58px] items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken/50 hover:text-ink desk:hidden"
         >
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 truncate text-[15px] font-medium">
+            <span className="flex items-center gap-1.5 truncate text-body font-medium">
               {row.needsReview && (
                 <>
                   <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />
@@ -565,7 +558,7 @@ function ActivityRow({
         <button
           type="button"
           onClick={onSelect}
-          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-sm text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid"
+          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >
           <span className="w-16 shrink-0 whitespace-nowrap text-ink-3">{time(row.date)}</span>
@@ -580,7 +573,7 @@ function ActivityRow({
           </span>
           <span className="flex min-w-0 items-center gap-1.5 truncate">
             {row.excluded && cardBill(row) ? (
-              <span className="inline-flex items-center rounded-mark bg-sunken px-1.5 text-[12px] text-ink-2">Card bill</span>
+              <span className="inline-flex items-center rounded-mark bg-sunken px-1.5 text-caption text-ink-2">Card bill</span>
             ) : (
               <>
                 <CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />

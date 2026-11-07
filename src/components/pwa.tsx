@@ -110,8 +110,8 @@ export function IosInstallSheet({ onClose }: { onClose: () => void }) {
     <Sheet title="Put Kharcha on your home screen" onClose={onClose}>
       <ol className="m-0 flex list-none flex-col gap-3 p-0">
         {steps.map(([pre, bold, post], i) => (
-          <li key={bold} className="flex items-center gap-3 border-b border-hairline pb-3 text-[15px]">
-            <span className="font-serif text-lg text-brand">{i + 1}</span>
+          <li key={bold} className="flex items-center gap-3 border-b border-hairline pb-3 text-body">
+            <span className="font-serif text-section text-brand">{i + 1}</span>
             <span>
               {pre} <strong className="font-semibold">{bold}</strong>
               {post}

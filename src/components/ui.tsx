@@ -15,7 +15,7 @@ const variants: Record<Variant, string> = {
 };
 export const buttonClass = (variant: Variant = "primary", className?: string) =>
   cn(
-    "inline-flex min-h-11 items-center justify-center gap-2 text-[15px] font-medium transition-[background-color,transform] duration-150 active:scale-[0.97] disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100",
+    "inline-flex min-h-11 items-center justify-center gap-2 text-body font-medium transition-[background-color,transform] duration-150 active:scale-[0.97] disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100",
     variants[variant],
     className,
   );
@@ -66,7 +66,7 @@ export function Chip({
       type={type}
       aria-pressed={on}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-3.5 text-sm transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-3.5 text-control transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
         on ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink",
         className,
       )}
@@ -105,7 +105,7 @@ export function Segmented<T extends string>({
           <label
             key={o.value}
             className={cn(
-              "flex min-h-11 cursor-pointer desk:min-h-9 items-center justify-center rounded-inner text-sm font-medium transition-colors motion-reduce:transition-none has-focus-visible:outline-3 has-focus-visible:outline-brand",
+              "flex min-h-11 cursor-pointer desk:min-h-9 items-center justify-center rounded-inner text-control font-medium transition-colors motion-reduce:transition-none has-focus-visible:outline-3 has-focus-visible:outline-brand",
               on ? "bg-raised text-ink shadow-control" : "text-ink-2 hover:text-ink",
             )}
           >
@@ -164,7 +164,7 @@ export function Field({
   const note = error ?? hint;
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={id} className="text-[13px] text-ink-2">
+      <label htmlFor={id} className="text-meta text-ink-2">
         {label}
       </label>
       <input
@@ -175,7 +175,7 @@ export function Field({
         {...props}
       />
       {note && (
-        <span id={`${id}-note`} role={error ? "alert" : undefined} className={cn("text-[13px]", error ? "text-over" : "text-ink-2")}>
+        <span id={`${id}-note`} role={error ? "alert" : undefined} className={cn("text-meta", error ? "text-over" : "text-ink-2")}>
           {note}
         </span>
       )}
@@ -187,10 +187,10 @@ export function Field({
 export function SectionHead({ title, action, as: H = "h2", id }: { title: ReactNode; action?: ReactNode; as?: "h2" | "h3"; id?: string }) {
   return (
     <div className="flex items-baseline justify-between border-b border-ink pb-2">
-      <H id={id} className="m-0 font-serif text-lg font-medium">
+      <H id={id} className="m-0 font-serif text-section font-medium">
         {title}
       </H>
-      {action && <span className="text-sm [&>a]:-my-3 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center">{action}</span>}
+      {action && <span className="text-control [&>a]:-my-3 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center">{action}</span>}
     </div>
   );
 }
@@ -218,7 +218,9 @@ const tagTones = {
   cancelled: "bg-sunken text-ink-2",
 } as const;
 export function StatusTag({ tone, children, className }: { tone: keyof typeof tagTones; children: ReactNode; className?: string }) {
-  return <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-xs font-semibold", tagTones[tone], className)}>{children}</span>;
+  return (
+    <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-caption font-semibold", tagTones[tone], className)}>{children}</span>
+  );
 }
 
 /** Category swatch + label; colour never alone. */
@@ -273,8 +275,8 @@ export function PageHeader({
           </Link>
         )}
         <div className="flex min-w-0 flex-col">
-          <h1 className="m-0 line-clamp-2 font-serif text-[26px] leading-tight font-medium break-words">{title}</h1>
-          {sub && <span className="text-[13px] text-ink-3">{sub}</span>}
+          <h1 className="m-0 line-clamp-2 font-serif text-page leading-tight font-medium break-words">{title}</h1>
+          {sub && <span className="text-meta text-ink-3">{sub}</span>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -285,7 +287,7 @@ export function PageHeader({
 /** List screen states (§6): one line plus one action. */
 export function Empty({ text, action }: { text: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-start gap-2 py-8 text-[15px] text-ink-2">
+    <div className="flex flex-col items-start gap-2 py-8 text-body text-ink-2">
       <p className="m-0">{text}</p>
       {action && (
         <span className="-ml-2.5 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:px-2.5 [&>button]:min-h-11 [&>button]:px-2.5">
@@ -321,7 +323,7 @@ export function ErrorState({
   backLabel?: string;
 }) {
   return (
-    <div role="alert" className="flex flex-col items-start gap-2 px-5 py-8 text-[15px] text-ink-2 desk:px-0">
+    <div role="alert" className="flex flex-col items-start gap-2 px-5 py-8 text-body text-ink-2 desk:px-0">
       <p className="m-0">{text}</p>
       <div className="flex gap-2">
         {retry && (

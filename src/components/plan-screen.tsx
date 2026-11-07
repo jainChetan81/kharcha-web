@@ -1,6 +1,5 @@
-import { useRouter } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { ButtonLink, ErrorState, PageHeader, Skeleton } from "./ui";
+import { ButtonLink, PageHeader } from "./ui";
 import { PlanTabs } from "./plan-tabs";
 
 export function PlanHeader({ sub }: { sub: string }) {
@@ -9,21 +8,6 @@ export function PlanHeader({ sub }: { sub: string }) {
       <PageHeader title="Plan" sub={sub} />
       <PlanTabs />
     </>
-  );
-}
-export function PlanPending() {
-  return (
-    <div className="px-5 desk:px-0">
-      <Skeleton rows={7} />
-    </div>
-  );
-}
-export function PlanError() {
-  const router = useRouter();
-  return (
-    <div className="px-5 desk:px-0">
-      <ErrorState retry={() => void router.invalidate()} />
-    </div>
   );
 }
 export function AddPlanLink({ to, label }: { to: "/plan/recurring/new" | "/plan/trips/new"; label: string }) {

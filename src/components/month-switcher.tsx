@@ -14,7 +14,7 @@ export function MonthSwitcher({ month, to = "/", compact = false }: { month: str
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </Link>
-      <h1 className={`m-0 min-w-0 font-serif font-medium ${compact ? "text-[18px] leading-tight min-[440px]:text-[22px]" : "text-[22px]"}`}>
+      <h1 className={`m-0 min-w-0 font-serif font-medium ${compact ? "text-section leading-tight min-[440px]:text-title" : "text-title"}`}>
         {monthLabel(month)}
       </h1>
       <Link
