@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "../lib/cn";
 
-const tabs = [{ to: "/plan/budgets", label: "Budgets" }, { to: "/plan/recurring", label: "Recurring" }, { to: "/plan/trips", label: "Trips" }, { to: "/plan/owed", label: "Owed" }] as const;
+const tabs = [{ to: "/plan/budgets", label: "Budgets" }, { to: "/plan/recurring", label: "Recurring" }, { to: "/plan/trips", label: "Trips" }, { to: "/plan/owed", label: "Owed" }, { to: "/plan/cards", label: "Cards" }] as const;
 export function PlanTabs() {
   const path = useRouterState({ select: (state) => state.location.pathname });
   return (
-    <nav aria-label="Plan sections" className="mx-5 grid grid-cols-4 gap-1 rounded-card bg-sunken p-1 desk:mx-0">
+    <nav aria-label="Plan sections" className="mx-5 grid grid-cols-5 gap-1 rounded-card bg-sunken p-1 desk:mx-0">
       {tabs.map((tab) => (
         <Link
           key={tab.to}
