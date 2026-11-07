@@ -20,6 +20,7 @@ export function PullRefresh() {
   useEffect(() => {
     let start: number | null = null;
     let running = false;
+    let hold: ReturnType<typeof setTimeout> | undefined;
     const settle = (to: number) => animate(pull, to, still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 });
     const onStart = (e: TouchEvent) => {
       // Only from the very top, never over an open sheet or form, one at a time.
@@ -54,7 +55,7 @@ export function PullRefresh() {
         .then((outcome) => {
           setBusy(false);
           setResult(outcome);
-          setTimeout(() => {
+          hold = setTimeout(() => {
             running = false;
             setResult(null);
             settle(0);
@@ -70,6 +71,7 @@ export function PullRefresh() {
     };
     window.addEventListener("touchcancel", onCancel);
     return () => {
+      clearTimeout(hold);
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
