@@ -192,7 +192,7 @@ function Wealth() {
       <Button variant="outline" onClick={() => setImporting(true)}>
         Import CSV
       </Button>
-      <section className="rounded-card border border-rule bg-card p-4">
+      <section hidden={!data.allocation.length} className="rounded-card border border-rule bg-card p-4">
         <b>Allocation vs target</b>
         {data.allocation.map((row) => (
           <div key={row.name} className="mt-3">

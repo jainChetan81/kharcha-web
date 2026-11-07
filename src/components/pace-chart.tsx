@@ -44,7 +44,7 @@ export function PaceChart({
   const spikeY = spike ? y(spent[Number(spike.date.slice(8, 10)) - 1] ?? 0) : 0;
   // Spike label: right of the spike, else left; never over the today dot or label, never past the edge, always above the line.
   // Shorten the amount (compact), then drop the merchant. ponytail: char width estimated at 5.6px for 10px text.
-  const aheadText = limit > 0 && currentDay > 0 ? `${money(Math.abs(ahead))} ${ahead >= 0 ? "ahead" : "behind"} pace` : "";
+  const aheadText = limit > 0 && currentDay > 0 ? `${money(Math.round(Math.abs(ahead)))} ${ahead >= 0 ? "ahead" : "behind"} pace` : "";
   const aheadX = Math.min(220, x(currentDay) + 8);
   const taken = [
     { x0: x(currentDay) - 6, x1: x(currentDay) + 6, y0: y(currentTotal) - 6, y1: y(currentTotal) + 6 },

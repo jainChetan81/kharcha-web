@@ -77,7 +77,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
             ? `Mini online · ${squeezeAgo(ago(seenAt), short)}`
             : "Mini not seen yet"; // "Last new" lives in Settings › Sync (§21)
   const dot =
-    state === "synced"
+    state === "synced" && seenAt
       ? onInk
         ? "bg-on-ink-gain"
         : "bg-earn"

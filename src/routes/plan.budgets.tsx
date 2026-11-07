@@ -102,8 +102,8 @@ function Budgets() {
                 <span className={`text-meta font-medium ${tone}`}>
                   {row.limit
                     ? projected > row.limit
-                      ? `${money(projected)} projected`
-                      : `On track to end at ${money(projected)}`
+                      ? `${money(Math.round(projected))} projected`
+                      : `On track to end at ${money(Math.round(projected))}`
                     : "Add a budget"}
                 </span>
               </button>
