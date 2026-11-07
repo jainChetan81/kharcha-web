@@ -498,3 +498,28 @@ console.log("check-db: ok");
   assert.equal(rules.length, 1, "same match leaves one rule");
   assert.equal(rules[0]?.category, "Shopping", "newest category wins");
 }
+// Card balance: spends after the last bill payment, matched to the card by its receipt (tombstone allowed).
+{
+  const cdb = openDb(":memory:");
+  const { cardBalances } = await import("../src/server/db/queries.ts");
+  const { transactions } = await import("../src/server/db/schema.ts");
+  await cdb.insert(transactions).values([
+    { source: "sms", type: "expense", amount: 500, merchant: "Shop", category: "Food", date: "2026-10-10 10:00", accountLast4: "1111" },
+    { source: "sms", type: "expense", amount: 500, merchant: "CRED Club", category: "Credit Card Payment", excluded: true, date: "2026-10-16 19:00", accountLast4: "9999" },
+    { source: "sms", type: "expense", amount: 500, merchant: "HDFC Credit Card", category: "Credit Card Payment", date: "2026-10-16 00:00", accountLast4: "1111", deletedAt: "2026-10-16" },
+    { source: "sms", type: "expense", amount: 300, merchant: "Cafe", category: "Food", date: "2026-10-20 10:00", accountLast4: "1111" },
+    { source: "sms", type: "income", amount: 50, merchant: "Cafe", category: "Refunds", date: "2026-10-21 10:00", accountLast4: "1111" },
+  ]);
+  const [bal] = await cardBalances(cdb, ["1111"]);
+  assert.equal(bal?.owed, 250, "card owes spends after last payment minus refunds");
+  assert.equal(bal?.lastPayment?.amount, 500, "bill payment matched to the card by receipt");
+}
+// Card bill notices: Axis "due on", HDFC PayZapp "Amount Due", HDFC "Statement Generated" (no amount).
+{
+  const { parseCardBill } = await import("../src/server/db/queries.ts");
+  assert.deepEqual(parseCardBill("Payment of INR 7162.88 for Axis Bank Credit Card no. XX1111 is due on 30-09-26 with minimum amount due of INR 144.", "2026-09-23 11:39"), { amount: 7162.88, dueDate: "2026-09-30", issued: "2026-09-23" });
+  assert.deepEqual(parseCardBill("Amount Due Rs.58752 on HDFC Bank Credit Card 1111. Pay instantly by 21/JUN/2026 via PayZapp", "2026-06-02 22:24"), { amount: 58752, dueDate: "2026-06-21", issued: "2026-06-02" });
+  assert.deepEqual(parseCardBill("HDFC Bank Credit Card XX1111 Statement: Total due: Rs.29,600.00 Min.due: Rs.1,972.00 Pay by 21-03-2026 View: x", "2026-03-02 22:24"), { amount: 29600, dueDate: "2026-03-21", issued: "2026-03-02" });
+  assert.deepEqual(parseCardBill("Statement Generated:\nFor HDFC Bank Credit Card XX1111.\nView: x", "2026-10-02 23:56"), { amount: null, dueDate: null, issued: "2026-10-02" });
+  assert.equal(parseCardBill("REMINDER! Rs. 4216.00 is overdue on HDFC Bank Credit Card 1111.", "2026-06-02 16:44"), null);
+}

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { monthBounds, monthSchema, spendByCategory } from "../db/queries";
+import { cardBalances, monthBounds, monthSchema, spendByCategory } from "../db/queries";
 import { categories, recurringOccurrences, recurringSeries, sipMandates, holdings, transactionTrips, transactions, trips } from "../db/schema";
 import { scheduleSeries } from "./jobs";
 
@@ -96,3 +96,11 @@ export const findBookings = createServerFn({ method: "GET" }).validator(z.object
   getDb().select({ id: transactions.id, merchant: transactions.merchant, amount: transactions.amount, date: transactions.date, category: transactions.category }).from(transactions)
     .where(and(isNull(transactions.deletedAt), lte(transactions.date, `${data.before} 23:59`), sql`(${transactions.category} = 'Transport' or lower(${transactions.merchant}) glob '*flight*' or lower(${transactions.merchant}) glob '*rail*' or lower(${transactions.merchant}) glob '*hotel*' or lower(${transactions.merchant}) glob '*ibibo*' or lower(${transactions.merchant}) glob '*makemytrip*' or lower(${transactions.merchant}) glob '*irctc*')`)).orderBy(desc(transactions.date)).limit(25),
 );
+
+// Cards to track, from env: "HDFC:1234,Axis:5678". Keeps real card digits out of the repo.
+// ponytail: env list; move to Settings when cards change often.
+const CARDS = (process.env.KHARCHA_CARDS ?? "").split(",").map((x) => x.trim().split(":")).filter((x) => /^\d{4}$/.test(x[1] ?? "")).map(([name, last4]) => ({ name: name!, last4: last4! }));
+export const getCards = createServerFn({ method: "GET" }).handler(async () => {
+  const rows = await cardBalances(getDb(), CARDS.map((c) => c.last4));
+  return rows.map((row) => ({ ...row, name: CARDS.find((c) => c.last4 === row.card)?.name ?? row.card }));
+});
