@@ -4,7 +4,7 @@ import { ago, time } from "../lib/format";
 import { getSyncStatus, syncNow } from "../server/daily/sync";
 import { saveFailed } from "./sheet";
 import { Button, SectionHead } from "./ui";
-import { checkedLabel, useOnline, useSync } from "./sync-pill";
+import { useOnline, useSync } from "./sync-pill";
 
 type Status = Awaited<ReturnType<typeof getSyncStatus>>;
 
@@ -13,13 +13,18 @@ export function SyncSection({ initial }: { initial?: Status }) {
   const online = useOnline();
   const [status, setStatus] = useState<Status | null>(initial ?? null);
   const [asked, setAsked] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const load = () =>
       void getSyncStatus()
-        .then((s) => alive && setStatus(s))
-        .catch(() => {});
+        .then((s) => {
+          if (!alive) return;
+          setStatus(s);
+          setFailed(false);
+        })
+        .catch(() => alive && setFailed(true));
     load();
     // Poll faster while a request is open so "Synced" shows within seconds of the mini finishing.
     const timer = setInterval(load, status?.sync === "waiting" ? 5_000 : 30_000);
@@ -72,8 +77,16 @@ export function SyncSection({ initial }: { initial?: Status }) {
         </span>
       </div>
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline">
-        <span className="text-body">Status</span>
-        <span className="text-right text-control text-ink-2">{status ? checkedLabel(status.seenAt, status.lastIngestAt) : "Loading"}</span>
+        <span className="text-body">Last new transaction</span>
+        <span className="text-right text-control text-ink-2">
+          {failed && !status
+            ? "Couldn’t load. Retrying"
+            : status
+              ? status.lastIngestAt
+                ? ago(status.lastIngestAt)
+                : "None yet"
+              : "Loading"}
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-3">
         <Button

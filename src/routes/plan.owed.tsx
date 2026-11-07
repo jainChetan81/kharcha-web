@@ -75,7 +75,7 @@ function OwedScreen() {
 
       {/* Header totals */}
       <section className="mx-5 mt-4 flex flex-col gap-3 border-b-3 border-double border-ink pb-5 desk:mx-0">
-        <span className="label-caps">Owed to you</span>
+        <span className="label-muted">Owed to you</span>
         <div className="flex flex-wrap items-baseline gap-6">
           <strong className="font-serif text-figure leading-none font-medium desk:text-figure-lg">{money(data.totalOwed)}</strong>
           {view === "pending" && data.overdueCount > 0 && (
@@ -91,7 +91,7 @@ function OwedScreen() {
           <div className="flex flex-wrap gap-3 pt-1 text-control desk:hidden">
             {data.byPerson.map((p) => (
               <span key={p.counterparty} className="inline-flex min-w-0 items-center gap-1.5">
-                <span className="size-2 shrink-0 rounded-dot bg-brand" />
+                <span className="size-2 shrink-0 rounded-none bg-brand" />
                 <span className="truncate">{p.counterparty}</span> <strong className="shrink-0 font-semibold">{money(p.totalDue)}</strong>
               </span>
             ))}
@@ -135,7 +135,7 @@ function OwedScreen() {
         ) : (
           <div>
             {/* Desktop table header */}
-            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink label-caps desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
+            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink label-muted desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
               <span>Date</span>
               <span>Spend</span>
               <span>From</span>

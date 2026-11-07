@@ -1,17 +1,17 @@
 // Ledger primitives (Style board §5). shadcn-style: Tailwind classes on real elements, restyled with tokens.
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useId, type ButtonHTMLAttributes, type ComponentProps, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 type Variant = "primary" | "outline" | "text" | "danger" | "brand";
 // Hover lightens fills, pressed scales to 0.97 (§19); disabled look lives in styles.css.
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-paper px-4.5 rounded-button hover:bg-ink-2",
-  outline: "border border-ink text-ink px-4.5 rounded-button bg-transparent hover:bg-sunken",
-  brand: "bg-brand text-on-brand px-4.5 rounded-button",
-  text: "text-brand px-2.5 bg-transparent rounded-button hover:bg-brand-soft",
-  danger: "text-over px-2.5 bg-transparent rounded-button hover:bg-over-soft",
+  primary: "bg-ink text-paper px-4.5 rounded-control hover:bg-ink-2",
+  outline: "border border-ink text-ink px-4.5 rounded-control bg-transparent hover:bg-sunken",
+  brand: "bg-brand text-on-brand px-4.5 rounded-control",
+  text: "text-brand px-2.5 bg-transparent rounded-control hover:bg-brand-soft",
+  danger: "text-over px-2.5 bg-transparent rounded-control hover:bg-over-soft",
 };
 export const buttonClass = (variant: Variant = "primary", className?: string) =>
   cn(
@@ -44,7 +44,7 @@ export function IconButton({ label, className, type = "button", ...props }: Butt
       type={type}
       aria-label={label}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-button text-ink transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex size-11 items-center justify-center rounded-control text-ink transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       {...props}
@@ -66,7 +66,7 @@ export function Chip({
       type={type}
       aria-pressed={on}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 rounded-chip border px-3.5 text-control transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-control transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
         on ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink",
         className,
       )}
@@ -95,7 +95,7 @@ export function Segmented<T extends string>({
   const name = useId();
   return (
     <fieldset
-      className={cn("m-0 grid min-w-0 gap-1 rounded-card border-0 p-1", "bg-sunken", className)}
+      className={cn("m-0 grid min-w-0 gap-1 rounded-panel border-0 p-1", "bg-sunken", className)}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       <legend className="sr-only">{label}</legend>
@@ -105,8 +105,8 @@ export function Segmented<T extends string>({
           <label
             key={o.value}
             className={cn(
-              "flex min-h-11 cursor-pointer desk:min-h-9 items-center justify-center rounded-inner text-control font-medium transition-colors motion-reduce:transition-none has-focus-visible:outline-3 has-focus-visible:outline-brand",
-              on ? "bg-raised text-ink shadow-control" : "text-ink-2 hover:text-ink",
+              "flex min-h-11 cursor-pointer desk:min-h-9 items-center justify-center rounded-control text-control font-medium transition-colors motion-reduce:transition-none has-focus-visible:outline-3 has-focus-visible:outline-brand",
+              on ? "bg-raised text-ink" : "text-ink-2 hover:text-ink",
             )}
           >
             <input type="radio" name={name} value={o.value} checked={on} onChange={() => onChange(o.value)} className="sr-only" />
@@ -146,7 +146,7 @@ export function Switch({
           checked ? "justify-end bg-brand" : "justify-start bg-field",
         )}
       >
-        <motion.span layout transition={{ duration: 0.15 }} className="size-5.5 rounded-full bg-thumb shadow-control" />
+        <m.span layout transition={{ duration: 0.15 }} className="size-5.5 rounded-full bg-thumb" />
       </span>
     </button>
   );
@@ -196,12 +196,12 @@ export function SectionHead({ title, action, as: H = "h2", id }: { title: ReactN
 }
 
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("rounded-card border border-hairline bg-card", className)} {...props} />;
+  return <div className={cn("rounded-panel border border-hairline bg-card", className)} {...props} />;
 }
 
 /** Dashed card: something Kharcha guessed. */
 export function Suggestion({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("rounded-card border border-dashed border-field p-4", className)} {...props} />;
+  return <div className={cn("rounded-panel border border-dashed border-field p-4", className)} {...props} />;
 }
 
 const tagTones = {
@@ -219,7 +219,7 @@ const tagTones = {
 } as const;
 export function StatusTag({ tone, children, className }: { tone: keyof typeof tagTones; children: ReactNode; className?: string }) {
   return (
-    <span className={cn("inline-flex rounded-chip px-2 py-0.5 text-caption font-semibold", tagTones[tone], className)}>{children}</span>
+    <span className={cn("inline-flex rounded-full px-2 py-0.5 text-caption font-semibold", tagTones[tone], className)}>{children}</span>
   );
 }
 
@@ -228,7 +228,7 @@ export function CategoryDot({ color, size = 8 }: { color: string; size?: number 
   return (
     <span
       aria-hidden
-      className="inline-block shrink-0 rounded-dot"
+      className="inline-block shrink-0 rounded-none"
       style={{ width: size, height: size, background: `var(--color-${color})` }}
     />
   );
@@ -303,8 +303,8 @@ export function Skeleton({ rows = 4 }: { rows?: number }) {
     <div role="status" aria-busy="true" aria-label="Loading" className="flex flex-col">
       {Array.from({ length: rows }, (_, i) => `sk${i}`).map((k) => (
         <div key={k} className="flex min-h-14 items-center justify-between border-b border-hairline">
-          <span className="h-3.5 w-40 animate-pulse rounded-mark bg-sunken motion-reduce:animate-none" />
-          <span className="h-3.5 w-14 animate-pulse rounded-mark bg-sunken motion-reduce:animate-none" />
+          <span className="h-3.5 w-40 animate-pulse rounded-control bg-sunken motion-reduce:animate-none" />
+          <span className="h-3.5 w-14 animate-pulse rounded-control bg-sunken motion-reduce:animate-none" />
         </div>
       ))}
     </div>

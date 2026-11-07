@@ -5,7 +5,7 @@ import { Reorder, useDragControls } from "motion/react";
 import { Button, buttonClass, PageHeader, SectionHead, Segmented } from "../components/ui";
 import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
-import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, Sheet, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { getSyncStatus } from "../server/daily/sync";
 import {
@@ -126,7 +126,7 @@ function Settings() {
       });
       refresh();
     } catch (error) {
-      snack(errorText(error, "Couldn't save category."));
+      snackError(errorText(error, "Couldn't save category."));
     }
   };
   const deleteCategoryNow = async () => {
@@ -157,7 +157,7 @@ function Settings() {
       snack("Category added.");
       refresh();
     } catch (error) {
-      snack(errorText(error, "Couldn't add category."));
+      snackError(errorText(error, "Couldn't add category."));
     }
   };
   const deleteMerchantRule = async (rule: Rule) => {
@@ -241,7 +241,7 @@ function Settings() {
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-body font-medium">Export CSV</span>
             <a href="/api/export" className={buttonClass("outline", "min-h-11 text-control")}>
-              Download
+              Download CSV
             </a>
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
@@ -257,7 +257,7 @@ function Settings() {
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && (
-            <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-control leading-relaxed">
+            <p className="mt-3 mb-0 rounded-panel border border-dashed border-field bg-card px-3.5 py-3 text-control leading-relaxed">
               AI is off. Ask, the weekly digest and receipt reading need the server switch.
             </p>
           )}
@@ -315,7 +315,7 @@ function Settings() {
               const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
               return (
                 <div key={type} className="mt-4">
-                  <h3 className="m-0 label-caps">{type === "expense" ? "Spending" : "Income"}</h3>
+                  <h3 className="m-0 label-muted">{type === "expense" ? "Spending" : "Income"}</h3>
                   <Reorder.Group
                     axis="y"
                     values={group}
@@ -382,7 +382,7 @@ function Settings() {
                 aria-expanded={colorPicker === "__new"}
                 disabled={!online}
                 onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")}
-                className="size-11 self-center rounded-inner"
+                className="size-11 self-center rounded-control"
                 style={{ background: `var(--color-${categoryDraft.colorToken})` }}
               />
               <Button
@@ -476,7 +476,7 @@ function Settings() {
                         </span>
                         <strong className="truncate font-semibold">{rule.displayMerchant}</strong>
                         <span
-                          className="size-2 shrink-0 rounded-mark"
+                          className="size-2 shrink-0 rounded-control"
                           style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }}
                         />
                         <span className="truncate">{rule.category}</span>
@@ -550,7 +550,8 @@ function CategoryItem({
   return (
     <Reorder.Item
       value={item}
-      layout={dragging as true} /* false turns layout animation off; the prop type omits it */
+      // SAFETY: motion accepts layout={false} at runtime (animation off); its prop type only lists true and strings.
+      layout={dragging as true}
       onDragEnd={() => onDragging(false)}
       dragListener={false}
       dragControls={controls}
@@ -589,11 +590,11 @@ function CategoryItem({
           onClick={onToggleColorPicker}
           className="flex size-11 shrink-0 items-center justify-center"
         >
-          <span className="size-6 rounded-inner" style={{ background: `var(--color-${item.colorToken})` }} />
+          <span className="size-6 rounded-control" style={{ background: `var(--color-${item.colorToken})` }} />
         </button>
         <input
           aria-label={`${item.name} category name`}
-          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-body font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand"
+          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-body font-medium outline-none focus-visible:outline-3 focus-visible:outline-brand"
           defaultValue={item.name}
           disabled={!online}
           onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)}

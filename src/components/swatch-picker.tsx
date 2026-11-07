@@ -23,7 +23,7 @@ export const swatchTokens = [
 export function SwatchPicker({ value, onChange, label }: { value: string; onChange: (token: string) => void; label: string }) {
   const name = useId();
   return (
-    <fieldset className="m-0 grid grid-cols-7 gap-0.5 rounded-card border border-hairline bg-card p-2.5">
+    <fieldset className="m-0 grid grid-cols-7 gap-0.5 rounded-panel border border-hairline bg-card p-2.5">
       <legend className="sr-only">{label}</legend>
       {swatchTokens.map((token) => {
         const on = token === value;
@@ -31,7 +31,7 @@ export function SwatchPicker({ value, onChange, label }: { value: string; onChan
         return (
           <label
             key={token}
-            className="flex h-11 w-full cursor-pointer items-center justify-center has-focus-visible:outline-2 has-focus-visible:outline-brand"
+            className="flex h-11 w-full cursor-pointer items-center justify-center has-focus-visible:outline-3 has-focus-visible:outline-brand"
           >
             <input
               type="radio"
@@ -44,7 +44,7 @@ export function SwatchPicker({ value, onChange, label }: { value: string; onChan
             />
             <span
               className={cn(
-                "flex size-7 items-center justify-center rounded-inner",
+                "flex size-7 items-center justify-center rounded-control",
                 on && "ring-2 ring-ink ring-offset-2 ring-offset-card",
               )}
               style={{ background: `var(--color-${token})` }}

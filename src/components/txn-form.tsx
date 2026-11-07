@@ -105,7 +105,7 @@ export function TxnForm({
       setDeleting(false);
     }
   };
-  const reason = !online ? "Offline — connect to save" : null;
+  const reason = !online ? "Offline. Connect to save." : null;
   const merchantError = tried && !value.merchant.trim() ? "Add a merchant to save" : undefined;
   const amountError = tried && amount <= 0 ? "Enter an amount to save" : undefined;
   const cannotSubmit = !online || saving || deleting || (tried && (amount <= 0 || !value.merchant.trim()));
@@ -211,7 +211,7 @@ export function TxnForm({
           onChange={(category) => set("category", category)}
         />
       </section>
-      <details className="rounded-card border border-hairline px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
+      <details className="rounded-panel border border-hairline px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
         <summary className="min-h-11 text-body font-medium">More details</summary>
         <div className={mode === "edit" ? "border-y border-hairline" : "flex flex-wrap items-end gap-2 pb-1"}>
           <Field
@@ -335,7 +335,7 @@ export function TxnForm({
   );
 }
 function Kbd({ children }: { children: string }) {
-  return <kbd className="rounded-mark border border-current px-1 font-mono text-tab opacity-70">{children}</kbd>;
+  return <kbd className="rounded-control border border-current px-1 font-mono text-caption opacity-70">{children}</kbd>;
 }
 function Keypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ["1", "2", "3", "back", "4", "5", "6", "+", "7", "8", "9", "-", ".", "0", "00"];
@@ -347,7 +347,7 @@ function Keypad({ value, onChange }: { value: string; onChange: (v: string) => v
           key={key}
           aria-label={key === "back" ? "Delete" : key}
           onClick={() => onChange(key === "back" ? value.slice(0, -1) : value + key)}
-          className="min-h-13 rounded-card bg-sunken text-title font-medium"
+          className="min-h-13 rounded-panel bg-sunken text-title font-medium"
         >
           {key === "back" ? "⌫" : key}
         </button>

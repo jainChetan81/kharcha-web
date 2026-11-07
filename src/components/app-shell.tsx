@@ -32,7 +32,7 @@ const side = [
 ] as const;
 
 const tabClass =
-  "-mt-px flex flex-col items-center justify-center gap-[3px] text-tab transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
+  "-mt-px flex flex-col items-center justify-center gap-[3px] text-caption transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
 
 /** Full-screen routes on phones: no tab bar, no add button. */
 const bare = (p: string) =>
@@ -64,7 +64,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                 to={n.to}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                  "flex min-h-11 items-center justify-between rounded-control px-3 text-body",
                   on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                 )}
               >
@@ -83,7 +83,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/plan/trips/$id"
             params={{ id: String(trip.id) }}
-            className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink"
+            className="mx-1 flex flex-col gap-0.5 rounded-control bg-trip p-3 text-on-ink"
           >
             <span className="font-serif text-section">{trip.name}</span>
             <span className="text-caption text-trip-muted">
@@ -119,7 +119,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
+            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-full bg-ink text-paper transition-transform duration-150 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
           >
             <PlusIcon />
           </Link>
@@ -159,7 +159,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/ask"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    "flex min-h-11 items-center justify-between rounded-control px-3 text-body",
                     path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
@@ -172,7 +172,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/review"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    "flex min-h-11 items-center justify-between rounded-control px-3 text-body",
                     path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
@@ -183,7 +183,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/paste"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    "flex min-h-11 items-center justify-between rounded-control px-3 text-body",
                     path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
@@ -193,7 +193,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/settings"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    "flex min-h-11 items-center justify-between rounded-control px-3 text-body",
                     path.startsWith("/settings") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >

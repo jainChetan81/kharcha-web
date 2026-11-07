@@ -12,7 +12,7 @@ export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amoun
           <span
             key={row.id}
             title={`${row.merchant}, ₹${row.amount}`}
-            className="absolute size-2 rounded-full bg-brand shadow-[0_0_0_1px_var(--color-paper)]"
+            className="absolute size-2 rounded-full bg-brand ring-1 ring-paper"
             style={{
               left: `${Math.max(0, (Math.log10(row.amount + 1) / Math.log10(max + 1)) * 94).toFixed(2)}%`,
               top: `${((index * 31) % 118) + 5}px`,
@@ -28,7 +28,7 @@ export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amoun
           </span>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-chart text-ink-2">
+      <div className="mt-1 flex justify-between text-caption text-ink-2">
         <span>₹10</span>
         <span>₹100</span>
         <span>₹1K</span>

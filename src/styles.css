@@ -1,11 +1,17 @@
 @import "tailwindcss";
-@import "@fontsource/newsreader/400.css";
-@import "@fontsource/newsreader/500.css";
-@import "@fontsource/newsreader/400-italic.css";
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-mono/400.css";
+/* Latin + latin-ext only (₹ is in latin-ext); the browser fetches a subset only when a glyph needs it. */
+@import "@fontsource/newsreader/latin-400.css";
+@import "@fontsource/newsreader/latin-ext-400.css";
+@import "@fontsource/newsreader/latin-500.css";
+@import "@fontsource/newsreader/latin-ext-500.css";
+@import "@fontsource/newsreader/latin-400-italic.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-400.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-600.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
 
 /* Ledger tokens: DESIGN.md §3. Light here, dark under .dark below; every colour stays behind a token. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -66,27 +72,16 @@
   --color-cat-interest: #4b7432;
   --color-cat-other-income: #8a8576;
 
-  --radius-chip: 999px;
-  --radius-button: 10px;
-  --radius-card: 12px;
-  --radius-hero: 14px;
+  /* Design guide §7: control 6, panel 12, full, none; sheet 20 is a recorded exception (DESIGN.md §3). */
+  --radius-control: 6px;
+  --radius-panel: 12px;
   --radius-sheet: 20px;
-  --radius-fab: 16px;
-  --radius-inner: 8px;
-  --radius-mark: 4px;
-  --radius-dot: 2px;
 
   --color-thumb: #ffffff;
-  --shadow-control: 0 1px 2px rgba(28, 34, 48, 0.14);
   --shadow-popover: 0 6px 16px rgba(28, 34, 48, 0.16);
-  --shadow-fab: 0 6px 16px rgba(28, 34, 48, 0.22);
 
   /* Type scale (DESIGN.md §3). Tailwind's default sizes are cleared so only these exist. */
   --text-*: initial;
-  --text-chart: 10px;
-  --text-chart--line-height: 14px;
-  --text-tab: 11px;
-  --text-tab--line-height: 14px;
   --text-caption: 12px;
   --text-caption--line-height: 16px;
   --text-meta: 13px;
@@ -144,7 +139,7 @@
   --border: var(--color-hairline);
   --input: var(--color-field);
   --ring: var(--color-brand);
-  --radius: 10px;
+  --radius: 12px;
 }
 
 .dark {
@@ -161,9 +156,7 @@
   --color-brand-soft: #243149;
   --color-brand-deep: #c3d2ec;
   --color-thumb: #ece8df;
-  --shadow-control: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-popover: 0 6px 16px rgba(0, 0, 0, 0.45);
-  --shadow-fab: 0 6px 16px rgba(0, 0, 0, 0.5);
   --color-ai-accent: #c9a0f0;
   --color-earn: #74c595;
   --color-earn-soft: #1d3326;
@@ -229,17 +222,18 @@ button:disabled {
   opacity: 0.55;
 }
 
-@utility label-caps {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+/* Sentence-case group label (design guide §14: no all-caps or letter-spaced eyebrows). */
+@utility label-muted {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
   color: var(--color-ink-2);
 }
 @utility field {
   min-height: 44px;
   width: 100%;
   padding: 0 12px;
-  border-radius: var(--radius-button);
+  border-radius: var(--radius-control);
   border: 1px solid var(--color-field);
   background: var(--color-input);
   font-size: 16px;

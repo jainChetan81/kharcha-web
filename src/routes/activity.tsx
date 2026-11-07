@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Search, X } from "lucide-react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { animate, m, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
@@ -8,7 +8,7 @@ import { ActivityFilters, FilterToolbar } from "../components/activity-filters";
 import { Amount, byDay, DayHeader, RowMeta, SplitMeta } from "../components/ledger";
 import { MonthStepper } from "../components/month-stepper";
 import { SummaryStrip } from "../components/summary-strip";
-import { saveFailed, snack } from "../components/sheet";
+import { saveFailed, snack, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, Empty } from "../components/ui";
 import { card, money, rangeLabel, thisMonth, time, weekdayDate } from "../lib/format";
@@ -106,7 +106,7 @@ function Activity() {
         setSearchOpen(true);
       }
       if (event.key === "Escape") {
-        if (target === searchRef.current) (target as HTMLInputElement).blur();
+        if (target === searchRef.current) searchRef.current?.blur();
         setActiveId(null);
       }
     };
@@ -146,7 +146,7 @@ function Activity() {
             if (!online) return;
             void restoreTransaction({ data: { id: row.id } })
               .then(() => void router.invalidate())
-              .catch(() => snack("Couldn’t undo the delete."));
+              .catch(() => snackError("Couldn’t undo the delete."));
           },
         });
       })
@@ -176,7 +176,7 @@ function Activity() {
             <X size={16} />
           </button>
         )}
-        <kbd className="hidden rounded-mark border border-hairline px-1.5 py-0.5 font-mono text-caption text-ink-2 desk:inline">/</kbd>
+        <kbd className="hidden rounded-control border border-hairline px-1.5 py-0.5 font-mono text-caption text-ink-2 desk:inline">/</kbd>
       </label>
       <button
         type="button"
@@ -203,7 +203,7 @@ function Activity() {
                   type="button"
                   aria-label="Search transactions"
                   onClick={() => setSearchOpen(true)}
-                  className="flex size-11 items-center justify-center rounded-button text-ink desk:hidden"
+                  className="flex size-11 items-center justify-center rounded-control text-ink desk:hidden"
                 >
                   <Search size={20} strokeWidth={1.75} />
                 </button>
@@ -268,7 +268,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ ids: undefined })}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
                   >
                     {search.ids.length} supporting transactions<span aria-hidden="true">×</span>
                     <span className="sr-only">Show all</span>
@@ -278,7 +278,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ merchant: undefined })}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
                   >
                     {search.merchant}
                     <span aria-hidden="true">×</span>
@@ -297,7 +297,7 @@ function Activity() {
               </p>
             )}
             {showExcludedNote && rows.some((row) => row.excluded) && (
-              <p className="mb-0 mt-3 flex min-h-11 items-center justify-between gap-3 rounded-button bg-sunken px-3 text-meta text-ink-2">
+              <p className="mb-0 mt-3 flex min-h-11 items-center justify-between gap-3 rounded-control bg-sunken px-3 text-meta text-ink-2">
                 Not counted as spend; the purchases already are.
                 <button
                   type="button"
@@ -382,7 +382,7 @@ function Activity() {
           className="fixed top-0 right-0 z-30 hidden h-dvh w-[380px] flex-col gap-3 overflow-y-auto border-l border-hairline bg-card p-5 desk:flex"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="label-caps">
+            <span className="label-muted">
               {active.type} · {active.category ?? "Other"}
             </span>
             <div className="flex items-center gap-1">
@@ -422,7 +422,7 @@ function Activity() {
             ))}
           </dl>
           {active.rawText && (
-            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-5 break-words [overflow-wrap:anywhere] text-ink-2">
+            <p className="m-0 rounded-control bg-sunken p-3 font-mono text-meta leading-5 break-words [overflow-wrap:anywhere] text-ink-2">
               {active.rawText}
             </p>
           )}
@@ -485,7 +485,7 @@ function ActivityRow({
   }, [swiped, reduced, x]);
   return (
     <div className="relative overflow-hidden border-b border-hairline desk:border-0">
-      <motion.button
+      <m.button
         type="button"
         aria-label={`Delete ${row.merchant}`}
         tabIndex={swiped ? 0 : -1}
@@ -495,9 +495,9 @@ function ActivityRow({
         style={{ opacity: reveal }}
         className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-control font-semibold text-on-over desk:hidden"
       >
-        <motion.span style={{ scale }}>Delete</motion.span>
-      </motion.button>
-      <motion.div
+        <m.span style={{ scale }}>Delete</m.span>
+      </m.button>
+      <m.div
         drag={canDelete ? "x" : false}
         dragDirectionLock
         dragConstraints={{ left: -88, right: 0 }}
@@ -562,7 +562,7 @@ function ActivityRow({
           type="button"
           onClick={onSelect}
           aria-current={active ? "true" : undefined}
-          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-2 focus-visible:outline-brand desk:grid"
+          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-3 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >
           <span className="w-16 shrink-0 whitespace-nowrap text-ink-2">{time(row.date)}</span>
@@ -577,7 +577,7 @@ function ActivityRow({
           </span>
           <span className="flex min-w-0 items-center gap-1.5 truncate">
             {row.excluded && cardBill(row) ? (
-              <span className="inline-flex items-center rounded-mark bg-sunken px-1.5 text-caption text-ink-2">Card bill</span>
+              <span className="inline-flex items-center rounded-control bg-sunken px-1.5 text-caption text-ink-2">Card bill</span>
             ) : (
               <>
                 <CategoryDot color={row.excluded || row.category === "Other" || !row.category ? "cat-other" : color} />
@@ -588,7 +588,7 @@ function ActivityRow({
           <span className="whitespace-nowrap text-ink-2">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />
         </button>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

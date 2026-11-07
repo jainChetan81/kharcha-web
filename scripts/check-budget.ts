@@ -6,7 +6,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
-const FIRST_VIEW_KB = 232; // ponytail: shipped baseline (react-dom ~97, motion ~120). LazyMotion + m.* would cut ~80.
+const FIRST_VIEW_KB = 220; // ponytail: shipped baseline with LazyMotion (domMax loads async).
 const CSS_KB = 16;
 const SUPPRESSIONS = 0;
 

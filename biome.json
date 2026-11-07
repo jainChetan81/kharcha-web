@@ -85,6 +85,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/lib/motion-features.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
     }
   ]
 }

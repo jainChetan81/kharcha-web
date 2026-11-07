@@ -64,7 +64,7 @@ export function ModelSelect({
           }}
           className="gap-2"
         >
-          <label htmlFor={searchId} className="flex min-h-11 items-center gap-2 rounded-button border border-field bg-input px-3">
+          <label htmlFor={searchId} className="flex min-h-11 items-center gap-2 rounded-control border border-field bg-input px-3">
             <Search size={18} className="text-ink-2" aria-hidden />
             <span className="sr-only">Search models</span>
             <input

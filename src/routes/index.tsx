@@ -57,13 +57,13 @@ function Today() {
           <Link to="/settings" aria-label="Settings" className="flex size-11 items-center justify-center text-on-ink desk:hidden">
             <Settings size={20} strokeWidth={1.75} />
           </Link>
-          <Link to="/ask" className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-control font-medium text-white">
+          <Link to="/ask" className="ai-button flex min-h-11 items-center gap-1.5 rounded-full px-3 text-control font-medium text-white">
             <AiMark />
             Ask<span className="hidden pl-1 font-mono text-caption opacity-75 desk:inline">/</span>
           </Link>
           <Link
             to="/add"
-            className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-control font-medium text-ink desk:flex"
+            className="hidden min-h-9 items-center gap-1 rounded-full bg-paper px-3 text-control font-medium text-ink desk:flex"
           >
             <Plus size={16} />
             Add
@@ -72,7 +72,7 @@ function Today() {
       </header>
       <div className="flex items-end justify-between gap-2">
         <div className="min-w-0">
-          <span className="text-caption tracking-[0.08em] text-on-ink-2 uppercase">Spent this month</span>
+          <span className="text-caption font-medium text-on-ink-2">Spent this month</span>
           <div className="mt-1">
             <HeroAmount value={money(today.spent)} size="lg" />
           </div>
@@ -123,7 +123,7 @@ function Today() {
         {upcoming.slice(0, 3).map((item) => (
           <Card key={`${item.seriesId}-${item.date}`} className="flex min-w-0 flex-col gap-1 p-2.5">
             <span className="font-serif text-title leading-none">
-              {item.date.slice(-2)} <small className="font-sans text-tab text-ink-2">{weekday(item.date)}</small>
+              {item.date.slice(-2)} <small className="font-sans text-caption text-ink-2">{weekday(item.date)}</small>
             </span>
             <span className="truncate text-meta font-medium">{item.name}</span>
             <span className="text-meta text-ink-2">{money(item.amount)}</span>
@@ -135,21 +135,21 @@ function Today() {
   const review = today.reviewCount > 0 && (
     <Link
       to="/review"
-      className="flex min-h-13 items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink"
+      className="flex min-h-13 items-center justify-between gap-2 rounded-panel border border-brand px-3.5 text-body text-ink"
     >
       <span className="flex items-center gap-2">
         <i className="size-2 shrink-0 rounded-full bg-brand" />
         <strong>{today.reviewCount} to review</strong>
         {today.reviewOther > 0 && <span className="text-ink-2">· {today.reviewOther} unreviewed in Other</span>}
       </span>
-      <strong className="text-control text-brand">Start</strong>
+      <strong className="text-control text-brand">Start review</strong>
     </Link>
   );
   const wealthRow = wealth && (
-    <Link to="/wealth" className="block rounded-card border border-hairline bg-card px-4 py-3 text-ink">
+    <Link to="/wealth" className="block rounded-panel border border-hairline bg-card px-4 py-3 text-ink">
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0">
-          <small className="label-caps">Wealth</small>
+          <small className="label-muted">Wealth</small>
           <strong className="block font-serif text-page font-medium leading-tight">{money(wealth.value)}</strong>
         </span>
         <Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" />
@@ -183,7 +183,7 @@ function Today() {
               />
             ))}
           </div>
-          <div className="mt-1 flex flex-wrap gap-x-2 text-tab leading-tight text-ink-2">
+          <div className="mt-1 flex flex-wrap gap-x-2 text-caption leading-tight text-ink-2">
             {wealth.allocation.slice(0, 3).map((item, index) => (
               <span key={item.name} className="whitespace-nowrap">
                 <i
@@ -199,7 +199,7 @@ function Today() {
           </div>
         </div>
       )}
-      <div className="mt-1.5 text-tab text-ink-2">
+      <div className="mt-1.5 text-caption text-ink-2">
         {wealth.holdings} holdings
         {wealth.navDate
           ? ` · ${navsOf(wealth.navDate)} · ${signed(wealth.dayChange)} since previous NAV`

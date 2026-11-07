@@ -85,7 +85,7 @@ function ImportSheet({ names, onClose }: { names: Set<string>; onClose: () => vo
           <p className="m-0 text-control text-ink-2">
             {good} ready · {bad} errors
           </p>
-          <div className="max-h-40 overflow-y-auto rounded-card border border-hairline">
+          <div className="max-h-40 overflow-y-auto rounded-panel border border-hairline">
             {rows.slice(0, 50).map((row) => (
               <div
                 key={`${row.date}-${row.fund}-${row.amount}-${row.units}-${row.nav}`}
@@ -100,8 +100,13 @@ function ImportSheet({ names, onClose }: { names: Set<string>; onClose: () => vo
           </div>
         </>
       ) : null}
+      {csv.length > 1_000_000 && (
+        <p role="alert" className="m-0 text-control text-over">
+          File is over 1 MB. Split it into smaller files.
+        </p>
+      )}
       <Button disabled={!online || pending || !good || csv.length > 1_000_000} onClick={() => void run()}>
-        Import
+        {good ? `Import ${good} ${good === 1 ? "row" : "rows"}` : "Import rows"}
       </Button>
     </Sheet>
   );
@@ -145,6 +150,7 @@ function CasSheet({ onClose }: { onClose: () => void }) {
         type="file"
         accept="application/pdf,.pdf"
         aria-label="CAS PDF"
+        aria-describedby={error ? "cas-error" : undefined}
         className="text-control"
         onChange={(event) => setFile(event.target.files?.[0] ?? null)}
       />
@@ -152,18 +158,20 @@ function CasSheet({ onClose }: { onClose: () => void }) {
         type="password"
         autoComplete="off"
         aria-label="PDF password"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "cas-error" : undefined}
         placeholder="PDF password (usually PAN)"
         className="field"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
       {error && (
-        <p role="alert" className="m-0 text-control text-over">
+        <p id="cas-error" role="alert" className="m-0 text-control text-over">
           {error}
         </p>
       )}
       {skipped.length ? (
-        <div className="rounded-card border border-hairline">
+        <div className="rounded-panel border border-hairline">
           {skipped.map((row) => (
             <p key={row.name} className="m-0 border-b border-hairline px-3 py-2 text-meta">
               <b>{row.name}</b>
@@ -185,14 +193,17 @@ function Wealth() {
   const [cas, setCas] = useState(false);
   const rail = (
     <>
-      <ButtonLink to="/wealth/new">Add holding</ButtonLink>
-      <Button variant="outline" onClick={() => setCas(true)}>
-        Import CAS
-      </Button>
-      <Button variant="outline" onClick={() => setImporting(true)}>
-        Import CSV
-      </Button>
-      <section hidden={!data.allocation.length} className="rounded-card border border-hairline bg-card p-4">
+      {/* Phone: the Holdings header carries these actions. */}
+      <div className="hidden flex-col gap-5 desk:flex">
+        <ButtonLink to="/wealth/new">Add holding</ButtonLink>
+        <Button variant="outline" onClick={() => setCas(true)}>
+          Import CAS
+        </Button>
+        <Button variant="outline" onClick={() => setImporting(true)}>
+          Import CSV
+        </Button>
+      </div>
+      <section hidden={!data.allocation.length} className="rounded-panel border border-hairline bg-card p-4">
         <b>Allocation vs target</b>
         {data.allocation.map((row) => (
           <div key={row.name} className="mt-3">
@@ -202,16 +213,16 @@ function Wealth() {
                 {data.value ? Math.round((row.value / data.value) * 100) : 0}% / {row.hasTarget ? `${row.target}%` : "Target not set"}
               </span>
             </span>
-            <div className="mt-1 h-1.5 rounded-mark bg-sunken">
+            <div className="mt-1 h-1.5 rounded-control bg-sunken">
               <span
-                className="block h-full rounded-mark bg-brand"
+                className="block h-full rounded-control bg-brand"
                 style={{ width: `${data.value ? (row.value / data.value) * 100 : 0}%` }}
               />
             </div>
           </div>
         ))}
       </section>
-      <section className="rounded-card border border-hairline bg-card p-4">
+      <section className="rounded-panel border border-hairline bg-card p-4">
         <b>
           NPS 80CCD(1B) · FY {data.financialYear}–{String(data.financialYear + 1).slice(2)}
         </b>
@@ -223,9 +234,9 @@ function Wealth() {
     <DeskPage rail={rail}>
       <PageHeader title="Wealth" />
       <InkHero className="mt-2 desk:mt-0">
-        <span className="label-caps text-on-ink-2">Portfolio value</span>
+        <span className="label-muted text-on-ink-2">Portfolio value</span>
         <HeroAmount value={money(data.value)} size="lg" />
-        <span className="label-caps text-on-ink-2">Gain</span>
+        <span className="label-muted text-on-ink-2">Gain</span>
         <span className={data.gain >= 0 ? "text-on-ink-gain" : "text-on-ink-over"}>
           {data.gain >= 0 ? "+" : "−"}
           {money(Math.abs(data.gain))}
@@ -250,7 +261,7 @@ function Wealth() {
             <button type="button" className="min-h-11 desk:hidden" onClick={() => setImporting(true)}>
               Import CSV
             </button>
-            <Link to="/wealth/new" className="grid min-h-11 content-center">
+            <Link to="/wealth/new" className="grid min-h-11 content-center desk:hidden">
               Add holding
             </Link>
           </span>
@@ -284,14 +295,7 @@ function Wealth() {
             </Link>
           ))
         ) : (
-          <Empty
-            text="No holdings yet."
-            action={
-              <Link to="/wealth/new" className="text-control font-medium text-brand">
-                Add holding
-              </Link>
-            }
-          />
+          <Empty text="No holdings yet. Add one, or import a CAS or CSV statement." />
         )}
       </section>
       <SipList sips={data.sips} />

@@ -16,13 +16,13 @@ export function MonthStepper({
 }) {
   const text = label ?? monthLabel(month);
   return (
-    <span className="flex min-h-11 items-center rounded-chip border border-field bg-card text-ink">
+    <span className="flex min-h-11 items-center rounded-full border border-field bg-card text-ink">
       {!label && (
         <Link
           to={to}
           search={(prev: Record<string, unknown>) => ({ ...prev, from: undefined, to: undefined, month: shiftMonth(month, -1) })}
           aria-label="Previous month"
-          className="flex size-11 shrink-0 items-center justify-center rounded-button transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="flex size-11 shrink-0 items-center justify-center rounded-control transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />
         </Link>
@@ -30,7 +30,7 @@ export function MonthStepper({
       <button
         type="button"
         onClick={onOpen}
-        className={`min-h-11 ${label ? "px-4" : "px-1"} rounded-button text-control font-medium whitespace-nowrap transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100`}
+        className={`min-h-11 ${label ? "px-4" : "px-1"} rounded-control text-control font-medium whitespace-nowrap transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100`}
       >
         {text}
       </button>
@@ -39,7 +39,7 @@ export function MonthStepper({
           to={to}
           search={(prev: Record<string, unknown>) => ({ ...prev, from: undefined, to: undefined, month: shiftMonth(month, 1) })}
           aria-label="Next month"
-          className="flex size-11 shrink-0 items-center justify-center rounded-button transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="flex size-11 shrink-0 items-center justify-center rounded-control transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <ChevronRight size={18} strokeWidth={1.75} aria-hidden="true" />
         </Link>

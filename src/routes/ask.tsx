@@ -8,6 +8,7 @@ import { DeskPage } from "../components/app-shell";
 import { Button, Card, PageHeader } from "../components/ui";
 import { scopeSearch, type ScopeSearch } from "../lib/filters";
 import { money, monthLabel, rangeLabel, shortDate } from "../lib/format";
+import { errorText } from "../lib/error-text";
 import { ask, getAskHistory } from "../server/ai/fns";
 
 export const Route = createFileRoute("/ask")({
@@ -96,6 +97,7 @@ function Ask() {
   );
   const [unavailable, setUnavailable] = useState(!initial.enabled);
   const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const back = () => {
     if (router.history.canGoBack()) router.history.back();
     else void navigate({ to: "/" });
@@ -104,6 +106,7 @@ function Ask() {
     event?.preventDefault();
     if (!q.trim() || sending || !initial.enabled) return;
     setSending(true);
+    setFailed(null);
     try {
       const result = await ask({ data: { question: q.trim(), scope: chips.length ? scope : undefined } });
       setUnavailable(!result.ok);
@@ -120,8 +123,8 @@ function Ask() {
           },
         ]);
       setQuestion("");
-    } catch {
-      setUnavailable(true);
+    } catch (error) {
+      setFailed(errorText(error, "Couldn’t reach the server. Your question is still in the box; try again."));
     } finally {
       setSending(false);
     }
@@ -156,9 +159,9 @@ function Ask() {
             {initial.usage.used} of {initial.usage.cap}
           </span>
         </span>
-        <span className="h-1.5 rounded-mark bg-sunken">
+        <span className="h-1.5 rounded-control bg-sunken">
           <span
-            className="block h-1.5 rounded-mark bg-brand"
+            className="block h-1.5 rounded-control bg-brand"
             style={{ width: `${Math.min(100, (initial.usage.used / Math.max(initial.usage.cap, 1)) * 100)}%` }}
           />
         </span>
@@ -191,7 +194,7 @@ function Ask() {
                   key={chip.label}
                   type="button"
                   onClick={() => void navigate({ to: "/ask", search: { ...scope, ...chip.clear } })}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 font-medium text-brand desk:min-h-9"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-soft px-3 font-medium text-brand desk:min-h-9"
                 >
                   {chip.label}
                   <span aria-hidden="true">×</span>
@@ -209,7 +212,7 @@ function Ask() {
           )}
           {answers.map((item, index) => (
             <div key={item.id} className="flex flex-col gap-4">
-              <div className="self-end rounded-hero rounded-br-mark bg-ink px-3.5 py-2.5 text-body leading-6 text-paper">
+              <div className="self-end rounded-panel rounded-br-control bg-ink px-3.5 py-2.5 text-body leading-6 text-paper">
                 {item.question}
               </div>
               <AnswerCard
@@ -231,7 +234,12 @@ function Ask() {
             </Card>
           )}
           {unavailable && <AiUnavailable />}
-          {!answers.length && !unavailable && (
+          {failed && (
+            <p role="alert" className="m-0 text-body text-over">
+              {failed}
+            </p>
+          )}
+          {!answers.length && !unavailable && !failed && (
             <p className="mt-8 text-body text-ink-2">Ask about spending, merchants, categories, or dates.</p>
           )}
           {!sending && (
@@ -242,7 +250,7 @@ function Ask() {
                   variant="outline"
                   onClick={() => submit(undefined, idea)}
                   disabled={sending || !initial.enabled}
-                  className="min-h-11 rounded-chip px-3 text-control text-brand border-brand desk:min-h-10"
+                  className="min-h-11 rounded-full px-3 text-control text-brand border-brand desk:min-h-10"
                 >
                   {idea}
                 </Button>
@@ -254,7 +262,7 @@ function Ask() {
           onSubmit={(event) => submit(event)}
           className="sticky bottom-0 border-t border-hairline bg-card px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] desk:mt-auto desk:max-w-[760px] desk:px-0 desk:pb-3"
         >
-          <label className="flex min-h-12 items-center gap-2 rounded-card border border-field bg-input text-ink py-1 pl-3 pr-1">
+          <label className="flex min-h-12 items-center gap-2 rounded-panel border border-field bg-input text-ink py-1 pl-3 pr-1">
             <span className="sr-only">Question</span>
             <input
               value={question}
@@ -267,7 +275,7 @@ function Ask() {
               type="submit"
               aria-label="Send"
               disabled={sending || !initial.enabled || !question.trim()}
-              className="flex size-11 items-center justify-center rounded-button bg-ink text-paper"
+              className="flex size-11 items-center justify-center rounded-control bg-ink text-paper"
             >
               {sending ? <AiMark /> : <ArrowUp size={18} />}
             </button>

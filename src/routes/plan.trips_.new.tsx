@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { TripForm } from "../components/trip-form";
 import { Button, PageHeader } from "../components/ui";
-import { saveFailed, snack } from "../components/sheet";
+import { saveFailed, snack, snackError } from "../components/sheet";
 import { findBookings, saveTrip } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/trips_/new")({ component: NewTrip });
@@ -27,7 +27,7 @@ function NewTrip() {
       setBookings(list);
       snack(list.length ? `Found ${list.length} booking${list.length === 1 ? "" : "s"}.` : "No bookings found before today.");
     } catch {
-      snack("Couldn’t find bookings.");
+      snackError("Couldn’t find bookings.");
     } finally {
       setFinding(false);
     }

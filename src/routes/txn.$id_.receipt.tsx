@@ -1,7 +1,7 @@
 import { createFileRoute, useBlocker, useNavigate, useRouter } from "@tanstack/react-router";
 import { Check, ImagePlus, LoaderCircle, Plus, RotateCcw, RotateCw, Trash2, WandSparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { saveFailed, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, ErrorState, PageHeader } from "../components/ui";
 import { money } from "../lib/format";
@@ -108,7 +108,6 @@ function Receipt() {
       ...item,
       key: crypto.randomUUID(),
       confidence: item.confidence ?? null,
-      source: item.source as Item["source"],
     })),
   );
   const [baseline, setBaseline] = useState(() => sig(items));
@@ -138,9 +137,20 @@ function Receipt() {
     if (!txnId || jobRun < 0) return;
     let alive = true;
     let timer: ReturnType<typeof setInterval> | undefined;
+    let misses = 0;
     const poll = async () => {
-      const result = await getReceiptJob({ data: { transactionId: txnId } }).catch(() => null);
-      if (!alive || !result?.job) return;
+      const result = await getReceiptJob({ data: { transactionId: txnId } }).catch(() => undefined);
+      if (!alive) return;
+      // A failed poll is not "still reading": after ~10 s of misses, stop and say so.
+      if (result === undefined) {
+        if (++misses >= 7) {
+          clearInterval(timer);
+          setJob({ status: "failed", error: "unreachable" });
+        }
+        return;
+      }
+      misses = 0;
+      if (!result.job) return;
       setJob({ status: result.job.status, error: result.job.error });
       if (result.job.status === "done") {
         clearInterval(timer);
@@ -151,7 +161,6 @@ function Receipt() {
             ...item,
             key: crypto.randomUUID(),
             confidence: item.confidence ?? null,
-            source: item.source as Item["source"],
           }));
           setItems(next);
           setBaseline(sig(next));
@@ -317,7 +326,7 @@ function Receipt() {
       await deleteAttachment({ data: { id } });
       setFiles((old) => old.filter((file) => file.id !== id));
     } catch {
-      snack("Couldn't remove receipt file.");
+      snackError("Couldn't remove receipt file.");
     }
   };
   const startRead = async () => {
@@ -350,7 +359,7 @@ function Receipt() {
       void navigate({ to: "/txn/$id", params: { id: String(data.txn.id) } });
     } catch (e) {
       if (e instanceof Error && (/Splits must equal/.test(e.message) || /Cancel the item reimbursement claim/.test(e.message)))
-        snack(e.message);
+        snackError(e.message);
       else saveFailed(save);
     } finally {
       setBusy(false);
@@ -426,7 +435,7 @@ function Receipt() {
       />
       <div className="space-y-6 px-5 pb-10 tablet:mx-auto tablet:max-w-[960px]">
         <div className="grid gap-6 desk:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
-          <section className="space-y-3 rounded-card border border-dashed border-field bg-card p-4">
+          <section className="space-y-3 rounded-panel border border-dashed border-field bg-card p-4">
             <p className="m-0 text-control leading-relaxed text-ink-2">{PRIVACY}</p>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -436,7 +445,7 @@ function Receipt() {
               ].map((source) => (
                 <label
                   key={source.label}
-                  className="flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-2 rounded-card border border-field bg-input px-2 text-control font-medium focus-within:ring-2 focus-within:ring-brand"
+                  className="flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-2 rounded-panel border border-field bg-input px-2 text-control font-medium focus-within:ring-2 focus-within:ring-brand"
                 >
                   <ImagePlus size={22} aria-hidden="true" />
                   {source.label}
@@ -456,7 +465,7 @@ function Receipt() {
               ))}
             </div>
             {activeDraft && (
-              <div className="space-y-3 rounded-card border border-hairline p-3">
+              <div className="space-y-3 rounded-panel border border-hairline p-3">
                 <p className="m-0 text-control font-medium">Crop photo before adding</p>
                 <img
                   ref={imageRef}
@@ -475,7 +484,7 @@ function Receipt() {
                 />
                 <canvas
                   ref={canvas}
-                  className="max-h-[55vh] w-full touch-none rounded-inner object-contain"
+                  className="max-h-[55vh] w-full touch-none rounded-control object-contain"
                   onPointerDown={(event) => cropPointer(event)}
                   onPointerMove={(event) => {
                     if (dragRef.current) cropPointer(event);
@@ -523,7 +532,7 @@ function Receipt() {
                 <p className="m-0 text-control font-medium">{files.length} of 5 files</p>
                 <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
                   {files.map((file, i) => (
-                    <li key={file.id} className="flex min-h-11 items-center gap-2 rounded-chip border border-field px-3 text-control">
+                    <li key={file.id} className="flex min-h-11 items-center gap-2 rounded-full border border-field px-3 text-control">
                       <a href={`/api/attachments/${file.id}`} target="_blank" rel="noreferrer" className="text-brand">
                         {file.mime === "application/pdf" ? "PDF" : `Photo ${i + 1}`}
                       </a>
@@ -564,35 +573,39 @@ function Receipt() {
               </p>
             )}
             {job?.status === "failed" && (
-              <section className="space-y-2 rounded-card border border-hairline bg-card p-4">
+              <section className="space-y-2 rounded-panel border border-hairline bg-card p-4">
                 <h2 className="m-0 font-serif text-section">
                   {job.error === "not_receipt"
                     ? "This doesn't look like a bill."
                     : job.error === "ai_unavailable"
                       ? "Receipt reading is unavailable right now."
-                      : "Couldn't read this photo."}
+                      : job.error === "unreachable"
+                        ? "Can’t reach your server."
+                        : "Couldn't read this photo."}
                 </h2>
                 <p className="m-0 text-control text-ink-2">
                   {job.error === "not_receipt"
                     ? "No prices or totals were found. Pick the order summary or invoice instead."
                     : job.error === "ai_unavailable"
                       ? "The daily limit is reached or the AI service is down. Your images are saved and you can read them later."
-                      : "It's too blurry or dark. Try a sharper photo, or a screenshot of the order page."}{" "}
+                      : job.error === "unreachable"
+                        ? "The reading may still finish. Check the connection, then reopen this page."
+                        : "It's too blurry or dark. Try a sharper photo, or a screenshot of the order page."}{" "}
                   Images stay attached.
                 </p>
                 <Button onClick={addItem}>Enter items by hand</Button>
                 <Button variant="outline" disabled={!online} onClick={() => void startRead()}>
                   <RotateCcw size={16} />
-                  {job.error === "ai_unavailable" ? "Try again later" : "Try another photo"}
+                  {job.error === "ai_unavailable" ? "Try again later" : job.error === "unreachable" ? "Read again" : "Try another photo"}
                 </Button>
               </section>
             )}
             {job && (job.status === "queued" || job.status === "reading") && (
-              <section aria-live="polite" className="space-y-3 rounded-card border border-hairline bg-card p-4">
+              <section aria-live="polite" className="space-y-3 rounded-panel border border-hairline bg-card p-4">
                 <div className="flex gap-2">
                   {files.map((file, i) => (
                     <div key={file.id} className="flex flex-1 flex-col gap-1">
-                      <div className="flex h-20 items-center justify-center rounded-inner border border-hairline bg-input text-earn">
+                      <div className="flex h-20 items-center justify-center rounded-control border border-hairline bg-input text-earn">
                         {i < (job.status === "reading" ? 1 : 0) && <Check />}
                         {i === (job.status === "reading" ? 1 : 0) && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}
                       </div>
@@ -605,7 +618,7 @@ function Receipt() {
                   Usually 5–15 seconds. You can leave; items will be waiting on this transaction.
                 </p>
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-11 animate-pulse rounded-inner bg-sunken motion-reduce:animate-none" />
+                  <div key={n} className="h-11 animate-pulse rounded-control bg-sunken motion-reduce:animate-none" />
                 ))}
               </section>
             )}
@@ -614,7 +627,7 @@ function Receipt() {
             {data.items.length > 0 || items.length > 0 ? (
               <>
                 <div className="space-y-3 border-b-3 border-double border-ink pb-4">
-                  <span className="label-caps">Matched to transaction</span>
+                  <span className="label-muted">Matched to transaction</span>
                   <div className="flex items-baseline justify-between gap-3">
                     <strong className="font-serif text-title font-medium">{data.txn.merchant}</strong>
                     <strong className="font-serif text-title font-medium">{money(data.txn.amount)}</strong>
@@ -647,7 +660,7 @@ function Receipt() {
                             <span key={group.category} className="flex items-center gap-1.5">
                               <i
                                 aria-hidden
-                                className="size-2 rounded-mark"
+                                className="size-2 rounded-control"
                                 style={{
                                   background: `var(--color-${data.categories.find((category) => category.name === group.category)?.colorToken ?? "cat-other"})`,
                                 }}
@@ -661,16 +674,16 @@ function Receipt() {
                   )}
                 </div>
                 {low > 0 && (
-                  <p className="m-0 rounded-card bg-watch-soft p-3 text-control text-ink">
+                  <p className="m-0 rounded-panel bg-watch-soft p-3 text-control text-ink">
                     {low} low-confidence line{low === 1 ? "" : "s"}. Check details before saving.
                   </p>
                 )}
                 {!data.aiOn && (
-                  <p className="m-0 rounded-card bg-card p-3 text-control text-ink-2">
+                  <p className="m-0 rounded-panel bg-card p-3 text-control text-ink-2">
                     {money(Math.max(0, data.txn.amount - total))} not itemised · Stays in {fallbackCategory}
                   </p>
                 )}
-                <div className="flex items-center justify-between gap-3 rounded-card bg-watch-soft p-3 text-control">
+                <div className="flex items-center justify-between gap-3 rounded-panel bg-watch-soft p-3 text-control">
                   <span className={agrees ? "flex items-center gap-1 text-earn" : "text-watch-text"}>
                     {agrees ? (
                       <>
@@ -690,7 +703,7 @@ function Receipt() {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="label-caps m-0">Items · {items.length} rows</h2>
+                  <h2 className="label-muted m-0">Items · {items.length} rows</h2>
                   <div className="flex gap-2">
                     {selectedItems.length > 1 && (
                       <Button variant="outline" onClick={merge} disabled={!online}>
@@ -716,7 +729,7 @@ function Receipt() {
                         const end = event.changedTouches[0]?.clientX;
                         if (online && end !== undefined && start - end > 70) deleteItems([item.key]);
                       }}
-                      className={`grid grid-cols-[28px_minmax(0,1fr)_80px] gap-2 rounded-card border p-2 ${item.confidence !== null && item.confidence < 0.7 ? "border-watch bg-watch-soft" : "border-hairline bg-card"}`}
+                      className={`grid grid-cols-[28px_minmax(0,1fr)_80px] gap-2 rounded-panel border p-2 ${item.confidence !== null && item.confidence < 0.7 ? "border-watch bg-watch-soft" : "border-hairline bg-card"}`}
                     >
                       <input
                         type="checkbox"
@@ -819,7 +832,7 @@ function Receipt() {
                 </label>
               </>
             ) : (
-              <div className="space-y-3 rounded-card border border-hairline bg-card p-4">
+              <div className="space-y-3 rounded-panel border border-hairline bg-card p-4">
                 <h2 className="m-0 font-serif text-title">Add items by hand</h2>
                 <p className="m-0 text-control text-ink-2">
                   {files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}

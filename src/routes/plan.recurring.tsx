@@ -22,7 +22,7 @@ function Recurring() {
       reserveRail
       rail={
         upcoming.length > 0 && (
-          <div className="rounded-card border border-hairline bg-card p-4">
+          <div className="rounded-panel border border-hairline bg-card p-4">
             <b>Coming up</b>
             <div className="mt-2 flex flex-col gap-2">
               {upcoming.map((row) => (
@@ -37,9 +37,9 @@ function Recurring() {
     >
       <PlanHeader sub={monthLabel(thisMonth())} />
       <section className="mx-5 mt-5 border-b-3 border-double border-ink pb-4 desk:mx-0">
-        <span className="label-caps">Committed every month</span>
+        <span className="label-muted">Committed every month</span>
         <strong className="mt-1 block font-serif text-figure font-medium">{money(committed)}</strong>
-        <div className="mt-3 flex h-2.5 overflow-hidden rounded-chip bg-sunken">
+        <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-sunken">
           <span className="bg-brand" style={{ width: `${committed ? (sips / committed) * 100 : 0}%` }} />
         </div>
         <p className="mb-0 text-meta text-ink-2">

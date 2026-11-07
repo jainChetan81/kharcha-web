@@ -1,9 +1,9 @@
 // Pull to refresh for the installed app, which has no reload button. Refetches route loaders; nothing is cached on the device.
 import { useRouter } from "@tanstack/react-router";
-import { RefreshCw } from "lucide-react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { Check, RefreshCw, X } from "lucide-react";
+import { animate, m, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
-import { editingNow, snack } from "./sheet";
+import { editingNow, snackError } from "./sheet";
 
 const TRIGGER = 72;
 
@@ -12,6 +12,7 @@ export function PullRefresh() {
   const pull = useMotionValue(0);
   const still = useReducedMotion();
   const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<"done" | "failed" | null>(null);
   const rotate = useTransform(pull, [0, TRIGGER - 0.5, TRIGGER], [0, 0, 180]);
   const opacity = useTransform(pull, [0, 24, TRIGGER], [0, 0.4, 1]);
   const y = useTransform(pull, (v) => v - 40);
@@ -19,6 +20,7 @@ export function PullRefresh() {
   useEffect(() => {
     let start: number | null = null;
     let running = false;
+    let hold: ReturnType<typeof setTimeout> | undefined;
     const settle = (to: number) => animate(pull, to, still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 });
     const onStart = (e: TouchEvent) => {
       // Only from the very top, never over an open sheet or form, one at a time.
@@ -40,13 +42,24 @@ export function PullRefresh() {
       running = true;
       setBusy(true);
       settle(56);
+      // Done or failed holds for 1.2 s (DESIGN.md §19), then the ring springs back.
       void router
         .invalidate()
-        .catch(() => snack(navigator.onLine ? "Couldn’t refresh." : "You’re offline."))
-        .finally(() => {
-          running = false;
+        .then(
+          () => "done" as const,
+          () => {
+            snackError(navigator.onLine ? "Couldn’t refresh. Pull again to retry." : "You’re offline. Pull again once connected.");
+            return "failed" as const;
+          },
+        )
+        .then((outcome) => {
           setBusy(false);
-          settle(0);
+          setResult(outcome);
+          hold = setTimeout(() => {
+            running = false;
+            setResult(null);
+            settle(0);
+          }, 1200);
         });
     };
     window.addEventListener("touchstart", onStart, { passive: true });
@@ -58,6 +71,7 @@ export function PullRefresh() {
     };
     window.addEventListener("touchcancel", onCancel);
     return () => {
+      clearTimeout(hold);
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
@@ -67,21 +81,27 @@ export function PullRefresh() {
 
   return (
     <>
-      <motion.div
+      <m.div
         aria-hidden
         style={{ y, opacity }}
         className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-40 flex justify-center desk:hidden"
       >
         <span className="flex size-9 items-center justify-center rounded-full border border-hairline bg-card text-ink shadow-popover">
-          <motion.span style={{ rotate }} className="flex">
-            <span className={busy ? "flex animate-spin motion-reduce:animate-none" : "flex"}>
-              <RefreshCw size={18} strokeWidth={1.75} />
-            </span>
-          </motion.span>
+          <m.span style={{ rotate }} className="flex">
+            {result === "done" ? (
+              <Check size={18} strokeWidth={1.75} className="text-earn" />
+            ) : result === "failed" ? (
+              <X size={18} strokeWidth={1.75} className="text-over" />
+            ) : (
+              <span className={busy ? "flex animate-spin motion-reduce:animate-none" : "flex"}>
+                <RefreshCw size={18} strokeWidth={1.75} />
+              </span>
+            )}
+          </m.span>
         </span>
-      </motion.div>
+      </m.div>
       <span className="sr-only" role="status">
-        {busy ? "Refreshing" : ""}
+        {busy ? "Refreshing" : result === "done" ? "Up to date" : result === "failed" ? "Couldn’t refresh" : ""}
       </span>
     </>
   );

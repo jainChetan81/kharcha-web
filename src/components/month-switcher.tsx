@@ -10,7 +10,7 @@ export function MonthSwitcher({ month, to = "/", compact = false }: { month: str
         to={to}
         search={{ month: shiftMonth(month, -1) }}
         aria-label="Previous month"
-        className="flex size-11 shrink-0 items-center justify-center rounded-button text-on-ink transition-[background-color,transform] duration-150 hover:bg-hero-raised active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
+        className="flex size-11 shrink-0 items-center justify-center rounded-control text-on-ink transition-[background-color,transform] duration-150 hover:bg-hero-raised active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </Link>
@@ -21,7 +21,7 @@ export function MonthSwitcher({ month, to = "/", compact = false }: { month: str
         to={to}
         search={{ month: shiftMonth(month, 1) }}
         aria-label="Next month"
-        className="flex size-11 shrink-0 items-center justify-center rounded-button text-on-ink transition-[background-color,transform] duration-150 hover:bg-hero-raised active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
+        className="flex size-11 shrink-0 items-center justify-center rounded-control text-on-ink transition-[background-color,transform] duration-150 hover:bg-hero-raised active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         <ChevronRight size={20} strokeWidth={1.75} />
       </Link>

@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
 import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
@@ -66,7 +66,7 @@ const compactRange = (s: SearchState) =>
     ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}`
     : "";
 const chipBase =
-  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-chip border px-3 text-meta font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
+  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2";
 
 function FilterPill({
   label,
@@ -99,7 +99,7 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
       type="button"
       onClick={remove}
       aria-label={`Remove ${label} filter`}
-      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-chip px-3 text-meta font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
+      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-full px-3 text-meta font-medium transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2`}
     >
       {label}
       <X size={14} aria-hidden="true" />
@@ -306,7 +306,7 @@ export function ActivityFilters({
             <button
               type="button"
               onClick={onClear}
-              className="min-h-11 shrink-0 px-2 text-meta font-semibold text-brand focus-visible:outline-2 focus-visible:outline-brand"
+              className="min-h-11 shrink-0 px-2 text-meta font-semibold text-brand focus-visible:outline-3 focus-visible:outline-brand"
             >
               Clear all
             </button>
@@ -326,14 +326,14 @@ export function ActivityFilters({
   if (hiddenRail) return <>{dialogs}</>;
   return (
     <aside aria-label="Activity filter rail" className="flex flex-col gap-3">
-      <div className="rounded-card border border-hairline bg-card p-3">
+      <div className="rounded-panel border border-hairline bg-card p-3">
         <div className="mb-2 flex items-center justify-between">
           <strong className="text-control">Filters</strong>
           <button
             type="button"
             aria-label="Hide filters"
             onClick={() => setHiddenRail(true)}
-            className="min-h-11 px-2 text-control text-brand focus-visible:outline-2 focus-visible:outline-brand"
+            className="min-h-11 px-2 text-control text-brand focus-visible:outline-3 focus-visible:outline-brand"
           >
             Hide
           </button>
@@ -349,7 +349,7 @@ export function ActivityFilters({
           type="button"
           onClick={onClear}
           disabled={!count}
-          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-2 focus-visible:outline-2 focus-visible:outline-brand"
+          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-2 focus-visible:outline-3 focus-visible:outline-brand"
         >
           Clear all
         </button>
@@ -407,7 +407,7 @@ export function FilterToolbar({
         <button
           type="button"
           onClick={onShowRail}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-chip border border-field bg-card px-3 font-medium text-ink focus-visible:outline-2 focus-visible:outline-brand"
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-field bg-card px-3 font-medium text-ink focus-visible:outline-3 focus-visible:outline-brand"
         >
           <FilterIcon size={14} aria-hidden="true" />
           Filters · {countFor(search, true)}
@@ -428,7 +428,7 @@ export function FilterToolbar({
           aria-label="Sort transactions"
           value={search.sort ?? "newest"}
           onChange={(e) => onApply({ sort: e.target.value as NonNullable<SearchState["sort"]> })}
-          className="min-h-9 rounded-chip border border-field bg-card px-2 text-ink"
+          className="min-h-9 rounded-full border border-field bg-card px-2 text-ink"
         >
           {options.map(([key, label]) => (
             <option key={key} value={key}>
@@ -459,11 +459,11 @@ function OptionRow({
       type="button"
       aria-pressed={checked}
       onClick={onClick}
-      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
+      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-3 focus-visible:outline-brand"
     >
       <span
         aria-hidden="true"
-        className={`flex size-4.5 shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-mark"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}
+        className={`flex size-4.5 shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-control"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}
       >
         {checked && <Check size={13} />}
       </span>
@@ -510,7 +510,7 @@ function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Pa
       <button
         type="button"
         onClick={() => setCalendar(true)}
-        className="flex min-h-11 items-center gap-2 text-control font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 items-center gap-2 text-control font-medium text-brand focus-visible:outline-3 focus-visible:outline-brand"
       >
         <CalendarDays size={16} />
         Pick on a calendar
@@ -556,7 +556,7 @@ function CategoryFields({
       </label>
       {(["expense", "income"] as const).map((type) => (
         <fieldset key={type} className="m-0 border-0 p-0">
-          <legend className="w-full px-3 pt-3 pb-1 label-caps">{type === "expense" ? "Spending" : "Income"}</legend>
+          <legend className="w-full px-3 pt-3 pb-1 label-muted">{type === "expense" ? "Spending" : "Income"}</legend>
           {filtered
             .filter((item) => item.type === type)
             .map((item) => {
@@ -567,17 +567,17 @@ function CategoryFields({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onToggle(item)}
-                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
+                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-3 focus-visible:outline-brand"
                 >
                   <span
                     aria-hidden="true"
-                    className={`flex size-4.5 shrink-0 items-center justify-center rounded-mark border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}
+                    className={`flex size-4.5 shrink-0 items-center justify-center rounded-control border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}
                   >
                     {on && <Check size={13} />}
                   </span>
                   <i
                     aria-hidden="true"
-                    className="size-2.5 shrink-0 rounded-mark"
+                    className="size-2.5 shrink-0 rounded-control"
                     style={{ background: `var(--color-${item.colorToken})` }}
                   />
                   <span className="min-w-0 truncate">{item.name}</span>
@@ -609,6 +609,7 @@ function AmountFields({
   onPatch: (next: Partial<SearchState>) => void;
 }) {
   const badAmount = minText !== "" && maxText !== "" && Number(minText) > Number(maxText);
+  const errorId = useId();
   return (
     <div className="space-y-4 p-3">
       <div className="flex flex-wrap gap-2">
@@ -636,6 +637,8 @@ function AmountFields({
           Minimum
           <input
             aria-label="Minimum amount"
+            aria-invalid={badAmount || undefined}
+            aria-describedby={badAmount ? errorId : undefined}
             inputMode="decimal"
             value={minText}
             onChange={(e) => {
@@ -651,6 +654,8 @@ function AmountFields({
           Maximum
           <input
             aria-label="Maximum amount"
+            aria-invalid={badAmount || undefined}
+            aria-describedby={badAmount ? errorId : undefined}
             inputMode="decimal"
             value={maxText}
             onChange={(e) => {
@@ -664,8 +669,8 @@ function AmountFields({
         </label>
       </div>
       {badAmount && (
-        <p role="alert" className="m-0 text-control text-over">
-          Minimum is more than maximum.
+        <p id={errorId} role="alert" className="m-0 text-control text-over">
+          Minimum is more than maximum. Lower the minimum or raise the maximum.
         </p>
       )}
     </div>
@@ -715,7 +720,7 @@ function RailSection({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-meta focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-meta focus-visible:outline-3 focus-visible:outline-brand"
       >
         <span className="font-medium">{name}</span>
         <span className="flex min-w-0 items-center gap-1">
@@ -932,7 +937,7 @@ function FilterScreen({
     >
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div
+          <m.div
             className="fixed inset-0 z-40 bg-scrim"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -940,7 +945,7 @@ function FilterScreen({
           />
         </Dialog.Overlay>
         <Dialog.Content asChild aria-describedby={undefined}>
-          <motion.div
+          <m.div
             initial={desktop ? { opacity: 0, y: 4 } : { opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduced ? { duration: 0 } : desktop ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 36 }}
@@ -951,7 +956,7 @@ function FilterScreen({
                 type="button"
                 aria-label="Close filters without applying"
                 onClick={onClose}
-                className="flex size-11 items-center justify-center rounded-button focus-visible:outline-2 focus-visible:outline-brand"
+                className="flex size-11 items-center justify-center rounded-control focus-visible:outline-3 focus-visible:outline-brand"
               >
                 <X size={20} />
               </button>
@@ -996,7 +1001,7 @@ function FilterScreen({
                         style={section === name ? { background: "var(--color-brand)" } : undefined}
                       />
                       {name}
-                      <span className="text-tab text-brand">{n || ""}</span>
+                      <span className="text-caption text-brand">{n || ""}</span>
                     </button>
                   );
                 })}
@@ -1011,7 +1016,7 @@ function FilterScreen({
                 }
                 className="w-full"
               >
-                Show results
+                {typeof count === "number" ? `Show ${count} ${count === 1 ? "transaction" : "transactions"}` : "Show results"}
               </Button>
               <p className="sr-only" role="status">
                 {count === undefined
@@ -1021,7 +1026,7 @@ function FilterScreen({
                     : `${count} ${count === 1 ? "transaction" : "transactions"}`}
               </p>
             </footer>
-          </motion.div>
+          </m.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -1069,7 +1074,7 @@ function RangeCalendar({
         </Dialog.Overlay>
         <Dialog.Content asChild aria-describedby={undefined}>
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <section className="w-full max-w-[360px] rounded-card border border-hairline bg-card p-3 shadow-popover outline-none">
+            <section className="w-full max-w-[360px] rounded-panel border border-hairline bg-card p-3 shadow-popover outline-none">
               <Dialog.Title className="sr-only">Choose date range</Dialog.Title>
               <div className="mb-2 flex items-center justify-between">
                 <button
@@ -1090,7 +1095,7 @@ function RangeCalendar({
                   ›
                 </button>
               </div>
-              <div className="grid grid-cols-7 text-center text-tab text-ink-2">
+              <div className="grid grid-cols-7 text-center text-caption text-ink-2">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((name) => (
                   <span key={name} className="py-1">
                     <span aria-hidden="true">{name[0]}</span>
@@ -1149,7 +1154,7 @@ function SortDialog({
     >
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div
+          <m.div
             className="fixed inset-0 z-40 bg-scrim"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1157,7 +1162,7 @@ function SortDialog({
           />
         </Dialog.Overlay>
         <Dialog.Content asChild aria-describedby={undefined}>
-          <motion.div
+          <m.div
             initial={desktop ? { opacity: 0, y: 4 } : { opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduced ? { duration: 0 } : desktop ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 36 }}
@@ -1181,7 +1186,7 @@ function SortDialog({
                 {value === key && <Check size={18} className="shrink-0 text-brand" />}
               </button>
             ))}
-          </motion.div>
+          </m.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -7,7 +7,7 @@ export function TripBand({ trip }: { trip: NonNullable<ShellData["trip"]> }) {
     <Link
       to="/plan/trips/$id"
       params={{ id: String(trip.id) }}
-      className="mx-5 flex min-h-20 min-w-0 flex-col justify-center rounded-card bg-trip px-4 text-on-ink desk:mx-0"
+      className="mx-5 flex min-h-20 min-w-0 flex-col justify-center rounded-panel bg-trip px-4 text-on-ink desk:mx-0"
     >
       <span className="truncate font-serif text-title font-medium">{trip.name}</span>
       <span className="mt-1 truncate text-meta text-trip-muted">

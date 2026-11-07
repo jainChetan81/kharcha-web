@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useState } from "react";
 import { Button, ButtonLink, Chip, ErrorState, Field, PageHeader, SectionHead, StatusTag } from "../components/ui";
 import { LedgerRow } from "../components/ledger";
-import { saveFailed, Sheet, snack } from "../components/sheet";
+import { saveFailed, Sheet, snack, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { card, foreign, money, shortDate } from "../lib/format";
 import {
@@ -42,6 +42,7 @@ function Detail() {
   const [note, setNote] = useState("");
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
+  const [claimProblem, setClaimProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [droppingSplit, setDroppingSplit] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -73,7 +74,7 @@ function Detail() {
         onClick: () =>
           void restoreTransaction({ data: { id: txn.id } })
             .then(() => router.invalidate())
-            .catch(() => snack("Couldn’t undo the delete.")),
+            .catch(() => snackError("Couldn’t undo the delete.")),
       });
       void navigate({ to: "/activity" });
     } catch {
@@ -113,7 +114,19 @@ function Detail() {
     }
   };
   const submitClaim = async () => {
-    if (!online || busy || !counterparty.trim()) return;
+    if (!online || busy) return;
+    // Design guide §10: keep Save enabled and say what is missing.
+    const problem = !counterparty.trim()
+      ? "Enter who owes you."
+      : mode === "items" && !selectedItems.length
+        ? "Pick at least one item."
+        : amountToClaim <= 0
+          ? "Enter an amount above ₹0."
+          : amountToClaim > txn.amount
+            ? `Enter at most ${money(txn.amount)}, the transaction amount.`
+            : null;
+    setClaimProblem(problem);
+    if (problem) return;
     setBusy(true);
     try {
       await markReimbursable({
@@ -233,7 +246,7 @@ function Detail() {
       />
       <div className="space-y-6 px-5 pb-8 tablet:mx-auto tablet:max-w-[640px]">
         <section className="flex flex-col gap-1.5 border-b-3 border-double border-ink pb-5">
-          <span className="label-caps">
+          <span className="label-muted">
             {txn.type === "income" ? "Income" : "Expense"} ·{" "}
             {detail.splits.length ? `split in ${detail.splits.length}` : (txn.category ?? "Other")}
           </span>
@@ -268,8 +281,8 @@ function Detail() {
         </dl>
         {txn.rawText && (
           <details className="flex flex-col gap-2">
-            <summary className="label-caps min-h-11 cursor-pointer">Source SMS</summary>
-            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
+            <summary className="label-muted min-h-11 cursor-pointer">Source SMS</summary>
+            <p className="m-0 rounded-control bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
               {txn.rawText}
             </p>
             {txn.rawMerchant && txn.rawMerchant !== txn.merchant && (
@@ -282,13 +295,13 @@ function Detail() {
         {hasReceipt ? (
           <section className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h2 className="label-caps m-0">Receipt</h2>
+              <h2 className="label-muted m-0">Receipt</h2>
               <ButtonLink to="/txn/$id/receipt" params={{ id: String(txn.id) }} variant="text">
                 Edit
               </ButtonLink>
             </div>
             {splitStale && (
-              <p role="alert" className="m-0 rounded-card bg-watch-soft p-3 text-control text-ink">
+              <p role="alert" className="m-0 rounded-panel bg-watch-soft p-3 text-control text-ink">
                 Amount changed since this split was saved. Re-check the split.
               </p>
             )}
@@ -326,7 +339,7 @@ function Detail() {
                     <summary className="grid min-h-13 cursor-pointer grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 text-body">
                       <span
                         aria-hidden
-                        className="size-2.5 rounded-dot"
+                        className="size-2.5 rounded-none"
                         style={{ background: `var(--color-${detail.categoryColors[group.category] ?? "cat-other"})` }}
                       />
                       <span className="font-medium">
@@ -357,7 +370,7 @@ function Detail() {
           <Link
             to="/txn/$id/receipt"
             params={{ id: String(txn.id) }}
-            className="flex min-h-16 items-center gap-3 rounded-card border border-dashed border-field px-4 text-body font-medium"
+            className="flex min-h-16 items-center gap-3 rounded-panel border border-dashed border-field px-4 text-body font-medium"
           >
             <svg
               width="22"
@@ -384,7 +397,7 @@ function Detail() {
           </Button>
         )}
         {claim && (
-          <section className="space-y-3 rounded-card border border-hairline p-4">
+          <section className="space-y-3 rounded-panel border border-hairline p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHead title="Reimbursement" />
               <StatusTag tone={statusTone}>{statusText}</StatusTag>
@@ -409,7 +422,7 @@ function Detail() {
             </dl>
             {claimInfo.links.length > 0 && (
               <div>
-                <h3 className="label-caps mb-1">Repayments</h3>
+                <h3 className="label-muted mb-1">Repayments</h3>
                 <ul className="m-0 list-none divide-y divide-hairline p-0">
                   {claimInfo.links.map((link) => (
                     <li key={link.creditId} className="flex min-h-12 items-center justify-between gap-2 text-control">
@@ -434,12 +447,12 @@ function Detail() {
             )}
             {data.suggestions.length > 0 && claim.status !== "cancelled" && (
               <div>
-                <h3 className="label-caps mb-1">Might be the repayment</h3>
+                <h3 className="label-muted mb-1">Might be the repayment</h3>
                 <ul className="m-0 list-none space-y-2 p-0">
                   {data.suggestions.map((credit) => (
                     <li
                       key={credit.id}
-                      className="flex min-h-14 items-center justify-between gap-2 rounded-card border border-dashed border-field px-3 text-control"
+                      className="flex min-h-14 items-center justify-between gap-2 rounded-panel border border-dashed border-field px-3 text-control"
                     >
                       <span className="min-w-0 truncate">
                         {credit.merchant} · {shortDate(credit.date)} · {money(credit.amount)}
@@ -597,22 +610,17 @@ function Detail() {
               <dd className="m-0 font-semibold">{money(Math.max(0, txn.amount - amountToClaim))}</dd>
             </div>
           </dl>
-          {!online && <p className="m-0 text-meta text-ink-2">Offline · save unavailable.</p>}
+          {!online && <p className="m-0 text-meta text-ink-2">Offline. Connect to save.</p>}
+          {claimProblem && (
+            <p role="alert" className="m-0 text-control text-over">
+              {claimProblem}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setMarkOpen(false)}>
               Cancel
             </Button>
-            <Button
-              disabled={
-                !online ||
-                busy ||
-                !counterparty.trim() ||
-                amountToClaim <= 0 ||
-                amountToClaim > txn.amount ||
-                (mode === "items" && !selectedItems.length)
-              }
-              onClick={() => void submitClaim()}
-            >
+            <Button disabled={!online || busy} onClick={() => void submitClaim()}>
               {busy ? "Saving…" : "Save claim"}
             </Button>
           </div>

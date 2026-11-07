@@ -37,13 +37,13 @@ export function BudgetBar({
       <div
         role="img"
         aria-label={limit > 0 ? `Spent ${money(spent)} of ${money(limit)}, ${status}` : `Spent ${money(spent)}, no budget set`}
-        className="relative h-1.5 rounded-chip bg-sunken"
+        className="relative h-1.5 rounded-full bg-sunken"
       >
-        <span className={cn("absolute inset-y-0 left-0 rounded-chip", tone)} style={{ width: `${pct}%` }} />
+        <span className={cn("absolute inset-y-0 left-0 rounded-full", tone)} style={{ width: `${pct}%` }} />
         {reimbursablePct > 0 && (
           <span
             aria-hidden
-            className="absolute inset-y-0 rounded-chip"
+            className="absolute inset-y-0 rounded-full"
             style={{
               left: `${pct - reimbursablePct}%`,
               width: `${reimbursablePct}%`,
