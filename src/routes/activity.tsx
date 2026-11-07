@@ -8,7 +8,7 @@ import { ActivityFilters, FilterToolbar } from "../components/activity-filters";
 import { Amount, byDay, DayHeader, RowMeta, SplitMeta } from "../components/ledger";
 import { MonthStepper } from "../components/month-stepper";
 import { SummaryStrip } from "../components/summary-strip";
-import { saveFailed, snack } from "../components/sheet";
+import { saveFailed, snack, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, Empty } from "../components/ui";
 import { card, money, rangeLabel, thisMonth, time, weekdayDate } from "../lib/format";
@@ -146,7 +146,7 @@ function Activity() {
             if (!online) return;
             void restoreTransaction({ data: { id: row.id } })
               .then(() => void router.invalidate())
-              .catch(() => snack("Couldn’t undo the delete."));
+              .catch(() => snackError("Couldn’t undo the delete."));
           },
         });
       })
@@ -562,7 +562,7 @@ function ActivityRow({
           type="button"
           onClick={onSelect}
           aria-current={active ? "true" : undefined}
-          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-2 focus-visible:outline-brand desk:grid"
+          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-3 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >
           <span className="w-16 shrink-0 whitespace-nowrap text-ink-2">{time(row.date)}</span>

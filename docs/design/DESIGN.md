@@ -189,10 +189,10 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 | `TripBand`, `RuleRow`, `CategoryRow` | |
 | `ItemRow` | Receipt line: name, qty, amount, `CategoryChip`. Unsure state: `watch-soft` fill and a "?" mark. Selectable in edit mode. Swipe reveals Delete (`over` fill, `on-over` text). |
 | `CategoryChip` | Category dot + name, 36px tall, `field` border. Tap opens the category list inline. Selected: `brand` fill. |
-| `SplitBar` | Stacked category segments, 2px gaps, legend below. Large (10px) on Result and Detail, small (4px) inside a ledger row. `role="img"` with the split in the label. |
+| `SplitBar` | Stacked category segments, 2px gaps, legend below. Large (12px) on Result and Detail, small (4px) inside a ledger row. `role="img"` with the split in the label. |
 | `ReconcileLine` | Items total vs bank amount. Match: `earn` tick. Gap: `watch-text` with "Add as adjustment". |
 | `ReimbursableBadge` | U-turn arrow + "₹1,200 back" in `brand`. On ledger rows next to the amount. |
-| `StatusTag` (extended) | 12px, weight 600, radius 999. Pending (`brand-soft` / `brand`), Partly back (`watch-soft` / `watch-text`), Reimbursed and Extra back (`earn-soft` / `earn`), Overdue (`over-soft` / `over`), Cancelled (`sunken` / `ink-2`, struck amount). |
+| `StatusTag` (extended) | 12px, weight 600, rounded-full. Pending (`brand-soft` / `brand`), Partly back (`watch-soft` / `watch-text`), Reimbursed and Extra back (`earn-soft` / `earn`), Overdue (`over-soft` / `over`), Cancelled (`sunken` / `ink-2`, struck amount). |
 | `ShareLedger` | Three lines: Paid, Back from X, Yours. Used on Mark reimbursable, Status and Plan › Owed. |
 
 All of these are on the `RcComponents` board in light and dark.

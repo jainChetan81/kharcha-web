@@ -35,7 +35,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="flex min-h-13 w-full items-center gap-2 px-3 text-left focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+        className="flex min-h-13 w-full items-center gap-2 px-3 text-left focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2"
       >
         <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
           {figures.map((f) => (

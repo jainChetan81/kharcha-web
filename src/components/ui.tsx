@@ -66,7 +66,7 @@ export function Chip({
       type={type}
       aria-pressed={on}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-control transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-control transition-transform active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand desk:min-h-9",
         on ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink",
         className,
       )}

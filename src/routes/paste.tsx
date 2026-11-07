@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { saveFailed, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, Card, PageHeader } from "../components/ui";
 import { foreign, money } from "../lib/format";
@@ -44,7 +44,7 @@ function Paste() {
       setText(await navigator.clipboard.readText());
       reset();
     } catch {
-      snack("Couldn't read clipboard. Paste into message field instead.");
+      snackError("Couldn't read clipboard. Paste into message field instead.");
     }
   };
   const save = async () => {

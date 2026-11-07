@@ -91,8 +91,10 @@ export function Sheet({
   );
 }
 
-/** Ink snackbar (States board). 6 seconds; one action. */
-export function snack(text: string, action?: { label: string; onClick: () => void }, secondary?: { label: string; onClick: () => void }) {
+type SnackAction = { label: string; onClick: () => void };
+
+/** Ink snackbar (States board). Info: 6 seconds, one action. Errors stay until dismissed (design guide §12). */
+export function snack(text: string, action?: SnackAction, secondary?: SnackAction) {
   // Same plain text replaces the visible snack instead of stacking; snacks with an action (Undo) keep their own.
   toast(text, {
     id: action ? undefined : text,
@@ -102,8 +104,18 @@ export function snack(text: string, action?: { label: string; onClick: () => voi
   });
 }
 
+/** A failure the user should read: no auto-dismiss, with Dismiss (or the given action) to close it. */
+export function snackError(text: string, action?: SnackAction) {
+  toast(text, {
+    id: action ? undefined : text,
+    duration: Number.POSITIVE_INFINITY,
+    action: action && { label: action.label, onClick: action.onClick },
+    cancel: { label: "Dismiss", onClick: () => {} },
+  });
+}
+
 /** "Couldn't save. Check the connection. · Retry" (§9). */
-export const saveFailed = (retry: () => void) => snack("Couldn’t save. Check the connection.", { label: "Retry", onClick: retry });
+export const saveFailed = (retry: () => void) => snackError("Couldn’t save. Check the connection.", { label: "Retry", onClick: retry });
 
 export function Snackbars() {
   return (

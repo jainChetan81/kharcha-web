@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useState } from "react";
 import { Button, ButtonLink, Chip, ErrorState, Field, PageHeader, SectionHead, StatusTag } from "../components/ui";
 import { LedgerRow } from "../components/ledger";
-import { saveFailed, Sheet, snack } from "../components/sheet";
+import { saveFailed, Sheet, snack, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { card, foreign, money, shortDate } from "../lib/format";
 import {
@@ -74,7 +74,7 @@ function Detail() {
         onClick: () =>
           void restoreTransaction({ data: { id: txn.id } })
             .then(() => router.invalidate())
-            .catch(() => snack("Couldn’t undo the delete.")),
+            .catch(() => snackError("Couldn’t undo the delete.")),
       });
       void navigate({ to: "/activity" });
     } catch {

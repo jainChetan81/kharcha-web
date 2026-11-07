@@ -5,7 +5,7 @@ import { Reorder, useDragControls } from "motion/react";
 import { Button, buttonClass, PageHeader, SectionHead, Segmented } from "../components/ui";
 import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
-import { saveFailed, Sheet, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, Sheet, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { getSyncStatus } from "../server/daily/sync";
 import {
@@ -126,7 +126,7 @@ function Settings() {
       });
       refresh();
     } catch (error) {
-      snack(errorText(error, "Couldn't save category."));
+      snackError(errorText(error, "Couldn't save category."));
     }
   };
   const deleteCategoryNow = async () => {
@@ -157,7 +157,7 @@ function Settings() {
       snack("Category added.");
       refresh();
     } catch (error) {
-      snack(errorText(error, "Couldn't add category."));
+      snackError(errorText(error, "Couldn't add category."));
     }
   };
   const deleteMerchantRule = async (rule: Rule) => {
@@ -241,7 +241,7 @@ function Settings() {
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-body font-medium">Export CSV</span>
             <a href="/api/export" className={buttonClass("outline", "min-h-11 text-control")}>
-              Download
+              Download CSV
             </a>
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
@@ -594,7 +594,7 @@ function CategoryItem({
         </button>
         <input
           aria-label={`${item.name} category name`}
-          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-body font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand"
+          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-body font-medium outline-none focus-visible:outline-3 focus-visible:outline-brand"
           defaultValue={item.name}
           disabled={!online}
           onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)}

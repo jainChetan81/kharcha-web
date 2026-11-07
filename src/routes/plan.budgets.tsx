@@ -114,12 +114,12 @@ function Budgets() {
                     label="Monthly limit"
                     inputMode="decimal"
                     value={limit}
-                    error={limit.trim() !== "" && !(Number(limit) > 0) ? "Enter an amount above 0" : undefined}
+                    error={!(Number(limit) > 0) ? "Enter a monthly limit above ₹0." : undefined}
                     onChange={(event) => setLimit(event.target.value)}
                     className="flex-1"
                   />
                   <Button disabled={saving || !(Number(limit) > 0)} onClick={() => void save(row.name, Number(limit))}>
-                    {saving ? "Saving…" : "Save"}
+                    {saving ? "Saving…" : "Save limit"}
                   </Button>
                   {row.limit ? (
                     <Button variant="danger" disabled={saving} onClick={() => void save(row.name, 0)}>

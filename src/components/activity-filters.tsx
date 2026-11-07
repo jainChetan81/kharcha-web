@@ -66,7 +66,7 @@ const compactRange = (s: SearchState) =>
     ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}`
     : "";
 const chipBase =
-  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
+  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2";
 
 function FilterPill({
   label,
@@ -99,7 +99,7 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
       type="button"
       onClick={remove}
       aria-label={`Remove ${label} filter`}
-      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-full px-3 text-meta font-medium transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
+      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-full px-3 text-meta font-medium transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2`}
     >
       {label}
       <X size={14} aria-hidden="true" />
@@ -306,7 +306,7 @@ export function ActivityFilters({
             <button
               type="button"
               onClick={onClear}
-              className="min-h-11 shrink-0 px-2 text-meta font-semibold text-brand focus-visible:outline-2 focus-visible:outline-brand"
+              className="min-h-11 shrink-0 px-2 text-meta font-semibold text-brand focus-visible:outline-3 focus-visible:outline-brand"
             >
               Clear all
             </button>
@@ -333,7 +333,7 @@ export function ActivityFilters({
             type="button"
             aria-label="Hide filters"
             onClick={() => setHiddenRail(true)}
-            className="min-h-11 px-2 text-control text-brand focus-visible:outline-2 focus-visible:outline-brand"
+            className="min-h-11 px-2 text-control text-brand focus-visible:outline-3 focus-visible:outline-brand"
           >
             Hide
           </button>
@@ -349,7 +349,7 @@ export function ActivityFilters({
           type="button"
           onClick={onClear}
           disabled={!count}
-          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-2 focus-visible:outline-2 focus-visible:outline-brand"
+          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-2 focus-visible:outline-3 focus-visible:outline-brand"
         >
           Clear all
         </button>
@@ -407,7 +407,7 @@ export function FilterToolbar({
         <button
           type="button"
           onClick={onShowRail}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-field bg-card px-3 font-medium text-ink focus-visible:outline-2 focus-visible:outline-brand"
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-field bg-card px-3 font-medium text-ink focus-visible:outline-3 focus-visible:outline-brand"
         >
           <FilterIcon size={14} aria-hidden="true" />
           Filters · {countFor(search, true)}
@@ -459,7 +459,7 @@ function OptionRow({
       type="button"
       aria-pressed={checked}
       onClick={onClick}
-      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
+      className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-3 focus-visible:outline-brand"
     >
       <span
         aria-hidden="true"
@@ -510,7 +510,7 @@ function DateFields({ value, onPatch }: { value: SearchState; onPatch: (next: Pa
       <button
         type="button"
         onClick={() => setCalendar(true)}
-        className="flex min-h-11 items-center gap-2 text-control font-medium text-brand focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 items-center gap-2 text-control font-medium text-brand focus-visible:outline-3 focus-visible:outline-brand"
       >
         <CalendarDays size={16} />
         Pick on a calendar
@@ -567,7 +567,7 @@ function CategoryFields({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onToggle(item)}
-                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-2 focus-visible:outline-brand"
+                  className="flex min-h-12 w-full items-center gap-3 border-b border-hairline px-3 text-left text-control focus-visible:outline-3 focus-visible:outline-brand"
                 >
                   <span
                     aria-hidden="true"
@@ -720,7 +720,7 @@ function RailSection({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-meta focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-meta focus-visible:outline-3 focus-visible:outline-brand"
       >
         <span className="font-medium">{name}</span>
         <span className="flex min-w-0 items-center gap-1">
@@ -956,7 +956,7 @@ function FilterScreen({
                 type="button"
                 aria-label="Close filters without applying"
                 onClick={onClose}
-                className="flex size-11 items-center justify-center rounded-control focus-visible:outline-2 focus-visible:outline-brand"
+                className="flex size-11 items-center justify-center rounded-control focus-visible:outline-3 focus-visible:outline-brand"
               >
                 <X size={20} />
               </button>
@@ -1016,7 +1016,7 @@ function FilterScreen({
                 }
                 className="w-full"
               >
-                Show results
+                {typeof count === "number" ? `Show ${count} ${count === 1 ? "transaction" : "transactions"}` : "Show results"}
               </Button>
               <p className="sr-only" role="status">
                 {count === undefined

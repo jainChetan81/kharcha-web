@@ -31,7 +31,7 @@ export function SwatchPicker({ value, onChange, label }: { value: string; onChan
         return (
           <label
             key={token}
-            className="flex h-11 w-full cursor-pointer items-center justify-center has-focus-visible:outline-2 has-focus-visible:outline-brand"
+            className="flex h-11 w-full cursor-pointer items-center justify-center has-focus-visible:outline-3 has-focus-visible:outline-brand"
           >
             <input
               type="radio"

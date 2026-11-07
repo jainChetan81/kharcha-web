@@ -1,7 +1,7 @@
 import { createFileRoute, useBlocker, useNavigate, useRouter } from "@tanstack/react-router";
 import { Check, ImagePlus, LoaderCircle, Plus, RotateCcw, RotateCw, Trash2, WandSparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { saveFailed, snack, useHoldsInput } from "../components/sheet";
+import { saveFailed, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, ErrorState, PageHeader } from "../components/ui";
 import { money } from "../lib/format";
@@ -326,7 +326,7 @@ function Receipt() {
       await deleteAttachment({ data: { id } });
       setFiles((old) => old.filter((file) => file.id !== id));
     } catch {
-      snack("Couldn't remove receipt file.");
+      snackError("Couldn't remove receipt file.");
     }
   };
   const startRead = async () => {
@@ -359,7 +359,7 @@ function Receipt() {
       void navigate({ to: "/txn/$id", params: { id: String(data.txn.id) } });
     } catch (e) {
       if (e instanceof Error && (/Splits must equal/.test(e.message) || /Cancel the item reimbursement claim/.test(e.message)))
-        snack(e.message);
+        snackError(e.message);
       else saveFailed(save);
     } finally {
       setBusy(false);

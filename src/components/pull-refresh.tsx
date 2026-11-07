@@ -3,7 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Check, RefreshCw, X } from "lucide-react";
 import { animate, m, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
-import { editingNow, snack } from "./sheet";
+import { editingNow, snackError } from "./sheet";
 
 const TRIGGER = 72;
 
@@ -47,7 +47,7 @@ export function PullRefresh() {
         .then(
           () => "done" as const,
           () => {
-            snack(navigator.onLine ? "Couldn’t refresh. Pull again to retry." : "You’re offline. Pull again once connected.");
+            snackError(navigator.onLine ? "Couldn’t refresh. Pull again to retry." : "You’re offline. Pull again once connected.");
             return "failed" as const;
           },
         )

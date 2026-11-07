@@ -142,7 +142,7 @@ function Today() {
         <strong>{today.reviewCount} to review</strong>
         {today.reviewOther > 0 && <span className="text-ink-2">· {today.reviewOther} unreviewed in Other</span>}
       </span>
-      <strong className="text-control text-brand">Start</strong>
+      <strong className="text-control text-brand">Start review</strong>
     </Link>
   );
   const wealthRow = wealth && (
