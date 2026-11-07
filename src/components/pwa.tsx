@@ -25,21 +25,37 @@ export async function promptInstall(): Promise<"prompted" | "ios" | "installed" 
   return isIOS() ? "ios" : "unavailable";
 }
 
+// Storage can throw (private mode); the install nudge is optional, so failures just skip it.
+const read = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const write = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Nudge may repeat; nothing else depends on it.
+  }
+};
+
 /** Call after each successful add; the 3rd add offers install once (Android, desktop Chrome). */
 export function countAdd() {
-  const n = Number(localStorage.getItem(ADDS) ?? 0) + 1;
-  localStorage.setItem(ADDS, String(n));
-  if (n < 3 || localStorage.getItem(DISMISSED) || isStandalone()) return;
+  const n = Number(read(ADDS) ?? 0) + 1;
+  write(ADDS, String(n));
+  if (n < 3 || read(DISMISSED) || isStandalone()) return;
   if (deferred)
     snack(
       "Install Kharcha for one-tap adding",
       { label: "Install", onClick: () => void promptInstall() },
       {
         label: "Not now",
-        onClick: () => localStorage.setItem(DISMISSED, "1"),
+        onClick: () => write(DISMISSED, "1"),
       },
     );
-  else if (isIOS() && !localStorage.getItem(IOS_SEEN)) for (const l of listeners) l();
+  else if (isIOS() && !read(IOS_SEEN)) for (const l of listeners) l();
 }
 
 export function setBadge(count: number) {
@@ -94,7 +110,7 @@ export function Pwa() {
 
   if (!iosSheet) return null;
   const close = () => {
-    localStorage.setItem(IOS_SEEN, "1");
+    write(IOS_SEEN, "1");
     setIosSheet(false);
   };
   return <IosInstallSheet onClose={close} />;

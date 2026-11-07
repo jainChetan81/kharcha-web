@@ -62,7 +62,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
       >
         <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-meta">
           <div className="flex justify-between">
-            <span className="label-caps text-ink-3">Net</span>
+            <span className="label-caps">Net</span>
             <strong className={summary.net < 0 ? "text-over" : "text-earn"}>{signed(summary.net)}</strong>
           </div>
           {summary.top.map((item) => (

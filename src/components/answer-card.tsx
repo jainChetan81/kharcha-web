@@ -32,7 +32,7 @@ export function AnswerCard({
   const max = Math.max(...answer.rows.map((row) => row.value), 1);
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <span className="label-caps text-ink-3">
+      <span className="label-caps">
         Fig. {figure} · Ledger answer{scope ? ` · ${scope}` : ""}
         {when ? ` · ${when}` : ""}
       </span>

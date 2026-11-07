@@ -82,7 +82,7 @@ function Holding() {
         <section>
           <h2 className="font-serif text-section">Instalments</h2>
           {data.txns.length ? null : (
-            <p className="text-control text-ink-3">No purchase history yet. Value and invested come from the statement.</p>
+            <p className="text-control text-ink-2">No purchase history yet. Value and invested come from the statement.</p>
           )}
           {data.txns.map((row) => (
             <div key={row.id} className="flex min-h-11 items-center justify-between border-b border-hairline text-control">

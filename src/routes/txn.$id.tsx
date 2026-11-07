@@ -233,7 +233,7 @@ function Detail() {
       />
       <div className="space-y-6 px-5 pb-8 tablet:mx-auto tablet:max-w-[640px]">
         <section className="flex flex-col gap-1.5 border-b-3 border-double border-ink pb-5">
-          <span className="label-caps text-ink-3">
+          <span className="label-caps">
             {txn.type === "income" ? "Income" : "Expense"} ·{" "}
             {detail.splits.length ? `split in ${detail.splits.length}` : (txn.category ?? "Other")}
           </span>
@@ -268,7 +268,7 @@ function Detail() {
         </dl>
         {txn.rawText && (
           <details className="flex flex-col gap-2">
-            <summary className="label-caps min-h-11 cursor-pointer text-ink-3">Source SMS</summary>
+            <summary className="label-caps min-h-11 cursor-pointer">Source SMS</summary>
             <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
               {txn.rawText}
             </p>
@@ -282,7 +282,7 @@ function Detail() {
         {hasReceipt ? (
           <section className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h2 className="label-caps m-0 text-ink-3">Receipt</h2>
+              <h2 className="label-caps m-0">Receipt</h2>
               <ButtonLink to="/txn/$id/receipt" params={{ id: String(txn.id) }} variant="text">
                 Edit
               </ButtonLink>
@@ -393,7 +393,7 @@ function Detail() {
               From <strong className="font-medium text-ink">{claim.counterparty}</strong>
               {claim.note ? ` · ${claim.note}` : ""}
             </p>
-            <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-control">
+            <dl className="m-0 grid grid-cols-3 gap-2 border-t border-hairline pt-3 text-control">
               <div>
                 <dt className="text-ink-3">Paid</dt>
                 <dd className="m-0 font-semibold">{money(txn.amount)}</dd>
@@ -409,7 +409,7 @@ function Detail() {
             </dl>
             {claimInfo.links.length > 0 && (
               <div>
-                <h3 className="label-caps mb-1 text-ink-3">Repayments</h3>
+                <h3 className="label-caps mb-1">Repayments</h3>
                 <ul className="m-0 list-none divide-y divide-hairline p-0">
                   {claimInfo.links.map((link) => (
                     <li key={link.creditId} className="flex min-h-12 items-center justify-between gap-2 text-control">
@@ -434,7 +434,7 @@ function Detail() {
             )}
             {data.suggestions.length > 0 && claim.status !== "cancelled" && (
               <div>
-                <h3 className="label-caps mb-1 text-ink-3">Might be the repayment</h3>
+                <h3 className="label-caps mb-1">Might be the repayment</h3>
                 <ul className="m-0 list-none space-y-2 p-0">
                   {data.suggestions.map((credit) => (
                     <li
@@ -583,7 +583,7 @@ function Detail() {
             </div>
           )}
           <Field id="claim-note" label="Note (optional)" value={note} onChange={(event) => setNote(event.target.value)} maxLength={300} />
-          <dl className="m-0 grid grid-cols-3 gap-2 rounded-card bg-sunken p-3 text-control">
+          <dl className="m-0 grid grid-cols-3 gap-2 border-t border-hairline pt-3 text-control">
             <div>
               <dt className="text-ink-3">Paid</dt>
               <dd className="m-0 font-semibold">{money(txn.amount)}</dd>

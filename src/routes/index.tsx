@@ -54,23 +54,16 @@ function Today() {
           <span className="hidden min-[420px]:inline-flex desk:hidden">
             <SyncPill onInk short />
           </span>
-          <Link
-            to="/settings"
-            aria-label="Settings"
-            className="flex size-11 items-center justify-center text-on-ink hover:text-on-ink desk:hidden"
-          >
+          <Link to="/settings" aria-label="Settings" className="flex size-11 items-center justify-center text-on-ink desk:hidden">
             <Settings size={20} strokeWidth={1.75} />
           </Link>
-          <Link
-            to="/ask"
-            className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-control font-medium text-white hover:text-white"
-          >
+          <Link to="/ask" className="ai-button flex min-h-11 items-center gap-1.5 rounded-chip px-3 text-control font-medium text-white">
             <AiMark />
             Ask<span className="hidden pl-1 font-mono text-caption opacity-75 desk:inline">/</span>
           </Link>
           <Link
             to="/add"
-            className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-control font-medium text-ink hover:text-ink desk:flex"
+            className="hidden min-h-9 items-center gap-1 rounded-chip bg-paper px-3 text-control font-medium text-ink desk:flex"
           >
             <Plus size={16} />
             Add
@@ -91,7 +84,7 @@ function Today() {
             <b className={tone}>{overOrLeft(today.spent, today.limit)}</b>
           </span>
         ) : (
-          <Link to="/plan/budgets" className="pb-1 text-meta font-medium whitespace-nowrap text-on-ink hover:text-on-ink desk:hidden">
+          <Link to="/plan/budgets" className="pb-1 text-meta font-medium whitespace-nowrap text-on-ink desk:hidden">
             Set a monthly budget
           </Link>
         )}
@@ -102,7 +95,7 @@ function Today() {
           {today.limit > 0 ? (
             <b className="block font-serif text-title font-medium text-on-ink">{money(today.limit)}</b>
           ) : (
-            <Link to="/plan/budgets" className="block font-serif text-title font-medium text-on-ink hover:text-on-ink">
+            <Link to="/plan/budgets" className="block font-serif text-title font-medium text-on-ink">
               Set one
             </Link>
           )}
@@ -115,7 +108,7 @@ function Today() {
         </span>
         <span className="text-control text-on-ink-2">
           Due in 10 days{" "}
-          <Link to="/plan/recurring" className="block font-serif text-title font-medium text-on-ink hover:text-on-ink">
+          <Link to="/plan/recurring" className="block font-serif text-title font-medium text-on-ink">
             {money(due)}
           </Link>
         </span>
@@ -142,7 +135,7 @@ function Today() {
   const review = today.reviewCount > 0 && (
     <Link
       to="/review"
-      className="flex min-h-13 items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink hover:text-ink"
+      className="flex min-h-13 items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink"
     >
       <span className="flex items-center gap-2">
         <i className="size-2 shrink-0 rounded-full bg-brand" />
@@ -153,7 +146,7 @@ function Today() {
     </Link>
   );
   const wealthRow = wealth && (
-    <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink hover:text-ink">
+    <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink">
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0">
           <small className="label-caps">Wealth</small>

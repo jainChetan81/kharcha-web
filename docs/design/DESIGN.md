@@ -132,7 +132,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
 
   --color-thumb: #FFFFFF;      /* switch thumb; #ECE8DF in dark */
   --shadow-control: 0 1px 2px rgba(28,34,48,.14);  /* selected segment, switch thumb */
-  --shadow-card: 0 8px 24px rgba(28,34,48,.08);    /* review card */
   --shadow-popover: 0 6px 16px rgba(28,34,48,.16); /* snackbar, popover, pull ring */
   --shadow-fab: 0 6px 16px rgba(28,34,48,.22);
   /* Dark: shadows use rgba(0,0,0,.35–.5); same names. */

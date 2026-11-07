@@ -75,7 +75,7 @@ function OwedScreen() {
 
       {/* Header totals */}
       <section className="mx-5 mt-4 flex flex-col gap-3 border-b-3 border-double border-ink pb-5 desk:mx-0">
-        <span className="label-caps text-ink-3">Owed to you</span>
+        <span className="label-caps">Owed to you</span>
         <div className="flex flex-wrap items-baseline gap-6">
           <strong className="font-serif text-figure leading-none font-medium desk:text-figure-lg">{money(data.totalOwed)}</strong>
           {view === "pending" && data.overdueCount > 0 && (

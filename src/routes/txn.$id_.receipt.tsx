@@ -553,9 +553,9 @@ function Receipt() {
                 </>
               )}
             </Button>
-            {!data.aiOn && <p className="m-0 text-control text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
+            {!data.aiOn && <p className="m-0 text-control text-ink-2">Receipt reading is off on this server. Add items by hand.</p>}
             {!online && (
-              <p className="m-0 text-control text-ink-3">Offline. Receipt files and saved items remain viewable; editing is disabled.</p>
+              <p className="m-0 text-control text-ink-2">Offline. Receipt files and saved items remain viewable; editing is disabled.</p>
             )}
             {error && (
               <p role="alert" className="m-0 text-control text-over">
@@ -613,7 +613,7 @@ function Receipt() {
             {data.items.length > 0 || items.length > 0 ? (
               <>
                 <div className="space-y-3 border-b-3 border-double border-ink pb-4">
-                  <span className="label-caps text-ink-3">Matched to transaction</span>
+                  <span className="label-caps">Matched to transaction</span>
                   <div className="flex items-baseline justify-between gap-3">
                     <strong className="font-serif text-title font-medium">{data.txn.merchant}</strong>
                     <strong className="font-serif text-title font-medium">{money(data.txn.amount)}</strong>
@@ -689,7 +689,7 @@ function Receipt() {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="label-caps m-0 text-ink-3">Items · {items.length} rows</h2>
+                  <h2 className="label-caps m-0">Items · {items.length} rows</h2>
                   <div className="flex gap-2">
                     {selectedItems.length > 1 && (
                       <Button variant="outline" onClick={merge} disabled={!online}>
@@ -819,7 +819,7 @@ function Receipt() {
                 <p className="m-0 text-control text-ink-2">
                   {files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}
                 </p>
-                {!data.aiOn && <p className="m-0 text-control text-ink-3">Receipt reading is off on this server. Add items by hand.</p>}
+                {!data.aiOn && <p className="m-0 text-control text-ink-2">Receipt reading is off on this server. Add items by hand.</p>}
                 <Button variant="outline" onClick={addItem} disabled={!online}>
                   <Plus size={17} />
                   Add item

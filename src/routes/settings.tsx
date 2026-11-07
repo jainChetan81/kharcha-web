@@ -416,7 +416,7 @@ function Settings() {
                   </Button>
                   <Button
                     variant="danger"
-                    className="min-h-11 bg-over text-on-over hover:bg-over hover:text-on-over"
+                    className="min-h-11 bg-over text-on-over hover:bg-over"
                     disabled={!deleteCounts}
                     onClick={() => void deleteCategoryNow()}
                   >
@@ -500,7 +500,7 @@ function Settings() {
                 </div>
               ))}
             </div>
-            {rules.length === 0 && <p className="py-5 text-control text-ink-3">No matching rules.</p>}
+            {rules.length === 0 && <p className="py-5 text-control text-ink-2">No matching rules.</p>}
           </div>
         </Sheet>
       )}

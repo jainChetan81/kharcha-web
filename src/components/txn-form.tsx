@@ -27,7 +27,7 @@ export function TxnForm({
   onDone,
   onCancel,
   onDeleted,
-  onDirtyChange,
+  dirtyRef,
 }: {
   mode: "add" | "edit";
   initial?: Value;
@@ -35,7 +35,8 @@ export function TxnForm({
   onDone: () => void;
   onCancel?: () => void;
   onDeleted?: () => void;
-  onDirtyChange?: (dirty: boolean) => void;
+  /** Parent reads `.current` when it needs to confirm a discard. */
+  dirtyRef?: { current: boolean };
 }) {
   useHoldsInput();
   const online = useOnline();
@@ -52,8 +53,8 @@ export function TxnForm({
   const initialExpr = useRef(initial ? String(initial.amount) : "");
   const dirty = restOf(value) !== initialRest.current || expr !== initialExpr.current;
   useEffect(() => {
-    onDirtyChange?.(dirty);
-  }, [dirty, onDirtyChange]);
+    if (dirtyRef) dirtyRef.current = dirty;
+  }, [dirty, dirtyRef]);
   // Desktop dialog autofocuses Merchant; Radix traps focus inside the dialog.
   useEffect(() => {
     if (window.matchMedia("(min-width: 840px)").matches) document.getElementById("merchant-desk")?.focus();

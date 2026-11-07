@@ -22,9 +22,7 @@ function Add() {
         onCancel={() => {
           if (confirmDiscard()) close();
         }}
-        onDirtyChange={(d) => {
-          dirty.current = d;
-        }}
+        dirtyRef={dirty}
       />
     </Sheet>
   );

@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
 import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
@@ -106,17 +106,19 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
     </button>
   );
 }
-function useDesktop() {
-  const [desktop, setDesktop] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 840px)");
-    const update = () => setDesktop(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-  return desktop;
-}
+// Desktop vs phone layout; the server snapshot is phone so SSR and first paint agree.
+const DESK = "(min-width: 840px)";
+const subscribeDesk = (change: () => void) => {
+  const media = window.matchMedia(DESK);
+  media.addEventListener("change", change);
+  return () => media.removeEventListener("change", change);
+};
+const useDesktop = () =>
+  useSyncExternalStore(
+    subscribeDesk,
+    () => window.matchMedia(DESK).matches,
+    () => false,
+  );
 function activeCount(s: SearchState, name: Filter) {
   if (name === "Sort") return Number(Boolean(s.sort && s.sort !== "newest"));
   if (name === "Date") return Number(Boolean(s.from || s.to) && !s.month);
@@ -554,9 +556,7 @@ function CategoryFields({
       </label>
       {(["expense", "income"] as const).map((type) => (
         <fieldset key={type} className="m-0 border-0 p-0">
-          <legend className="w-full bg-sunken px-3 py-2 text-tab font-semibold uppercase tracking-wide text-ink-3">
-            {type === "expense" ? "Spending" : "Income"}
-          </legend>
+          <legend className="w-full px-3 pt-3 pb-1 label-caps">{type === "expense" ? "Spending" : "Income"}</legend>
           {filtered
             .filter((item) => item.type === type)
             .map((item) => {
@@ -738,7 +738,7 @@ function RailSection({
                   onClick={() => onApply({ card: search.card === v ? undefined : v })}
                 />
               ))}
-              {cards.length === 0 && <p className="p-3 text-control text-ink-3">No cards found.</p>}
+              {cards.length === 0 && <p className="p-3 text-control text-ink-2">No cards found.</p>}
             </>
           )}
           {name === "Type" &&
@@ -762,7 +762,7 @@ function RailSection({
                   onClick={() => onApply({ tripId: search.tripId === trip.id ? undefined : trip.id })}
                 />
               ))}
-              {trips.length === 0 && <p className="p-3 text-control text-ink-3">No trips found.</p>}
+              {trips.length === 0 && <p className="p-3 text-control text-ink-2">No trips found.</p>}
             </>
           )}
           {name === "Amount" && (
@@ -847,16 +847,7 @@ function FilterScreen({
       window.clearTimeout(timer);
     };
   }, [draft, getCount]);
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onClose]);
+  // Radix Dialog closes on Escape through onOpenChange.
   // A changed draft drops the old N, so the button never advertises a stale count.
   const patch = (next: Partial<SearchState>) => {
     if (getCount) setCount(undefined);
@@ -910,7 +901,7 @@ function FilterScreen({
       return (
         <>
           {cards.map((v) => row(`••${v}`, draft.card === v, () => patch({ card: draft.card === v ? undefined : v }), "radio"))}
-          {cards.length === 0 && <p className="p-3 text-control text-ink-3">No cards found.</p>}
+          {cards.length === 0 && <p className="p-3 text-control text-ink-2">No cards found.</p>}
         </>
       );
     if (section === "Type")
@@ -923,7 +914,7 @@ function FilterScreen({
           {trips.map((trip) =>
             row(trip.name, draft.tripId === trip.id, () => patch({ tripId: draft.tripId === trip.id ? undefined : trip.id }), "radio"),
           )}
-          {trips.length === 0 && <p className="p-3 text-control text-ink-3">No trips found.</p>}
+          {trips.length === 0 && <p className="p-3 text-control text-ink-2">No trips found.</p>}
         </>
       );
     if (section === "Amount")
@@ -1144,13 +1135,6 @@ function SortDialog({
 }) {
   const desktop = useDesktop();
   const reduced = useReducedMotion();
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onClose]);
   return (
     <Dialog.Root
       open

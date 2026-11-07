@@ -154,10 +154,7 @@ export function LedgerRow({
     <Link
       to="/txn/$id"
       params={{ id: String(t.id) }}
-      className={cn(
-        "flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-1.5 text-ink hover:bg-sunken hover:text-ink",
-        className,
-      )}
+      className={cn("flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-1.5 text-ink hover:bg-sunken", className)}
     >
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="flex items-center gap-1.5 truncate text-body font-medium">

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { card, money, shortDate } from "../lib/format";
 import { Button, Chip } from "./ui";
 
@@ -50,11 +50,9 @@ export function ReviewDeck({
   const [rule, setRule] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
-  const [duplicateOf, setDuplicateOf] = useState<number | null>(duplicates[0]?.id ?? null);
-
-  useEffect(() => {
-    setDuplicateOf(duplicates[0]?.id ?? null);
-  }, [duplicates]);
+  // Picked duplicate, or the first match when none was picked (or the pick left the list).
+  const [picked, setDuplicateOf] = useState<number | null>(null);
+  const duplicateOf = duplicates.some((item) => item.id === picked) ? picked : (duplicates[0]?.id ?? null);
 
   const confirm = () => onConfirm(category, rule);
   const dragEnd = (_: PointerEvent, info: { offset: { x: number } }) => {
@@ -67,14 +65,12 @@ export function ReviewDeck({
   return (
     <div className="flex min-h-[calc(100dvh-154px)] flex-col desk:hidden">
       <div className="relative mt-5 flex-1">
-        <div className="absolute top-4 right-4 left-4 h-[520px] rounded-hero border border-rule bg-sunken" />
-        <div className="absolute top-2 right-2 left-2 h-[520px] rounded-hero border border-rule bg-sunken" />
         <motion.article
           drag={disabled ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.16}
           onDragEnd={dragEnd}
-          className="relative flex flex-col gap-4 rounded-hero border border-rule bg-card p-5 shadow-card"
+          className="relative flex flex-col gap-4 rounded-hero border border-rule bg-card p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">

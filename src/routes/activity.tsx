@@ -382,7 +382,7 @@ function Activity() {
           className="fixed top-0 right-0 z-30 hidden h-dvh w-[380px] flex-col gap-3 overflow-y-auto border-l border-rule bg-card p-5 desk:flex"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="label-caps text-ink-3">
+            <span className="label-caps">
               {active.type} · {active.category ?? "Other"}
             </span>
             <div className="flex items-center gap-1">
@@ -534,7 +534,7 @@ function ActivityRow({
             }
             onSelect();
           }}
-          className="flex min-h-14.5 items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken hover:text-ink desk:hidden"
+          className="flex min-h-14.5 items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken desk:hidden"
         >
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="flex items-center gap-1.5 truncate text-body font-medium">

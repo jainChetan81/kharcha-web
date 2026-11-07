@@ -65,7 +65,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                 aria-current={on ? "page" : undefined}
                 className={cn(
                   "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
-                  on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                  on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                 )}
               >
                 <span className="inline-flex items-center gap-1.5">
@@ -83,7 +83,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/plan/trips/$id"
             params={{ id: String(trip.id) }}
-            className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink hover:text-on-ink"
+            className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink"
           >
             <span className="font-serif text-section">{trip.name}</span>
             <span className="text-caption text-trip-muted">
@@ -119,7 +119,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 hover:text-paper motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
+            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
           >
             <PlusIcon />
           </Link>
@@ -160,7 +160,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   onClick={() => setMoreOpen(false)}
                   className={cn(
                     "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
-                    path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -173,7 +173,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   onClick={() => setMoreOpen(false)}
                   className={cn(
                     "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
-                    path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Review</span>
@@ -184,7 +184,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   onClick={() => setMoreOpen(false)}
                   className={cn(
                     "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
-                    path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Paste SMS</span>
@@ -194,9 +194,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   onClick={() => setMoreOpen(false)}
                   className={cn(
                     "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
-                    path.startsWith("/settings")
-                      ? "bg-brand-soft font-semibold text-brand-deep"
-                      : "text-ink hover:bg-sunken hover:text-ink",
+                    path.startsWith("/settings") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Settings</span>

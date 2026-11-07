@@ -23,7 +23,7 @@ export const swatchTokens = [
 export function SwatchPicker({ value, onChange, label }: { value: string; onChange: (token: string) => void; label: string }) {
   const name = useId();
   return (
-    <fieldset className="m-0 grid grid-cols-7 gap-0.5 rounded-card border border-rule bg-card p-2.5 shadow-popover">
+    <fieldset className="m-0 grid grid-cols-7 gap-0.5 rounded-card border border-rule bg-card p-2.5">
       <legend className="sr-only">{label}</legend>
       {swatchTokens.map((token) => {
         const on = token === value;
