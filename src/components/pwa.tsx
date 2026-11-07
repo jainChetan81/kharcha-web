@@ -135,11 +135,8 @@ export function IosInstallSheet({ onClose }: { onClose: () => void }) {
           </li>
         ))}
       </ol>
-      <div className="flex justify-end gap-2">
-        <Button variant="text" onClick={onClose}>
-          Not now
-        </Button>
-        <Button onClick={onClose}>Done</Button>
+      <div className="flex justify-end">
+        <Button onClick={onClose}>Got it</Button>
       </div>
     </Sheet>
   );

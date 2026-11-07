@@ -185,13 +185,16 @@ function Wealth() {
   const [cas, setCas] = useState(false);
   const rail = (
     <>
-      <ButtonLink to="/wealth/new">Add holding</ButtonLink>
-      <Button variant="outline" onClick={() => setCas(true)}>
-        Import CAS
-      </Button>
-      <Button variant="outline" onClick={() => setImporting(true)}>
-        Import CSV
-      </Button>
+      {/* Phone: the Holdings header carries these actions. */}
+      <div className="hidden flex-col gap-5 desk:flex">
+        <ButtonLink to="/wealth/new">Add holding</ButtonLink>
+        <Button variant="outline" onClick={() => setCas(true)}>
+          Import CAS
+        </Button>
+        <Button variant="outline" onClick={() => setImporting(true)}>
+          Import CSV
+        </Button>
+      </div>
       <section hidden={!data.allocation.length} className="rounded-panel border border-hairline bg-card p-4">
         <b>Allocation vs target</b>
         {data.allocation.map((row) => (
@@ -284,14 +287,7 @@ function Wealth() {
             </Link>
           ))
         ) : (
-          <Empty
-            text="No holdings yet."
-            action={
-              <Link to="/wealth/new" className="text-control font-medium text-brand">
-                Add holding
-              </Link>
-            }
-          />
+          <Empty text="No holdings yet. Add one, or import a CAS or CSV statement." />
         )}
       </section>
       <SipList sips={data.sips} />

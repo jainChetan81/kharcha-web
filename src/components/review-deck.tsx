@@ -74,7 +74,7 @@ export function ReviewDeck({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="m-0 font-serif text-title leading-[1.15] font-medium">{row.merchant}</h2>
+              <h2 className="m-0 font-serif text-title font-medium">{row.merchant}</h2>
               <p className="mt-1 text-meta text-ink-2">
                 {shortDate(row.date)} · {row.accountLast4 ? `Card ${card(row.accountLast4)}` : "Manual"}
               </p>
