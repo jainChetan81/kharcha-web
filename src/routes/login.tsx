@@ -21,7 +21,7 @@ function Login() {
   const { next, error } = Route.useSearch();
   const [signingIn, setSigningIn] = useState(false);
   return (
-    <section className="mx-auto mt-16 max-w-sm rounded-card border border-hairline bg-card p-6">
+    <section className="mx-auto mt-16 max-w-sm rounded-panel border border-hairline bg-card p-6">
       <h1 className="text-title font-semibold">Kharcha</h1>
       {/* Plain form post: works before hydration and without JS. */}
       <form method="post" action="/api/login" className="mt-4 space-y-4" onSubmit={() => setSigningIn(true)}>

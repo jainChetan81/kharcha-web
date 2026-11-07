@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useState } from "react";
 import { card, money, shortDate } from "../lib/format";
 import { Button, Chip } from "./ui";
@@ -65,12 +65,12 @@ export function ReviewDeck({
   return (
     <div className="flex min-h-[calc(100dvh-154px)] flex-col desk:hidden">
       <div className="relative mt-5 flex-1">
-        <motion.article
+        <m.article
           drag={disabled ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.16}
           onDragEnd={dragEnd}
-          className="relative flex flex-col gap-4 rounded-hero border border-hairline bg-card p-5"
+          className="relative flex flex-col gap-4 rounded-panel border border-hairline bg-card p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -128,7 +128,7 @@ export function ReviewDeck({
                 <span>{smsOpen ? "Hide" : "Show"}</span>
               </button>
               {smsOpen && (
-                <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">
+                <p className="m-0 rounded-control bg-sunken p-3 font-mono text-meta leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">
                   {row.rawText}
                 </p>
               )}
@@ -145,7 +145,7 @@ export function ReviewDeck({
                 value={duplicateOf ?? ""}
                 disabled={disabled || !duplicates.length}
                 onChange={(event) => setDuplicateOf(Number(event.target.value))}
-                className="min-w-0 rounded-button border border-field bg-card px-2 text-control text-ink"
+                className="min-w-0 rounded-control border border-field bg-card px-2 text-control text-ink"
               >
                 {duplicates.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -181,7 +181,7 @@ export function ReviewDeck({
               Mark duplicate
             </Button>
           )}
-        </motion.article>
+        </m.article>
       </div>
 
       <div className="flex flex-col gap-2.5 pt-4 pb-[max(28px,env(safe-area-inset-bottom))]">

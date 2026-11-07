@@ -233,7 +233,7 @@ function Detail() {
       />
       <div className="space-y-6 px-5 pb-8 tablet:mx-auto tablet:max-w-[640px]">
         <section className="flex flex-col gap-1.5 border-b-3 border-double border-ink pb-5">
-          <span className="label-caps">
+          <span className="label-muted">
             {txn.type === "income" ? "Income" : "Expense"} ·{" "}
             {detail.splits.length ? `split in ${detail.splits.length}` : (txn.category ?? "Other")}
           </span>
@@ -268,8 +268,8 @@ function Detail() {
         </dl>
         {txn.rawText && (
           <details className="flex flex-col gap-2">
-            <summary className="label-caps min-h-11 cursor-pointer">Source SMS</summary>
-            <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
+            <summary className="label-muted min-h-11 cursor-pointer">Source SMS</summary>
+            <p className="m-0 rounded-control bg-sunken p-3 font-mono text-meta leading-relaxed text-ink-2 break-words [overflow-wrap:anywhere]">
               {txn.rawText}
             </p>
             {txn.rawMerchant && txn.rawMerchant !== txn.merchant && (
@@ -282,13 +282,13 @@ function Detail() {
         {hasReceipt ? (
           <section className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h2 className="label-caps m-0">Receipt</h2>
+              <h2 className="label-muted m-0">Receipt</h2>
               <ButtonLink to="/txn/$id/receipt" params={{ id: String(txn.id) }} variant="text">
                 Edit
               </ButtonLink>
             </div>
             {splitStale && (
-              <p role="alert" className="m-0 rounded-card bg-watch-soft p-3 text-control text-ink">
+              <p role="alert" className="m-0 rounded-panel bg-watch-soft p-3 text-control text-ink">
                 Amount changed since this split was saved. Re-check the split.
               </p>
             )}
@@ -326,7 +326,7 @@ function Detail() {
                     <summary className="grid min-h-13 cursor-pointer grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 text-body">
                       <span
                         aria-hidden
-                        className="size-2.5 rounded-dot"
+                        className="size-2.5 rounded-none"
                         style={{ background: `var(--color-${detail.categoryColors[group.category] ?? "cat-other"})` }}
                       />
                       <span className="font-medium">
@@ -357,7 +357,7 @@ function Detail() {
           <Link
             to="/txn/$id/receipt"
             params={{ id: String(txn.id) }}
-            className="flex min-h-16 items-center gap-3 rounded-card border border-dashed border-field px-4 text-body font-medium"
+            className="flex min-h-16 items-center gap-3 rounded-panel border border-dashed border-field px-4 text-body font-medium"
           >
             <svg
               width="22"
@@ -384,7 +384,7 @@ function Detail() {
           </Button>
         )}
         {claim && (
-          <section className="space-y-3 rounded-card border border-hairline p-4">
+          <section className="space-y-3 rounded-panel border border-hairline p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHead title="Reimbursement" />
               <StatusTag tone={statusTone}>{statusText}</StatusTag>
@@ -409,7 +409,7 @@ function Detail() {
             </dl>
             {claimInfo.links.length > 0 && (
               <div>
-                <h3 className="label-caps mb-1">Repayments</h3>
+                <h3 className="label-muted mb-1">Repayments</h3>
                 <ul className="m-0 list-none divide-y divide-hairline p-0">
                   {claimInfo.links.map((link) => (
                     <li key={link.creditId} className="flex min-h-12 items-center justify-between gap-2 text-control">
@@ -434,12 +434,12 @@ function Detail() {
             )}
             {data.suggestions.length > 0 && claim.status !== "cancelled" && (
               <div>
-                <h3 className="label-caps mb-1">Might be the repayment</h3>
+                <h3 className="label-muted mb-1">Might be the repayment</h3>
                 <ul className="m-0 list-none space-y-2 p-0">
                   {data.suggestions.map((credit) => (
                     <li
                       key={credit.id}
-                      className="flex min-h-14 items-center justify-between gap-2 rounded-card border border-dashed border-field px-3 text-control"
+                      className="flex min-h-14 items-center justify-between gap-2 rounded-panel border border-dashed border-field px-3 text-control"
                     >
                       <span className="min-w-0 truncate">
                         {credit.merchant} · {shortDate(credit.date)} · {money(credit.amount)}

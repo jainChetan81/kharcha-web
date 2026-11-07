@@ -225,11 +225,11 @@ function Review() {
             <div className="flex gap-2">
               <Link
                 to="/activity"
-                className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-body font-medium text-ink"
+                className="inline-flex min-h-11 items-center rounded-control border border-ink px-4 text-body font-medium text-ink"
               >
                 Open Activity
               </Link>
-              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-body font-medium text-paper">
+              <Link to="/" className="inline-flex min-h-11 items-center rounded-control bg-ink px-4 text-body font-medium text-paper">
                 Back to Today
               </Link>
             </div>
@@ -248,7 +248,7 @@ function Review() {
       railClassName="hidden desk:flex"
       rail={
         open ? (
-          <section aria-label="Selected transaction" className="flex flex-col gap-3.5 rounded-card border border-field bg-card p-5">
+          <section aria-label="Selected transaction" className="flex flex-col gap-3.5 rounded-panel border border-field bg-card p-5">
             <div className="flex items-start justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate font-serif text-title font-medium">{open.merchant}</span>
@@ -272,7 +272,7 @@ function Review() {
               Always file this merchant as {suggested}
             </label>
             {open.rawText && (
-              <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-meta leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">
+              <p className="m-0 rounded-control bg-sunken p-3 font-mono text-meta leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">
                 {open.rawText}
               </p>
             )}
@@ -307,8 +307,8 @@ function Review() {
           }
         />
       </div>
-      <div aria-hidden className="mx-5 h-0.75 rounded-mark bg-hairline desk:hidden">
-        <div className="h-full rounded-mark bg-brand" style={{ width: `${progress}%` }} />
+      <div aria-hidden className="mx-5 h-0.75 rounded-control bg-hairline desk:hidden">
+        <div className="h-full rounded-control bg-brand" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="hidden desk:block">
@@ -336,14 +336,14 @@ function Review() {
           <div className="flex flex-wrap gap-2 text-caption text-ink-2">
             {keys.map((item) => (
               <span key={item.key} className="flex items-center gap-1.5">
-                <span className="rounded-mark border border-field bg-card px-1.5 py-0.5 font-mono text-ink">{item.key}</span>
+                <span className="rounded-control border border-field bg-card px-1.5 py-0.5 font-mono text-ink">{item.key}</span>
                 {item.label}
               </span>
             ))}
           </div>
         </header>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-button border border-hairline px-3 py-1.5">
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-control border border-hairline px-3 py-1.5">
           <span className="text-control font-medium">{selected.length ? `${selected.length} selected` : "Nothing selected"}</span>
           <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-control">
             Confirm suggested
@@ -362,7 +362,7 @@ function Review() {
         </div>
 
         <ul className="mt-6 min-w-[560px] list-none p-0">
-          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 label-caps`}>
+          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 label-muted`}>
             <span />
             <span>Date</span>
             <span>Merchant</span>
@@ -457,7 +457,7 @@ function Review() {
             >
               Start over
             </Button>
-            <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4.5 text-body font-medium text-paper">
+            <Link to="/" className="inline-flex min-h-11 items-center rounded-control bg-ink px-4.5 text-body font-medium text-paper">
               Back to home
             </Link>
           </div>

@@ -40,7 +40,7 @@ export function ReimbursableBadge({ amount, className }: { amount?: number; clas
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-chip border border-brand px-1.5 py-0.5 text-caption font-medium text-brand",
+        "inline-flex shrink-0 items-center gap-1 rounded-full border border-brand px-1.5 py-0.5 text-caption font-medium text-brand",
         className,
       )}
     >
@@ -72,10 +72,10 @@ export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boole
       <span
         className={cn(
           "inline-flex min-w-0 items-center gap-1 truncate",
-          t.excluded ? "rounded-mark bg-sunken px-1.5 text-ink-2" : "text-ink-2",
+          t.excluded ? "rounded-control bg-sunken px-1.5 text-ink-2" : "text-ink-2",
         )}
       >
-        {tone && <i aria-hidden className="inline-block size-2 shrink-0 rounded-dot" style={{ background: `var(--color-${tone})` }} />}
+        {tone && <i aria-hidden className="inline-block size-2 shrink-0 rounded-none" style={{ background: `var(--color-${tone})` }} />}
         <span className="truncate">{label(t)}</span>
       </span>
       {t.accountLast4 && (
@@ -186,7 +186,7 @@ export function LedgerRow({
 
 export function DayHeader({ date, total, label }: { date: string; total: number; label?: string }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-4.5 pb-1.5 text-caption tracking-[0.08em] text-ink-2 uppercase">
+    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-4.5 pb-1.5 text-caption font-medium text-ink-2">
       <span className="min-w-0 truncate">{label ?? weekdayDate(date)}</span>
       <span className="shrink-0 font-semibold text-ink">{money(total)}</span>
     </div>

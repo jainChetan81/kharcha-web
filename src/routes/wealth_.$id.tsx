@@ -46,7 +46,7 @@ function Holding() {
         }
       />
       <div className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[760px]">
-        <section className="rounded-hero bg-hero p-5 text-on-ink">
+        <section className="rounded-panel bg-hero p-5 text-on-ink">
           <strong className="font-serif text-figure font-medium">{money(data.value)}</strong>
           <p className="mb-0 text-control text-on-ink-2">
             {data.price
@@ -61,7 +61,7 @@ function Holding() {
             <polyline points={points} fill="none" stroke="var(--color-brand)" strokeWidth="2" />
           </svg>
         )}
-        <section className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-hairline bg-hairline">
+        <section className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-hairline bg-hairline">
           {[
             ["Units", data.txns.length ? data.units.toFixed(2) : "—"],
             ["NAV", data.price ? money(data.price.nav) : "—"],

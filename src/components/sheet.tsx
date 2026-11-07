@@ -1,6 +1,6 @@
 // Bottom sheet on phones, centred dialog at ≥600px (Style board: radius 20, grab handle, 220 ms).
 import { Dialog } from "radix-ui";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { useEffect, type ReactNode } from "react";
 import { Toaster, toast } from "sonner";
 import { cn } from "../lib/cn";
@@ -44,7 +44,7 @@ export function Sheet({
     <Dialog.Root open onOpenChange={(o) => !o && close()}>
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div
+          <m.div
             className="fixed inset-0 z-40 bg-scrim"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -58,7 +58,7 @@ export function Sheet({
             if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault();
           }}
         >
-          <motion.section
+          <m.section
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 36 }}
@@ -76,7 +76,7 @@ export function Sheet({
               className,
             )}
           >
-            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-mark bg-hairline tablet:hidden" />
+            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-control bg-hairline tablet:hidden" />
             <Dialog.Title className="m-0 font-serif text-title font-medium">{title}</Dialog.Title>
             {description ? (
               <Dialog.Description className="-mt-2 text-meta text-ink-2">{description}</Dialog.Description>
@@ -84,7 +84,7 @@ export function Sheet({
               <Dialog.Description className="sr-only">{title}</Dialog.Description>
             )}
             {children}
-          </motion.section>
+          </m.section>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -117,7 +117,7 @@ export function Snackbars() {
         unstyled: true,
         classNames: {
           toast:
-            "flex min-h-13 w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-control text-on-ink shadow-popover",
+            "flex min-h-13 w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-panel bg-hero py-1.5 pr-1.5 pl-3.5 text-control text-on-ink shadow-popover",
           title: "leading-snug",
           actionButton: "min-h-11 px-2.5 font-semibold text-on-ink-pace",
           cancelButton: "min-h-11 px-2.5 text-on-ink-2",

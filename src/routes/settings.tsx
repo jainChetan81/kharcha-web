@@ -257,7 +257,7 @@ function Settings() {
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
           {!data.aiOn && (
-            <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-control leading-relaxed">
+            <p className="mt-3 mb-0 rounded-panel border border-dashed border-field bg-card px-3.5 py-3 text-control leading-relaxed">
               AI is off. Ask, the weekly digest and receipt reading need the server switch.
             </p>
           )}
@@ -315,7 +315,7 @@ function Settings() {
               const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
               return (
                 <div key={type} className="mt-4">
-                  <h3 className="m-0 label-caps">{type === "expense" ? "Spending" : "Income"}</h3>
+                  <h3 className="m-0 label-muted">{type === "expense" ? "Spending" : "Income"}</h3>
                   <Reorder.Group
                     axis="y"
                     values={group}
@@ -382,7 +382,7 @@ function Settings() {
                 aria-expanded={colorPicker === "__new"}
                 disabled={!online}
                 onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")}
-                className="size-11 self-center rounded-inner"
+                className="size-11 self-center rounded-control"
                 style={{ background: `var(--color-${categoryDraft.colorToken})` }}
               />
               <Button
@@ -476,7 +476,7 @@ function Settings() {
                         </span>
                         <strong className="truncate font-semibold">{rule.displayMerchant}</strong>
                         <span
-                          className="size-2 shrink-0 rounded-mark"
+                          className="size-2 shrink-0 rounded-control"
                           style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }}
                         />
                         <span className="truncate">{rule.category}</span>
@@ -589,7 +589,7 @@ function CategoryItem({
           onClick={onToggleColorPicker}
           className="flex size-11 shrink-0 items-center justify-center"
         >
-          <span className="size-6 rounded-inner" style={{ background: `var(--color-${item.colorToken})` }} />
+          <span className="size-6 rounded-control" style={{ background: `var(--color-${item.colorToken})` }} />
         </button>
         <input
           aria-label={`${item.name} category name`}

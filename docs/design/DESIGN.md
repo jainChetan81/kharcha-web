@@ -117,20 +117,13 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-cat-interest: #4B7432;
   --color-cat-other-income: #8A8576;
 
-  --radius-chip: 999px;
-  --radius-button: 10px;
-  --radius-card: 12px;
-  --radius-hero: 14px;
-  --radius-sheet: 20px;
-  --radius-fab: 16px;          /* add button */
-  --radius-inner: 8px;         /* segment, SMS block, small swatch */
-  --radius-mark: 4px;          /* kbd, inline tag, skeleton bar */
-  --radius-dot: 2px;           /* category square */
+  --radius-control: 6px;       /* buttons, inputs, chips' inner marks, segments, kbd, tags, skeleton bars */
+  --radius-panel: 12px;        /* cards, hero, dialogs, popovers, tables */
+  --radius-sheet: 20px;        /* bottom sheet top corners (exception, see §22) */
+  /* Pills, chips, avatars, dots and the add button use rounded-full; category squares are square. */
 
   --color-thumb: #FFFFFF;      /* switch thumb; #ECE8DF in dark */
-  --shadow-control: 0 1px 2px rgba(28,34,48,.14);  /* selected segment, switch thumb */
-  --shadow-popover: 0 6px 16px rgba(28,34,48,.16); /* snackbar, popover, pull ring */
-  --shadow-fab: 0 6px 16px rgba(28,34,48,.22);
+  --shadow-popover: 0 6px 16px rgba(28,34,48,.16); /* snackbar, popover, pull ring: the only shadow (layers 3+) */
   /* Dark: shadows use rgba(0,0,0,.35–.5); same names. */
 }
 body { font-variant-numeric: tabular-nums lining-nums; }
@@ -139,7 +132,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 - **Day-ring and heat scale:** `#CFD8E8 → #B9C6DD → #8199BF → #4C6A9C → #1F3459`.
 - **Contrast:** measured on every board. Every text pair is 4.9:1 or better. Light text colours appear only on ink or trip surfaces. Field borders are 3.3:1 against paper.
 - **Categories:** Sports' colour sits close in lightness to Home and Utilities. Categories are always shown with their label, so this is acceptable.
-- **Type scale** (px): 11 tab labels and stat captions · 12 eyebrows, captions, tags · 13 meta lines and helper copy · 14 controls and chips · 15 rows and body · 16 inputs (stops iOS zoom) · 18 section headings · 22 sheet and dialog titles · 26 page titles (30 on desktop) · 34–64 hero figures in Newsreader. Chart labels may go to 10. Nothing else.
+- **Type scale** (px): 12 captions, group labels, tab labels, stat captions, chart labels and tags · 13 meta lines and helper copy · 14 controls and chips · 15 rows and body · 16 inputs (stops iOS zoom) · 18 section headings · 22 sheet and dialog titles · 26 page titles (30 on desktop) · 34–56 hero figures in Newsreader. Nothing below 12 and nothing else. Group labels are sentence case (`label-muted`, 12/16, 500, `ink-2`): no all-caps or letter-spaced eyebrows.
 - **Fonts:** self-host with `@fontsource/newsreader`, `@fontsource/ibm-plex-sans` and `@fontsource/ibm-plex-mono`. Weights used: Newsreader 400, 500 and 400 italic; Plex Sans 400, 500 and 600; Plex Mono 400.
 - **Dark mode:** follows `prefers-color-scheme`, with a Light / Dark / System choice in Settings. Override the same names under `.dark`. Every pair below is measured: text 6:1 or better, `field` 3.9:1, categories 4.96:1 or better on `card`.
 
@@ -184,7 +177,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 
 | Component | Notes |
 |---|---|
-| `AppShell` | Mobile: `TabBar` (`calc(50px + env(safe-area-inset-bottom))`, so 84px on a phone with a home indicator; 5 tabs; active tab gets a 2px top rule) plus `Fab` (56px, radius 16, 16px above the tab bar). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail; Plan tabs keep that column even when it is empty, so all four share one width. |
+| `AppShell` | Mobile: `TabBar` (`calc(50px + env(safe-area-inset-bottom))`, so 84px on a phone with a home indicator; 5 tabs; active tab gets a 2px top rule) plus `Fab` (56px, round, 16px above the tab bar). ≥840px: `Sidebar` (240px), with the trip card when a trip is upcoming or active, then the sync pill and Settings. Desktop pages use a main column plus a 300px right rail; Plan tabs keep that column even when it is empty, so all four share one width. |
 | `MonthStepper`, `SyncPill`, `SyncNow`, `StatusTag` | Pill and Sync now states: §18. Month stepper: §16. |
 | `InkHero` | Today and Wealth only. |
 | `PaceChart`, `GainChart`, `Waterfall`, `DayRings`, `Beeswarm`, `Treemap`, `Sparkline`, `BudgetBar` | Plain SVG or CSS. Rules are on the Style board, §6. |
@@ -642,3 +635,16 @@ Checked kharcha.chetan-vps.tech at 1512px, 1200px and 390px against the canvas. 
 
 - **Wealth freshness.** Decided: statements. Keep "Statement of 9 Oct · not live" and XIRR "—" until a NAV job exists; the boards' daily-NAV hero is the later state.
 - **Where it went on phone.** Live shows a list; the boards show the treemap used on desktop.
+
+## 22. Differences from the design guide
+
+`~/Documentation/frontend/design.md` is the cross-project default; this file wins where they differ. Recorded exceptions:
+
+- **Fonts:** Newsreader for figures and titles, IBM Plex Sans and Mono, not Geist (brand choice, §3).
+- **Type scale:** 12 sizes, not 6. Body is 15, inputs 16 (stops iOS zoom), and hero figures 34–56 in Newsreader. Nothing below `caption` (12).
+- **Sheet radius:** bottom sheets use 20px top corners (`rounded-t-sheet`); everything else is `control` 6, `panel` 12, `full` or none.
+- **AI fill:** the still gradient on the Ask pill, AI strip and orb (§20). It marks model activity only; every use has a text label.
+- **Hatching:** the diagonal stripes on budget bars and the empty-allocation placeholder show "projected" and "unknown". A label always carries the meaning.
+- **Scroll fade:** the filter chip row fades at its right edge to show it scrolls.
+- **Disabled while offline:** write controls disable offline (§9); the sync pill says "Offline" and the save bar says "Offline. Connect to save." This is the visible reason the guide asks for.
+- **Colour token names:** `paper`, `card`, `ink`, `ink-2`, `hairline`, `field`, `brand`, `earn`, `over`, `watch` map to the guide's `surface-*`, `content-*`, `line-*`, `action`, `positive`, `danger`, `caution` roles. `ink-2` is both secondary and muted text (one grey).

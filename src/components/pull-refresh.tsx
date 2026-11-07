@@ -1,7 +1,7 @@
 // Pull to refresh for the installed app, which has no reload button. Refetches route loaders; nothing is cached on the device.
 import { useRouter } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { animate, m, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import { editingNow, snack } from "./sheet";
 
@@ -67,19 +67,19 @@ export function PullRefresh() {
 
   return (
     <>
-      <motion.div
+      <m.div
         aria-hidden
         style={{ y, opacity }}
         className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-40 flex justify-center desk:hidden"
       >
         <span className="flex size-9 items-center justify-center rounded-full border border-hairline bg-card text-ink shadow-popover">
-          <motion.span style={{ rotate }} className="flex">
+          <m.span style={{ rotate }} className="flex">
             <span className={busy ? "flex animate-spin motion-reduce:animate-none" : "flex"}>
               <RefreshCw size={18} strokeWidth={1.75} />
             </span>
-          </motion.span>
+          </m.span>
         </span>
-      </motion.div>
+      </m.div>
       <span className="sr-only" role="status">
         {busy ? "Refreshing" : ""}
       </span>

@@ -50,7 +50,7 @@ function Trip() {
     <>
       <PageHeader title={trip.name} sub={`${trip.startDate} – ${trip.endDate} · ${money(trip.budget)} a day`} back="/plan/trips" />
       <div className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
-        <section className="rounded-card bg-trip p-4 text-on-ink">
+        <section className="rounded-panel bg-trip p-4 text-on-ink">
           <b className="font-serif text-title">{trip.name}</b>
           <p className="mb-0 text-control text-trip-muted">{money(daily.reduce((sum, row) => sum + row.amount, 0))} in daily budget</p>
         </section>
@@ -64,7 +64,7 @@ function Trip() {
                 </span>
                 <span
                   aria-hidden="true"
-                  className="h-6 rounded-mark bg-brand"
+                  className="h-6 rounded-control bg-brand"
                   style={{ width: `${Math.min(100, (amount / Math.max(trip.budget, 1)) * 100)}%` }}
                 />
               </li>

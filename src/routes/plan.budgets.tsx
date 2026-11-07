@@ -91,7 +91,7 @@ function Budgets() {
               >
                 <span className="flex justify-between text-body">
                   <span className="font-medium">
-                    <i className="mr-2 inline-block size-2 rounded-dot" style={{ background: `var(--color-${row.colorToken})` }} />
+                    <i className="mr-2 inline-block size-2 rounded-none" style={{ background: `var(--color-${row.colorToken})` }} />
                     {row.name}
                   </span>
                   <span className="font-medium">

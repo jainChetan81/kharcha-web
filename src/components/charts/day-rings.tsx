@@ -10,7 +10,7 @@ export function DayRings({ rows, month }: { rows: { day: string; total: number; 
   return (
     <figure className="m-0 grid grid-cols-7 gap-2">
       {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((d) => (
-        <span key={d} className="text-center text-tab text-ink-2">
+        <span key={d} className="text-center text-caption text-ink-2">
           <span aria-hidden="true">{d[0]}</span>
           <span className="sr-only">{d}</span>
         </span>
@@ -33,7 +33,7 @@ export function DayRings({ rows, month }: { rows: { day: string; total: number; 
               className="shrink-0 rounded-full"
               style={{ width: size, height: size, border: `${Math.max(2, size / 5)}px solid var(--color-heat-${heat})` }}
             />
-            <span className="text-chart text-ink-2">
+            <span className="text-caption text-ink-2">
               <span aria-hidden="true">{i + 1}</span>
               <span className="sr-only">{weekday(day)}</span>
             </span>

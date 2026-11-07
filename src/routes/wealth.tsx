@@ -85,7 +85,7 @@ function ImportSheet({ names, onClose }: { names: Set<string>; onClose: () => vo
           <p className="m-0 text-control text-ink-2">
             {good} ready · {bad} errors
           </p>
-          <div className="max-h-40 overflow-y-auto rounded-card border border-hairline">
+          <div className="max-h-40 overflow-y-auto rounded-panel border border-hairline">
             {rows.slice(0, 50).map((row) => (
               <div
                 key={`${row.date}-${row.fund}-${row.amount}-${row.units}-${row.nav}`}
@@ -163,7 +163,7 @@ function CasSheet({ onClose }: { onClose: () => void }) {
         </p>
       )}
       {skipped.length ? (
-        <div className="rounded-card border border-hairline">
+        <div className="rounded-panel border border-hairline">
           {skipped.map((row) => (
             <p key={row.name} className="m-0 border-b border-hairline px-3 py-2 text-meta">
               <b>{row.name}</b>
@@ -192,7 +192,7 @@ function Wealth() {
       <Button variant="outline" onClick={() => setImporting(true)}>
         Import CSV
       </Button>
-      <section hidden={!data.allocation.length} className="rounded-card border border-hairline bg-card p-4">
+      <section hidden={!data.allocation.length} className="rounded-panel border border-hairline bg-card p-4">
         <b>Allocation vs target</b>
         {data.allocation.map((row) => (
           <div key={row.name} className="mt-3">
@@ -202,16 +202,16 @@ function Wealth() {
                 {data.value ? Math.round((row.value / data.value) * 100) : 0}% / {row.hasTarget ? `${row.target}%` : "Target not set"}
               </span>
             </span>
-            <div className="mt-1 h-1.5 rounded-mark bg-sunken">
+            <div className="mt-1 h-1.5 rounded-control bg-sunken">
               <span
-                className="block h-full rounded-mark bg-brand"
+                className="block h-full rounded-control bg-brand"
                 style={{ width: `${data.value ? (row.value / data.value) * 100 : 0}%` }}
               />
             </div>
           </div>
         ))}
       </section>
-      <section className="rounded-card border border-hairline bg-card p-4">
+      <section className="rounded-panel border border-hairline bg-card p-4">
         <b>
           NPS 80CCD(1B) · FY {data.financialYear}–{String(data.financialYear + 1).slice(2)}
         </b>
@@ -223,9 +223,9 @@ function Wealth() {
     <DeskPage rail={rail}>
       <PageHeader title="Wealth" />
       <InkHero className="mt-2 desk:mt-0">
-        <span className="label-caps text-on-ink-2">Portfolio value</span>
+        <span className="label-muted text-on-ink-2">Portfolio value</span>
         <HeroAmount value={money(data.value)} size="lg" />
-        <span className="label-caps text-on-ink-2">Gain</span>
+        <span className="label-muted text-on-ink-2">Gain</span>
         <span className={data.gain >= 0 ? "text-on-ink-gain" : "text-on-ink-over"}>
           {data.gain >= 0 ? "+" : "−"}
           {money(Math.abs(data.gain))}

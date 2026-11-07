@@ -16,8 +16,8 @@ export function Waterfall({ values }: { values: { income: number; investments: n
             {label}
             <small className="block text-caption font-normal text-ink-2">{money(value)}</small>
           </span>
-          <span className="h-4.5 rounded-mark bg-sunken">
-            <span className={`block h-4.5 rounded-mark ${color}`} style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
+          <span className="h-4.5 rounded-control bg-sunken">
+            <span className={`block h-4.5 rounded-control ${color}`} style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
           </span>
         </div>
       ))}

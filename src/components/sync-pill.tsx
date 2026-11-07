@@ -91,7 +91,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
       role="status"
       title={label}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1.25 text-caption whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.25 text-caption whitespace-nowrap",
         onInk
           ? "bg-hero-raised text-on-ink-2"
           : state === "quiet"

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import type { ScopeSearch } from "../lib/filters";
 import { money, shortDate, signed } from "../lib/format";
@@ -30,7 +30,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
   const max = Math.max(1, ...summary.top.map((c) => c.total));
   const tone = (category: string) => `var(--color-${colors[category] ?? "cat-other"})`;
   return (
-    <section aria-label="Activity summary" className="overflow-hidden rounded-card bg-sunken text-ink">
+    <section aria-label="Activity summary" className="overflow-hidden rounded-panel bg-sunken text-ink">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -41,19 +41,19 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
           {figures.map((f) => (
             <span key={f.label} className="flex min-w-0 flex-col">
               <strong className={`truncate text-control font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
-              <span className="text-tab text-ink-2">{f.label}</span>
+              <span className="text-caption text-ink-2">{f.label}</span>
             </span>
           ))}
         </span>
-        <motion.span
+        <m.span
           animate={{ rotate: expanded ? 180 : 0 }}
           transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 18 }}
           aria-hidden="true"
         >
           <ChevronDown size={17} />
-        </motion.span>
+        </m.span>
       </button>
-      <motion.div
+      <m.div
         initial={false}
         animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
         transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 36 }}
@@ -62,13 +62,13 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
       >
         <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-meta">
           <div className="flex justify-between">
-            <span className="label-caps">Net</span>
+            <span className="label-muted">Net</span>
             <strong className={summary.net < 0 ? "text-over" : "text-earn"}>{signed(summary.net)}</strong>
           </div>
           {summary.top.map((item) => (
             <div key={item.category} className="grid grid-cols-[minmax(88px,1fr)_2fr_auto] items-center gap-2">
               <span className="flex min-w-0 items-center gap-1.5 truncate">
-                <i aria-hidden className="size-2 shrink-0 rounded-mark" style={{ background: tone(item.category) }} />
+                <i aria-hidden className="size-2 shrink-0 rounded-control" style={{ background: tone(item.category) }} />
                 <span className="truncate">{item.category}</span>
               </span>
               <span className="h-1 overflow-hidden rounded-full bg-sunken">
@@ -104,7 +104,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
             See insights
           </Link>
         </div>
-      </motion.div>
+      </m.div>
     </section>
   );
 }

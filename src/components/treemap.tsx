@@ -18,7 +18,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
       key={row.category}
       to="/activity"
       search={{ month, category: row.category }}
-      className={`flex min-w-0 flex-col justify-between rounded-inner p-3 transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${row.category === "Other" ? "hatch text-ink" : "text-on-cat"}`}
+      className={`flex min-w-0 flex-col justify-between rounded-control p-3 transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${row.category === "Other" ? "hatch text-ink" : "text-on-cat"}`}
       style={row.category === "Other" ? undefined : { background: `var(--color-${row.colorToken})` }}
     >
       <b className="truncate text-control">{row.category}</b>
@@ -41,7 +41,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
               className="flex min-h-11 items-center justify-between gap-2 border-b border-hairline text-meta transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <span className="flex min-w-0 items-center gap-1.5">
-                <i className="size-2 shrink-0 rounded-mark" style={{ background: `var(--color-${row.colorToken})` }} />
+                <i className="size-2 shrink-0 rounded-control" style={{ background: `var(--color-${row.colorToken})` }} />
                 <span className="truncate">{row.category}</span>
               </span>
               <span className="shrink-0 text-ink-2">
@@ -64,7 +64,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
                   search={{ month, category: row.category }}
                   aria-label={`${row.category}: ${money(row.total)}`}
                   title={`${row.category}: ${money(row.total)}`}
-                  className="min-w-2 rounded-inner transition-[opacity,transform] hover:opacity-90 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
+                  className="min-w-2 rounded-control transition-[opacity,transform] hover:opacity-90 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
                   style={{ background: `var(--color-${row.colorToken})`, flex: row.total }}
                 />
               ))}
@@ -81,7 +81,7 @@ export function Treemap({ rows, month, reviewOther = 0 }: { rows: Category[]; mo
               search={{ month, category: row.category }}
               className="flex min-w-0 items-center gap-1.5 text-ink-2 transition-[opacity,transform] hover:text-ink hover:opacity-90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
-              <i className="size-2 shrink-0 rounded-mark" style={{ background: `var(--color-${row.colorToken})` }} />
+              <i className="size-2 shrink-0 rounded-control" style={{ background: `var(--color-${row.colorToken})` }} />
               <span className="truncate">{row.category}</span> <span className="shrink-0">{money(row.total)}</span>
             </Link>
           ))}

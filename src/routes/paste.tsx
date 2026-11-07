@@ -120,7 +120,7 @@ function Paste() {
         )}
         {parsed && (
           <Card aria-live="polite" className="mt-2 flex flex-col gap-3.5 p-5">
-            <span className="label-caps">Parsed on server · {parsed.bankName}</span>
+            <span className="label-muted">Parsed on server · {parsed.bankName}</span>
             <div className="flex justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <span className="min-w-0">
                 <b className="block truncate font-serif text-title font-medium">{parsed.merchant}</b>

@@ -7,12 +7,12 @@ export function SixMonths({ rows }: { rows: { month: string; total: number; curr
         {rows.map((row) => (
           <span
             key={row.month}
-            className={`min-w-0 flex-1 rounded-t-mark ${row.current ? "hatch bg-brand" : "bg-[var(--color-heat-3)]"}`}
+            className={`min-w-0 flex-1 rounded-t-control ${row.current ? "hatch bg-brand" : "bg-[var(--color-heat-3)]"}`}
             style={{ height: `${Math.max(3, (row.total / max) * 100)}%` }}
           />
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-6 gap-3 text-center text-tab text-ink-2">
+      <div className="mt-1 grid grid-cols-6 gap-3 text-center text-caption text-ink-2">
         {rows.map((row) => (
           <span key={row.month}>
             {monthLabel(row.month).slice(0, 3)}

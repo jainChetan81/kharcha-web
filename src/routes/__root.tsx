@@ -1,6 +1,6 @@
 import { PullRefresh } from "../components/pull-refresh";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
-import { MotionConfig } from "motion/react";
+import { LazyMotion, MotionConfig } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { Pwa, setBadge } from "../components/pwa";
@@ -13,6 +13,8 @@ import { getShell } from "../server/fns";
 import stylesheet from "../styles.css?url";
 import { themeBoot, watchSystemTheme } from "../lib/theme";
 import { errorText } from "../lib/error-text";
+
+const loadMotionFeatures = () => import("../lib/motion-features").then((mod) => mod.domMax);
 
 export const Route = createRootRoute({
   head: ({ loaderData }) => ({
@@ -82,30 +84,32 @@ function Layout() {
       </main>
     );
   return (
-    <MotionConfig reducedMotion="user">
-      <HealthProvider value={health}>
-        <AppShell data={shell}>
-          <Outlet />
-        </AppShell>
-        <PullRefresh />
-        <Snackbars />
-        <Pwa />
-        {help && (
-          <Sheet title="Shortcuts" onClose={() => setHelp(false)}>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body">
-              {KEYS.map((k) => (
-                <div key={k.key} className="contents">
-                  <dt>
-                    <kbd className="rounded-mark border border-hairline bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
-                  </dt>
-                  <dd className="m-0">{k.label}</dd>
-                </div>
-              ))}
-            </dl>
-          </Sheet>
-        )}
-      </HealthProvider>
-    </MotionConfig>
+    <LazyMotion features={loadMotionFeatures}>
+      <MotionConfig reducedMotion="user">
+        <HealthProvider value={health}>
+          <AppShell data={shell}>
+            <Outlet />
+          </AppShell>
+          <PullRefresh />
+          <Snackbars />
+          <Pwa />
+          {help && (
+            <Sheet title="Shortcuts" onClose={() => setHelp(false)}>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body">
+                {KEYS.map((k) => (
+                  <div key={k.key} className="contents">
+                    <dt>
+                      <kbd className="rounded-control border border-hairline bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
+                    </dt>
+                    <dd className="m-0">{k.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Sheet>
+          )}
+        </HealthProvider>
+      </MotionConfig>
+    </LazyMotion>
   );
 }
 
@@ -136,7 +140,7 @@ function Document({ children }: { children: ReactNode }) {
       <body>
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-button focus:bg-card focus:px-4 focus:py-2"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-control focus:bg-card focus:px-4 focus:py-2"
         >
           Skip to content
         </a>

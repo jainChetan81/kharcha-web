@@ -32,7 +32,7 @@ export function AnswerCard({
   const max = Math.max(...answer.rows.map((row) => row.value), 1);
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <span className="label-caps">
+      <span className="label-muted">
         Fig. {figure} · Ledger answer{scope ? ` · ${scope}` : ""}
         {when ? ` · ${when}` : ""}
       </span>
@@ -43,8 +43,8 @@ export function AnswerCard({
           {answer.rows.slice(0, 7).map((row) => (
             <div key={row.label} className="grid grid-cols-[70px_1fr_74px] items-center gap-2 text-meta">
               <span className="truncate text-ink-2">{row.label}</span>
-              <span className="h-2 rounded-mark bg-sunken">
-                <span className="block h-2 rounded-mark bg-brand" style={{ width: `${(row.value / max) * 100}%` }} />
+              <span className="h-2 rounded-control bg-sunken">
+                <span className="block h-2 rounded-control bg-brand" style={{ width: `${(row.value / max) * 100}%` }} />
               </span>
               <span className="text-right font-medium">{money(Math.round(row.value))}</span>
             </div>
@@ -65,7 +65,7 @@ export function AnswerCard({
               key={q}
               type="button"
               onClick={() => onFollowUp(q)}
-              className="min-h-11 rounded-chip border border-brand px-3 text-left text-control text-brand desk:min-h-9"
+              className="min-h-11 rounded-full border border-brand px-3 text-left text-control text-brand desk:min-h-9"
             >
               {q}
             </button>

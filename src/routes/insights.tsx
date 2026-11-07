@@ -42,7 +42,7 @@ function Figure({ number, title, children }: { number: number; title: string; ch
   return (
     <section className="flex flex-col gap-4">
       <div className="border-b border-ink pb-2">
-        <span className="label-caps">Fig. {number}</span>
+        <span className="label-muted">Fig. {number}</span>
         <h2 className="m-0 mt-0.5 font-serif text-title font-medium">{title}</h2>
       </div>
       {children}
@@ -92,7 +92,7 @@ function Insights() {
   const rail = (
     <>
       <section className="flex flex-col gap-3">
-        <span className="label-caps">Worth a look · {cards.length}</span>
+        <span className="label-muted">Worth a look · {cards.length}</span>
         {cards.length ? (
           cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />)
         ) : (
@@ -121,7 +121,7 @@ function Insights() {
           <Link
             to="/ask"
             search={scope}
-            className="ai-button inline-flex min-h-11 desk:min-h-10 items-center gap-2 rounded-chip px-3.5 text-control font-medium text-white"
+            className="ai-button inline-flex min-h-11 desk:min-h-10 items-center gap-2 rounded-full px-3.5 text-control font-medium text-white"
           >
             <AiMark />
             Ask
@@ -148,7 +148,7 @@ function Insights() {
             />
           }
         />
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-hairline bg-hairline tablet:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-hairline bg-hairline tablet:grid-cols-4">
           {kpis.map(([label, value]) => (
             <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3">
               <span className="text-caption text-ink-2">{label}</span>
@@ -157,7 +157,7 @@ function Insights() {
           ))}
         </div>
         <section className="flex flex-col gap-3 desk:hidden">
-          <span className="label-caps">Worth a look · {cards.length}</span>
+          <span className="label-muted">Worth a look · {cards.length}</span>
           {cards.length ? (
             cards.map((card) => <InsightCard key={card.id} insight={card} onDismiss={dismiss} />)
           ) : (
