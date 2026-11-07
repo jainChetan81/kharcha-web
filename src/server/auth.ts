@@ -5,8 +5,7 @@ const scrypt = promisify(crypto.scrypt) as (pw: string, salt: Buffer, len: numbe
 const COOKIE = "kharcha_session";
 const MAX_AGE_S = 90 * 24 * 3600; // PWA on a phone: sign in rarely. Rotate SESSION_SECRET to log out everywhere.
 
-const sign = (secret: string, payload: string) =>
-  crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+const sign = (secret: string, payload: string) => crypto.createHmac("sha256", secret).update(payload).digest("base64url");
 
 function equal(a: string, b: string): boolean {
   const x = Buffer.from(a);
@@ -35,8 +34,7 @@ export async function checkPassword(stored: string, password: string): Promise<b
 }
 
 /** Only same-site relative paths, so ?next= can't bounce to another host. */
-export const safeNext = (next: unknown) =>
-  typeof next === "string" && /^\/(?![/\\])/.test(next) ? next : "/";
+export const safeNext = (next: unknown) => (typeof next === "string" && /^\/(?![/\\])/.test(next) ? next : "/");
 
 export function sessionCookie(value: string, maxAge = MAX_AGE_S): string {
   return `${COOKIE}=${value}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;

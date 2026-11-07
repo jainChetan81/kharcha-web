@@ -7,7 +7,10 @@ import { getHolding, saveHolding } from "../server/wealth/fns";
 export const Route = createFileRoute("/wealth_/$id_/edit")({
   loader: ({ params }) => getHolding({ data: { id: Number(params.id) } }),
   pendingComponent: () => <Skeleton rows={6} />,
-  errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load holding."} retry={() => void router.invalidate()} />; },
+  errorComponent: ({ error }) => {
+    const router = useRouter();
+    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load holding."} retry={() => void router.invalidate()} />;
+  },
   component: EditHolding,
 });
 function EditHolding() {
@@ -23,10 +26,12 @@ function EditHolding() {
       saveFailed(() => void save(value));
     }
   };
-  return <>
-    <PageHeader title="Edit holding" back="/wealth/$id" backParams={{ id: String(data.id) }} />
-    <main className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
-      <HoldingForm initial={data} onSave={save} />
-    </main>
-  </>;
+  return (
+    <>
+      <PageHeader title="Edit holding" back="/wealth/$id" backParams={{ id: String(data.id) }} />
+      <main className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
+        <HoldingForm initial={data} onSave={save} />
+      </main>
+    </>
+  );
 }

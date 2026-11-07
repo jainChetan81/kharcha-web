@@ -9,19 +9,15 @@ import { inArray } from "drizzle-orm";
 
 const MAX_BODY = 2 * 1024 * 1024;
 const bodySchema = z.object({ transactions: z.array(miniRowSchema).max(1000) });
-const json = (value: unknown, status = 200) =>
-  Response.json(value, { status, headers: { "Cache-Control": "no-store" } });
-const digest = (value: string) =>
-  crypto.createHash("sha256").update(value).digest();
+const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { "Cache-Control": "no-store" } });
+const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
 
 /** 503 when INGEST_TOKEN unset/short (feature off), 401 on a wrong token. */
 function auth(request: Request): Response | undefined {
   const expected = process.env.INGEST_TOKEN;
-  if (!expected || expected.length < 32)
-    return json({ error: "Ingest is disabled on this server." }, 503);
+  if (!expected || expected.length < 32) return json({ error: "Ingest is disabled on this server." }, 503);
   const given = request.headers.get("authorization")?.replace(/^Bearer /i, "") ?? "";
-  if (!given || !crypto.timingSafeEqual(digest(given), digest(expected)))
-    return json({ error: "Wrong ingest token." }, 401);
+  if (!given || !crypto.timingSafeEqual(digest(given), digest(expected))) return json({ error: "Wrong ingest token." }, 401);
 }
 
 /** Read at most MAX_BODY bytes; undefined when the body is larger. */
@@ -65,7 +61,10 @@ export const Route = createFileRoute("/api/ingest")({
           const rows = miniIds.length
             ? await db.select({ id: transactions.id }).from(transactions).where(inArray(transactions.miniId, miniIds))
             : [];
-          await afterWrite(rows.map((r) => r.id), db);
+          await afterWrite(
+            rows.map((r) => r.id),
+            db,
+          );
           return json({ ok: true, count: n });
         } catch {
           return json({ error: "Store is unavailable." }, 500);

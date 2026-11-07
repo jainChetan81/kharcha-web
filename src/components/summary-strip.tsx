@@ -72,14 +72,19 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
                 <span className="truncate">{item.category}</span>
               </span>
               <span className="h-1 overflow-hidden rounded-full bg-track">
-                <span className="block h-full rounded-full" style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }} />
+                <span
+                  className="block h-full rounded-full"
+                  style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }}
+                />
               </span>
               <strong className="shrink-0">{money(item.total)}</strong>
             </div>
           ))}
           {summary.biggest && (
             <div className="flex min-w-0 justify-between gap-3">
-              <span className="min-w-0 truncate text-ink-2">Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}</span>
+              <span className="min-w-0 truncate text-ink-2">
+                Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}
+              </span>
               <strong className="shrink-0">{money(summary.biggest.amount)}</strong>
             </div>
           )}
@@ -95,7 +100,9 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
               <strong>{money(summary.avgPerDay)}</strong>
             </div>
           )}
-          <Link to="/insights" search={scope} className="min-h-11 self-start pt-2 font-medium text-brand">See insights</Link>
+          <Link to="/insights" search={scope} className="min-h-11 self-start pt-2 font-medium text-brand">
+            See insights
+          </Link>
         </div>
       </motion.div>
     </section>

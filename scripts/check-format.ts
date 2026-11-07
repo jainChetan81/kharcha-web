@@ -1,7 +1,26 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, aiCost, card, compact, dayMonth, evalAmount, foreign, fromSource, money, monthName, navsOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, statementOf, time, weekday, weekdayDate,
+  ago,
+  aiCost,
+  card,
+  compact,
+  dayMonth,
+  evalAmount,
+  foreign,
+  fromSource,
+  money,
+  monthName,
+  navsOf,
+  overOrLeft,
+  rangeLabel,
+  shiftMonth,
+  shortDate,
+  signed,
+  statementOf,
+  time,
+  weekday,
+  weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -61,7 +80,10 @@ assert.equal(aiCost(0), money(0));
   assert.ok(presetOn({ from: now, to: now }, "Today"));
   assert.ok(!presetOn({}, "Today"));
   assert.equal(countFor({ month: "2026-10" }), 0);
-  assert.equal(countFor({ from: "2026-10-01", to: "2026-10-05", categories: ["Food", "Travel"], status: ["review", "split"], min: 100 }), 6);
+  assert.equal(
+    countFor({ from: "2026-10-01", to: "2026-10-05", categories: ["Food", "Travel"], status: ["review", "split"], min: 100 }),
+    6,
+  );
   assert.equal(countFor({ review: true, status: ["review"] }), 1);
   assert.equal(countFor({ review: true }), 1);
   assert.equal(countFor({ sort: "oldest" }), 1);

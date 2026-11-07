@@ -27,12 +27,15 @@ function isReceiptMime(mime: string, bytes: Uint8Array): mime is ReceiptMime {
 /** Store one validated receipt file outside the public tree and associate it with a transaction. */
 async function storeReceiptFile(transactionId: number, mime: string, bytes: Uint8Array): Promise<number> {
   if (!Number.isSafeInteger(transactionId) || transactionId < 1) throw new Error("Invalid transaction id.");
-  if (bytes.byteLength < 1 || bytes.byteLength > MAX_BYTES || !isReceiptMime(mime, bytes))
-    throw new Error("Unsupported receipt file.");
+  if (bytes.byteLength < 1 || bytes.byteLength > MAX_BYTES || !isReceiptMime(mime, bytes)) throw new Error("Unsupported receipt file.");
 
   const db = getDb();
   const [txn, attachmentCount] = await Promise.all([
-    db.select({ id: transactions.id }).from(transactions).where(and(eq(transactions.id, transactionId), isNull(transactions.deletedAt))).get(),
+    db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(and(eq(transactions.id, transactionId), isNull(transactions.deletedAt)))
+      .get(),
     db.select({ count: count() }).from(attachments).where(eq(attachments.transactionId, transactionId)).get(),
   ]);
   if (!txn) throw new Error("Transaction not found.");
@@ -44,7 +47,10 @@ async function storeReceiptFile(transactionId: number, mime: string, bytes: Uint
   await mkdir(directory, { recursive: true, mode: 0o700 });
   await writeFile(filepath, bytes, { flag: "wx", mode: 0o600 });
   try {
-    const [row] = await db.insert(attachments).values({ transactionId, path: filepath, mime, bytes: bytes.byteLength }).returning({ id: attachments.id });
+    const [row] = await db
+      .insert(attachments)
+      .values({ transactionId, path: filepath, mime, bytes: bytes.byteLength })
+      .returning({ id: attachments.id });
     if (!row) throw new Error("Could not save receipt attachment.");
     // Concurrent uploads can both pass the pre-check; recount and drop our own row when over the cap.
     const after = await db.select({ count: count() }).from(attachments).where(eq(attachments.transactionId, transactionId)).get();
@@ -67,7 +73,10 @@ export const uploadReceipt = createServerFn({ method: "POST" })
     z.object({
       transactionId: z.number().int().positive(),
       mime: z.enum(MIME_TYPES),
-      base64: z.string().min(1).max(Math.ceil(MAX_BYTES * 4 / 3) + 8),
+      base64: z
+        .string()
+        .min(1)
+        .max(Math.ceil((MAX_BYTES * 4) / 3) + 8),
     }),
   )
   .handler(async ({ data }) => {
@@ -93,7 +102,11 @@ export const startReceiptJob = createServerFn({ method: "POST" })
   .validator(z.object({ transactionId: z.number().int().positive() }))
   .handler(async ({ data }) => {
     const db = getDb();
-    const txn = await db.select({ id: transactions.id }).from(transactions).where(and(eq(transactions.id, data.transactionId), isNull(transactions.deletedAt))).get();
+    const txn = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(and(eq(transactions.id, data.transactionId), isNull(transactions.deletedAt)))
+      .get();
     if (!txn) throw new Error("Transaction not found.");
     if (process.env.KHARCHA_AI !== "on") return { jobId: null, status: "failed" as const, error: "ai_unavailable" as const };
     const active = await db
@@ -104,12 +117,19 @@ export const startReceiptJob = createServerFn({ method: "POST" })
       .limit(1)
       .get();
     if (active) return { jobId: active.id, status: active.status as "queued" | "reading", error: active.error };
-    const [row] = await db.insert(receiptJobs).values({ transactionId: data.transactionId, status: "queued" }).returning({ id: receiptJobs.id });
+    const [row] = await db
+      .insert(receiptJobs)
+      .values({ transactionId: data.transactionId, status: "queued" })
+      .returning({ id: receiptJobs.id });
     if (!row) throw new Error("Could not start receipt job.");
     // Run job in background: let the request complete so the user can navigate away.
     queueMicrotask(() => {
       runReceiptJob(db, row.id, data.transactionId).catch(() =>
-        db.update(receiptJobs).set({ status: "failed", error: "unreadable", finishedAt: new Date().toISOString() }).where(eq(receiptJobs.id, row.id)).catch(() => {}),
+        db
+          .update(receiptJobs)
+          .set({ status: "failed", error: "unreadable", finishedAt: new Date().toISOString() })
+          .where(eq(receiptJobs.id, row.id))
+          .catch(() => {}),
       );
     });
     return { jobId: row.id, status: "queued" as const, error: null };
@@ -128,5 +148,3 @@ export const getReceiptJob = createServerFn({ method: "GET" })
       .get();
     return { job: job ?? null };
   });
-
-

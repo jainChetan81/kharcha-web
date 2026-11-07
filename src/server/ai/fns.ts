@@ -12,6 +12,11 @@ export const ask = createServerFn({ method: "POST" })
   .handler(({ data }) => askLedger(getDb(), data.question, data.scope));
 
 export const getAskHistory = createServerFn({ method: "GET" }).handler(async () => {
-  const db = getDb(); const [history, config] = await Promise.all([db.select().from(askLog).orderBy(desc(askLog.createdAt)).limit(20), aiConfig(db)]);
-  return { history: history.map((row) => ({ ...row, answer: row.answerJson ? JSON.parse(row.answerJson) : null })), usage: config, enabled: process.env.KHARCHA_AI === "on" };
+  const db = getDb();
+  const [history, config] = await Promise.all([db.select().from(askLog).orderBy(desc(askLog.createdAt)).limit(20), aiConfig(db)]);
+  return {
+    history: history.map((row) => ({ ...row, answer: row.answerJson ? JSON.parse(row.answerJson) : null })),
+    usage: config,
+    enabled: process.env.KHARCHA_AI === "on",
+  };
 });

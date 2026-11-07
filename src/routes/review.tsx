@@ -32,7 +32,13 @@ export const Route = createFileRoute("/review")({
   errorComponent: ({ error }) => {
     const router = useRouter();
     console.error(error);
-    return <ErrorState text="Review hit an error and couldn’t open. Your filed rows are saved." retry={() => void router.invalidate()} back="/" />;
+    return (
+      <ErrorState
+        text="Review hit an error and couldn’t open. Your filed rows are saved."
+        retry={() => void router.invalidate()}
+        back="/"
+      />
+    );
   },
   component: Review,
 });
@@ -59,7 +65,7 @@ function Review() {
   const current = queue[0];
   const open = queue.find((row) => row.id === activeId) ?? current;
   const selected = queue.filter((row) => checked.includes(row.id));
-  const suggested = open && category?.id === open.id ? category.name : open?.suggestion ?? "Other";
+  const suggested = open && category?.id === open.id ? category.name : (open?.suggestion ?? "Other");
   const makeRule = Boolean(open && rule?.id === open.id && rule.on);
   const year = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 4); // Ledger dates are IST.
   const colorOf = (name: string | null) => categories.find((item) => item.name === name)?.colorToken ?? "cat-other";
@@ -77,7 +83,10 @@ function Review() {
     }
     let alive = true;
     getTransactions({ data: { merchant, limit: 6 } })
-      .then((list) => alive && setDuplicates(list.filter((item) => item.id !== rowId).map(({ id, merchant, amount }) => ({ id, merchant, amount }))))
+      .then(
+        (list) =>
+          alive && setDuplicates(list.filter((item) => item.id !== rowId).map(({ id, merchant, amount }) => ({ id, merchant, amount }))),
+      )
       .catch(() => alive && setDuplicates([]));
     return () => {
       alive = false;
@@ -123,7 +132,9 @@ function Review() {
           for (const id of same) await flagTransaction({ data: { id, category: nextCategory, needsReview: false } });
           finish(same);
         }
-        snack(same.length > 1 ? `Filed ${same.length} · ${row.merchant} · ${nextCategory}` : `Saved ${money(row.amount)} · ${nextCategory}`);
+        snack(
+          same.length > 1 ? `Filed ${same.length} · ${row.merchant} · ${nextCategory}` : `Saved ${money(row.amount)} · ${nextCategory}`,
+        );
       },
       () => confirmOne(row, nextCategory, makeRule),
     );
@@ -149,16 +160,13 @@ function Review() {
     );
 
   const confirmSelected = () =>
-    run(
-      async () => {
-        for (const row of selected) {
-          await flagTransaction({ data: { id: row.id, category: row.suggestion, needsReview: false } });
-          finish([row.id]);
-        }
-        snack(`Filed ${selected.length} · suggestions kept`);
-      },
-      confirmSelected,
-    );
+    run(async () => {
+      for (const row of selected) {
+        await flagTransaction({ data: { id: row.id, category: row.suggestion, needsReview: false } });
+        finish([row.id]);
+      }
+      snack(`Filed ${selected.length} · suggestions kept`);
+    }, confirmSelected);
 
   const setSelectedCategory = (nextCategory: string) =>
     run(
@@ -200,12 +208,30 @@ function Review() {
         <div className="px-5 desk:px-0">
           <div className="flex flex-col items-center gap-3 pt-8 pb-4 text-center">
             <span className="flex size-10 items-center justify-center rounded-full bg-earn text-paper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M4 12.5l5 5L20 6.5" />
+              </svg>
             </span>
             <p className="m-0 font-serif text-[26px] font-medium">Nothing to review</p>
             <div className="flex gap-2">
-              <Link to="/activity" className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-[15px] font-medium text-ink">Open Activity</Link>
-              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-[15px] font-medium text-paper">Back to Today</Link>
+              <Link
+                to="/activity"
+                className="inline-flex min-h-11 items-center rounded-button border border-ink px-4 text-[15px] font-medium text-ink"
+              >
+                Open Activity
+              </Link>
+              <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4 text-[15px] font-medium text-paper">
+                Back to Today
+              </Link>
             </div>
           </div>
         </div>
@@ -227,17 +253,29 @@ function Review() {
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate font-serif text-2xl font-medium">{open.merchant}</span>
                 <span className="text-[13px] text-ink-3">
-                  {shortDate(open.date)}{open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} · {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
+                  {shortDate(open.date)}
+                  {open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} ·{" "}
+                  {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
                 </span>
               </div>
               <strong className="shrink-0 font-serif text-[26px] font-medium">{money(open.amount)}</strong>
             </div>
             <CategoryPicker categories={categories} value={suggested} onChange={(name) => setCategory({ id: open.id, name })} />
             <label className="flex min-h-11 items-center gap-2 text-sm">
-              <input type="checkbox" checked={makeRule} disabled={!online} onChange={(event) => setRule({ id: open.id, on: event.target.checked })} className="size-[18px] accent-brand" />
+              <input
+                type="checkbox"
+                checked={makeRule}
+                disabled={!online}
+                onChange={(event) => setRule({ id: open.id, on: event.target.checked })}
+                className="size-[18px] accent-brand"
+              />
               Always file this merchant as {suggested}
             </label>
-            {open.rawText && <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">{open.rawText}</p>}
+            {open.rawText && (
+              <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-6 text-ink-2 break-words [overflow-wrap:anywhere]">
+                {open.rawText}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button disabled={!online} onClick={() => confirmOne(open, suggested, makeRule)} className="flex-1">
                 Confirm · {suggested}
@@ -245,7 +283,12 @@ function Review() {
               <Button variant="outline" disabled={!online} onClick={() => excludeOne(open)} className="px-3 text-sm">
                 Not a spend
               </Button>
-              <Button variant="outline" disabled={!online || !duplicates.length} onClick={() => duplicates[0] && duplicateOne(open, duplicates[0].id)} className="px-3 text-sm">
+              <Button
+                variant="outline"
+                disabled={!online || !duplicates.length}
+                onClick={() => duplicates[0] && duplicateOne(open, duplicates[0].id)}
+                className="px-3 text-sm"
+              >
                 Duplicate
               </Button>
             </div>
@@ -257,7 +300,11 @@ function Review() {
         <PageHeader
           title="Review"
           back="/"
-          actions={<span className="text-[13px] text-ink-3">{Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}</span>}
+          actions={
+            <span className="text-[13px] text-ink-3">
+              {Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}
+            </span>
+          }
         />
       </div>
       <div aria-hidden className="mx-5 h-[3px] rounded-sm bg-hairline desk:hidden">
@@ -268,9 +315,23 @@ function Review() {
         <header className="flex flex-wrap items-baseline justify-between gap-3 pt-7">
           <div className="flex items-center gap-2">
             <Link to="/" aria-label="Back" className="-ml-2 flex size-9 items-center justify-center text-ink hover:text-brand">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </Link>
-            <h1 className="m-0 font-serif text-[30px] font-medium">Review <span className="text-[22px] text-ink-3">{remaining}</span></h1>
+            <h1 className="m-0 font-serif text-[30px] font-medium">
+              Review <span className="text-[22px] text-ink-3">{remaining}</span>
+            </h1>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-ink-2">
             {keys.map((item) => (
@@ -284,9 +345,15 @@ function Review() {
 
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-button border border-rule px-3 py-1.5">
           <span className="text-sm font-medium">{selected.length ? `${selected.length} selected` : "Nothing selected"}</span>
-          <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-sm">Confirm suggested</Button>
-          <Button variant="outline" disabled={!online || !selected.length} onClick={() => setSheet(true)} className="min-h-9 px-3 text-sm">Set category…</Button>
-          <button type="button" onClick={selectAll} className="ml-auto min-h-9 px-3 text-sm font-medium text-brand">Select all</button>
+          <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-sm">
+            Confirm suggested
+          </Button>
+          <Button variant="outline" disabled={!online || !selected.length} onClick={() => setSheet(true)} className="min-h-9 px-3 text-sm">
+            Set category…
+          </Button>
+          <button type="button" onClick={selectAll} className="ml-auto min-h-9 px-3 text-sm font-medium text-brand">
+            Select all
+          </button>
         </div>
 
         <ul className="mt-6 min-w-[560px] list-none p-0">
@@ -303,10 +370,31 @@ function Review() {
             const handled = done.has(row.id);
             const isChecked = checked.includes(row.id);
             return (
-              <li key={row.id} className={`grid ${grid} min-h-10 items-center gap-3 border-b border-hairline text-sm`} style={active ? { background: "var(--color-brand-soft)", boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}>
-                <input type="checkbox" aria-label={`Select ${row.merchant}`} checked={isChecked} disabled={handled} onChange={() => toggleChecked(row.id)} className="ml-2 size-[18px] accent-brand" />
-                <span className="text-ink-3">{row.date.slice(0, 4) === year ? shortDate(row.date).split(",")[0] : `${shortDate(row.date).split(",")[0]} ’${row.date.slice(2, 4)}`}</span>
-                <button type="button" onClick={() => setActiveId(row.id)} className={`min-h-10 truncate text-left font-medium text-ink ${handled ? "opacity-45" : ""}`}>{row.merchant}</button>
+              <li
+                key={row.id}
+                className={`grid ${grid} min-h-10 items-center gap-3 border-b border-hairline text-sm`}
+                style={active ? { background: "var(--color-brand-soft)", boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}
+              >
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${row.merchant}`}
+                  checked={isChecked}
+                  disabled={handled}
+                  onChange={() => toggleChecked(row.id)}
+                  className="ml-2 size-[18px] accent-brand"
+                />
+                <span className="text-ink-3">
+                  {row.date.slice(0, 4) === year
+                    ? shortDate(row.date).split(",")[0]
+                    : `${shortDate(row.date).split(",")[0]} ’${row.date.slice(2, 4)}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveId(row.id)}
+                  className={`min-h-10 truncate text-left font-medium text-ink ${handled ? "opacity-45" : ""}`}
+                >
+                  {row.merchant}
+                </button>
                 <span className="text-ink-3">{card(row.accountLast4)}</span>
                 <span className={`flex items-center gap-1.5 truncate ${handled ? "opacity-45" : ""}`}>
                   <CategoryDot color={colorOf(row.suggestion)} />
@@ -321,31 +409,76 @@ function Review() {
 
       {current && (
         <div className="px-5 desk:px-0">
-          <ReviewDeck key={current.id} row={current} categories={categories} duplicates={duplicates} disabled={!online} onConfirm={(nextCategory, makeRule) => confirmOne(current, nextCategory, makeRule)} onSkip={() => setSkipped((previous) => [...previous, current.id])} onExclude={() => excludeOne(current)} onDuplicate={(duplicateOf) => duplicateOne(current, duplicateOf)} />
+          <ReviewDeck
+            key={current.id}
+            row={current}
+            categories={categories}
+            duplicates={duplicates}
+            disabled={!online}
+            onConfirm={(nextCategory, makeRule) => confirmOne(current, nextCategory, makeRule)}
+            onSkip={() => setSkipped((previous) => [...previous, current.id])}
+            onExclude={() => excludeOne(current)}
+            onDuplicate={(duplicateOf) => duplicateOne(current, duplicateOf)}
+          />
         </div>
       )}
 
       {allDone && (
         <div className="flex flex-col items-center gap-3 px-5 pt-8 pb-4 text-center desk:px-0">
           <span className="flex size-10 items-center justify-center rounded-full bg-earn text-paper">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M4 12.5l5 5L20 6.5" />
+            </svg>
           </span>
           <p className="m-0 font-serif text-[26px] font-medium">Nice. {picked.length} filed.</p>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setSkipped([]); setPicked([]); setChecked([]); }}>Start over</Button>
-            <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4.5 text-[15px] font-medium text-paper">Back to home</Link>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSkipped([]);
+                setPicked([]);
+                setChecked([]);
+              }}
+            >
+              Start over
+            </Button>
+            <Link to="/" className="inline-flex min-h-11 items-center rounded-button bg-ink px-4.5 text-[15px] font-medium text-paper">
+              Back to home
+            </Link>
           </div>
         </div>
       )}
 
       {sheet && (
-        <Sheet title="Set category" description={selected.length ? `For ${selected.length} selected rows.` : `For ${open?.merchant ?? "this row"}.`} onClose={() => setSheet(false)}>
+        <Sheet
+          title="Set category"
+          description={selected.length ? `For ${selected.length} selected rows.` : `For ${open?.merchant ?? "this row"}.`}
+          onClose={() => setSheet(false)}
+        >
           <CategoryPicker categories={categories} value={suggested} onChange={(name) => open && setCategory({ id: open.id, name })} />
           <div className="flex gap-2">
-            <Button disabled={!online || (!open && !selected.length)} onClick={() => { if (selected.length) setSelectedCategory(suggested); else if (open) confirmOne(open, suggested, makeRule); setSheet(false); }}>
+            <Button
+              disabled={!online || (!open && !selected.length)}
+              onClick={() => {
+                if (selected.length) setSelectedCategory(suggested);
+                else if (open) confirmOne(open, suggested, makeRule);
+                setSheet(false);
+              }}
+            >
               Confirm · {suggested}
             </Button>
-            <Button variant="outline" onClick={() => setSheet(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setSheet(false)}>
+              Cancel
+            </Button>
           </div>
         </Sheet>
       )}

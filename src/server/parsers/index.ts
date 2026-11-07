@@ -20,10 +20,7 @@ const PARSER_MAP: Record<string, { parsers: Parser[]; bankName: string; parserKe
   indusind: { parsers: INDUSIND_PARSERS, bankName: INDUSIND_BANK_NAME, parserKey: INDUSIND_PARSER_KEY },
 };
 
-export function parseMessage(
-  parserKey: string | null,
-  rawBody: string,
-): ParseOutcome {
+export function parseMessage(parserKey: string | null, rawBody: string): ParseOutcome {
   const body = decodeHtmlEntities(rawBody);
 
   if (parserKey && PARSER_MAP[parserKey]) {
@@ -42,7 +39,7 @@ export function parseMessage(
   return {
     parsed: null,
     parsedBy: "failed",
-    bankName: parserKey ? PARSER_MAP[parserKey]?.bankName ?? null : null,
+    bankName: parserKey ? (PARSER_MAP[parserKey]?.bankName ?? null) : null,
     parserKey,
   };
 }

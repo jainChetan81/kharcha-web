@@ -3,104 +3,280 @@ import { and, asc, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
 import { cardBalances, monthBounds, monthSchema, spendByCategory } from "../db/queries";
-import { categories, recurringOccurrences, recurringSeries, sipMandates, holdings, transactionTrips, transactions, trips } from "../db/schema";
+import {
+  categories,
+  recurringOccurrences,
+  recurringSeries,
+  sipMandates,
+  holdings,
+  transactionTrips,
+  transactions,
+  trips,
+} from "../db/schema";
 import { scheduleSeries } from "./jobs";
 
 export type UpcomingPayment = { seriesId: number; date: string; name: string; amount: number; kind: string };
 const today = () => new Date().toISOString().slice(0, 10);
 const id = z.object({ id: z.number().int().positive() });
 const seriesSchema = z.object({
-  id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(80), kind: z.enum(["subscription", "bill", "sip", "emi", "insurance"]),
-  match: z.string().trim().min(2).max(120), cadence: z.enum(["monthly", "quarterly", "yearly", "weekly"]), usualDay: z.number().int().min(1).max(31).nullable(),
-  expectedAmount: z.number().positive().max(1e8), tolerancePct: z.number().min(0).max(100), status: z.enum(["active", "paused"]),
+  id: z.number().int().positive().optional(),
+  name: z.string().trim().min(1).max(80),
+  kind: z.enum(["subscription", "bill", "sip", "emi", "insurance"]),
+  match: z.string().trim().min(2).max(120),
+  cadence: z.enum(["monthly", "quarterly", "yearly", "weekly"]),
+  usualDay: z.number().int().min(1).max(31).nullable(),
+  expectedAmount: z.number().positive().max(1e8),
+  tolerancePct: z.number().min(0).max(100),
+  status: z.enum(["active", "paused"]),
 });
-const tripSchema = z.object({
-  id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(80), startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  budget: z.number().min(0).max(1e8), autoTag: z.boolean(), skipRecurring: z.boolean(), bookings: z.array(z.number().int().positive()).max(100).default([]),
-}).refine((value) => value.endDate >= value.startDate, { message: "End date must follow start date." });
+const tripSchema = z
+  .object({
+    id: z.number().int().positive().optional(),
+    name: z.string().trim().min(1).max(80),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    budget: z.number().min(0).max(1e8),
+    autoTag: z.boolean(),
+    skipRecurring: z.boolean(),
+    bookings: z.array(z.number().int().positive()).max(100).default([]),
+  })
+  .refine((value) => value.endDate >= value.startDate, { message: "End date must follow start date." });
 
 /** CONTRACT (used by Today): recurring payments due in next days, soonest first. */
-export const getUpcoming = createServerFn({ method: "GET" }).validator(z.object({ days: z.number().int().min(1).max(60) })).handler(async ({ data }): Promise<UpcomingPayment[]> => {
-  const until = new Date(Date.now() + data.days * 864e5).toISOString().slice(0, 10);
-  const rows = await getDb().select({ seriesId: recurringOccurrences.seriesId, date: recurringOccurrences.dueDate, name: recurringSeries.name, amount: recurringSeries.expectedAmount, kind: recurringSeries.kind })
-    .from(recurringOccurrences).innerJoin(recurringSeries, eq(recurringOccurrences.seriesId, recurringSeries.id))
-    .where(and(eq(recurringOccurrences.status, "upcoming"), gte(recurringOccurrences.dueDate, today()), lte(recurringOccurrences.dueDate, until), eq(recurringSeries.status, "active"))).orderBy(asc(recurringOccurrences.dueDate));
-  return rows;
-});
+export const getUpcoming = createServerFn({ method: "GET" })
+  .validator(z.object({ days: z.number().int().min(1).max(60) }))
+  .handler(async ({ data }): Promise<UpcomingPayment[]> => {
+    const until = new Date(Date.now() + data.days * 864e5).toISOString().slice(0, 10);
+    const rows = await getDb()
+      .select({
+        seriesId: recurringOccurrences.seriesId,
+        date: recurringOccurrences.dueDate,
+        name: recurringSeries.name,
+        amount: recurringSeries.expectedAmount,
+        kind: recurringSeries.kind,
+      })
+      .from(recurringOccurrences)
+      .innerJoin(recurringSeries, eq(recurringOccurrences.seriesId, recurringSeries.id))
+      .where(
+        and(
+          eq(recurringOccurrences.status, "upcoming"),
+          gte(recurringOccurrences.dueDate, today()),
+          lte(recurringOccurrences.dueDate, until),
+          eq(recurringSeries.status, "active"),
+        ),
+      )
+      .orderBy(asc(recurringOccurrences.dueDate));
+    return rows;
+  });
 
-export const getPlanBudgets = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
-  const db = getDb(); const [from, to] = monthBounds(data.month);
-  const [spend, gross, limits, cats] = await Promise.all([spendByCategory(db, from, to), spendByCategory(db, from, to, true), db.query.budgets.findMany(), db.select().from(categories).where(eq(categories.type, "expense")).orderBy(categories.sortOrder)]);
-  const byName = new Map(spend.map((row) => [row.category, row.total])); const grossOf = new Map(gross.map((row) => [row.category, row.total])); const limitOf = new Map(limits.map((row) => [row.category, row.monthlyLimit]));
-  // Same scope as Today: every expense category, Other included, plus any spend under a category since removed.
-  const known = new Set(cats.map((cat) => cat.name));
-  const orphans = spend.filter((row) => !known.has(row.category)).map((row, i) => ({ name: row.category, type: "expense" as const, colorToken: "cat-other", sortOrder: 99 + i }));
-  return [...cats, ...orphans].map((cat) => ({ ...cat, spent: byName.get(cat.name) ?? 0, gross: Math.max(grossOf.get(cat.name) ?? 0, byName.get(cat.name) ?? 0), limit: limitOf.get(cat.name) ?? null }));
-});
+export const getPlanBudgets = createServerFn({ method: "GET" })
+  .validator(z.object({ month: monthSchema }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const [from, to] = monthBounds(data.month);
+    const [spend, gross, limits, cats] = await Promise.all([
+      spendByCategory(db, from, to),
+      spendByCategory(db, from, to, true),
+      db.query.budgets.findMany(),
+      db.select().from(categories).where(eq(categories.type, "expense")).orderBy(categories.sortOrder),
+    ]);
+    const byName = new Map(spend.map((row) => [row.category, row.total]));
+    const grossOf = new Map(gross.map((row) => [row.category, row.total]));
+    const limitOf = new Map(limits.map((row) => [row.category, row.monthlyLimit]));
+    // Same scope as Today: every expense category, Other included, plus any spend under a category since removed.
+    const known = new Set(cats.map((cat) => cat.name));
+    const orphans = spend
+      .filter((row) => !known.has(row.category))
+      .map((row, i) => ({ name: row.category, type: "expense" as const, colorToken: "cat-other", sortOrder: 99 + i }));
+    return [...cats, ...orphans].map((cat) => ({
+      ...cat,
+      spent: byName.get(cat.name) ?? 0,
+      gross: Math.max(grossOf.get(cat.name) ?? 0, byName.get(cat.name) ?? 0),
+      limit: limitOf.get(cat.name) ?? null,
+    }));
+  });
 
-export const getRecurring = createServerFn({ method: "GET" }).validator(z.object({ month: monthSchema })).handler(async ({ data }) => {
-  const db = getDb(); const [from, to] = monthBounds(data.month);
-  const [series, occurrences, detector, open, sipTotals] = await Promise.all([
-    db.select().from(recurringSeries).orderBy(asc(recurringSeries.name)),
-    db.select({ seriesId: recurringOccurrences.seriesId, dueDate: recurringOccurrences.dueDate, status: recurringOccurrences.status, transactionId: recurringOccurrences.transactionId }).from(recurringOccurrences).where(and(gte(recurringOccurrences.dueDate, from), lte(recurringOccurrences.dueDate, to))),
-    db.all<{ payload_json: string }>(sql`select payload_json from insights where detector = 'recurring' and dismissed_at is null limit 1`),
-    db.select({ id: holdings.id }).from(holdings).where(eq(holdings.isClosed, false)),
-    db.select({ holdingId: sipMandates.holdingId, total: sum(sipMandates.amount).mapWith(Number) }).from(sipMandates).groupBy(sipMandates.holdingId),
-  ]);
-  const openIds = new Set(open.map((row) => row.id));
-  // Wealth SIP mandates for open holdings, minus any series already tracking that holding.
-  const linked = new Set(series.filter((row) => row.status === "active" && row.holdingId != null).map((row) => row.holdingId));
-  const wealthSips = sipTotals.filter((row) => openIds.has(row.holdingId) && !linked.has(row.holdingId)).reduce((sum, row) => sum + (row.total ?? 0), 0);
-  return { series, occurrences, suggestion: detector[0]?.payload_json ?? null, wealthSips };
-});
+export const getRecurring = createServerFn({ method: "GET" })
+  .validator(z.object({ month: monthSchema }))
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const [from, to] = monthBounds(data.month);
+    const [series, occurrences, detector, open, sipTotals] = await Promise.all([
+      db.select().from(recurringSeries).orderBy(asc(recurringSeries.name)),
+      db
+        .select({
+          seriesId: recurringOccurrences.seriesId,
+          dueDate: recurringOccurrences.dueDate,
+          status: recurringOccurrences.status,
+          transactionId: recurringOccurrences.transactionId,
+        })
+        .from(recurringOccurrences)
+        .where(and(gte(recurringOccurrences.dueDate, from), lte(recurringOccurrences.dueDate, to))),
+      db.all<{ payload_json: string }>(
+        sql`select payload_json from insights where detector = 'recurring' and dismissed_at is null limit 1`,
+      ),
+      db.select({ id: holdings.id }).from(holdings).where(eq(holdings.isClosed, false)),
+      db
+        .select({ holdingId: sipMandates.holdingId, total: sum(sipMandates.amount).mapWith(Number) })
+        .from(sipMandates)
+        .groupBy(sipMandates.holdingId),
+    ]);
+    const openIds = new Set(open.map((row) => row.id));
+    // Wealth SIP mandates for open holdings, minus any series already tracking that holding.
+    const linked = new Set(series.filter((row) => row.status === "active" && row.holdingId != null).map((row) => row.holdingId));
+    const wealthSips = sipTotals
+      .filter((row) => openIds.has(row.holdingId) && !linked.has(row.holdingId))
+      .reduce((sum, row) => sum + (row.total ?? 0), 0);
+    return { series, occurrences, suggestion: detector[0]?.payload_json ?? null, wealthSips };
+  });
 
-export const getSeries = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
-  const db = getDb(); const series = await db.select().from(recurringSeries).where(eq(recurringSeries.id, data.id)).get();
-  if (!series) return null;
-  const [occurrences, matching] = await Promise.all([
-    db.select({ dueDate: recurringOccurrences.dueDate, status: recurringOccurrences.status, transactionId: recurringOccurrences.transactionId, amount: transactions.amount, date: transactions.date }).from(recurringOccurrences).leftJoin(transactions, eq(recurringOccurrences.transactionId, transactions.id)).where(eq(recurringOccurrences.seriesId, data.id)).orderBy(desc(recurringOccurrences.dueDate)),
-    db.select({ n: sql<number>`count(*)` }).from(transactions).where(sql`${transactions.merchant} like ${`%${series.match.replace("*", "")}%`}`),
-  ]);
-  return { series, occurrences, matching: Number(matching[0]?.n ?? 0) };
-});
+export const getSeries = createServerFn({ method: "GET" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const series = await db.select().from(recurringSeries).where(eq(recurringSeries.id, data.id)).get();
+    if (!series) return null;
+    const [occurrences, matching] = await Promise.all([
+      db
+        .select({
+          dueDate: recurringOccurrences.dueDate,
+          status: recurringOccurrences.status,
+          transactionId: recurringOccurrences.transactionId,
+          amount: transactions.amount,
+          date: transactions.date,
+        })
+        .from(recurringOccurrences)
+        .leftJoin(transactions, eq(recurringOccurrences.transactionId, transactions.id))
+        .where(eq(recurringOccurrences.seriesId, data.id))
+        .orderBy(desc(recurringOccurrences.dueDate)),
+      db
+        .select({ n: sql<number>`count(*)` })
+        .from(transactions)
+        .where(sql`${transactions.merchant} like ${`%${series.match.replace("*", "")}%`}`),
+    ]);
+    return { series, occurrences, matching: Number(matching[0]?.n ?? 0) };
+  });
 
-export const saveSeries = createServerFn({ method: "POST" }).validator(seriesSchema).handler(async ({ data }) => {
-  const db = getDb(); const { id: seriesId, ...values } = data;
-  let saved = seriesId;
-  if (saved) await db.update(recurringSeries).set(values).where(eq(recurringSeries.id, saved)); else saved = (await db.insert(recurringSeries).values(values).returning({ id: recurringSeries.id }))[0]!.id;
-  await scheduleSeries(saved, db); return saved;
-});
-export const removeSeries = createServerFn({ method: "POST" }).validator(id).handler(async ({ data }) => { await getDb().delete(recurringSeries).where(eq(recurringSeries.id, data.id)); });
+export const saveSeries = createServerFn({ method: "POST" })
+  .validator(seriesSchema)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const { id: seriesId, ...values } = data;
+    let saved = seriesId;
+    if (saved) await db.update(recurringSeries).set(values).where(eq(recurringSeries.id, saved));
+    else saved = (await db.insert(recurringSeries).values(values).returning({ id: recurringSeries.id }))[0]!.id;
+    await scheduleSeries(saved, db);
+    return saved;
+  });
+export const removeSeries = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    await getDb().delete(recurringSeries).where(eq(recurringSeries.id, data.id));
+  });
 
 export const getTrips = createServerFn({ method: "GET" }).handler(async () => {
-  const db = getDb(); const all = await db.select().from(trips).orderBy(desc(trips.startDate)); const now = today();
-  const totals = await db.all<{ trip_id: number; total: number }>(sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where t.deleted_at is null and t.type = 'expense' and t.excluded = 0 and t.duplicate_of is null and tt.in_daily_budget=1 group by tt.trip_id`);
-  const spend = new Map(totals.map((row) => [Number(row.trip_id), Number(row.total)])); return all.map((trip) => ({ ...trip, spent: spend.get(trip.id) ?? 0, active: trip.startDate <= now && trip.endDate >= now && !trip.endedAt }));
+  const db = getDb();
+  const all = await db.select().from(trips).orderBy(desc(trips.startDate));
+  const now = today();
+  const totals = await db.all<{ trip_id: number; total: number }>(
+    sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where t.deleted_at is null and t.type = 'expense' and t.excluded = 0 and t.duplicate_of is null and tt.in_daily_budget=1 group by tt.trip_id`,
+  );
+  const spend = new Map(totals.map((row) => [Number(row.trip_id), Number(row.total)]));
+  return all.map((trip) => ({
+    ...trip,
+    spent: spend.get(trip.id) ?? 0,
+    active: trip.startDate <= now && trip.endDate >= now && !trip.endedAt,
+  }));
 });
 
-export const getTrip = createServerFn({ method: "GET" }).validator(id).handler(async ({ data }) => {
-  const db = getDb(); const trip = await db.select().from(trips).where(eq(trips.id, data.id)).get(); if (!trip) return null;
-  const rows = await db.select({ id: transactions.id, amount: transactions.amount, merchant: transactions.merchant, category: transactions.category, date: transactions.date, daily: transactionTrips.inDailyBudget }).from(transactionTrips).innerJoin(transactions, eq(transactionTrips.transactionId, transactions.id)).where(and(eq(transactionTrips.tripId, data.id), isNull(transactions.deletedAt), eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf))).orderBy(desc(transactions.date));
-  return { trip, rows };
-});
+export const getTrip = createServerFn({ method: "GET" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const trip = await db.select().from(trips).where(eq(trips.id, data.id)).get();
+    if (!trip) return null;
+    const rows = await db
+      .select({
+        id: transactions.id,
+        amount: transactions.amount,
+        merchant: transactions.merchant,
+        category: transactions.category,
+        date: transactions.date,
+        daily: transactionTrips.inDailyBudget,
+      })
+      .from(transactionTrips)
+      .innerJoin(transactions, eq(transactionTrips.transactionId, transactions.id))
+      .where(
+        and(
+          eq(transactionTrips.tripId, data.id),
+          isNull(transactions.deletedAt),
+          eq(transactions.type, "expense"),
+          eq(transactions.excluded, false),
+          isNull(transactions.duplicateOf),
+        ),
+      )
+      .orderBy(desc(transactions.date));
+    return { trip, rows };
+  });
 
-export const saveTrip = createServerFn({ method: "POST" }).validator(tripSchema).handler(async ({ data }) => {
-  const db = getDb(); const { id: tripId, bookings, ...values } = data; let id = tripId;
-  if (id) await db.update(trips).set(values).where(eq(trips.id, id)); else { const [row] = await db.insert(trips).values(values).returning({ id: trips.id }); id = row!.id; }
-  for (const transactionId of bookings) await db.insert(transactionTrips).values({ transactionId, tripId: id!, source: "manual", inDailyBudget: false }).onConflictDoUpdate({ target: [transactionTrips.transactionId, transactionTrips.tripId], set: { inDailyBudget: false } });
-  return id!;
-});
-export const endTrip = createServerFn({ method: "POST" }).validator(id).handler(async ({ data }) => { await getDb().update(trips).set({ endedAt: sql`datetime('now')` }).where(eq(trips.id, data.id)); });
+export const saveTrip = createServerFn({ method: "POST" })
+  .validator(tripSchema)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const { id: tripId, bookings, ...values } = data;
+    let id = tripId;
+    if (id) await db.update(trips).set(values).where(eq(trips.id, id));
+    else {
+      const [row] = await db.insert(trips).values(values).returning({ id: trips.id });
+      id = row!.id;
+    }
+    for (const transactionId of bookings)
+      await db
+        .insert(transactionTrips)
+        .values({ transactionId, tripId: id!, source: "manual", inDailyBudget: false })
+        .onConflictDoUpdate({ target: [transactionTrips.transactionId, transactionTrips.tripId], set: { inDailyBudget: false } });
+    return id!;
+  });
+export const endTrip = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    await getDb().update(trips).set({ endedAt: sql`datetime('now')` }).where(eq(trips.id, data.id));
+  });
 
-export const findBookings = createServerFn({ method: "GET" }).validator(z.object({ before: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })).handler(async ({ data }) =>
-  getDb().select({ id: transactions.id, merchant: transactions.merchant, amount: transactions.amount, date: transactions.date, category: transactions.category }).from(transactions)
-    .where(and(isNull(transactions.deletedAt), lte(transactions.date, `${data.before} 23:59`), sql`(${transactions.category} = 'Transport' or lower(${transactions.merchant}) glob '*flight*' or lower(${transactions.merchant}) glob '*rail*' or lower(${transactions.merchant}) glob '*hotel*' or lower(${transactions.merchant}) glob '*ibibo*' or lower(${transactions.merchant}) glob '*makemytrip*' or lower(${transactions.merchant}) glob '*irctc*')`)).orderBy(desc(transactions.date)).limit(25),
-);
+export const findBookings = createServerFn({ method: "GET" })
+  .validator(z.object({ before: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+  .handler(async ({ data }) =>
+    getDb()
+      .select({
+        id: transactions.id,
+        merchant: transactions.merchant,
+        amount: transactions.amount,
+        date: transactions.date,
+        category: transactions.category,
+      })
+      .from(transactions)
+      .where(
+        and(
+          isNull(transactions.deletedAt),
+          lte(transactions.date, `${data.before} 23:59`),
+          sql`(${transactions.category} = 'Transport' or lower(${transactions.merchant}) glob '*flight*' or lower(${transactions.merchant}) glob '*rail*' or lower(${transactions.merchant}) glob '*hotel*' or lower(${transactions.merchant}) glob '*ibibo*' or lower(${transactions.merchant}) glob '*makemytrip*' or lower(${transactions.merchant}) glob '*irctc*')`,
+        ),
+      )
+      .orderBy(desc(transactions.date))
+      .limit(25),
+  );
 
 // Cards to track, from env: "HDFC:1234,Axis:5678". Keeps real card digits out of the repo.
 // ponytail: env list; move to Settings when cards change often.
-const CARDS = (process.env.KHARCHA_CARDS ?? "").split(",").map((x) => x.trim().split(":")).filter((x) => /^\d{4}$/.test(x[1] ?? "")).map(([name, last4]) => ({ name: name!, last4: last4! }));
+const CARDS = (process.env.KHARCHA_CARDS ?? "")
+  .split(",")
+  .map((x) => x.trim().split(":"))
+  .filter((x) => /^\d{4}$/.test(x[1] ?? ""))
+  .map(([name, last4]) => ({ name: name!, last4: last4! }));
 export const getCards = createServerFn({ method: "GET" }).handler(async () => {
-  const rows = await cardBalances(getDb(), CARDS.map((c) => c.last4));
+  const rows = await cardBalances(
+    getDb(),
+    CARDS.map((c) => c.last4),
+  );
   return rows.map((row) => ({ ...row, name: CARDS.find((c) => c.last4 === row.card)?.name ?? row.card }));
 });

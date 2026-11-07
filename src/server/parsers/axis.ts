@@ -1,12 +1,5 @@
 // Copied from kharcha-mini/src/parsers/axis.ts; a parser fix in the mini must be copied over.
-import {
-  extractAccountLast4,
-  extractReferenceNumber,
-  REFERENCE_PATTERNS,
-  type Parser,
-  parseAmount,
-  parseAxisDate,
-} from "./utils.ts";
+import { extractAccountLast4, extractReferenceNumber, REFERENCE_PATTERNS, type Parser, parseAmount, parseAxisDate } from "./utils.ts";
 
 const BANK_NAME = "Axis Bank";
 const PARSER_KEY = "axis";
@@ -20,8 +13,7 @@ function isAxisNonTransactionNotice(body: string): boolean {
   const lower = body.toLowerCase();
 
   // Statements are never transactions.
-  if (/statement\s+(?:for\s+your\s+)?axis\s+bank\s+credit\s+card/i.test(body))
-    return true;
+  if (/statement\s+(?:for\s+your\s+)?axis\s+bank\s+credit\s+card/i.test(body)) return true;
 
   // E-mandate / upcoming / scheduled / conditional future debits.
   if (
@@ -32,15 +24,12 @@ function isAxisNonTransactionNotice(body: string): boolean {
     return true;
   }
   if (/\be-?mandate\b/i.test(body)) {
-    const isPastTense = /(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i.test(
-      body,
-    );
+    const isPastTense = /(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i.test(body);
     if (!isPastTense) return true;
   }
 
   // Mandate registration is a setup event, not a debit.
-  if (/mandate\s+(?:for\s+.+?\s+)?has\s+been\s+registered/i.test(body))
-    return true;
+  if (/mandate\s+(?:for\s+.+?\s+)?has\s+been\s+registered/i.test(body)) return true;
 
   // Future due / payment-due reminders.
   if (
@@ -143,22 +132,10 @@ function extractAxisMerchant(body: string): string | null {
   // another UPI segment so we don't swallow the rest of the SMS.
   const stop = String.raw`(?:\.|,|\n|\s+(?:Ref|RRN|UTR|Txn))`;
   const patterns = [
-    new RegExp(
-      `Transaction Info:\\s*UPI\\/[A-Z0-9]+\\/[0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`,
-      "i",
-    ),
-    new RegExp(
-      `Transaction Info:\\s*UPI\\/[A-Z0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`,
-      "i",
-    ),
-    new RegExp(
-      `UPI\\/[A-Z0-9]+\\/[0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`,
-      "i",
-    ),
-    new RegExp(
-      `UPI\\/[A-Z0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`,
-      "i",
-    ),
+    new RegExp(`Transaction Info:\\s*UPI\\/[A-Z0-9]+\\/[0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`, "i"),
+    new RegExp(`Transaction Info:\\s*UPI\\/[A-Z0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`, "i"),
+    new RegExp(`UPI\\/[A-Z0-9]+\\/[0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`, "i"),
+    new RegExp(`UPI\\/[A-Z0-9]+\\/([A-Za-z][\\w\\s.]*?)(?=\\s*(?:${stop}|$))`, "i"),
   ];
   for (const pattern of patterns) {
     const match = body.match(pattern);
@@ -168,15 +145,12 @@ function extractAxisMerchant(body: string): string | null {
 }
 
 // CRED bill payments only ("CRED Club", "CRED CCBP UPI"); "CRED Pay" is ordinary spend.
-const cardBillCategory = (merchant: string) =>
-  /\bCRED\s+(?:Club|CCBP)\b/i.test(merchant) ? "Credit Card Payment" : undefined;
+const cardBillCategory = (merchant: string) => (/\bCRED\s+(?:Club|CCBP)\b/i.test(merchant) ? "Credit Card Payment" : undefined);
 
 // "Amount Debited: INR 75.00 ... Date & Time: 01-04-26, 19:03:35 ... Transaction Info: UPI/P2M/..."
 export const axisUpiDebit: Parser = (body) => {
   const amountMatch = body.match(/Amount Debited:\s*INR ([\d,]+\.?\d*)/i);
-  const dateMatch = body.match(
-    /Date & Time:\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})/i,
-  );
+  const dateMatch = body.match(/Date & Time:\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})/i);
 
   if (!amountMatch || !dateMatch) return null;
 
@@ -195,9 +169,7 @@ export const axisUpiDebit: Parser = (body) => {
 // "Amount Credited: INR 500.00 ... Date & Time: 01-04-26, 10:00:00 ... Transaction Info: UPI/..."
 export const axisUpiCredit: Parser = (body) => {
   const amountMatch = body.match(/Amount Credited:\s*INR ([\d,]+\.?\d*)/i);
-  const dateMatch = body.match(
-    /Date & Time:\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})/i,
-  );
+  const dateMatch = body.match(/Date & Time:\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})/i);
 
   if (!amountMatch || !dateMatch) return null;
 
@@ -242,9 +214,7 @@ export const axisCreditCard: Parser = (body) => {
 
 // "Your A/c has been debited towards {merchant} for INR {amount} on {date}. {token}@{provider} - Axis Bank"
 export const axisAccountDebit: Parser = (body) => {
-  const match = body.match(
-    /Your\s+A\/c\s+has\s+been\s+debited\s+towards\s+(.+?)\s+for\s+INR\s+([\d,]+\.?\d*)\s+on\s+(\d{2}-\d{2}-\d{2})/i,
-  );
+  const match = body.match(/Your\s+A\/c\s+has\s+been\s+debited\s+towards\s+(.+?)\s+for\s+INR\s+([\d,]+\.?\d*)\s+on\s+(\d{2}-\d{2}-\d{2})/i);
   if (!match) return null;
 
   return {
@@ -265,9 +235,7 @@ export const axisAccountDebit: Parser = (body) => {
 export const axisAccountCredit: Parser = (body) => {
   const amountMatch = body.match(/^INR\s+([\d,]+\.?\d*)\s+credited/im);
   const accountMatch = body.match(/A\/c\s+no\.\s+XX(\d{4})/i);
-  const dateTimeMatch = body.match(
-    /(\d{2}-\d{2}-\d{2}),\s*(\d{2}:\d{2}:\d{2})\s+IST/i,
-  );
+  const dateTimeMatch = body.match(/(\d{2}-\d{2}-\d{2}),\s*(\d{2}:\d{2}:\d{2})\s+IST/i);
   const upiMatch = body.match(/UPI\/[A-Z0-9]+\/([0-9]+)\//i);
 
   if (!amountMatch || !dateTimeMatch) return null;
@@ -310,9 +278,7 @@ export const axisNeftCredit: Parser = (body) => {
   );
   if (!match) return null;
 
-  const infoMatch = body.match(
-    /(?:Info\s*[-:]|Ref:?)\s*(?:NEFT|IMPS|RTGS)\/([A-Z0-9]+)\/([^./\n]+)/i,
-  );
+  const infoMatch = body.match(/(?:Info\s*[-:]|Ref:?)\s*(?:NEFT|IMPS|RTGS)\/([A-Z0-9]+)\/([^./\n]+)/i);
 
   return {
     amount: parseAmount(match[1]),
@@ -326,9 +292,7 @@ export const axisNeftCredit: Parser = (body) => {
 
 // "UPI LITE top-up on UPI App amounting to INR {amount} has been successful. Ref no. {ref} - Axis Bank"
 export const axisUpiLiteTopup: Parser = (body) => {
-  const match = body.match(
-    /UPI\s+LITE\s+top-up\s+on\s+UPI\s+App\s+amounting\s+to\s+INR\s+([\d,]+\.?\d*)\s+has\s+been\s+successful/i,
-  );
+  const match = body.match(/UPI\s+LITE\s+top-up\s+on\s+UPI\s+App\s+amounting\s+to\s+INR\s+([\d,]+\.?\d*)\s+has\s+been\s+successful/i);
   if (!match) return null;
 
   return {
@@ -346,9 +310,7 @@ export const axisUpiLiteTopup: Parser = (body) => {
 export const axisAccountDebitMultiLine: Parser = (body) => {
   const amountMatch = body.match(/^INR\s+([\d,]+\.?\d*)\s+debited/im);
   const accountMatch = body.match(/A\/c\s+no\.\s+XX(\d{4})/i);
-  const dateTimeMatch = body.match(
-    /(\d{2}-\d{2}-\d{2}),\s*(\d{2}:\d{2}:\d{2})/i,
-  );
+  const dateTimeMatch = body.match(/(\d{2}-\d{2}-\d{2}),\s*(\d{2}:\d{2}:\d{2})/i);
   const upiMatch = body.match(/UPI\/[A-Z0-9]+\/([0-9]+)\//i);
 
   if (!amountMatch || !dateTimeMatch) return null;
@@ -377,27 +339,16 @@ export const axisCardSpend: Parser = (body) => {
   // Capture the currency token too: international card spends quote USD/EUR/GBP
   // and storing the bare number as INR was the 2026-07-17 audit's
   // foreign-currency bug (23 rows, every USD-billed subscription affected).
-  const sameLineAmount = body.match(
-    /^Spent\s+(INR|Rs\.?|USD|EUR|GBP)\s*([\d,]+\.?\d*)\s*$/im,
-  );
-  const currencyLineAmount = body.match(
-    /^(INR|Rs\.?|USD|EUR|GBP)\s*([\d,]+\.?\d*)\s*$/im,
-  );
+  const sameLineAmount = body.match(/^Spent\s+(INR|Rs\.?|USD|EUR|GBP)\s*([\d,]+\.?\d*)\s*$/im);
+  const currencyLineAmount = body.match(/^(INR|Rs\.?|USD|EUR|GBP)\s*([\d,]+\.?\d*)\s*$/im);
   const amountMatch = sameLineAmount ?? currencyLineAmount;
 
-  const dateTimeMatch = body.match(
-    /(\d{2}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})(?:\s+IST)?/i,
-  );
+  const dateTimeMatch = body.match(/(\d{2}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})(?:\s+IST)?/i);
   const accountMatch = body.match(/Card\s+no\.\s+XX(\d{4})/i);
 
   // Merchant is the line immediately after the date/time line.
   const merchantMatch = dateTimeMatch
-    ? body.match(
-        new RegExp(
-          `${dateTimeMatch[2]}(?:\\s+IST)?\\s*\\r?\\n([A-Z][A-Za-z0-9 ./*&-]{2,40})(?=\\r?\\n)`,
-          "i",
-        ),
-      )
+    ? body.match(new RegExp(`${dateTimeMatch[2]}(?:\\s+IST)?\\s*\\r?\\n([A-Z][A-Za-z0-9 ./*&-]{2,40})(?=\\r?\\n)`, "i"))
     : null;
 
   if (!amountMatch || !dateTimeMatch) return null;
@@ -450,12 +401,8 @@ function withAxisGuard(parser: Parser): Parser {
 
 // generic fallback: "spent/debited INR X at merchant on DD-MM-YY"
 export const axisGenericDebit: Parser = (body) => {
-  const amountMatch = body.match(
-    /(?:spent|debited)\s*(?:INR|Rs\.?)\s*([\d,]+\.?\d*)/i,
-  );
-  const dateMatch = body.match(
-    /(?:on|dated?)\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})?/i,
-  );
+  const amountMatch = body.match(/(?:spent|debited)\s*(?:INR|Rs\.?)\s*([\d,]+\.?\d*)/i);
+  const dateMatch = body.match(/(?:on|dated?)\s*(\d{2}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})?/i);
   const merchantMatch = body.match(/(?:at|towards)\s+(.+?)(?:\s+on|\s+dated)/i);
 
   if (!amountMatch || !dateMatch) return null;

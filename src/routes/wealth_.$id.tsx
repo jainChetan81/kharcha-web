@@ -10,7 +10,10 @@ import { closeHolding, getHolding } from "../server/wealth/fns";
 export const Route = createFileRoute("/wealth_/$id")({
   loader: ({ params }) => getHolding({ data: { id: Number(params.id) } }),
   pendingComponent: () => <Skeleton rows={6} />,
-  errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load holding."} retry={() => void router.invalidate()} />; },
+  errorComponent: ({ error }) => {
+    const router = useRouter();
+    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load holding."} retry={() => void router.invalidate()} />;
+  },
   component: Holding,
 });
 function Holding() {
@@ -33,16 +36,72 @@ function Holding() {
     }
   };
   const max = Math.max(...data.history.map((row) => row.nav), 1);
-  const points = data.history.map((row, index) => `${index / Math.max(1, data.history.length - 1) * 600},${130 - row.nav / max * 110}`).join(" ");
-  return <>
-    <PageHeader title={data.name} back="/wealth" actions={<ButtonLink to="/wealth/$id/edit" params={{ id: String(data.id) }} variant="text">Edit</ButtonLink>} />
-    <main className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[760px]">
-      <section className="rounded-hero bg-hero p-5 text-on-ink"><strong className="font-serif text-[40px] font-medium">{money(data.value)}</strong><p className="mb-0 text-sm text-on-ink-2">{data.price ? navsOf(data.price.date) : data.manualValueDate ? `${statementOf(data.manualValueDate)} · not live` : "Manual value"}</p></section>
-      {data.history.length > 1 && <svg viewBox="0 0 600 140" role="img" aria-label="NAV history with holding value" className="h-40 w-full"><polyline points={points} fill="none" stroke="var(--color-brand)" strokeWidth="2" /></svg>}
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule">{[["Units", data.txns.length ? data.units.toFixed(2) : "—"], ["NAV", data.price ? money(data.price.nav) : "—"], ["Invested", money(data.invested)], ["Average cost", data.units ? money(data.invested / data.units) : "—"], ["XIRR", data.xirr == null ? "—" : `${(data.xirr * 100).toFixed(1)}%`], ["Gain", money(data.gain)]].map(([label, value]) => <div key={label} className="bg-card p-3"><small className="block text-ink-3">{label}</small><b>{value}</b></div>)}</section>
-      <div className="-mx-5 desk:mx-0"><SipList sips={data.sips.map((row) => ({ ...row, name: data.name }))} named={false} /></div>
-      <section><h2 className="font-serif text-lg">Instalments</h2>{data.txns.length ? null : <p className="text-sm text-ink-3">No purchase history yet. Value and invested come from the statement.</p>}{data.txns.map((row) => <div key={row.id} className="flex min-h-11 items-center justify-between border-b border-hairline text-sm"><span>{row.date}</span><span>{money(row.amount)} · {row.units?.toFixed(2) ?? "—"} units</span></div>)}</section>
-      <Button variant="danger" className="self-start" disabled={!online || closing} onClick={() => void close()}>{closing ? "Closing…" : "Close holding"}</Button>
-    </main>
-  </>;
+  const points = data.history
+    .map((row, index) => `${(index / Math.max(1, data.history.length - 1)) * 600},${130 - (row.nav / max) * 110}`)
+    .join(" ");
+  return (
+    <>
+      <PageHeader
+        title={data.name}
+        back="/wealth"
+        actions={
+          <ButtonLink to="/wealth/$id/edit" params={{ id: String(data.id) }} variant="text">
+            Edit
+          </ButtonLink>
+        }
+      />
+      <main className="flex flex-col gap-6 px-5 pb-8 desk:mx-auto desk:max-w-[760px]">
+        <section className="rounded-hero bg-hero p-5 text-on-ink">
+          <strong className="font-serif text-[40px] font-medium">{money(data.value)}</strong>
+          <p className="mb-0 text-sm text-on-ink-2">
+            {data.price
+              ? navsOf(data.price.date)
+              : data.manualValueDate
+                ? `${statementOf(data.manualValueDate)} · not live`
+                : "Manual value"}
+          </p>
+        </section>
+        {data.history.length > 1 && (
+          <svg viewBox="0 0 600 140" role="img" aria-label="NAV history with holding value" className="h-40 w-full">
+            <polyline points={points} fill="none" stroke="var(--color-brand)" strokeWidth="2" />
+          </svg>
+        )}
+        <section className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule">
+          {[
+            ["Units", data.txns.length ? data.units.toFixed(2) : "—"],
+            ["NAV", data.price ? money(data.price.nav) : "—"],
+            ["Invested", money(data.invested)],
+            ["Average cost", data.units ? money(data.invested / data.units) : "—"],
+            ["XIRR", data.xirr == null ? "—" : `${(data.xirr * 100).toFixed(1)}%`],
+            ["Gain", money(data.gain)],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-card p-3">
+              <small className="block text-ink-3">{label}</small>
+              <b>{value}</b>
+            </div>
+          ))}
+        </section>
+        <div className="-mx-5 desk:mx-0">
+          <SipList sips={data.sips.map((row) => ({ ...row, name: data.name }))} named={false} />
+        </div>
+        <section>
+          <h2 className="font-serif text-lg">Instalments</h2>
+          {data.txns.length ? null : (
+            <p className="text-sm text-ink-3">No purchase history yet. Value and invested come from the statement.</p>
+          )}
+          {data.txns.map((row) => (
+            <div key={row.id} className="flex min-h-11 items-center justify-between border-b border-hairline text-sm">
+              <span>{row.date}</span>
+              <span>
+                {money(row.amount)} · {row.units?.toFixed(2) ?? "—"} units
+              </span>
+            </div>
+          ))}
+        </section>
+        <Button variant="danger" className="self-start" disabled={!online || closing} onClick={() => void close()}>
+          {closing ? "Closing…" : "Close holding"}
+        </Button>
+      </main>
+    </>
+  );
 }

@@ -31,7 +31,16 @@ export const Route = createRootRoute({
     ],
     // Page views only: no query string (Activity search can hold merchant names), production host only.
     scripts: loaderData?.umamiWebsiteId
-      ? [{ src: "https://umami.chetan-vps.tech/script.js", defer: true, "data-website-id": loaderData.umamiWebsiteId, "data-domains": "kharcha.chetan-vps.tech", "data-exclude-search": "true", "data-exclude-hash": "true" }]
+      ? [
+          {
+            src: "https://umami.chetan-vps.tech/script.js",
+            defer: true,
+            "data-website-id": loaderData.umamiWebsiteId,
+            "data-domains": "kharcha.chetan-vps.tech",
+            "data-exclude-search": "true",
+            "data-exclude-hash": "true",
+          },
+        ]
       : [],
   }),
   // Finance pages: never keep a copy in the browser or any proxy cache.
@@ -76,7 +85,9 @@ function Layout() {
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
               {KEYS.map((k) => (
                 <div key={k.key} className="contents">
-                  <dt><kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
+                  <dt>
+                    <kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd>
+                  </dt>
                   <dd className="m-0">{k.label}</dd>
                 </div>
               ))}
@@ -95,8 +106,12 @@ function RootError({ error, reset }: ErrorComponentProps) {
       <p className="m-0 font-serif text-2xl leading-snug">
         {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
       </p>
-      <Button onClick={reset} className="min-h-12 px-7 text-base">Retry</Button>
-      <a href="/login" className="text-ink-2 underline">Sign in</a>
+      <Button onClick={reset} className="min-h-12 px-7 text-base">
+        Retry
+      </Button>
+      <a href="/login" className="text-ink-2 underline">
+        Sign in
+      </a>
     </main>
   );
 }

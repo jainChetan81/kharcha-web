@@ -1,7 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "../lib/cn";
 
-const tabs = [{ to: "/plan/budgets", label: "Budgets" }, { to: "/plan/recurring", label: "Recurring" }, { to: "/plan/trips", label: "Trips" }, { to: "/plan/owed", label: "Owed" }, { to: "/plan/cards", label: "Cards" }] as const;
+const tabs = [
+  { to: "/plan/budgets", label: "Budgets" },
+  { to: "/plan/recurring", label: "Recurring" },
+  { to: "/plan/trips", label: "Trips" },
+  { to: "/plan/owed", label: "Owed" },
+  { to: "/plan/cards", label: "Cards" },
+] as const;
 export function PlanTabs() {
   const path = useRouterState({ select: (state) => state.location.pathname });
   return (

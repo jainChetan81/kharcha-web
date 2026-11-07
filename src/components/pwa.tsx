@@ -31,10 +31,14 @@ export function countAdd() {
   localStorage.setItem(ADDS, String(n));
   if (n < 3 || localStorage.getItem(DISMISSED) || isStandalone()) return;
   if (deferred)
-    snack("Install Kharcha for one-tap adding", { label: "Install", onClick: () => void promptInstall() }, {
-      label: "Not now",
-      onClick: () => localStorage.setItem(DISMISSED, "1"),
-    });
+    snack(
+      "Install Kharcha for one-tap adding",
+      { label: "Install", onClick: () => void promptInstall() },
+      {
+        label: "Not now",
+        onClick: () => localStorage.setItem(DISMISSED, "1"),
+      },
+    );
   else if (isIOS() && !localStorage.getItem(IOS_SEEN)) for (const l of listeners) l();
 }
 
@@ -116,7 +120,9 @@ export function IosInstallSheet({ onClose }: { onClose: () => void }) {
         ))}
       </ol>
       <div className="flex justify-end gap-2">
-        <Button variant="text" onClick={onClose}>Not now</Button>
+        <Button variant="text" onClick={onClose}>
+          Not now
+        </Button>
         <Button onClick={onClose}>Done</Button>
       </div>
     </Sheet>

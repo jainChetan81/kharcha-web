@@ -34,7 +34,8 @@ function CardsScreen() {
             </p>
           )}
           <p className="mt-1 text-sm text-ink-2">
-            {c.spends} spends since {c.lastPayment ? `the ${money(c.lastPayment.amount)} payment on ${shortDate(c.lastPayment.date)}` : "the start"}.
+            {c.spends} spends since{" "}
+            {c.lastPayment ? `the ${money(c.lastPayment.amount)} payment on ${shortDate(c.lastPayment.date)}` : "the start"}.
           </p>
           {c.payments.length > 0 && (
             <div className="mt-2 divide-y divide-hairline">

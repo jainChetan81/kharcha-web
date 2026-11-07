@@ -30,8 +30,12 @@ function Login() {
           Password
           <input name="password" type="password" autoComplete="current-password" required className="field mt-1" />
         </label>
-        <Button type="submit" disabled={signingIn} className="w-full">{signingIn ? "Signing in…" : "Sign in"}</Button>
-        <p role="alert" className="text-sm text-over">{error ? MESSAGES[error] : ""}</p>
+        <Button type="submit" disabled={signingIn} className="w-full">
+          {signingIn ? "Signing in…" : "Sign in"}
+        </Button>
+        <p role="alert" className="text-sm text-over">
+          {error ? MESSAGES[error] : ""}
+        </p>
       </form>
     </section>
   );

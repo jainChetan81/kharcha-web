@@ -36,21 +36,40 @@ const toBlob = (v: Float32Array) => Buffer.from(v.buffer, v.byteOffset, v.byteLe
 const fromBlob = (b: Uint8Array) => new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
 
 export function cosine(a: Float32Array, b: Float32Array): number {
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  let dot = 0,
+    na = 0,
+    nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
   return na && nb ? dot / Math.sqrt(na * nb) : 0;
 }
 
 /** Embeds merchants that have no vector yet. Runs after each write and as job `embeddings` (backfill). */
 export async function fillMissing(db: Db): Promise<{ embedded: number; missing: number }> {
-  const missing = await db.selectDistinct({ merchant: transactions.merchant }).from(transactions)
-    .where(sql`${transactions.deletedAt} IS NULL AND ${transactions.merchant} NOT IN (SELECT merchant FROM merchant_vectors WHERE model = ${MODEL})`);
+  const missing = await db
+    .selectDistinct({ merchant: transactions.merchant })
+    .from(transactions)
+    .where(
+      sql`${transactions.deletedAt} IS NULL AND ${transactions.merchant} NOT IN (SELECT merchant FROM merchant_vectors WHERE model = ${MODEL})`,
+    );
   for (let i = 0; i < missing.length; i += 64) {
     const names = missing.slice(i, i + 64).map((m) => m.merchant);
-    const vectors = await embed(db, names.map((name) => DOC + name), 60_000);
+    const vectors = await embed(
+      db,
+      names.map((name) => DOC + name),
+      60_000,
+    );
     if (!vectors) return { embedded: i, missing: missing.length };
-    await db.insert(merchantVectors).values(names.map((merchant, j) => ({ merchant, model: MODEL, vector: toBlob(vectors[j]) })))
-      .onConflictDoUpdate({ target: merchantVectors.merchant, set: { model: MODEL, vector: sql`excluded.vector`, createdAt: sql`(datetime('now'))` } });
+    await db
+      .insert(merchantVectors)
+      .values(names.map((merchant, j) => ({ merchant, model: MODEL, vector: toBlob(vectors[j]) })))
+      .onConflictDoUpdate({
+        target: merchantVectors.merchant,
+        set: { model: MODEL, vector: sql`excluded.vector`, createdAt: sql`(datetime('now'))` },
+      });
   }
   return { embedded: missing.length, missing: missing.length };
 }
@@ -60,7 +79,10 @@ export async function fillMissing(db: Db): Promise<{ embedded: number; missing: 
 export function pickMerchants(scored: { merchant: string; score: number }[], floor = 0.3, window = 0.1, max = 10): string[] {
   const sorted = [...scored].sort((a, b) => b.score - a.score);
   const top = sorted[0]?.score ?? 0;
-  return sorted.filter((s) => s.score >= floor && s.score >= top - window).slice(0, max).map((s) => s.merchant);
+  return sorted
+    .filter((s) => s.score >= floor && s.score >= top - window)
+    .slice(0, max)
+    .map((s) => s.merchant);
 }
 
 // Activity loads the list and the summary at once; both ask for the same search. Share one lookup.
@@ -75,7 +97,9 @@ export function merchantsByMeaning(db: Db, search: string): Promise<string[]> {
   recent.set(key, { at: Date.now(), result: result.then((r) => r ?? []) });
   if (recent.size > 50) recent.delete(recent.keys().next().value as string);
   // A failed lookup is not cached: the next search tries 9Router again.
-  void result.then((r) => { if (r === null) recent.delete(key); });
+  void result.then((r) => {
+    if (r === null) recent.delete(key);
+  });
   return result.then((r) => r ?? []);
 }
 
@@ -85,7 +109,9 @@ async function lookup(db: Db, search: string): Promise<string[] | null> {
   // Short timeout: a slow 9Router must not hold up plain text search.
   const [query] = (await embed(db, [QUERY + text], 4_000)) ?? [];
   if (!query) return null;
-  const rows = await db.select({ merchant: merchantVectors.merchant, vector: merchantVectors.vector }).from(merchantVectors)
+  const rows = await db
+    .select({ merchant: merchantVectors.merchant, vector: merchantVectors.vector })
+    .from(merchantVectors)
     .where(eq(merchantVectors.model, MODEL));
   return pickMerchants(rows.map((r) => ({ merchant: r.merchant, score: cosine(query, fromBlob(r.vector)) })));
 }

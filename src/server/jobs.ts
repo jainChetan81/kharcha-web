@@ -5,7 +5,9 @@ import { linkSips } from "./wealth/jobs";
 import { fillMissing } from "./ai/embed";
 
 // Not awaited: a slow 9Router must not hold up ingest or edits. Misses are filled by the embeddings job.
-const embedMerchants = async (_ids: number[], db?: Db) => { void fillMissing(db ?? getDb()).catch((error) => console.error("embed merchants failed", error)); };
+const embedMerchants = async (_ids: number[], db?: Db) => {
+  void fillMissing(db ?? getDb()).catch((error) => console.error("embed merchants failed", error));
+};
 
 export async function afterWrite(txnIds: number[], db?: Db): Promise<void> {
   if (txnIds.length === 0) return;

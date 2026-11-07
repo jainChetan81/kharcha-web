@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:tooling": "tsc --project tsconfig.tooling.json",
     "unused": "knip",
-    "lint": "biome lint . --error-on-warnings",
+    "lint": "biome check . --error-on-warnings",
     "check:db": "node --experimental-strip-types --no-warnings scripts/check-db.ts",
     "check:parsers": "node --experimental-strip-types --no-warnings scripts/check-parsers.ts",
     "quality": "npm run lint && npm run typecheck && npm run typecheck:tooling && npm run unused && npm run check:db && npm run check:format && npm run check:ai && npm run check:wealth && npm run check:parsers",

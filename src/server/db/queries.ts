@@ -1,7 +1,18 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "./client.ts";
-import { attachments, budgets, categories, merchantRules, meta, reimbursements, TXN_TYPES, transactions, transactionSplits, type MerchantRule } from "./schema.ts";
+import {
+  attachments,
+  budgets,
+  categories,
+  merchantRules,
+  meta,
+  reimbursements,
+  TXN_TYPES,
+  transactions,
+  transactionSplits,
+  type MerchantRule,
+} from "./schema.ts";
 
 /** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
 function realDate(value: string): boolean {
@@ -12,7 +23,10 @@ function realDate(value: string): boolean {
   const [h, min] = value.slice(11).split(":").map(Number);
   return h < 24 && min < 60;
 }
-const dateTime = z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/).refine(realDate, "not a real date");
+const dateTime = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)
+  .refine(realDate, "not a real date");
 export const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 
 // Row shape kharcha-mini pushes (its drizzle select, camelCase). Unknown keys are dropped.
@@ -162,7 +176,10 @@ export const flagSchema = z.object({
 });
 export async function flagTxn(db: Db, f: z.infer<typeof flagSchema>): Promise<void> {
   const { id, ...set } = f;
-  await db.update(transactions).set({ ...set, editedAt: sql`(datetime('now'))` }).where(eq(transactions.id, id));
+  await db
+    .update(transactions)
+    .set({ ...set, editedAt: sql`(datetime('now'))` })
+    .where(eq(transactions.id, id));
 }
 
 export const addSchema = z.object({
@@ -173,8 +190,14 @@ export const addSchema = z.object({
   date: dateTime,
   source: z.enum(["manual", "paste"]).optional(),
   rawText: z.string().max(2000).optional(),
-  accountLast4: z.string().regex(/^\d{4}$/).optional(),
-  currency: z.string().regex(/^[A-Z]{3}$/).optional(),
+  accountLast4: z
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .optional(),
   originalAmount: z.number().positive().optional(),
   excluded: z.boolean().optional(),
 });
@@ -202,10 +225,7 @@ export async function addTxn(db: Db, a: z.infer<typeof addSchema>): Promise<numb
 }
 
 export async function removeTxn(db: Db, id: number): Promise<void> {
-  await db
-    .update(transactions)
-    .set({ deletedAt: sql`(datetime('now'))`, editedAt: sql`(datetime('now'))` })
-    .where(eq(transactions.id, id));
+  await db.update(transactions).set({ deletedAt: sql`(datetime('now'))`, editedAt: sql`(datetime('now'))` }).where(eq(transactions.id, id));
 }
 
 /** Undo for a delete: clears the app tombstone. A mini tombstone would come back on the next push anyway. */
@@ -244,7 +264,12 @@ export const splitShareOf = (txn: string, split: string) => `MAX(0, ${split}.amo
  * from/to are "YYYY-MM-DD", half-open.
  */
 /** `gross`: spend before claims (used to size the reimbursable hatch on budgets). */
-export async function spendByCategory(db: Db, from: string, to: string, gross = false): Promise<{ category: string; total: number; n: number }[]> {
+export async function spendByCategory(
+  db: Db,
+  from: string,
+  to: string,
+  gross = false,
+): Promise<{ category: string; total: number; n: number }[]> {
   // Unsplit spend: the row's share. Split spend: each split less the claim on its items, plus its pro rata part of any whole/part claim.
   const filter = sql`t.deleted_at IS NULL AND t.type = 'expense' AND t.excluded = 0 AND t.duplicate_of IS NULL AND t.date >= ${from} AND t.date < ${to}`;
   const unsplitAmt = gross ? "t.amount" : `MAX(0, t.amount - ${claimedOf("t")})`;
@@ -276,7 +301,10 @@ export async function monthSummary(db: Db, month: string) {
       .where(and(live, eq(transactions.excluded, false), isNull(transactions.duplicateOf), inMonth(month)))
       .groupBy(transactions.type),
     spendByCategory(db, from, to),
-    db.select({ n: count() }).from(transactions).where(and(live, eq(transactions.needsReview, true))),
+    db
+      .select({ n: count() })
+      .from(transactions)
+      .where(and(live, eq(transactions.needsReview, true))),
     db.select({ value: meta.value }).from(meta).where(eq(meta.key, "last_ingest_at")),
     db.select().from(budgets),
   ]);
@@ -292,16 +320,37 @@ export async function monthSummary(db: Db, month: string) {
 /** Status chips (Activity filter screen). Accepts a comma list ("review,split") or an array. */
 export const STATUSES = ["review", "receipt", "split", "reimbursable"] as const;
 const statusList = z.preprocess((v) => (typeof v === "string" ? v.split(",").filter(Boolean) : v), z.array(z.enum(STATUSES)).max(4));
-const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => realDate(v), "not a real date");
+const daySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((v) => realDate(v), "not a real date");
 const listShape = z.object({
   month: monthSchema.optional(),
   from: daySchema.optional(),
   to: daySchema.optional(),
   search: z.string().trim().max(60).optional(),
   review: z.boolean().optional(),
-  category: z.string().trim().max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40).optional(),
-  categories: z.array(z.string().trim().min(1).max(49).refine((v) => v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)).max(40).optional(),
-  card: z.string().regex(/^\d{4}$/).optional(),
+  category: z
+    .string()
+    .trim()
+    .max(49)
+    .refine((v) => (v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40))
+    .optional(),
+  categories: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(49)
+        .refine((v) => (v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)),
+    )
+    .max(40)
+    .optional(),
+  card: z
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
   type: z.enum([...TXN_TYPES, "transfer"]).optional(),
   min: z.number().finite().min(0).max(1e9).optional(),
   max: z.number().finite().min(0).max(1e9).optional(),
@@ -312,7 +361,8 @@ const listShape = z.object({
   ids: z.array(z.number().int().positive()).max(500).optional(),
 });
 const ordered = <T extends z.ZodType<{ from?: string; to?: string; min?: number; max?: number }>>(schema: T) =>
-  schema.refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
+  schema
+    .refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
     .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
 export const listSchema = ordered(listShape);
 export type ListQuery = z.infer<typeof listSchema>;
@@ -337,7 +387,7 @@ export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
       // Null category reads as Other everywhere, so the Other filter includes uncategorised rows.
       const categoryMatch = sql`COALESCE(${transactions.category}, 'Other') = ${category}`;
       const rowMatch = type
-        ? and(eq(transactions.type, type as typeof TXN_TYPES[number]), categoryMatch, noSplits)
+        ? and(eq(transactions.type, type as (typeof TXN_TYPES)[number]), categoryMatch, noSplits)
         : and(categoryMatch, noSplits);
       return or(rowMatch, splitMatch);
     });
@@ -374,10 +424,14 @@ export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
 /** withRaw adds the SMS text; only Detail, Review and Activity's pane need it. */
 export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean; meaningMerchants?: string[] }) {
   const where = listWhere(q);
-  const order = q.sort === "oldest" ? [transactions.date, transactions.id] :
-    q.sort === "amount-desc" ? [desc(transactions.amount), desc(transactions.date)] :
-    q.sort === "amount-asc" ? [transactions.amount, desc(transactions.date)] :
-    [desc(transactions.date), desc(transactions.id)];
+  const order =
+    q.sort === "oldest"
+      ? [transactions.date, transactions.id]
+      : q.sort === "amount-desc"
+        ? [desc(transactions.amount), desc(transactions.date)]
+        : q.sort === "amount-asc"
+          ? [transactions.amount, desc(transactions.date)]
+          : [desc(transactions.date), desc(transactions.id)];
   return db
     .select({
       id: transactions.id,
@@ -396,8 +450,8 @@ export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boole
       needsReview: transactions.needsReview,
       excluded: transactions.excluded,
       duplicateOf: transactions.duplicateOf,
-      reimbursable: sql<number>`CASE WHEN ${transactions.type}='expense' THEN ${claimedOf('transactions')} ELSE 0 END`.mapWith(Number),
-      yours: sql<number>`${shareSql('transactions')}`.mapWith(Number),
+      reimbursable: sql<number>`CASE WHEN ${transactions.type}='expense' THEN ${claimedOf("transactions")} ELSE 0 END`.mapWith(Number),
+      yours: sql<number>`${shareSql("transactions")}`.mapWith(Number),
     })
     .from(transactions)
     .where(and(...where))
@@ -425,12 +479,17 @@ function dayCount(q: ListQuery): number | null {
 export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
   const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
   // Splits exist only on expense rows, so "income:Travel" never picks a split part.
-  const splitNames = selectedCategories.filter((value) => !/^(income|investment):/.test(value)).map((value) => {
-    const i = value.lastIndexOf(":");
-    return i > 0 ? value.slice(i + 1) : value;
-  });
+  const splitNames = selectedCategories
+    .filter((value) => !/^(income|investment):/.test(value))
+    .map((value) => {
+      const i = value.lastIndexOf(":");
+      return i > 0 ? value.slice(i + 1) : value;
+    });
   const splitFilter = splitNames.length
-    ? sql` AND fs.category IN (${sql.join(splitNames.map((name) => sql`${name}`), sql`, `)})`
+    ? sql` AND fs.category IN (${sql.join(
+        splitNames.map((name) => sql`${name}`),
+        sql`, `,
+      )})`
     : sql``;
   const counted = splitNames.length
     ? sql`CASE WHEN transactions.type = 'expense' AND EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = transactions.id)
@@ -444,7 +503,15 @@ export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
 export async function summarizeTxns(db: Db, q: ListQuery & { meaningMerchants?: string[] }) {
   const where = and(...listWhere(q)) ?? sql`1 = 1`;
   const { counted, splitFilter } = filteredAmount(q);
-  const [row] = await db.all<{ n: number; spent: number; income: number; transferred: number; top: string; biggest: string | null; frequent: string | null }>(sql`
+  const [row] = await db.all<{
+    n: number;
+    spent: number;
+    income: number;
+    transferred: number;
+    top: string;
+    biggest: string | null;
+    frequent: string | null;
+  }>(sql`
     WITH m AS (SELECT transactions.*, ${counted} AS counted_amount FROM transactions WHERE ${where}),
     s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)
     SELECT
@@ -477,7 +544,10 @@ export async function summarizeTxns(db: Db, q: ListQuery & { meaningMerchants?: 
   };
 }
 
-export async function splitsByTxnIds(db: Db, txnIds: number[]): Promise<Record<number, { transactionId: number; category: string; amount: number }[]>> {
+export async function splitsByTxnIds(
+  db: Db,
+  txnIds: number[],
+): Promise<Record<number, { transactionId: number; category: string; amount: number }[]>> {
   if (!txnIds.length) return {};
   const rows = await db.select().from(transactionSplits).where(inArray(transactionSplits.transactionId, txnIds));
   const map: Record<number, { transactionId: number; category: string; amount: number }[]> = {};
@@ -527,16 +597,25 @@ export const ruleSchema = z.object({
   createdFromTxnId: z.number().int().positive().optional(),
 });
 /** One rule per match (case-insensitive, trimmed): a same-match rule is replaced, never stacked. Newest rule wins at ingest. */
-export const sameMatch = (match: string, exceptId = -1) => sql`lower(trim(${merchantRules.match})) = lower(${match.trim()}) AND ${merchantRules.id} != ${exceptId}`;
+export const sameMatch = (match: string, exceptId = -1) =>
+  sql`lower(trim(${merchantRules.match})) = lower(${match.trim()}) AND ${merchantRules.id} != ${exceptId}`;
 /** Saves the rule, then files the source row and every pending row it matches so Review doesn't ask again. */
 export async function addRule(db: Db, r: z.infer<typeof ruleSchema>): Promise<{ ruleId: number; ids: number[] }> {
-  const [, [row]] = await db.batch([db.delete(merchantRules).where(sameMatch(r.match)), db.insert(merchantRules).values(r).returning({ id: merchantRules.id })]);
-  const pending = await db.select({ id: transactions.id, merchant: transactions.merchant, rawMerchant: transactions.rawMerchant }).from(transactions)
+  const [, [row]] = await db.batch([
+    db.delete(merchantRules).where(sameMatch(r.match)),
+    db.insert(merchantRules).values(r).returning({ id: merchantRules.id }),
+  ]);
+  const pending = await db
+    .select({ id: transactions.id, merchant: transactions.merchant, rawMerchant: transactions.rawMerchant })
+    .from(transactions)
     .where(and(live, eq(transactions.needsReview, true), sql`${transactions.type} != 'investment'`));
-  const ids = new Set(pending.filter((t) => ruleMatches(r, t.merchant) || (t.rawMerchant !== null && ruleMatches(r, t.rawMerchant))).map((t) => t.id));
+  const ids = new Set(
+    pending.filter((t) => ruleMatches(r, t.merchant) || (t.rawMerchant !== null && ruleMatches(r, t.rawMerchant))).map((t) => t.id),
+  );
   if (r.createdFromTxnId) ids.add(r.createdFromTxnId);
   if (ids.size)
-    await db.update(transactions)
+    await db
+      .update(transactions)
       .set({ category: r.category, merchant: r.displayMerchant, needsReview: false, editedAt: sql`(datetime('now'))` })
       .where(inArray(transactions.id, [...ids]));
   return { ruleId: row?.id ?? 0, ids: [...ids] };
@@ -563,30 +642,55 @@ export async function health(db: Db) {
 export async function cardBalances(db: Db, cards: readonly string[]) {
   const pays = await db.all<{ id: number; date: string; amount: number; card: string | null }>(sql`
     SELECT p.id, p.date, p.amount,
-      (SELECT r.account_last4 FROM transactions r WHERE r.account_last4 IN (${sql.join(cards.map((c) => sql`${c}`), sql`, `)})
+      (SELECT r.account_last4 FROM transactions r WHERE r.account_last4 IN (${sql.join(
+        cards.map((c) => sql`${c}`),
+        sql`, `,
+      )})
         AND r.merchant LIKE '%Credit Card' AND abs(r.amount - p.amount) <= 50
         AND abs(julianday(substr(r.date, 1, 10)) - julianday(substr(p.date, 1, 10))) <= 3 LIMIT 1) AS card
     FROM transactions p WHERE p.deleted_at IS NULL AND p.category = 'Credit Card Payment' ORDER BY p.date DESC`);
-  return Promise.all(cards.map(async (card) => {
-    const mine = pays.filter((p) => p.card === card);
-    const last = mine[0] ?? null;
-    const since = last?.date ?? "0000";
-    const [row] = await db.all<{ spent: number | null; n: number }>(sql`
+  return Promise.all(
+    cards.map(async (card) => {
+      const mine = pays.filter((p) => p.card === card);
+      const last = mine[0] ?? null;
+      const since = last?.date ?? "0000";
+      const [row] = await db.all<{ spent: number | null; n: number }>(sql`
       SELECT SUM(amount) AS spent, COUNT(*) AS n FROM transactions
       WHERE deleted_at IS NULL AND duplicate_of IS NULL AND type = 'expense' AND account_last4 = ${card} AND date > ${since}`);
-    const [refund] = await db.all<{ back: number | null }>(sql`
+      const [refund] = await db.all<{ back: number | null }>(sql`
       SELECT SUM(amount) AS back FROM transactions
       WHERE deleted_at IS NULL AND type = 'income' AND category = 'Refunds' AND account_last4 = ${card} AND date > ${since}`);
-    // Bill SMS arrive as ₹0 rows (tombstoned on ingest); their raw text still holds the bill.
-    const notices = await db.all<{ date: string; raw_text: string }>(sql`
+      // Bill SMS arrive as ₹0 rows (tombstoned on ingest); their raw text still holds the bill.
+      const notices = await db.all<{ date: string; raw_text: string }>(sql`
       SELECT date, raw_text FROM transactions WHERE amount = 0 AND raw_text LIKE ${`%${card}%`}
         AND (raw_text LIKE '%due%' OR raw_text LIKE 'Statement Generated%') AND raw_text NOT LIKE '%declined%' AND raw_text NOT LIKE '%OTP%' ORDER BY date DESC LIMIT 50`);
-    const bill = notices.map((n) => parseCardBill(n.raw_text, n.date)).find((b) => b !== null) ?? null;
-    return { card, owed: Math.round(((row?.spent ?? 0) - (refund?.back ?? 0)) * 100) / 100, spends: row?.n ?? 0, lastPayment: last ? { date: last.date, amount: last.amount } : null, payments: mine.slice(0, 6), bill };
-  }));
+      const bill = notices.map((n) => parseCardBill(n.raw_text, n.date)).find((b) => b !== null) ?? null;
+      return {
+        card,
+        owed: Math.round(((row?.spent ?? 0) - (refund?.back ?? 0)) * 100) / 100,
+        spends: row?.n ?? 0,
+        lastPayment: last ? { date: last.date, amount: last.amount } : null,
+        payments: mine.slice(0, 6),
+        bill,
+      };
+    }),
+  );
 }
 
-const MON: Record<string, string> = { JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06", JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12" };
+const MON: Record<string, string> = {
+  JAN: "01",
+  FEB: "02",
+  MAR: "03",
+  APR: "04",
+  MAY: "05",
+  JUN: "06",
+  JUL: "07",
+  AUG: "08",
+  SEP: "09",
+  OCT: "10",
+  NOV: "11",
+  DEC: "12",
+};
 const num = (v: string) => Number(v.replace(/,/g, ""));
 /** Latest card bill from a bank notice: amount and due date when the SMS gives them. Null for reminders without a bill. */
 export function parseCardBill(text: string, sentAt: string): { amount: number | null; dueDate: string | null; issued: string } | null {

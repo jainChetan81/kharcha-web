@@ -30,8 +30,15 @@ export async function miniStatus(db: Db, now = Date.now()) {
   const online = !!seen && now - Date.parse(seen) < ONLINE_MS;
   const state: SyncState = !requested ? "idle" : !finished || finished < requested ? "waiting" : "synced";
   // ponytail: "new" counts SMS rows first stored after the request; an edit re-push is not new.
-  const fresh = state === "synced" && requested
-    ? (await db.select({ n: count() }).from(transactions).where(and(eq(transactions.source, "sms"), gte(transactions.createdAt, requested.slice(0, 19).replace("T", " ")))).get())?.n ?? 0
-    : 0;
+  const fresh =
+    state === "synced" && requested
+      ? ((
+          await db
+            .select({ n: count() })
+            .from(transactions)
+            .where(and(eq(transactions.source, "sms"), gte(transactions.createdAt, requested.slice(0, 19).replace("T", " "))))
+            .get()
+        )?.n ?? 0)
+      : 0;
   return { seenAt: seen ?? null, online, sync: state, syncNew: fresh, requestedAt: requested ?? null };
 }

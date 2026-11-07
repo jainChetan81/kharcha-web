@@ -1,12 +1,5 @@
 // Copied from kharcha-mini/src/parsers/hdfc.ts; a parser fix in the mini must be copied over.
-import {
-  extractReferenceNumber,
-  MERCHANT_REGEX,
-  REFERENCE_PATTERNS,
-  type Parser,
-  parseAmount,
-  parseHdfcDate,
-} from "./utils.ts";
+import { extractReferenceNumber, MERCHANT_REGEX, REFERENCE_PATTERNS, type Parser, parseAmount, parseHdfcDate } from "./utils.ts";
 
 const BANK_NAME = "HDFC Bank";
 const PARSER_KEY = "hdfc";
@@ -20,8 +13,7 @@ function isHdfcNonTransactionNotice(body: string): boolean {
   const lower = body.toLowerCase();
 
   // Statements are never transactions.
-  if (/statement\s*(?:generated\s*:|for\s+hdfc\s+bank\s+credit\s+card|:\s*total\s+due)/i.test(body))
-    return true;
+  if (/statement\s*(?:generated\s*:|for\s+hdfc\s+bank\s+credit\s+card|:\s*total\s+due)/i.test(body)) return true;
 
   // E-mandate / upcoming / scheduled / conditional future debits.
   // AutoPay (E-mandate) debits are skipped as non-transactions because card sends a separate Spent SMS.
@@ -33,9 +25,7 @@ function isHdfcNonTransactionNotice(body: string): boolean {
     return true;
   }
   if (/\be-?mandate\b/i.test(body)) {
-    const isPastTense = /(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i.test(
-      body,
-    );
+    const isPastTense = /(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i.test(body);
     if (!isPastTense) return true;
   }
 
@@ -50,8 +40,7 @@ function isHdfcNonTransactionNotice(body: string): boolean {
   }
 
   // Payment-acknowledgment / pending-balance messages.
-  if (/we\s+appreciate\s+the\s+recent\s+payment|remains\s+pending/i.test(body))
-    return true;
+  if (/we\s+appreciate\s+the\s+recent\s+payment|remains\s+pending/i.test(body)) return true;
 
   // OTP / PIN / account-linking / declined notifications.
   if (
@@ -100,12 +89,8 @@ export const hdfcOnlineCreditCardPayment: Parser = (body) => {
   const match = body.match(
     /Online\s+Payment\s+of\s+Rs\.?\s*([\d,]+\.?\d*)\s+vide\s+Ref#\s*([A-Z0-9]+)\s+was\s+credited\s+to\s+your\s+card\s+ending\s+(\d{4})/i,
   );
-  const valueDateMatch = body.match(
-    /value\s+Date\s+(\d{1,2}\/[A-Z]{3}\/\d{4})/i,
-  );
-  const postingDateMatch = body.match(
-    /\bOn\s+(\d{1,2}\/[A-Z]{3}\/\d{4})/i,
-  );
+  const valueDateMatch = body.match(/value\s+Date\s+(\d{1,2}\/[A-Z]{3}\/\d{4})/i);
+  const postingDateMatch = body.match(/\bOn\s+(\d{1,2}\/[A-Z]{3}\/\d{4})/i);
   const date = valueDateMatch?.[1] ?? postingDateMatch?.[1];
   if (!match || !date) return null;
 
@@ -146,9 +131,7 @@ export const hdfcCredit: Parser = (body) => {
   );
   if (!match) return null;
 
-  const merchantMatch = body.match(
-    /(?:from\s+|by\s+|Info[:\s]*)([A-Za-z][\w\s./-]{2,40}?)(?:\s+on\s|\s*$)/i,
-  );
+  const merchantMatch = body.match(/(?:from\s+|by\s+|Info[:\s]*)([A-Za-z][\w\s./-]{2,40}?)(?:\s+on\s|\s*$)/i);
 
   return {
     amount: parseAmount(match[1]),
@@ -250,21 +233,15 @@ export const hdfcCreditCard: Parser = (body) => {
     return null;
   }
   if (body.match(/\be-?mandate\b/i)) {
-    const isPastTense = body.match(
-      /(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i,
-    );
+    const isPastTense = body.match(/(?:has\s+been|have\s+been|was|were)\s+(?:debited|charged)/i);
     if (!isPastTense) return null;
   }
 
-  const amountMatch = body.match(
-    /(?:for|of)\s+(?:Rs\.?|INR)\s*([\d,]+\.?\d*)/i,
-  );
+  const amountMatch = body.match(/(?:for|of)\s+(?:Rs\.?|INR)\s*([\d,]+\.?\d*)/i);
   if (!amountMatch) return null;
 
   const merchantMatch = body.match(MERCHANT_REGEX);
-  const dateMatch = body.match(
-    /on\s+(\d{2}\s+\w+,?\s+\d{4})(?:\s+at\s+(\d{2}:\d{2}:\d{2}))?/i,
-  );
+  const dateMatch = body.match(/on\s+(\d{2}\s+\w+,?\s+\d{4})(?:\s+at\s+(\d{2}:\d{2}:\d{2}))?/i);
   const accountMatch = body.match(/(?:ending|XX)(\d{4})/i);
 
   return {

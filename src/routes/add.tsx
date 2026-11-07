@@ -9,7 +9,9 @@ export const Route = createFileRoute("/add")({
   pendingComponent: () => <Skeleton rows={6} />,
   errorComponent: ({ error }) => {
     const router = useRouter();
-    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load categories."} retry={() => void router.invalidate()} />;
+    return (
+      <ErrorState text={error instanceof Error ? error.message : "Couldn't load categories."} retry={() => void router.invalidate()} />
+    );
   },
   component: Add,
 });
@@ -19,5 +21,19 @@ function Add() {
   const dirty = useRef(false);
   const close = () => void navigate({ to: "/" });
   const confirmDiscard = () => !dirty.current || window.confirm("Discard this transaction?");
-  return <Sheet title="Add transaction" onClose={close} confirmClose={confirmDiscard} className="tablet:min-h-[640px]"><TxnForm mode="add" categories={categories} onDone={close} onCancel={() => { if (confirmDiscard()) close(); }} onDirtyChange={(d) => { dirty.current = d; }} /></Sheet>;
+  return (
+    <Sheet title="Add transaction" onClose={close} confirmClose={confirmDiscard} className="tablet:min-h-[640px]">
+      <TxnForm
+        mode="add"
+        categories={categories}
+        onDone={close}
+        onCancel={() => {
+          if (confirmDiscard()) close();
+        }}
+        onDirtyChange={(d) => {
+          dirty.current = d;
+        }}
+      />
+    </Sheet>
+  );
 }

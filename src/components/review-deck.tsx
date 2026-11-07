@@ -131,7 +131,11 @@ export function ReviewDeck({
                 <span>Source SMS</span>
                 <span>{smsOpen ? "Hide" : "Show"}</span>
               </button>
-              {smsOpen && <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">{row.rawText}</p>}
+              {smsOpen && (
+                <p className="m-0 rounded-inner bg-sunken p-3 font-mono text-[13px] leading-5 text-ink-2 break-words [overflow-wrap:anywhere]">
+                  {row.rawText}
+                </p>
+              )}
             </div>
           )}
 

@@ -3,7 +3,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { monthLabel, shiftMonth } from "../lib/format";
 
 /** Activity/Insights header chip: "October 2026" with ‹ ›. A custom range replaces the label and drops the arrows. */
-export function MonthStepper({ to, month, label, onOpen }: { to: "/activity" | "/insights"; month: string; label?: string; onOpen: () => void }) {
+export function MonthStepper({
+  to,
+  month,
+  label,
+  onOpen,
+}: {
+  to: "/activity" | "/insights";
+  month: string;
+  label?: string;
+  onOpen: () => void;
+}) {
   const text = label ?? monthLabel(month);
   return (
     <span className="flex min-h-11 items-center rounded-chip border border-field bg-card text-ink">

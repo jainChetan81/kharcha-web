@@ -26,8 +26,7 @@ export function usePageKeys(keys: PageKeys) {
   }, [keys]);
 }
 
-const typing = (t: EventTarget | null) =>
-  t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /** Global keys. Mount once in the root layout. */
 export function useGlobalKeys(openHelp: () => void) {

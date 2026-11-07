@@ -25,9 +25,15 @@ import { SwatchPicker } from "../components/swatch-picker";
 import { SyncSection } from "../components/sync-section";
 
 export const Route = createFileRoute("/settings")({
-  loader: async () => { const [settings, syncStatus] = await Promise.all([getSettings(), getSyncStatus().catch(() => undefined)]); return { ...settings, syncStatus }; }, // sync row falls back to client polling
+  loader: async () => {
+    const [settings, syncStatus] = await Promise.all([getSettings(), getSyncStatus().catch(() => undefined)]);
+    return { ...settings, syncStatus };
+  }, // sync row falls back to client polling
   pendingComponent: () => <Skeleton rows={7} />,
-  errorComponent: ({ error }) => { const router = useRouter(); return <ErrorState text={error instanceof Error ? error.message : "Couldn't load settings."} retry={() => void router.invalidate()} />; },
+  errorComponent: ({ error }) => {
+    const router = useRouter();
+    return <ErrorState text={error instanceof Error ? error.message : "Couldn't load settings."} retry={() => void router.invalidate()} />;
+  },
   component: Settings,
 });
 
@@ -47,7 +53,11 @@ function Settings() {
   const [open, setOpen] = useState<"categories" | "rules" | null>(null);
   const [search, setSearch] = useState("");
   const [ruleEdit, setRuleEdit] = useState<number | null>(null);
-  const [categoryDraft, setCategoryDraft] = useState<{ name: string; type: "expense" | "income"; colorToken: string }>({ name: "", type: "expense", colorToken: "cat-other" });
+  const [categoryDraft, setCategoryDraft] = useState<{ name: string; type: "expense" | "income"; colorToken: string }>({
+    name: "",
+    type: "expense",
+    colorToken: "cat-other",
+  });
   const [colorPicker, setColorPicker] = useState<string | null>(null);
   // Layout animation only while dragging: otherwise an add/delete makes rows glide from stale spots over the next heading (iOS left them stuck).
   const [dragging, setDragging] = useState(false);
@@ -56,10 +66,7 @@ function Settings() {
   const { used, cap } = data.ai;
 
   const refresh = () => void router.invalidate();
-  const save = async (
-    key: "openrouter_model" | "openrouter_daily_cap",
-    value: string,
-  ) => {
+  const save = async (key: "openrouter_model" | "openrouter_daily_cap", value: string) => {
     if (!online || value === (data.values[key] ?? "")) return;
     try {
       if (key === "openrouter_daily_cap") {
@@ -69,9 +76,11 @@ function Settings() {
       }
       snack("Saved settings.");
       refresh();
-    } catch { saveFailed(() => void save(key, value)); }
+    } catch {
+      saveFailed(() => void save(key, value));
+    }
   };
-  const reorderGroup = async (groupType: "expense" | "income", nextGroup: (typeof data.categories)) => {
+  const reorderGroup = async (groupType: "expense" | "income", nextGroup: typeof data.categories) => {
     if (!online) return;
     try {
       await reorderCategories({
@@ -84,7 +93,9 @@ function Settings() {
         },
       });
       refresh();
-    } catch { saveFailed(() => void reorderGroup(groupType, nextGroup)); }
+    } catch {
+      saveFailed(() => void reorderGroup(groupType, nextGroup));
+    }
   };
   const moveCategory = async (item: Category, direction: -1 | 1) => {
     const group = data.categories.filter((x) => x.type === item.type).sort((a, b) => a.sortOrder - b.sortOrder);
@@ -97,13 +108,23 @@ function Settings() {
     try {
       await reorderCategories({ data: { items: reordered.map((x, sortOrder) => ({ name: x.name, type: x.type, sortOrder })) } });
       refresh();
-    } catch { saveFailed(() => moveCategory(item, direction)); }
+    } catch {
+      saveFailed(() => moveCategory(item, direction));
+    }
   };
   const updateCategory = async (item: Category, patch: Partial<Pick<Category, "name" | "colorToken">>) => {
     const nextName = patch.name ?? item.name;
     if (!nextName.trim() || !online) return;
     try {
-      await saveCategory({ data: { oldName: item.name, name: nextName, type: item.type, colorToken: patch.colorToken ?? item.colorToken, sortOrder: item.sortOrder } });
+      await saveCategory({
+        data: {
+          oldName: item.name,
+          name: nextName,
+          type: item.type,
+          colorToken: patch.colorToken ?? item.colorToken,
+          sortOrder: item.sortOrder,
+        },
+      });
       refresh();
     } catch (error) {
       snack(error instanceof Error ? error.message : "Couldn't save category.");
@@ -117,13 +138,22 @@ function Settings() {
       setDeleteTarget(null);
       snack(`Deleted ${item.name}; moved ${item.transactionCount} transactions to Other.`);
       refresh();
-    } catch { saveFailed(() => void deleteCategoryNow()); }
+    } catch {
+      saveFailed(() => void deleteCategoryNow());
+    }
   };
   const addCategory = async () => {
     const name = categoryDraft.name.trim();
     if (!name || !online) return;
     try {
-      await saveCategory({ data: { name, type: categoryDraft.type, colorToken: categoryDraft.colorToken, sortOrder: data.categories.filter((x) => x.type === categoryDraft.type).length } });
+      await saveCategory({
+        data: {
+          name,
+          type: categoryDraft.type,
+          colorToken: categoryDraft.colorToken,
+          sortOrder: data.categories.filter((x) => x.type === categoryDraft.type).length,
+        },
+      });
       setCategoryDraft({ ...categoryDraft, name: "" });
       snack("Category added.");
       refresh();
@@ -139,13 +169,17 @@ function Settings() {
       snack("Rule deleted. Past rows keep their category.", {
         label: "Undo",
         onClick: () => {
-          void restoreRule({ data: removed }).then(() => {
-            refresh();
-          }).catch(() => saveFailed(() => restoreRule({ data: removed }).then(refresh)));
+          void restoreRule({ data: removed })
+            .then(() => {
+              refresh();
+            })
+            .catch(() => saveFailed(() => restoreRule({ data: removed }).then(refresh)));
         },
       });
       refresh();
-    } catch { saveFailed(() => deleteMerchantRule(rule)); }
+    } catch {
+      saveFailed(() => deleteMerchantRule(rule));
+    }
   };
   const editMerchantRule = async (rule: Rule, values: { match: string; displayMerchant: string; category: string }) => {
     if (!online) return;
@@ -154,7 +188,9 @@ function Settings() {
       setRuleEdit(null);
       snack("Rule saved.");
       refresh();
-    } catch { saveFailed(() => editMerchantRule(rule, values)); }
+    } catch {
+      saveFailed(() => editMerchantRule(rule, values));
+    }
   };
   const rules = data.rules.filter((x) => `${x.match} ${x.displayMerchant} ${x.category}`.toLowerCase().includes(search.toLowerCase()));
 
@@ -168,39 +204,92 @@ function Settings() {
           <SectionHead id="settings-app" title="App" />
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Install app</span>
-            {installed ? <span className="text-[13px] font-semibold text-earn">Installed</span> : <Button variant="outline" className="min-h-11 text-sm" onClick={() => void promptInstall().then((result) => {
-              if (result === "ios") setIos(true);
-              else if (result === "installed") setInstalled(true);
-              else if (result === "unavailable") snack("Install is available from your browser menu.");
-            })}>Install</Button>}
+            {installed ? (
+              <span className="text-[13px] font-semibold text-earn">Installed</span>
+            ) : (
+              <Button
+                variant="outline"
+                className="min-h-11 text-sm"
+                onClick={() =>
+                  void promptInstall().then((result) => {
+                    if (result === "ios") setIos(true);
+                    else if (result === "installed") setInstalled(true);
+                    else if (result === "unavailable") snack("Install is available from your browser menu.");
+                  })
+                }
+              >
+                Install
+              </Button>
+            )}
           </div>
           <div className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
             <span className="text-[15px] font-medium">Theme</span>
-            <Segmented label="Theme" className="w-[220px]" value={theme} onChange={(t) => { setTheme(t); applyTheme(t); }} options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "system", label: "System" }]} />
+            <Segmented
+              label="Theme"
+              className="w-[220px]"
+              value={theme}
+              onChange={(t) => {
+                setTheme(t);
+                applyTheme(t);
+              }}
+              options={[
+                { value: "light", label: "Light" },
+                { value: "dark", label: "Dark" },
+                { value: "system", label: "System" },
+              ]}
+            />
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Export CSV</span>
-            <a href="/api/export" className={buttonClass("outline", "min-h-11 text-sm")}>Download</a>
+            <a href="/api/export" className={buttonClass("outline", "min-h-11 text-sm")}>
+              Download
+            </a>
           </div>
           <div className="flex min-h-14 items-center justify-between border-b border-hairline">
             <span className="text-[15px] font-medium">Sign out</span>
-            <form method="post" action="/api/logout"><Button type="submit" variant="outline" className="min-h-11 text-sm">Sign out</Button></form>
+            <form method="post" action="/api/logout">
+              <Button type="submit" variant="outline" className="min-h-11 text-sm">
+                Sign out
+              </Button>
+            </form>
           </div>
         </section>
 
         <section aria-labelledby="settings-ai">
           <SectionHead id="settings-ai" title="AI" />
-          {!data.aiOn && <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">AI is off. Ask, the weekly digest and receipt reading need the server switch.</p>}
-          {data.aiOn && <div className="space-y-3 pt-3.5">
-            <ModelSelect id="model" label="Model" value={data.ai.model} placeholder={presets.find((m) => m.id === data.ai.model)?.name ?? data.ai.model} disabled={!online} onChange={(value) => void save("openrouter_model", value)} />
-            <div className="space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-[13px] text-ink-2">Daily call cap</span>
-                <span className="text-sm"><strong className="font-semibold">{used}</strong><span className="text-ink-3"> of {cap} used today</span></span>
+          {!data.aiOn && (
+            <p className="mt-3 mb-0 rounded-card border border-dashed border-field bg-card px-3.5 py-3 text-sm leading-relaxed">
+              AI is off. Ask, the weekly digest and receipt reading need the server switch.
+            </p>
+          )}
+          {data.aiOn && (
+            <div className="space-y-3 pt-3.5">
+              <ModelSelect
+                id="model"
+                label="Model"
+                value={data.ai.model}
+                placeholder={presets.find((m) => m.id === data.ai.model)?.name ?? data.ai.model}
+                disabled={!online}
+                onChange={(value) => void save("openrouter_model", value)}
+              />
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[13px] text-ink-2">Daily call cap</span>
+                  <span className="text-sm">
+                    <strong className="font-semibold">{used}</strong>
+                    <span className="text-ink-3"> of {cap} used today</span>
+                  </span>
+                </div>
+                <Segmented
+                  label="Daily call cap"
+                  className="w-full"
+                  options={[50, 100, 200, 500].map((n) => ({ value: String(n), label: String(n) }))}
+                  value={String(cap)}
+                  onChange={(value) => void save("openrouter_daily_cap", value)}
+                />
               </div>
-              <Segmented label="Daily call cap" className="w-full" options={[50, 100, 200, 500].map((n) => ({ value: String(n), label: String(n) }))} value={String(cap)} onChange={(value) => void save("openrouter_daily_cap", value)} />
             </div>
-          </div>}
+          )}
         </section>
 
         <section aria-labelledby="settings-data">
@@ -210,82 +299,241 @@ function Settings() {
         </section>
       </div>
       {ios && <IosInstallSheet onClose={() => setIos(false)} />}
-      {open === "categories" && <Sheet swipe={false} title="Categories" description="Every transaction gets one. Budgets and Insights add them up." onClose={() => { setOpen(null); setColorPicker(null); setDeleteTarget(null); setDeleteCounts(null); }}>
-        <div>
-        {(["expense", "income"] as const).map((type) => {
-          const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
-          return <div key={type} className="mt-4">
-            <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
-            <Reorder.Group axis="y" values={group} onReorder={(next) => void reorderGroup(type, next)} aria-label={`${type === "expense" ? "Spending" : "Income"} categories`} className="m-0 list-none p-0">
-              {group.map((item) => (
-                <CategoryItem
-                  key={item.name}
-                  item={item}
-                  online={online}
-                  dragging={dragging}
-                  onDragging={setDragging}
-                  colorPickerOpen={colorPicker === item.name}
-                  onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
-                  onColorChange={(token) => { setColorPicker(null); void updateCategory(item, { colorToken: token }); }}
-                  onNameChange={(name) => void updateCategory(item, { name })}
-                  onMove={(dir) => void moveCategory(item, dir)}
-                  onDelete={() => { setDeleteTarget(item); setDeleteCounts(null); void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } }).then(setDeleteCounts).catch(() => setDeleteCounts(null)); }}
-                />
-              ))}
-            </Reorder.Group>
-          </div>;
-        })}
-        <Segmented label="New category type" className="mt-4 w-full" value={categoryDraft.type} onChange={(type) => setCategoryDraft({ ...categoryDraft, type, colorToken: type === "income" ? "cat-other-income" : "cat-other" })} options={[{ value: "expense", label: "Spending" }, { value: "income", label: "Income" }]} />
-        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
-          <label className="sr-only" htmlFor="new-category-name">New category name</label>
-          <input id="new-category-name" className="field" value={categoryDraft.name} disabled={!online} onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })} placeholder="New category" maxLength={40} />
-          <button type="button" aria-label="Colour for new category" aria-expanded={colorPicker === "__new"} disabled={!online} onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")} className="size-11 self-center rounded-inner" style={{ background: `var(--color-${categoryDraft.colorToken})` }} />
-          <Button aria-label="Add category" className="px-0" disabled={!online || !categoryDraft.name.trim()} onClick={() => void addCategory()}><Plus size={18} /></Button>
-        </div>
-        {colorPicker === "__new" && <SwatchPicker label="Colours for new category" value={categoryDraft.colorToken} onChange={(token) => { setColorPicker(null); setCategoryDraft({ ...categoryDraft, colorToken: token }); }} />}
-        {deleteTarget && <Sheet title={`Delete ${deleteTarget.name}?`} description={deleteCounts ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}` : "Its transactions move to Other."} onClose={() => setDeleteTarget(null)}>
-          <div className="grid grid-cols-2 gap-2.5 pt-1.5">
-            <Button variant="outline" className="min-h-11" onClick={() => setDeleteTarget(null)}>Keep</Button>
-            <Button variant="danger" className="min-h-11 bg-over text-on-over hover:bg-over hover:text-on-over" disabled={!deleteCounts} onClick={() => void deleteCategoryNow()}>Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}</Button>
-          </div>
-        </Sheet>}
-        </div>
-      </Sheet>}
-      {open === "rules" && <Sheet swipe={false} title={`Merchant rules · ${data.rules.length}`} description={`${rules.length} shown`} onClose={() => { setOpen(null); setRuleEdit(null); setSearch(""); }}>
-        <div>
-        <label htmlFor="rule-search" className="sr-only">Search rules</label>
-        <input id="rule-search" className="field" placeholder="Search rules" value={search} onChange={(event) => setSearch(event.currentTarget.value)} />
-        <div>
-          {rules.map((rule) => (
-            <div key={rule.id} className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline">
-              {ruleEdit === rule.id ? <RuleEditor rule={rule} categories={data.categories.map((x) => x.name)} onCancel={() => setRuleEdit(null)} onSave={(values) => void editMerchantRule(rule, values)} /> : (
-                <span className="flex min-w-0 flex-col gap-0.5 py-2">
-                  <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
-                  <span className="flex min-w-0 items-center gap-1.5 text-sm"><span aria-hidden className="text-ink-3">→</span><strong className="truncate font-semibold">{rule.displayMerchant}</strong><span className="size-2 shrink-0 rounded-sm" style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }} /><span className="truncate">{rule.category}</span></span>
-                </span>
-              )}
-              <button type="button" aria-label={`Edit rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-brand" onClick={() => setRuleEdit(ruleEdit === rule.id ? null : rule.id)}><Pencil size={18} /></button>
-              <button type="button" aria-label={`Delete rule for ${rule.displayMerchant}`} disabled={!online} className="flex size-11 items-center justify-center text-over" onClick={() => void deleteMerchantRule(rule)}><Trash2 size={18} /></button>
+      {open === "categories" && (
+        <Sheet
+          swipe={false}
+          title="Categories"
+          description="Every transaction gets one. Budgets and Insights add them up."
+          onClose={() => {
+            setOpen(null);
+            setColorPicker(null);
+            setDeleteTarget(null);
+            setDeleteCounts(null);
+          }}
+        >
+          <div>
+            {(["expense", "income"] as const).map((type) => {
+              const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
+              return (
+                <div key={type} className="mt-4">
+                  <h3 className="m-0 text-xs tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
+                  <Reorder.Group
+                    axis="y"
+                    values={group}
+                    onReorder={(next) => void reorderGroup(type, next)}
+                    aria-label={`${type === "expense" ? "Spending" : "Income"} categories`}
+                    className="m-0 list-none p-0"
+                  >
+                    {group.map((item) => (
+                      <CategoryItem
+                        key={item.name}
+                        item={item}
+                        online={online}
+                        dragging={dragging}
+                        onDragging={setDragging}
+                        colorPickerOpen={colorPicker === item.name}
+                        onToggleColorPicker={() => setColorPicker(colorPicker === item.name ? null : item.name)}
+                        onColorChange={(token) => {
+                          setColorPicker(null);
+                          void updateCategory(item, { colorToken: token });
+                        }}
+                        onNameChange={(name) => void updateCategory(item, { name })}
+                        onMove={(dir) => void moveCategory(item, dir)}
+                        onDelete={() => {
+                          setDeleteTarget(item);
+                          setDeleteCounts(null);
+                          void getCategoryDeleteCounts({ data: { name: item.name, type: item.type } })
+                            .then(setDeleteCounts)
+                            .catch(() => setDeleteCounts(null));
+                        }}
+                      />
+                    ))}
+                  </Reorder.Group>
+                </div>
+              );
+            })}
+            <Segmented
+              label="New category type"
+              className="mt-4 w-full"
+              value={categoryDraft.type}
+              onChange={(type) =>
+                setCategoryDraft({ ...categoryDraft, type, colorToken: type === "income" ? "cat-other-income" : "cat-other" })
+              }
+              options={[
+                { value: "expense", label: "Spending" },
+                { value: "income", label: "Income" },
+              ]}
+            />
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
+              <label className="sr-only" htmlFor="new-category-name">
+                New category name
+              </label>
+              <input
+                id="new-category-name"
+                className="field"
+                value={categoryDraft.name}
+                disabled={!online}
+                onChange={(event) => setCategoryDraft({ ...categoryDraft, name: event.currentTarget.value })}
+                placeholder="New category"
+                maxLength={40}
+              />
+              <button
+                type="button"
+                aria-label="Colour for new category"
+                aria-expanded={colorPicker === "__new"}
+                disabled={!online}
+                onClick={() => setColorPicker(colorPicker === "__new" ? null : "__new")}
+                className="size-11 self-center rounded-inner"
+                style={{ background: `var(--color-${categoryDraft.colorToken})` }}
+              />
+              <Button
+                aria-label="Add category"
+                className="px-0"
+                disabled={!online || !categoryDraft.name.trim()}
+                onClick={() => void addCategory()}
+              >
+                <Plus size={18} />
+              </Button>
             </div>
-          ))}
-        </div>
-        {rules.length === 0 && <p className="py-5 text-sm text-ink-3">No matching rules.</p>}
-        </div>
-      </Sheet>}
+            {colorPicker === "__new" && (
+              <SwatchPicker
+                label="Colours for new category"
+                value={categoryDraft.colorToken}
+                onChange={(token) => {
+                  setColorPicker(null);
+                  setCategoryDraft({ ...categoryDraft, colorToken: token });
+                }}
+              />
+            )}
+            {deleteTarget && (
+              <Sheet
+                title={`Delete ${deleteTarget.name}?`}
+                description={
+                  deleteCounts
+                    ? `Its ${deleteCounts.transactions} transaction${deleteCounts.transactions === 1 ? "" : "s"} move to Other.${deleteCounts.budgets && deleteCounts.rules ? ` Its budget and ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} are removed.` : deleteCounts.budgets ? " Its budget is removed." : deleteCounts.rules ? ` Its ${deleteCounts.rules} merchant rule${deleteCounts.rules === 1 ? "" : "s"} ${deleteCounts.rules === 1 ? "is" : "are"} removed.` : ""}`
+                    : "Its transactions move to Other."
+                }
+                onClose={() => setDeleteTarget(null)}
+              >
+                <div className="grid grid-cols-2 gap-2.5 pt-1.5">
+                  <Button variant="outline" className="min-h-11" onClick={() => setDeleteTarget(null)}>
+                    Keep
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="min-h-11 bg-over text-on-over hover:bg-over hover:text-on-over"
+                    disabled={!deleteCounts}
+                    onClick={() => void deleteCategoryNow()}
+                  >
+                    Delete and move {deleteCounts?.transactions ?? deleteTarget.transactionCount}
+                  </Button>
+                </div>
+              </Sheet>
+            )}
+          </div>
+        </Sheet>
+      )}
+      {open === "rules" && (
+        <Sheet
+          swipe={false}
+          title={`Merchant rules · ${data.rules.length}`}
+          description={`${rules.length} shown`}
+          onClose={() => {
+            setOpen(null);
+            setRuleEdit(null);
+            setSearch("");
+          }}
+        >
+          <div>
+            <label htmlFor="rule-search" className="sr-only">
+              Search rules
+            </label>
+            <input
+              id="rule-search"
+              className="field"
+              placeholder="Search rules"
+              value={search}
+              onChange={(event) => setSearch(event.currentTarget.value)}
+            />
+            <div>
+              {rules.map((rule) => (
+                <div
+                  key={rule.id}
+                  className="grid min-h-[60px] grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1 border-b border-hairline"
+                >
+                  {ruleEdit === rule.id ? (
+                    <RuleEditor
+                      rule={rule}
+                      categories={data.categories.map((x) => x.name)}
+                      onCancel={() => setRuleEdit(null)}
+                      onSave={(values) => void editMerchantRule(rule, values)}
+                    />
+                  ) : (
+                    <span className="flex min-w-0 flex-col gap-0.5 py-2">
+                      <span className="truncate font-mono text-[13px] text-ink-2">{rule.match}</span>
+                      <span className="flex min-w-0 items-center gap-1.5 text-sm">
+                        <span aria-hidden className="text-ink-3">
+                          →
+                        </span>
+                        <strong className="truncate font-semibold">{rule.displayMerchant}</strong>
+                        <span
+                          className="size-2 shrink-0 rounded-sm"
+                          style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }}
+                        />
+                        <span className="truncate">{rule.category}</span>
+                      </span>
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    aria-label={`Edit rule for ${rule.displayMerchant}`}
+                    disabled={!online}
+                    className="flex size-11 items-center justify-center text-brand"
+                    onClick={() => setRuleEdit(ruleEdit === rule.id ? null : rule.id)}
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete rule for ${rule.displayMerchant}`}
+                    disabled={!online}
+                    className="flex size-11 items-center justify-center text-over"
+                    onClick={() => void deleteMerchantRule(rule)}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {rules.length === 0 && <p className="py-5 text-sm text-ink-3">No matching rules.</p>}
+          </div>
+        </Sheet>
+      )}
     </main>
   );
 }
 
 function IndexRow({ label, detail, onClick }: { label: string; detail: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-2 border-b border-hairline text-left">
-    <span className="flex-1 text-[15px] font-medium">{label}</span>
-    <span className="text-sm text-ink-3">{detail}</span>
-    <ChevronRight size={18} className="text-ink-3" aria-hidden />
-  </button>;
+  return (
+    <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-2 border-b border-hairline text-left">
+      <span className="flex-1 text-[15px] font-medium">{label}</span>
+      <span className="text-sm text-ink-3">{detail}</span>
+      <ChevronRight size={18} className="text-ink-3" aria-hidden />
+    </button>
+  );
 }
 
 function CategoryItem({
-  item, online, dragging, onDragging, colorPickerOpen, onToggleColorPicker, onColorChange, onNameChange, onMove, onDelete,
+  item,
+  online,
+  dragging,
+  onDragging,
+  colorPickerOpen,
+  onToggleColorPicker,
+  onColorChange,
+  onNameChange,
+  onMove,
+  onDelete,
 }: {
   item: Awaited<ReturnType<typeof getSettings>>["categories"][number];
   online: boolean;
@@ -300,35 +548,142 @@ function CategoryItem({
 }) {
   const controls = useDragControls();
   const isOther = item.name === "Other";
-  return <Reorder.Item value={item} layout={dragging as true} /* false turns layout animation off; the prop type omits it */ onDragEnd={() => onDragging(false)} dragListener={false} dragControls={controls} className="border-b border-hairline bg-card">
-    <div className="flex min-h-14 items-center gap-1">
-      <button type="button" aria-label={`Reorder ${item.name}`} className="flex size-11 cursor-grab items-center justify-center text-ink-3" disabled={!online} onPointerDown={(event) => { onDragging(true); controls.start(event); }} onPointerUp={() => onDragging(false)} onPointerCancel={() => onDragging(false)} onKeyDown={(event) => { if (event.key === "ArrowUp") { event.preventDefault(); onMove(-1); } if (event.key === "ArrowDown") { event.preventDefault(); onMove(1); } }}><GripVertical size={18} /></button>
-      <button type="button" aria-label={`Colour for ${item.name}`} aria-expanded={colorPickerOpen} disabled={!online} onClick={onToggleColorPicker} className="flex size-11 shrink-0 items-center justify-center">
-        <span className="size-6 rounded-inner" style={{ background: `var(--color-${item.colorToken})` }} />
-      </button>
-      <input aria-label={`${item.name} category name`} className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand" defaultValue={item.name} disabled={!online} onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)} />
-      <span className="shrink-0 text-xs text-ink-3">{item.transactionCount} transactions</span>
-      {!isOther && <button type="button" aria-label={`Delete ${item.name}`} disabled={!online} className="flex size-11 shrink-0 items-center justify-center text-ink-3" onClick={onDelete}><Trash2 size={18} /></button>}
-    </div>
-    {colorPickerOpen && <div className="mb-3 ml-[88px] max-w-[300px]"><SwatchPicker label={`Colours for ${item.name}`} value={item.colorToken} onChange={onColorChange} /></div>}
-  </Reorder.Item>;
+  return (
+    <Reorder.Item
+      value={item}
+      layout={dragging as true} /* false turns layout animation off; the prop type omits it */
+      onDragEnd={() => onDragging(false)}
+      dragListener={false}
+      dragControls={controls}
+      className="border-b border-hairline bg-card"
+    >
+      <div className="flex min-h-14 items-center gap-1">
+        <button
+          type="button"
+          aria-label={`Reorder ${item.name}`}
+          className="flex size-11 cursor-grab items-center justify-center text-ink-3"
+          disabled={!online}
+          onPointerDown={(event) => {
+            onDragging(true);
+            controls.start(event);
+          }}
+          onPointerUp={() => onDragging(false)}
+          onPointerCancel={() => onDragging(false)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              onMove(-1);
+            }
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              onMove(1);
+            }
+          }}
+        >
+          <GripVertical size={18} />
+        </button>
+        <button
+          type="button"
+          aria-label={`Colour for ${item.name}`}
+          aria-expanded={colorPickerOpen}
+          disabled={!online}
+          onClick={onToggleColorPicker}
+          className="flex size-11 shrink-0 items-center justify-center"
+        >
+          <span className="size-6 rounded-inner" style={{ background: `var(--color-${item.colorToken})` }} />
+        </button>
+        <input
+          aria-label={`${item.name} category name`}
+          className="min-w-0 flex-1 border-0 border-b border-dashed border-field bg-transparent py-2 text-[15px] font-medium outline-none focus-visible:outline-2 focus-visible:outline-brand"
+          defaultValue={item.name}
+          disabled={!online}
+          onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)}
+        />
+        <span className="shrink-0 text-xs text-ink-3">{item.transactionCount} transactions</span>
+        {!isOther && (
+          <button
+            type="button"
+            aria-label={`Delete ${item.name}`}
+            disabled={!online}
+            className="flex size-11 shrink-0 items-center justify-center text-ink-3"
+            onClick={onDelete}
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
+      </div>
+      {colorPickerOpen && (
+        <div className="mb-3 ml-[88px] max-w-[300px]">
+          <SwatchPicker label={`Colours for ${item.name}`} value={item.colorToken} onChange={onColorChange} />
+        </div>
+      )}
+    </Reorder.Item>
+  );
 }
 
-function RuleEditor({ rule, categories, onCancel, onSave }: { rule: Rule; categories: string[]; onCancel: () => void; onSave: (values: { match: string; displayMerchant: string; category: string }) => void }) {
+function RuleEditor({
+  rule,
+  categories,
+  onCancel,
+  onSave,
+}: {
+  rule: Rule;
+  categories: string[];
+  onCancel: () => void;
+  onSave: (values: { match: string; displayMerchant: string; category: string }) => void;
+}) {
   const [match, setMatch] = useState(rule.match);
   const [displayMerchant, setDisplayMerchant] = useState(rule.displayMerchant);
   const [category, setCategory] = useState(rule.category);
   return (
-    <form className="col-span-3 grid gap-2 py-2" onSubmit={(event) => { event.preventDefault(); onSave({ match, displayMerchant, category }); }}>
-      <label className="sr-only" htmlFor={`rule-match-${rule.id}`}>Merchant match</label>
-      <input id={`rule-match-${rule.id}`} className="field font-mono text-sm" value={match} onChange={(event) => setMatch(event.currentTarget.value)} />
+    <form
+      className="col-span-3 grid gap-2 py-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave({ match, displayMerchant, category });
+      }}
+    >
+      <label className="sr-only" htmlFor={`rule-match-${rule.id}`}>
+        Merchant match
+      </label>
+      <input
+        id={`rule-match-${rule.id}`}
+        className="field font-mono text-sm"
+        value={match}
+        onChange={(event) => setMatch(event.currentTarget.value)}
+      />
       <div className="grid grid-cols-2 gap-2">
-        <label className="sr-only" htmlFor={`rule-name-${rule.id}`}>Display merchant</label>
-        <input id={`rule-name-${rule.id}`} className="field min-w-0 text-sm" value={displayMerchant} onChange={(event) => setDisplayMerchant(event.currentTarget.value)} />
-        <label className="sr-only" htmlFor={`rule-category-${rule.id}`}>Category</label>
-        <select id={`rule-category-${rule.id}`} className="field min-w-0 px-2 text-sm" value={category} onChange={(event) => setCategory(event.currentTarget.value)}>{[...new Set(categories)].map((name) => <option key={name}>{name}</option>)}</select>
+        <label className="sr-only" htmlFor={`rule-name-${rule.id}`}>
+          Display merchant
+        </label>
+        <input
+          id={`rule-name-${rule.id}`}
+          className="field min-w-0 text-sm"
+          value={displayMerchant}
+          onChange={(event) => setDisplayMerchant(event.currentTarget.value)}
+        />
+        <label className="sr-only" htmlFor={`rule-category-${rule.id}`}>
+          Category
+        </label>
+        <select
+          id={`rule-category-${rule.id}`}
+          className="field min-w-0 px-2 text-sm"
+          value={category}
+          onChange={(event) => setCategory(event.currentTarget.value)}
+        >
+          {[...new Set(categories)].map((name) => (
+            <option key={name}>{name}</option>
+          ))}
+        </select>
       </div>
-      <div className="flex justify-end gap-2"><Button type="button" variant="text" onClick={onCancel}>Cancel</Button><Button type="submit" className="min-h-9">Save rule</Button></div>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="text" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" className="min-h-9">
+          Save rule
+        </Button>
+      </div>
     </form>
   );
 }
