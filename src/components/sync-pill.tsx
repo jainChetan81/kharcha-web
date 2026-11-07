@@ -91,7 +91,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
       role="status"
       title={label}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-[5px] text-caption whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1.25 text-caption whitespace-nowrap",
         onInk
           ? "bg-on-ink/12 text-on-ink-2"
           : state === "quiet"
@@ -103,7 +103,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
                 : "bg-sunken text-ink",
       )}
     >
-      <span aria-hidden className={cn("size-[7px] rounded-full", dot)} />
+      <span aria-hidden className={cn("size-1.75 rounded-full", dot)} />
       {label}
     </span>
   );

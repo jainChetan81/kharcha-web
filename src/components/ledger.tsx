@@ -155,7 +155,7 @@ export function LedgerRow({
       to="/txn/$id"
       params={{ id: String(t.id) }}
       className={cn(
-        "flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-1.5 text-ink hover:bg-sunken/50 hover:text-ink",
+        "flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-1.5 text-ink hover:bg-sunken hover:text-ink",
         className,
       )}
     >
@@ -163,7 +163,7 @@ export function LedgerRow({
         <span className="flex items-center gap-1.5 truncate text-body font-medium">
           {t.needsReview && (
             <>
-              <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />
+              <span aria-hidden className="size-1.75 shrink-0 rounded-full bg-brand" />
               <span className="sr-only">Needs review</span>
             </>
           )}
@@ -189,7 +189,7 @@ export function LedgerRow({
 
 export function DayHeader({ date, total, label }: { date: string; total: number; label?: string }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-[18px] pb-1.5 text-caption tracking-[0.06em] text-ink-2 uppercase">
+    <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-4.5 pb-1.5 text-caption tracking-[0.08em] text-ink-2 uppercase">
       <span className="min-w-0 truncate">{label ?? weekdayDate(date)}</span>
       <span className="shrink-0 font-semibold text-ink">{money(total)}</span>
     </div>

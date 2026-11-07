@@ -311,7 +311,7 @@ function Settings() {
               const group = data.categories.filter((x) => x.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
               return (
                 <div key={type} className="mt-4">
-                  <h3 className="m-0 text-caption tracking-[0.08em] text-ink-3 uppercase">{type === "expense" ? "Spending" : "Income"}</h3>
+                  <h3 className="m-0 label-caps">{type === "expense" ? "Spending" : "Income"}</h3>
                   <Reorder.Group
                     axis="y"
                     values={group}
@@ -472,7 +472,7 @@ function Settings() {
                         </span>
                         <strong className="truncate font-semibold">{rule.displayMerchant}</strong>
                         <span
-                          className="size-2 shrink-0 rounded-sm"
+                          className="size-2 shrink-0 rounded-mark"
                           style={{ background: `var(--color-cat-${rule.category.toLowerCase().replaceAll(/[^a-z-]/g, "")})` }}
                         />
                         <span className="truncate">{rule.category}</span>

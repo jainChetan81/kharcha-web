@@ -191,10 +191,10 @@ export function ReviewDeck({
       <div className="flex flex-col gap-2.5 pt-4 pb-[max(28px,env(safe-area-inset-bottom))]">
         <span className="text-center text-caption text-ink-3">Swipe right to confirm · left to skip</span>
         <div className="grid grid-cols-3 gap-2.5">
-          <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-[52px] px-2 text-entry">
+          <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-13 px-2 text-entry">
             Skip
           </Button>
-          <Button disabled={disabled} onClick={confirm} className="col-span-2 min-h-[52px] px-3 text-entry">
+          <Button disabled={disabled} onClick={confirm} className="col-span-2 min-h-13 px-3 text-entry">
             Confirm · {category}
           </Button>
         </div>

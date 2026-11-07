@@ -455,7 +455,7 @@ function Receipt() {
               ))}
             </div>
             {activeDraft && (
-              <div className="space-y-3 rounded-card border border-hairline p-3">
+              <div className="space-y-3 rounded-card border border-rule p-3">
                 <p className="m-0 text-control font-medium">Crop photo before adding</p>
                 <img
                   ref={imageRef}
@@ -474,7 +474,7 @@ function Receipt() {
                 />
                 <canvas
                   ref={canvas}
-                  className="max-h-[55vh] w-full touch-none rounded-lg object-contain"
+                  className="max-h-[55vh] w-full touch-none rounded-inner object-contain"
                   onPointerDown={(event) => cropPointer(event)}
                   onPointerMove={(event) => {
                     if (dragRef.current) cropPointer(event);
@@ -563,7 +563,7 @@ function Receipt() {
               </p>
             )}
             {job?.status === "failed" && (
-              <section className="space-y-2 rounded-card border border-hairline bg-card p-4">
+              <section className="space-y-2 rounded-card border border-rule bg-card p-4">
                 <h2 className="m-0 font-serif text-section">
                   {job.error === "not_receipt"
                     ? "This doesn't look like a bill."
@@ -587,11 +587,11 @@ function Receipt() {
               </section>
             )}
             {job && (job.status === "queued" || job.status === "reading") && (
-              <section aria-live="polite" className="space-y-3 rounded-card border border-hairline bg-card p-4">
+              <section aria-live="polite" className="space-y-3 rounded-card border border-rule bg-card p-4">
                 <div className="flex gap-2">
                   {files.map((file, i) => (
                     <div key={file.id} className="flex flex-1 flex-col gap-1">
-                      <div className="flex h-20 items-center justify-center rounded-lg border border-hairline bg-input text-earn">
+                      <div className="flex h-20 items-center justify-center rounded-inner border border-hairline bg-input text-earn">
                         {i < (job.status === "reading" ? 1 : 0) && <Check />}
                         {i === (job.status === "reading" ? 1 : 0) && <LoaderCircle className="animate-spin motion-reduce:animate-none" />}
                       </div>
@@ -604,7 +604,7 @@ function Receipt() {
                   Usually 5–15 seconds. You can leave; items will be waiting on this transaction.
                 </p>
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-11 animate-pulse rounded-lg bg-sunken motion-reduce:animate-none" />
+                  <div key={n} className="h-11 animate-pulse rounded-inner bg-sunken motion-reduce:animate-none" />
                 ))}
               </section>
             )}
@@ -612,7 +612,7 @@ function Receipt() {
           <section className="space-y-4">
             {data.items.length > 0 || items.length > 0 ? (
               <>
-                <div className="space-y-3 border-b-[3px] border-double border-ink pb-4">
+                <div className="space-y-3 border-b-3 border-double border-ink pb-4">
                   <span className="label-caps text-ink-3">Matched to transaction</span>
                   <div className="flex items-baseline justify-between gap-3">
                     <strong className="font-serif text-title font-medium">{data.txn.merchant}</strong>
@@ -646,7 +646,7 @@ function Receipt() {
                             <span key={group.category} className="flex items-center gap-1.5">
                               <i
                                 aria-hidden
-                                className="size-2 rounded-sm"
+                                className="size-2 rounded-mark"
                                 style={{
                                   background: `var(--color-${data.categories.find((category) => category.name === group.category)?.colorToken ?? "cat-other"})`,
                                 }}
@@ -787,7 +787,7 @@ function Receipt() {
                   </Button>
                 </div>
                 <Button
-                  className="min-h-[52px] w-full"
+                  className="min-h-13 w-full"
                   disabled={
                     !online ||
                     busy ||
@@ -814,7 +814,7 @@ function Receipt() {
                 </label>
               </>
             ) : (
-              <div className="space-y-3 rounded-card border border-hairline bg-card p-4">
+              <div className="space-y-3 rounded-card border border-rule bg-card p-4">
                 <h2 className="m-0 font-serif text-title">Add items by hand</h2>
                 <p className="m-0 text-control text-ink-2">
                   {files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}

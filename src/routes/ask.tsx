@@ -156,9 +156,9 @@ function Ask() {
             {initial.usage.used} of {initial.usage.cap}
           </span>
         </span>
-        <span className="h-1.5 rounded bg-sunken">
+        <span className="h-1.5 rounded-mark bg-sunken">
           <span
-            className="block h-1.5 rounded bg-brand"
+            className="block h-1.5 rounded-mark bg-brand"
             style={{ width: `${Math.min(100, (initial.usage.used / Math.max(initial.usage.cap, 1)) * 100)}%` }}
           />
         </span>
@@ -209,7 +209,7 @@ function Ask() {
           )}
           {answers.map((item, index) => (
             <div key={item.id} className="flex flex-col gap-4">
-              <div className="self-end rounded-[14px_14px_4px_14px] bg-ink px-3.5 py-2.5 text-body leading-6 text-paper">
+              <div className="self-end rounded-hero rounded-br-mark bg-ink px-3.5 py-2.5 text-body leading-6 text-paper">
                 {item.question}
               </div>
               <AnswerCard

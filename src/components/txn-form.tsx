@@ -128,7 +128,7 @@ export function TxnForm({
         ]}
       />
       {mode === "add" && (
-        <div className="border-b-[3px] border-double border-ink px-1 pt-1 text-right desk:hidden">
+        <div className="border-b-3 border-double border-ink px-1 pt-1 text-right desk:hidden">
           <span className="block min-h-5 font-mono text-control text-ink-3">{expr}</span>
           <p className="m-0 pb-1.5 font-serif text-figure leading-none font-medium tracking-tight">
             {value.type === "income" && "+"}
@@ -209,7 +209,7 @@ export function TxnForm({
           onChange={(category) => set("category", category)}
         />
       </section>
-      <details className="rounded-card border border-hairline px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
+      <details className="rounded-card border border-rule px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
         <summary className="min-h-11 text-body font-medium">More details</summary>
         <div className={mode === "edit" ? "border-y border-hairline" : "flex flex-wrap items-end gap-2 pb-1"}>
           <Field
@@ -221,7 +221,7 @@ export function TxnForm({
             className={mode === "edit" ? "py-2.5" : "min-w-0 flex-[1_1_190px]"}
           />
           {mode === "edit" ? (
-            <div className="flex min-h-[52px] items-center justify-between border-t border-hairline">
+            <div className="flex min-h-13 items-center justify-between border-t border-hairline">
               <span className="text-body text-ink-2">Not a spend</span>
               <Switch
                 label="Not a spend"
@@ -291,13 +291,13 @@ export function TxnForm({
             <Button variant="danger" onClick={() => void remove()} disabled={!online || saving || deleting}>
               {deleting ? "Deleting…" : "Delete"}
             </Button>
-            <Button type="submit" disabled={cannotSubmit} className="col-span-2 min-h-[52px]">
+            <Button type="submit" disabled={cannotSubmit} className="col-span-2 min-h-13">
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
         )}
         {mode === "add" && (
-          <Button type="submit" disabled={cannotSubmit} className="w-full min-h-[52px]">
+          <Button type="submit" disabled={cannotSubmit} className="w-full min-h-13">
             {saving ? "Saving…" : "Save"}
           </Button>
         )}
@@ -333,7 +333,7 @@ export function TxnForm({
   );
 }
 function Kbd({ children }: { children: string }) {
-  return <kbd className="rounded border border-current px-1 font-mono text-tab opacity-70">{children}</kbd>;
+  return <kbd className="rounded-mark border border-current px-1 font-mono text-tab opacity-70">{children}</kbd>;
 }
 function Keypad({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const keys = ["1", "2", "3", "back", "4", "5", "6", "+", "7", "8", "9", "-", ".", "0", "00"];
@@ -345,7 +345,7 @@ function Keypad({ value, onChange }: { value: string; onChange: (v: string) => v
           key={key}
           aria-label={key === "back" ? "Delete" : key}
           onClick={() => onChange(key === "back" ? value.slice(0, -1) : value + key)}
-          className="min-h-[52px] rounded-card bg-sunken text-title font-medium"
+          className="min-h-13 rounded-card bg-sunken text-title font-medium"
         >
           {key === "back" ? "⌫" : key}
         </button>

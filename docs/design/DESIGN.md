@@ -607,12 +607,12 @@ Use `motion` springs. Every animation is off under `prefers-reduced-motion: redu
 AI gets one mark and one fill, used only where AI acts. Boards: `ActComponents` (AI section), `Main`, `DeskHome`, `Ask`, `DeskAsk`, `Insights`, `DeskInsights`, `Settings`.
 
 - **Spark:** a four-point star with a small companion star. Filled with the AI fill below, or white on the AI fill.
-- **AI fill:** `linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8)`, white text (6.3:1 or better at every stop), soft `ai-glow` shadow. It is the same in both modes.
-- **Ask button:** a pill with the AI fill, spark and "Ask"; on desktop it shows the `/` shortcut. The fill drifts slowly (`ai-shift`, 6 s, alternate). Reduced motion stops it.
+- **AI fill:** `linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8)`, white text (6.3:1 or better at every stop). It is the same in both modes. No glow.
+- **Ask button:** a pill with the AI fill, spark and "Ask"; on desktop it shows the `/` shortcut. The fill is still: no drift or pulse.
 - **Insights:** the tab bar and sidebar icons carry the spark. Insight cards stay plain: their numbers come from SQL, not the model.
 - **AI-written content:** the weekly digest gets a 4px AI strip on top and a "Written by AI" tag; Ask answers get a gradient edge (4px on top, 1px elsewhere). "Ask a follow-up" uses `ai-text`.
 - **Settings › AI:** the section title carries the spark.
-- **Tokens:** the fill stops are fixed in `.ai-button` (same in both modes); `ai-text` light `#5B3FC4` (6.8:1 on card), dark `#B9A6F7` (7.9:1); `ai-glow` light `rgba(91,63,196,.38)`, dark `rgba(150,120,255,.42)`.
+- **Tokens:** the fill stops are fixed in `.ai-button` (same in both modes); `ai-text` light `#5B3FC4` (6.8:1 on card), dark `#B9A6F7` (7.9:1).
 
 
 ## 21. Live audit, 19 Oct 2026

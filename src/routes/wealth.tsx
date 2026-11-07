@@ -201,8 +201,11 @@ function Wealth() {
                 {data.value ? Math.round((row.value / data.value) * 100) : 0}% / {row.hasTarget ? `${row.target}%` : "Target not set"}
               </span>
             </span>
-            <div className="mt-1 h-1.5 rounded bg-sunken">
-              <span className="block h-full rounded bg-brand" style={{ width: `${data.value ? (row.value / data.value) * 100 : 0}%` }} />
+            <div className="mt-1 h-1.5 rounded-mark bg-sunken">
+              <span
+                className="block h-full rounded-mark bg-brand"
+                style={{ width: `${data.value ? (row.value / data.value) * 100 : 0}%` }}
+              />
             </div>
           </div>
         ))}

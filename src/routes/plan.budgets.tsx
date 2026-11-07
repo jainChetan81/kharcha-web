@@ -58,7 +58,7 @@ function Budgets() {
       }
     >
       <PlanHeader sub={`${monthLabel(thisMonth())} · day ${days} of ${count}`} />
-      <section className="mx-5 mt-4 flex flex-col gap-2.5 border-b-[3px] border-double border-ink pb-5 desk:mx-0">
+      <section className="mx-5 mt-4 flex flex-col gap-2.5 border-b-3 border-double border-ink pb-5 desk:mx-0">
         <div className="flex items-baseline justify-between">
           <strong className="font-serif text-figure-sm font-medium">{money(spent)}</strong>
           <span className="text-body text-ink-2">{total ? `of ${money(total)}` : "no budget"}</span>
@@ -89,7 +89,7 @@ function Budgets() {
               >
                 <span className="flex justify-between text-body">
                   <span className="font-medium">
-                    <i className="mr-2 inline-block size-2 rounded-[2px]" style={{ background: `var(--color-${row.colorToken})` }} />
+                    <i className="mr-2 inline-block size-2 rounded-dot" style={{ background: `var(--color-${row.colorToken})` }} />
                     {row.name}
                   </span>
                   <span className="font-medium">

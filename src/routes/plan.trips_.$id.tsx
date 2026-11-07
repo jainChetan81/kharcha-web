@@ -61,7 +61,7 @@ function Trip() {
               key={day}
               role="img"
               aria-label={`${day} spent ${money(amount)}`}
-              className="my-2 h-6 rounded bg-brand"
+              className="my-2 h-6 rounded-mark bg-brand"
               style={{ width: `${Math.min(100, (amount / Math.max(trip.budget, 1)) * 100)}%` }}
             />
           ))}

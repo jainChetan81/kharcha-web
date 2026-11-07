@@ -156,7 +156,7 @@ function Activity() {
   const header = searchOpen && (
     <div className="flex min-h-11 items-center gap-2">
       <label className="field flex min-h-11 min-w-0 flex-1 items-center gap-2 bg-card px-3">
-        <Search className="size-[18px] shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
+        <Search className="size-4.5 shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
         <span className="sr-only">Search transactions</span>
         <input
           ref={searchRef}
@@ -403,7 +403,7 @@ function Activity() {
               </button>
             </div>
           </div>
-          <div className="flex items-baseline justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
+          <div className="flex items-baseline justify-between gap-3 border-b-3 border-double border-ink pb-3">
             <span className="min-w-0 truncate font-serif text-page font-medium">{active.merchant}</span>
             <Amount t={active} className="font-serif text-figure-sm" />
           </div>
@@ -534,13 +534,13 @@ function ActivityRow({
             }
             onSelect();
           }}
-          className="flex min-h-[58px] items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken/50 hover:text-ink desk:hidden"
+          className="flex min-h-14.5 items-center justify-between gap-3 py-1.5 text-ink hover:bg-sunken hover:text-ink desk:hidden"
         >
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="flex items-center gap-1.5 truncate text-body font-medium">
               {row.needsReview && (
                 <>
-                  <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />
+                  <span aria-hidden className="size-1.75 shrink-0 rounded-full bg-brand" />
                   <span className="sr-only">Needs review</span>
                 </>
               )}
@@ -561,14 +561,14 @@ function ActivityRow({
         <button
           type="button"
           onClick={onSelect}
-          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken/50 focus-visible:outline-2 focus-visible:outline-brand desk:grid"
+          className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-2 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >
           <span className="w-16 shrink-0 whitespace-nowrap text-ink-3">{time(row.date)}</span>
           <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">
             {row.needsReview && (
               <>
-                <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-brand" />
+                <span aria-hidden className="size-1.75 shrink-0 rounded-full bg-brand" />
                 <span className="sr-only">Needs review</span>
               </>
             )}

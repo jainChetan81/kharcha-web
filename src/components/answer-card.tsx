@@ -43,8 +43,8 @@ export function AnswerCard({
           {answer.rows.slice(0, 7).map((row) => (
             <div key={row.label} className="grid grid-cols-[70px_1fr_74px] items-center gap-2 text-meta">
               <span className="truncate text-ink-2">{row.label}</span>
-              <span className="h-2 rounded-sm bg-sunken">
-                <span className="block h-2 rounded-sm bg-brand" style={{ width: `${(row.value / max) * 100}%` }} />
+              <span className="h-2 rounded-mark bg-sunken">
+                <span className="block h-2 rounded-mark bg-brand" style={{ width: `${(row.value / max) * 100}%` }} />
               </span>
               <span className="text-right font-medium">{money(Math.round(row.value))}</span>
             </div>

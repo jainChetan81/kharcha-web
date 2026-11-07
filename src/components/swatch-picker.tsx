@@ -43,7 +43,10 @@ export function SwatchPicker({ value, onChange, label }: { value: string; onChan
               className="sr-only"
             />
             <span
-              className={cn("flex size-7 items-center justify-center rounded-lg", on && "ring-2 ring-ink ring-offset-2 ring-offset-card")}
+              className={cn(
+                "flex size-7 items-center justify-center rounded-inner",
+                on && "ring-2 ring-ink ring-offset-2 ring-offset-card",
+              )}
               style={{ background: `var(--color-${token})` }}
             >
               {on && <Check size={16} strokeWidth={2.75} className="text-on-cat" aria-hidden />}

@@ -7,9 +7,9 @@ import { cn } from "../lib/cn";
 type Variant = "primary" | "outline" | "text" | "danger" | "brand";
 // Hover lightens fills, pressed scales to 0.97 (§19); disabled look lives in styles.css.
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-paper px-[18px] rounded-button hover:bg-ink/85 hover:text-paper",
-  outline: "border border-ink text-ink px-[18px] rounded-button bg-transparent hover:bg-sunken hover:text-ink",
-  brand: "bg-brand text-on-brand px-[18px] rounded-button hover:bg-brand/85 hover:text-on-brand",
+  primary: "bg-ink text-paper px-4.5 rounded-button hover:bg-ink/85 hover:text-paper",
+  outline: "border border-ink text-ink px-4.5 rounded-button bg-transparent hover:bg-sunken hover:text-ink",
+  brand: "bg-brand text-on-brand px-4.5 rounded-button hover:bg-brand/85 hover:text-on-brand",
   text: "text-brand px-2.5 bg-transparent rounded-button hover:bg-brand-soft",
   danger: "text-over px-2.5 bg-transparent rounded-button hover:bg-over-soft hover:text-over",
 };
@@ -72,7 +72,7 @@ export function Chip({
       )}
       {...props}
     >
-      {dot && <span aria-hidden className="size-[7px] rounded-full" style={{ background: dot }} />}
+      {dot && <span aria-hidden className="size-1.75 rounded-full" style={{ background: dot }} />}
       {children}
     </button>
   );
@@ -146,7 +146,7 @@ export function Switch({
           checked ? "justify-end bg-brand" : "justify-start bg-field",
         )}
       >
-        <motion.span layout transition={{ duration: 0.15 }} className="size-[22px] rounded-full bg-thumb shadow-control" />
+        <motion.span layout transition={{ duration: 0.15 }} className="size-5.5 rounded-full bg-thumb shadow-control" />
       </span>
     </button>
   );

@@ -232,7 +232,7 @@ function Detail() {
         }
       />
       <div className="space-y-6 px-5 pb-8 tablet:mx-auto tablet:max-w-[640px]">
-        <section className="flex flex-col gap-1.5 border-b-[3px] border-double border-ink pb-5">
+        <section className="flex flex-col gap-1.5 border-b-3 border-double border-ink pb-5">
           <span className="label-caps text-ink-3">
             {txn.type === "income" ? "Income" : "Expense"} ·{" "}
             {detail.splits.length ? `split in ${detail.splits.length}` : (txn.category ?? "Other")}
@@ -326,7 +326,7 @@ function Detail() {
                     <summary className="grid min-h-13 cursor-pointer grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 text-body">
                       <span
                         aria-hidden
-                        className="size-2.5 rounded-[2px]"
+                        className="size-2.5 rounded-dot"
                         style={{ background: `var(--color-${detail.categoryColors[group.category] ?? "cat-other"})` }}
                       />
                       <span className="font-medium">

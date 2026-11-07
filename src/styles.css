@@ -255,59 +255,23 @@ button:disabled {
   background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, var(--color-track) 6px 12px);
 }
 
-/* AI look (DESIGN.md AI board): gradient orb marking model-made content. Colour is decorative; meaning is in the label. */
+/* AI look (DESIGN.md §20): a still gradient orb marks model-made content. Colour is decorative; meaning is in the label. */
 @utility ai-orb {
   display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 999px;
   background: radial-gradient(circle at 30% 30%, #fff 0%, var(--color-ai-accent) 45%, var(--color-brand) 100%);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--color-ai-accent) 60%, transparent);
-  animation: ai-pulse 2.4s ease-in-out infinite;
-}
-@keyframes ai-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.85);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ai-orb {
-    animation: none;
-  }
 }
 
-/* AI look (DESIGN.md §20): Ask pill fill is the same in both modes; tokens differ per mode. */
+/* Ask pill fill is the same in both modes; ai-text differs per mode. */
 @theme {
   --color-ai-text: #5b3fc4;
-  --color-ai-glow: rgba(91, 63, 196, 0.38);
   --color-scrim: rgba(28, 34, 48, 0.45);
 }
 .dark {
   --color-ai-text: #b9a6f7;
-  --color-ai-glow: rgba(150, 120, 255, 0.42);
 }
 .ai-button {
   background: linear-gradient(120deg, #34508a, #5b3fc4 50%, #8a3fa8);
-  box-shadow: 0 0 12px var(--color-ai-glow);
-  background-size: 200% 200%;
-  animation: ai-shift 6s ease-in-out infinite alternate;
-}
-@keyframes ai-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 100% 50%;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ai-button {
-    animation: none;
-  }
 }

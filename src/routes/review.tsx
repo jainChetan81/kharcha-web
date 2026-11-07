@@ -250,7 +250,7 @@ function Review() {
       rail={
         open ? (
           <section aria-label="Selected transaction" className="flex flex-col gap-3.5 rounded-card border border-field bg-card p-5">
-            <div className="flex items-start justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
+            <div className="flex items-start justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate font-serif text-title font-medium">{open.merchant}</span>
                 <span className="text-meta text-ink-3">
@@ -268,7 +268,7 @@ function Review() {
                 checked={makeRule}
                 disabled={!online}
                 onChange={(event) => setRule({ id: open.id, on: event.target.checked })}
-                className="size-[18px] accent-brand"
+                className="size-4.5 accent-brand"
               />
               Always file this merchant as {suggested}
             </label>
@@ -308,8 +308,8 @@ function Review() {
           }
         />
       </div>
-      <div aria-hidden className="mx-5 h-[3px] rounded-sm bg-hairline desk:hidden">
-        <div className="h-full rounded-sm bg-brand" style={{ width: `${progress}%` }} />
+      <div aria-hidden className="mx-5 h-0.75 rounded-mark bg-hairline desk:hidden">
+        <div className="h-full rounded-mark bg-brand" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="hidden desk:block">
@@ -363,7 +363,7 @@ function Review() {
         </div>
 
         <ul className="mt-6 min-w-[560px] list-none p-0">
-          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 text-caption tracking-[0.06em] text-ink-3 uppercase`}>
+          <div className={`grid ${grid} items-center gap-3 border-b border-ink pb-1.5 label-caps`}>
             <span />
             <span>Date</span>
             <span>Merchant</span>
@@ -387,7 +387,7 @@ function Review() {
                   checked={isChecked}
                   disabled={handled}
                   onChange={() => toggleChecked(row.id)}
-                  className="ml-2 size-[18px] accent-brand"
+                  className="ml-2 size-4.5 accent-brand"
                 />
                 <span className="text-ink-3">
                   {row.date.slice(0, 4) === year

@@ -117,7 +117,7 @@ function Paste() {
         {parsed && (
           <Card className="mt-2 flex flex-col gap-3.5 p-5">
             <span className="label-caps text-ink-3">Parsed on server · {parsed.bankName}</span>
-            <div className="flex justify-between gap-3 border-b-[3px] border-double border-ink pb-3">
+            <div className="flex justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <span className="min-w-0">
                 <b className="block truncate font-serif text-title font-medium">{parsed.merchant}</b>
                 <small className="text-meta text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small>

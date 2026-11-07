@@ -95,7 +95,7 @@ function Layout() {
               {KEYS.map((k) => (
                 <div key={k.key} className="contents">
                   <dt>
-                    <kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
+                    <kbd className="rounded-mark border border-rule bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
                   </dt>
                   <dd className="m-0">{k.label}</dd>
                 </div>

@@ -82,7 +82,7 @@ function FilterPill({
   value?: string;
 }) {
   return (
-    <button type="button" onClick={onClick} className={`${chipBase} min-h-[44px] border-transparent p-1.5`}>
+    <button type="button" onClick={onClick} className={`${chipBase} min-h-11 border-transparent p-1.5`}>
       <span
         className={`${chipBase} min-h-9 gap-1.5 px-3 ${active ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}
       >
@@ -291,7 +291,7 @@ export function ActivityFilters({
             <FilterPill label="Type" value="Type" icon={<ChevronDown size={14} aria-hidden="true" />} onClick={() => quick("Type")} />
           )}
           {onReview && (
-            <button type="button" aria-pressed={status.includes("review")} onClick={onReview} className={`${chipBase} min-h-[44px] p-1.5`}>
+            <button type="button" aria-pressed={status.includes("review")} onClick={onReview} className={`${chipBase} min-h-11 p-1.5`}>
               <span
                 className={`${chipBase} min-h-9 gap-2 px-3 ${status.includes("review") ? "border-brand bg-brand text-on-brand" : "border-field bg-card text-ink"}`}
               >
@@ -316,7 +316,7 @@ export function ActivityFilters({
   );
   if (!desktop || !onReview)
     return (
-      <div className="sticky top-0 z-20 -mx-5 border-b border-hairline bg-paper/95 px-4 pt-1 backdrop-blur desk:static desk:mx-0 desk:border-0 desk:bg-transparent desk:p-0">
+      <div className="sticky top-0 z-20 -mx-5 border-b border-hairline bg-paper px-4 pt-1 desk:static desk:mx-0 desk:border-0 desk:bg-transparent desk:p-0">
         {controls}
         {dialogs}
       </div>
@@ -461,7 +461,7 @@ function OptionRow({
     >
       <span
         aria-hidden="true"
-        className={`flex size-[18px] shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-mark"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}
+        className={`flex size-4.5 shrink-0 items-center justify-center border ${mode === "radio" ? "rounded-full" : "rounded-mark"} ${checked ? "border-brand bg-brand text-on-brand" : "border-field bg-card"}`}
       >
         {checked && <Check size={13} />}
       </span>
@@ -571,13 +571,13 @@ function CategoryFields({
                 >
                   <span
                     aria-hidden="true"
-                    className={`flex size-[18px] shrink-0 items-center justify-center rounded-mark border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}
+                    className={`flex size-4.5 shrink-0 items-center justify-center rounded-mark border ${on ? "border-brand bg-brand text-on-brand" : "border-field"}`}
                   >
                     {on && <Check size={13} />}
                   </span>
                   <i
                     aria-hidden="true"
-                    className="size-2.5 shrink-0 rounded-sm"
+                    className="size-2.5 shrink-0 rounded-mark"
                     style={{ background: `var(--color-${item.colorToken})` }}
                   />
                   <span className="min-w-0 truncate">{item.name}</span>
@@ -1001,7 +1001,7 @@ function FilterScreen({
                       className={`relative flex min-h-12 w-full items-center justify-between gap-1 px-3 text-left text-meta ${section === name ? "bg-card font-semibold text-ink" : "text-ink-2"}`}
                     >
                       <span
-                        className="absolute inset-y-0 left-0 w-[3px] bg-transparent"
+                        className="absolute inset-y-0 left-0 w-0.75 bg-transparent"
                         style={section === name ? { background: "var(--color-brand)" } : undefined}
                       />
                       {name}
@@ -1070,7 +1070,7 @@ function RangeCalendar({
             close();
           }
         }}
-        className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-xl"
+        className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-popover"
       >
         <div className="mb-2 flex items-center justify-between">
           <button

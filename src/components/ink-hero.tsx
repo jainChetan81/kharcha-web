@@ -18,7 +18,7 @@ export function HeroAmount({ value, size = "md" }: { value: string; size?: "md" 
   return (
     <span
       className={cn(
-        "inline-block font-serif leading-none font-medium tracking-[-0.02em] min-w-0 break-words",
+        "inline-block font-serif leading-none font-medium tracking-tight min-w-0 break-words",
         size === "lg" ? "text-figure-sm tablet:text-figure desk:text-figure-lg" : "text-figure-sm tablet:text-figure desk:text-figure",
       )}
     >

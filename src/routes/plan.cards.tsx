@@ -16,7 +16,7 @@ function CardsScreen() {
   return (
     <DeskPage>
       <PlanHeader sub={monthLabel(thisMonth())} />
-      <section className="mx-5 mt-4 flex flex-col gap-2 border-b-[3px] border-double border-ink pb-5 desk:mx-0">
+      <section className="mx-5 mt-4 flex flex-col gap-2 border-b-3 border-double border-ink pb-5 desk:mx-0">
         <span className="label-caps text-ink-3">Card spend not yet paid</span>
         <strong className="font-serif text-figure leading-none font-medium desk:text-figure-lg">{money(total)}</strong>
         <span className="text-control text-ink-2">

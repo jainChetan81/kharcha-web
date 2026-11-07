@@ -74,7 +74,7 @@ function OwedScreen() {
       <PlanHeader sub={monthLabel(thisMonth())} />
 
       {/* Header totals */}
-      <section className="mx-5 mt-4 flex flex-col gap-3 border-b-[3px] border-double border-ink pb-5 desk:mx-0">
+      <section className="mx-5 mt-4 flex flex-col gap-3 border-b-3 border-double border-ink pb-5 desk:mx-0">
         <span className="label-caps text-ink-3">Owed to you</span>
         <div className="flex flex-wrap items-baseline gap-6">
           <strong className="font-serif text-figure leading-none font-medium desk:text-figure-lg">{money(data.totalOwed)}</strong>
@@ -135,7 +135,7 @@ function OwedScreen() {
         ) : (
           <div>
             {/* Desktop table header */}
-            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink text-caption font-semibold tracking-[0.06em] text-ink-3 uppercase desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
+            <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink label-caps desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
               <span>Date</span>
               <span>Spend</span>
               <span>From</span>
@@ -152,7 +152,7 @@ function OwedScreen() {
                   key={r.id}
                   to="/txn/$id"
                   params={{ id: String(r.transactionId) }}
-                  className="flex flex-col gap-1 py-3 text-ink hover:bg-sunken/40 desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px] desk:items-center desk:gap-3.5 desk:py-2.5"
+                  className="flex flex-col gap-1 py-3 text-ink hover:bg-sunken desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px] desk:items-center desk:gap-3.5 desk:py-2.5"
                 >
                   {/* Mobile Row */}
                   <div className="flex min-w-0 items-baseline justify-between gap-2 desk:hidden">

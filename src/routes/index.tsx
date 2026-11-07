@@ -142,7 +142,7 @@ function Today() {
   const review = today.reviewCount > 0 && (
     <Link
       to="/review"
-      className="flex min-h-[52px] items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink hover:text-ink"
+      className="flex min-h-13 items-center justify-between gap-2 rounded-card border border-brand px-3.5 text-body text-ink hover:text-ink"
     >
       <span className="flex items-center gap-2">
         <i className="size-2 shrink-0 rounded-full bg-brand" />
@@ -156,7 +156,7 @@ function Today() {
     <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink hover:text-ink">
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0">
-          <small className="text-caption tracking-[0.08em] text-ink-3 uppercase">Wealth</small>
+          <small className="label-caps">Wealth</small>
           <strong className="block font-serif text-page font-medium leading-tight">{money(wealth.value)}</strong>
         </span>
         <Sparkline values={wealth.spark} label="Net contributions by transaction, ending at current value" />
