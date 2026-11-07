@@ -23,6 +23,7 @@ import type { Category } from "../server/db/schema";
 import { ModelSelect, presets } from "../components/model-select";
 import { SwatchPicker } from "../components/swatch-picker";
 import { SyncSection } from "../components/sync-section";
+import { errorText } from "../lib/error-text";
 
 export const Route = createFileRoute("/settings")({
   loader: async () => {
@@ -125,7 +126,7 @@ function Settings() {
       });
       refresh();
     } catch (error) {
-      snack(error instanceof Error ? error.message : "Couldn't save category.");
+      snack(errorText(error, "Couldn't save category."));
     }
   };
   const deleteCategoryNow = async () => {
@@ -156,7 +157,7 @@ function Settings() {
       snack("Category added.");
       refresh();
     } catch (error) {
-      snack(error instanceof Error ? error.message : "Couldn't add category.");
+      snack(errorText(error, "Couldn't add category."));
     }
   };
   const deleteMerchantRule = async (rule: Rule) => {

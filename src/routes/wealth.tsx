@@ -12,6 +12,7 @@ import { SipList } from "../components/sip-list";
 import { realDay } from "../server/wealth/xirr";
 import { getWealth, importHoldingCsv } from "../server/wealth/fns";
 import { importCas } from "../server/wealth/cas";
+import { errorText } from "../lib/error-text";
 
 export const Route = createFileRoute("/wealth")({
   loader: () => getWealth(),
@@ -129,7 +130,7 @@ function CasSheet({ onClose }: { onClose: () => void }) {
       if (result.skipped.length) setSkipped(result.skipped);
       else onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't import CAS.");
+      setError(errorText(e, "Couldn't import CAS."));
     } finally {
       setPending(false);
     }

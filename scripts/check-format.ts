@@ -108,3 +108,10 @@ import { nextReload } from "../src/lib/stale-chunk.ts";
   assert.ok(nextReload(two, "/b", "c3", 2));
   assert.ok(nextReload(two, "/a", "c1", 31 * 60_000));
 }
+
+// errorText: people-written messages pass through; zod JSON and network noise fall back.
+import { errorText } from "../src/lib/error-text.ts";
+assert.equal(errorText(new Error("Wrong PDF password."), "x"), "Wrong PDF password.");
+assert.equal(errorText(new Error('[\n  { "code": "invalid_type" }\n]'), "Couldn't load."), "Couldn't load.");
+assert.equal(errorText(new Error("Failed to fetch"), "Offline."), "Offline.");
+assert.equal(errorText("nope", "Fallback."), "Fallback.");

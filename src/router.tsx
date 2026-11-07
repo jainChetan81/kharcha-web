@@ -1,5 +1,6 @@
 import { createRouter, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { ErrorState, Skeleton } from "./components/ui";
+import { errorText } from "./lib/error-text";
 import { routeTree } from "./routeTree.gen";
 
 function RoutePending() {
@@ -12,7 +13,7 @@ function RoutePending() {
 
 function RouteError({ error }: ErrorComponentProps) {
   const router = useRouter();
-  return <ErrorState text={error instanceof Error ? error.message : undefined} retry={() => void router.invalidate()} />;
+  return <ErrorState text={errorText(error, "Couldn't load this.")} retry={() => void router.invalidate()} />;
 }
 
 export function getRouter() {

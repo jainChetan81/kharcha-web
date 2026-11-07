@@ -12,6 +12,7 @@ import { KEYS, useGlobalKeys } from "../keybindings";
 import { getShell } from "../server/fns";
 import stylesheet from "../styles.css?url";
 import { themeBoot, watchSystemTheme } from "../lib/theme";
+import { errorText } from "../lib/error-text";
 
 export const Route = createRootRoute({
   head: ({ loaderData }) => ({
@@ -113,7 +114,7 @@ function RootError({ error, reset }: ErrorComponentProps) {
   return (
     <main id="main" tabIndex={-1} role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
       <p className="m-0 font-serif text-title leading-snug">
-        {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
+        {offline ? "Can’t reach your server right now." : errorText(error, "Something went wrong.")}
       </p>
       <Button onClick={reset} className="min-h-12 px-7 text-entry">
         Retry

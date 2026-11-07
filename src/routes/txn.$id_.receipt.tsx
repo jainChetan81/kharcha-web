@@ -9,6 +9,7 @@ import { getDetail } from "../server/daily/fns";
 import { getCategories } from "../server/fns";
 import { deleteAttachment, getReceiptAvailability, getReceiptJob, startReceiptJob, uploadReceipt } from "../server/daily/receipt";
 import { saveReceipt } from "../server/daily/fns";
+import { errorText } from "../lib/error-text";
 
 type Item = {
   key: string;
@@ -231,7 +232,7 @@ function Receipt() {
       setFiles((old) => [...old, { id, mime: uploadFile.type }]);
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save receipt file.");
+      setError(errorText(e, "Couldn't save receipt file."));
       return false;
     } finally {
       setBusy(false);
@@ -332,7 +333,7 @@ function Receipt() {
       setJob({ status: result.status, error: result.error });
       setJobRun((run) => run + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't start receipt reading.");
+      setError(errorText(e, "Couldn't start receipt reading."));
     } finally {
       setBusy(false);
     }
