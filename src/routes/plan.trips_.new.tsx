@@ -32,11 +32,15 @@ function NewTrip() {
       setFinding(false);
     }
   };
-  return <>
-    <PageHeader title="Start a trip" back="/plan/trips" />
-    <main className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
-      <TripForm bookings={bookings} onSave={save} />
-      <Button variant="outline" className="mt-4" disabled={finding} onClick={() => void find()}>{finding ? "Finding…" : "Find bookings before today"}</Button>
-    </main>
-  </>;
+  return (
+    <>
+      <PageHeader title="Start a trip" back="/plan/trips" />
+      <div className="px-5 pb-8 desk:mx-auto desk:max-w-[640px]">
+        <TripForm bookings={bookings} onSave={save} />
+        <Button variant="outline" className="mt-4" disabled={finding} onClick={() => void find()}>
+          {finding ? "Finding…" : "Find bookings before today"}
+        </Button>
+      </div>
+    </>
+  );
 }

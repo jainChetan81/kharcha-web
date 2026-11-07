@@ -18,8 +18,7 @@ function note(key: string) {
   if (fails.size > 1000) fails.delete(fails.keys().next().value ?? "");
 }
 // Caddy appends the real peer last; earlier entries are client-controlled.
-const clientIp = (request: Request) =>
-  request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "local";
+const clientIp = (request: Request) => request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "local";
 
 const back = (next: string, error: string) =>
   new Response(null, {

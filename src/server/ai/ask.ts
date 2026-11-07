@@ -1,41 +1,89 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
-import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
+import { filteredAmount, listWhere, spendByCategory } from "../db/queries.ts";
+import type { Scope } from "../db/validators.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callAi } from "./client.ts";
 import { merchantsByMeaning } from "./embed.ts";
 import type { Db } from "../db/client.ts";
 
-const filterSchema = z.object({
-  category: z.string().max(40).optional(), merchant: z.string().max(120).optional(), type: z.enum(["income", "expense", "investment"]).optional(),
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), trip: z.string().max(100).optional(),
-}).strict();
-export const askSpecSchema = z.object({
-  metric: z.enum(["sum", "count", "avg"]), filters: filterSchema.default({}), groupBy: z.enum(["category", "merchant", "day", "month"]).nullable().optional(),
-  period: z.enum(["current_month", "previous_month", "last_30_days", "last_3_months", "this_year", "all"]).optional(),
-}).strict();
+const filterSchema = z
+  .object({
+    category: z.string().max(40).optional(),
+    merchant: z.string().max(120).optional(),
+    type: z.enum(["income", "expense", "investment"]).optional(),
+    from: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    to: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    trip: z.string().max(100).optional(),
+  })
+  .strict();
+export const askSpecSchema = z
+  .object({
+    metric: z.enum(["sum", "count", "avg"]),
+    filters: filterSchema.default({}),
+    groupBy: z.enum(["category", "merchant", "day", "month"]).nullable().optional(),
+    period: z.enum(["current_month", "previous_month", "last_30_days", "last_3_months", "this_year", "all"]).optional(),
+  })
+  .strict();
 export type AskSpec = z.infer<typeof askSpecSchema>;
 
 type ResultRow = { label: string; value: number; transactionIds: number[] };
-export type AskResult = { ok: true; question: string; answer: string; rows: ResultRow[]; transactionIds: number[]; followUps: string[]; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null } | { ok: false; reason: string };
+export type AskResult =
+  | {
+      ok: true;
+      question: string;
+      answer: string;
+      rows: ResultRow[];
+      transactionIds: number[];
+      followUps: string[];
+      model: string;
+      tokensIn: number | null;
+      tokensOut: number | null;
+      costUsd: number | null;
+    }
+  | { ok: false; reason: string };
 // Any unknown part makes the total unknown: a partial sum would understate the call.
-const sumKnown = (values: (number | null)[]) => (values.length && values.every((value) => value !== null) ? (values as number[]).reduce((a, b) => a + b, 0) : null);
+const sumKnown = (values: (number | null)[]) =>
+  values.length && values.every((value) => value !== null) ? (values as number[]).reduce((a, b) => a + b, 0) : null;
 const parseJson = (value: string): unknown => {
-  try { return JSON.parse(value); } catch { return undefined; }
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
 };
 // Models emit null for unused fields; the strict schema wants them absent.
 const dropNulls = (value: unknown): unknown =>
-  Array.isArray(value) ? value.map(dropNulls) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null).map(([k, v]) => [k, dropNulls(v)])) : value;
+  Array.isArray(value)
+    ? value.map(dropNulls)
+    : value && typeof value === "object"
+      ? Object.fromEntries(
+          Object.entries(value)
+            .filter(([, v]) => v !== null)
+            .map(([k, v]) => [k, dropNulls(v)]),
+        )
+      : value;
 /** Merchant labels can carry UPI IDs or account numbers; neither may reach the AI model. */
 export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}|\d{4}/.test(label) ? "[private payee]" : label); // 4 digits: card last-4 in labels like "Visa 4242".
 /** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
-export const redact = (text: string) => text.replace(/\S+@\S+/g, "[private]").replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m)).replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
+export const redact = (text: string) =>
+  text
+    .replace(/\S+@\S+/g, "[private]")
+    .replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m))
+    .replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
 const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 
 function dates(spec: AskSpec) {
   // Calendar math in UTC on the IST date, so bounds match the IST context whatever the server zone.
-  const [y, m, dd] = istToday().split("-").map(Number); const day = new Date(Date.UTC(y, m - 1, dd));
+  const [y, m, dd] = istToday().split("-").map(Number);
+  const day = new Date(Date.UTC(y, m - 1, dd));
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
   if (spec.filters.from || spec.filters.to) return { from: spec.filters.from, to: spec.filters.to, explicitTo: true };
   if (spec.period === "all") return {};
@@ -43,7 +91,10 @@ function dates(spec: AskSpec) {
   if (spec.period === "last_30_days") return { from: fmt(new Date(day.getTime() - 30 * 864e5)), to: fmt(new Date(day.getTime() + 864e5)) };
   const months = spec.period === "last_3_months" ? 2 : spec.period === "previous_month" ? 1 : 0;
   const d = new Date(Date.UTC(y, m - 1 - months, 1));
-  return { from: fmt(d), to: months === 2 ? fmt(new Date(Date.UTC(y, m, 1))) : fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) };
+  return {
+    from: fmt(d),
+    to: months === 2 ? fmt(new Date(Date.UTC(y, m, 1))) : fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))),
+  };
 }
 
 /** Scope dates win over the planner's period: the page's filter is what the person is looking at. */
@@ -59,19 +110,47 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope & { meaningMerchants?
   if (spec.filters.category) where.push(eq(transactions.category, spec.filters.category));
   if (spec.filters.merchant) {
     const meaning = await merchantsByMeaning(db, spec.filters.merchant);
-    const match = or(like(transactions.merchant, `%${spec.filters.merchant}%`), ...(meaning.length ? [inArray(transactions.merchant, meaning)] : []));
+    const match = or(
+      like(transactions.merchant, `%${spec.filters.merchant}%`),
+      ...(meaning.length ? [inArray(transactions.merchant, meaning)] : []),
+    );
     if (match) where.push(match);
   }
   if (spec.filters.type) where.push(eq(transactions.type, spec.filters.type));
-  if (spec.filters.trip) where.push(sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`);
+  if (spec.filters.trip)
+    where.push(
+      sql`${transactions.id} IN (SELECT tt.transaction_id FROM transaction_trips tt JOIN trips tr ON tr.id = tt.trip_id WHERE tr.name LIKE ${`%${spec.filters.trip}%`})`,
+    );
   const group = spec.groupBy ?? null;
-  const label = group === "day" ? sql<string>`substr(${transactions.date}, 1, 10)` : group === "month" ? sql<string>`substr(${transactions.date}, 1, 7)` : group === "category" ? sql<string>`coalesce(${transactions.category}, 'Other')` : group === "merchant" ? transactions.merchant : sql<string>`'Total'`;
+  const label =
+    group === "day"
+      ? sql<string>`substr(${transactions.date}, 1, 10)`
+      : group === "month"
+        ? sql<string>`substr(${transactions.date}, 1, 7)`
+        : group === "category"
+          ? sql<string>`coalesce(${transactions.category}, 'Other')`
+          : group === "merchant"
+            ? transactions.merchant
+            : sql<string>`'Total'`;
   // A category scope counts only the selected split parts, matching Activity and Insights.
   // ponytail: groupBy "category" still labels split rows by their root category; join transaction_splits if split breakdowns get used.
   const amount = scope.categories?.length || scope.category ? filteredAmount(scope).counted : sql`${transactions.amount}`;
-  const metric = spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${amount})` : sql<number>`sum(${amount})`.mapWith(Number);
-  const rows = await db.select({ label, value: metric, ids: sql<string>`group_concat(${transactions.id})` }).from(transactions).where(and(...where)).groupBy(label).orderBy(desc(metric));
-  return rows.map((row) => ({ label: String(row.label), value: Number(row.value ?? 0), transactionIds: String(row.ids ?? "").split(",").filter(Boolean).map(Number) }));
+  const metric =
+    spec.metric === "count" ? count() : spec.metric === "avg" ? sql<number>`avg(${amount})` : sql<number>`sum(${amount})`.mapWith(Number);
+  const rows = await db
+    .select({ label, value: metric, ids: sql<string>`group_concat(${transactions.id})` })
+    .from(transactions)
+    .where(and(...where))
+    .groupBy(label)
+    .orderBy(desc(metric));
+  return rows.map((row) => ({
+    label: String(row.label),
+    value: Number(row.value ?? 0),
+    transactionIds: String(row.ids ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map(Number),
+  }));
 }
 
 const rupees = /(?:₹|\b(?:Rs\.?|INR)\s*)\s*([\d,]+(?:\.\d{1,2})?)|\b([\d,]+(?:\.\d{1,2})?)\s*(?:rupees|rs\b|inr\b)/gi;
@@ -87,15 +166,43 @@ type Context = Awaited<ReturnType<typeof ledgerContext>>;
 async function ledgerContext(db: Db) {
   const today = istToday();
   const month = today.slice(0, 7);
-  const shift = (by: number) => { const d = new Date(`${month}-01T00:00:00Z`); d.setUTCMonth(d.getUTCMonth() + by); return d.toISOString().slice(0, 10); };
-  const live = and(isNull(transactions.deletedAt), eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf));
+  const shift = (by: number) => {
+    const d = new Date(`${month}-01T00:00:00Z`);
+    d.setUTCMonth(d.getUTCMonth() + by);
+    return d.toISOString().slice(0, 10);
+  };
+  const live = and(
+    isNull(transactions.deletedAt),
+    eq(transactions.type, "expense"),
+    eq(transactions.excluded, false),
+    isNull(transactions.duplicateOf),
+  );
   const [thisMonth, lastThree, months, merchants, limits, series, tripRows, cats, recent] = await Promise.all([
     spendByCategory(db, shift(0), shift(1)),
     spendByCategory(db, shift(-3), shift(0)),
-    db.select({ month: sql<string>`substr(${transactions.date}, 1, 7)`, total: sum(transactions.amount).mapWith(Number) }).from(transactions).where(and(live, gte(transactions.date, shift(-5)))).groupBy(sql`1`).orderBy(sql`1`),
-    db.select({ merchant: transactions.merchant, total: sum(transactions.amount).mapWith(Number), n: count() }).from(transactions).where(and(live, gte(transactions.date, shift(-2)))).groupBy(transactions.merchant).orderBy(desc(sum(transactions.amount))).limit(15),
+    db
+      .select({ month: sql<string>`substr(${transactions.date}, 1, 7)`, total: sum(transactions.amount).mapWith(Number) })
+      .from(transactions)
+      .where(and(live, gte(transactions.date, shift(-5))))
+      .groupBy(sql`1`)
+      .orderBy(sql`1`),
+    db
+      .select({ merchant: transactions.merchant, total: sum(transactions.amount).mapWith(Number), n: count() })
+      .from(transactions)
+      .where(and(live, gte(transactions.date, shift(-2))))
+      .groupBy(transactions.merchant)
+      .orderBy(desc(sum(transactions.amount)))
+      .limit(15),
     db.select().from(budgets),
-    db.select({ name: recurringSeries.name, kind: recurringSeries.kind, amount: recurringSeries.expectedAmount, cadence: recurringSeries.cadence, status: recurringSeries.status }).from(recurringSeries),
+    db
+      .select({
+        name: recurringSeries.name,
+        kind: recurringSeries.kind,
+        amount: recurringSeries.expectedAmount,
+        cadence: recurringSeries.cadence,
+        status: recurringSeries.status,
+      })
+      .from(recurringSeries),
     db.select({ name: trips.name, startDate: trips.startDate, endDate: trips.endDate }).from(trips).orderBy(desc(trips.startDate)).limit(5),
     db.select({ name: categories.name, type: categories.type }).from(categories).orderBy(categories.sortOrder),
     db.select({ question: askLog.question, answerJson: askLog.answerJson }).from(askLog).orderBy(desc(askLog.createdAt)).limit(3),
@@ -114,23 +221,37 @@ async function ledgerContext(db: Db) {
       const spent = r(c.total);
       const usualMonth = r((lastThree.find((u) => u.category === c.category)?.total ?? 0) / 3);
       const budget = limits.find((b) => b.category === c.category)?.monthlyLimit ?? null;
-      return { category: scrub(c.category), spent, usualMonth, vsUsual: spent - usualMonth, onPaceFor: r((c.total / day) * daysInMonth), budget, budgetLeft: budget == null ? null : r(budget - c.total) };
+      return {
+        category: scrub(c.category),
+        spent,
+        usualMonth,
+        vsUsual: spent - usualMonth,
+        onPaceFor: r((c.total / day) * daysInMonth),
+        budget,
+        budgetLeft: budget == null ? null : r(budget - c.total),
+      };
     }),
-    budgetsWithoutSpend: limits.filter((b) => !thisMonth.some((c) => c.category === b.category)).map((b) => ({ category: scrub(b.category), budget: b.monthlyLimit })),
+    budgetsWithoutSpend: limits
+      .filter((b) => !thisMonth.some((c) => c.category === b.category))
+      .map((b) => ({ category: scrub(b.category), budget: b.monthlyLimit })),
     topMerchantsLast3Months: merchants.map((m) => ({ merchant: scrub(m.merchant), total: r(m.total), count: m.n })),
     recurring: series.map((s) => ({ ...s, name: scrub(s.name), amount: r(s.amount) })),
     trips: tripRows.map((t) => ({ ...t, name: scrub(t.name) })),
-    recentQuestions: recent.reverse().map((q) => ({ question: redact(q.question), answer: redact((parseJson(q.answerJson ?? "") as { answer?: string } | undefined)?.answer ?? "") || null })),
+    recentQuestions: recent.reverse().map((q) => ({
+      question: redact(q.question),
+      answer: redact((parseJson(q.answerJson ?? "") as { answer?: string } | undefined)?.answer ?? "") || null,
+    })),
   };
 }
 
-const contextFigures = (context: Context) => [
-  ...context.monthlySpend.map((m) => m.total),
-  ...context.thisMonthByCategory.flatMap((c) => [c.spent, c.usualMonth, c.vsUsual, c.onPaceFor, c.budget ?? 0, c.budgetLeft ?? 0]),
-  ...context.budgetsWithoutSpend.map((b) => b.budget),
-  ...context.topMerchantsLast3Months.map((m) => m.total),
-  ...context.recurring.map((s) => s.amount),
-].map((value) => ({ value: Math.abs(value) }));
+const contextFigures = (context: Context) =>
+  [
+    ...context.monthlySpend.map((m) => m.total),
+    ...context.thisMonthByCategory.flatMap((c) => [c.spent, c.usualMonth, c.vsUsual, c.onPaceFor, c.budget ?? 0, c.budgetLeft ?? 0]),
+    ...context.budgetsWithoutSpend.map((b) => b.budget),
+    ...context.topMerchantsLast3Months.map((m) => m.total),
+    ...context.recurring.map((s) => s.amount),
+  ].map((value) => ({ value: Math.abs(value) }));
 
 const plannerPrompt = `You plan read-only queries over one person's personal expense ledger (India, rupees). Return JSON only:
 {"queries":[Spec, ...]} with 1 to 3 specs. Use more than one only when it helps answer well, e.g. this period vs a previous one, or a total plus a breakdown.
@@ -170,7 +291,27 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const context = await ledgerContext(db);
   const asked = redact(question);
   const scoped = describeScope(scope);
-  const planned = await callAi([{ role: "system", content: plannerPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, context: { today: context.today, expenseCategories: context.expenseCategories, incomeCategories: context.incomeCategories, merchants: context.topMerchantsLast3Months.map((m) => m.merchant), trips: context.trips, recentQuestions: context.recentQuestions } }) }], { db });
+  const planned = await callAi(
+    [
+      { role: "system", content: plannerPrompt },
+      {
+        role: "user",
+        content: JSON.stringify({
+          question: asked,
+          scope: scoped,
+          context: {
+            today: context.today,
+            expenseCategories: context.expenseCategories,
+            incomeCategories: context.incomeCategories,
+            merchants: context.topMerchantsLast3Months.map((m) => m.merchant),
+            trips: context.trips,
+            recentQuestions: context.recentQuestions,
+          },
+        }),
+      },
+    ],
+    { db },
+  );
   if (!planned.ok) return planned;
   const raw = dropNulls(parseJson(planned.content));
   const parsed = plan.safeParse(raw);
@@ -182,9 +323,22 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const results = await Promise.all(queries.map((spec) => runSpec(db, spec, { ...scope, meaningMerchants })));
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
-  const shown = results.map((list, index) => ({ spec: queries[index], rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })) }));
-  const narrated = await callAi([{ role: "system", content: narratorPrompt }, { role: "user", content: JSON.stringify({ question: asked, scope: scoped, results: shown, context }) }], { db });
-  const answerData = narrated.ok ? z.object({ answer: z.string().max(700), followUps: z.array(z.string().trim().min(3).max(120)).max(3).default([]) }).safeParse(parseJson(narrated.content)) : null;
+  const shown = results.map((list, index) => ({
+    spec: queries[index],
+    rows: list.slice(0, 25).map(({ label, value }) => ({ label: scrub(label), value: Math.round(value) })),
+  }));
+  const narrated = await callAi(
+    [
+      { role: "system", content: narratorPrompt },
+      { role: "user", content: JSON.stringify({ question: asked, scope: scoped, results: shown, context }) },
+    ],
+    { db },
+  );
+  const answerData = narrated.ok
+    ? z
+        .object({ answer: z.string().max(700), followUps: z.array(z.string().trim().min(3).max(120)).max(3).default([]) })
+        .safeParse(parseJson(narrated.content))
+    : null;
   const ok = answerData?.success && figuresMatchRows(answerData.data.answer, [...results.flat(), ...contextFigures(context)]);
   const answer = ok ? answerData.data.answer : "Here are matching ledger totals.";
   const followUps = ok ? answerData.data.followUps : [];
@@ -194,6 +348,15 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const tokensIn = sumKnown(calls.map((call) => call.tokensIn));
   const tokensOut = sumKnown(calls.map((call) => call.tokensOut));
   const costUsd = sumKnown(calls.map((call) => call.costUsd));
-  await db.insert(askLog).values({ question, scopeJson: JSON.stringify(scope), specJson: JSON.stringify(queries), answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }), model, tokensIn, tokensOut, costUsd });
+  await db.insert(askLog).values({
+    question,
+    scopeJson: JSON.stringify(scope),
+    specJson: JSON.stringify(queries),
+    answerJson: JSON.stringify({ answer, rows, transactionIds, followUps }),
+    model,
+    tokensIn,
+    tokensOut,
+    costUsd,
+  });
   return { ok: true, question, answer, rows, transactionIds, followUps, model, tokensIn, tokensOut, costUsd };
 }

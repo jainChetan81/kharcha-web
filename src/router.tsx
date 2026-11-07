@@ -1,10 +1,28 @@
-import { createRouter } from "@tanstack/react-router";
+import { createRouter, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
+import { ErrorState, Skeleton } from "./components/ui";
+import { errorText } from "./lib/error-text";
 import { routeTree } from "./routeTree.gen";
+
+function RoutePending() {
+  return (
+    <div className="px-5 desk:px-0">
+      <Skeleton rows={6} />
+    </div>
+  );
+}
+
+function RouteError({ error }: ErrorComponentProps) {
+  const router = useRouter();
+  return <ErrorState text={errorText(error, "Couldn't load this.")} retry={() => void router.invalidate()} />;
+}
+
 export function getRouter() {
   return createRouter({
     routeTree,
     scrollRestoration: true,
     defaultPreload: false,
+    defaultPendingComponent: RoutePending,
+    defaultErrorComponent: RouteError,
   });
 }
 declare module "@tanstack/react-router" {

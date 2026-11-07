@@ -8,9 +8,13 @@ const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" 
 export type AiConfig = { model: string; cap: number; used: number };
 
 export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
-  const rows = await db.select().from(meta).where(sql`${meta.key} IN ('openrouter_model', 'openrouter_daily_cap', ${`ai_calls_${today()}`})`);
+  const rows = await db
+    .select()
+    .from(meta)
+    .where(sql`${meta.key} IN ('openrouter_model', 'openrouter_daily_cap', ${`ai_calls_${today()}`})`);
   const value = new Map(rows.map((row) => [row.key, row.value]));
-  const raw = value.get("openrouter_daily_cap"); const cap = raw ? Number(raw) : 200; // "0" is a real cap: AI off.
+  const raw = value.get("openrouter_daily_cap");
+  const cap = raw ? Number(raw) : 200; // "0" is a real cap: AI off.
   return {
     // A saved OpenRouter id (from before 9Router) would 403 on the restricted key, so only presets count.
     model: presets.find((m) => m.id === value.get("openrouter_model"))?.id ?? presets[0].id,
@@ -22,7 +26,10 @@ export async function aiConfig(db: Db = getDb()): Promise<AiConfig> {
 export async function callAi(
   messages: unknown[],
   options: { db?: Db } = {},
-): Promise<{ ok: true; content: string; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null } | { ok: false; reason: string }> {
+): Promise<
+  | { ok: true; content: string; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null }
+  | { ok: false; reason: string }
+> {
   // One switch for every outbound call: Ask, digest, receipts.
   if (process.env.KHARCHA_AI !== "on") return { ok: false, reason: "disabled" };
   // 9Router on the VPS (subscription models). Key is the restricted `kharcha` key.
@@ -46,7 +53,10 @@ export async function callAi(
       body: JSON.stringify({ model: config.model, messages, stream: false, response_format: { type: "json_object" } }),
     });
     if (!response.ok) return { ok: false, reason: "unavailable" };
-    const payload = (await response.json()) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: unknown; completion_tokens?: unknown } };
+    const payload = (await response.json()) as {
+      choices?: { message?: { content?: string } }[];
+      usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
+    };
     // Gemini through 9Router ignores response_format and may wrap JSON in a ```json fence.
     const content = payload.choices?.[0]?.message?.content?.replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, "");
     const count = (value: unknown) => (Number.isInteger(value) && (value as number) >= 0 ? (value as number) : null);
@@ -58,4 +68,3 @@ export async function callAi(
     return { ok: false, reason: "unavailable" };
   }
 }
-

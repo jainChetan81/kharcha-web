@@ -35,13 +35,13 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="flex min-h-[52px] w-full items-center gap-2 px-3 text-left focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+        className="flex min-h-13 w-full items-center gap-2 px-3 text-left focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
       >
         <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
           {figures.map((f) => (
             <span key={f.label} className="flex min-w-0 flex-col">
-              <strong className={`truncate text-[14px] font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
-              <span className="text-[11px] text-ink-3">{f.label}</span>
+              <strong className={`truncate text-control font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
+              <span className="text-tab text-ink-2">{f.label}</span>
             </span>
           ))}
         </span>
@@ -60,26 +60,31 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
         style={{ overflow: "hidden" }}
         inert={!expanded}
       >
-        <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-[13px]">
+        <div className="flex flex-col gap-3 border-t border-hairline px-3 pt-3 pb-3 text-meta">
           <div className="flex justify-between">
-            <span className="label-caps text-ink-3">Net</span>
+            <span className="label-caps">Net</span>
             <strong className={summary.net < 0 ? "text-over" : "text-earn"}>{signed(summary.net)}</strong>
           </div>
           {summary.top.map((item) => (
             <div key={item.category} className="grid grid-cols-[minmax(88px,1fr)_2fr_auto] items-center gap-2">
               <span className="flex min-w-0 items-center gap-1.5 truncate">
-                <i aria-hidden className="size-2 shrink-0 rounded-sm" style={{ background: tone(item.category) }} />
+                <i aria-hidden className="size-2 shrink-0 rounded-mark" style={{ background: tone(item.category) }} />
                 <span className="truncate">{item.category}</span>
               </span>
-              <span className="h-1 overflow-hidden rounded-full bg-track">
-                <span className="block h-full rounded-full" style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }} />
+              <span className="h-1 overflow-hidden rounded-full bg-sunken">
+                <span
+                  className="block h-full rounded-full"
+                  style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }}
+                />
               </span>
               <strong className="shrink-0">{money(item.total)}</strong>
             </div>
           ))}
           {summary.biggest && (
             <div className="flex min-w-0 justify-between gap-3">
-              <span className="min-w-0 truncate text-ink-2">Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}</span>
+              <span className="min-w-0 truncate text-ink-2">
+                Biggest · {summary.biggest.merchant}, {shortDate(summary.biggest.date)}
+              </span>
               <strong className="shrink-0">{money(summary.biggest.amount)}</strong>
             </div>
           )}
@@ -95,7 +100,9 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
               <strong>{money(summary.avgPerDay)}</strong>
             </div>
           )}
-          <Link to="/insights" search={scope} className="min-h-11 self-start pt-2 font-medium text-brand">See insights</Link>
+          <Link to="/insights" search={scope} className="min-h-11 self-start pt-2 font-medium text-brand">
+            See insights
+          </Link>
         </div>
       </motion.div>
     </section>

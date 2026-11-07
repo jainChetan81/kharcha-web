@@ -19,7 +19,12 @@ export const Route = createFileRoute("/api/attachments/$id")({
         const id = Number(params.id);
         if (!Number.isSafeInteger(id) || id < 1) return new Response("Bad id.", { status: 400, headers: noStore });
 
-        const row = await getDb().select({ path: attachments.path, mime: attachments.mime, bytes: attachments.bytes }).from(attachments).innerJoin(transactions, eq(transactions.id, attachments.transactionId)).where(and(eq(attachments.id, id), isNull(transactions.deletedAt))).get();
+        const row = await getDb()
+          .select({ path: attachments.path, mime: attachments.mime, bytes: attachments.bytes })
+          .from(attachments)
+          .innerJoin(transactions, eq(transactions.id, attachments.transactionId))
+          .where(and(eq(attachments.id, id), isNull(transactions.deletedAt)))
+          .get();
         if (!row || !MIME_TYPES.has(row.mime)) return new Response("Not found.", { status: 404, headers: noStore });
         const root = path.resolve(process.env.STATE_DIRECTORY ?? ".data", "attachments") + path.sep;
         const filepath = path.resolve(row.path);

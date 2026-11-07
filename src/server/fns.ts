@@ -5,9 +5,20 @@ import { and, count, eq, gte, isNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db/client";
 import {
-  addRule, addSchema, addTxn, budgetSchema, categoryList, editSchema, editTxn, flagSchema, flagTxn, getTxn, listSchema,
-  listTxns, removeTxn, restoreTxn, ruleSchema, setBudget, splitsByTxnIds, summarizeTxns,
+  addRule,
+  addTxn,
+  categoryList,
+  editTxn,
+  flagTxn,
+  getTxn,
+  listTxns,
+  removeTxn,
+  restoreTxn,
+  setBudget,
+  splitsByTxnIds,
+  summarizeTxns,
 } from "./db/queries";
+import { addSchema, budgetSchema, editSchema, flagSchema, listSchema, ruleSchema } from "./db/validators";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
 import { merchantsByMeaning } from "./ai/embed";
@@ -25,7 +36,10 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
   const today = localToday();
   const week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   const [[review], trip] = await Promise.all([
-    db.select({ n: count() }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+    db
+      .select({ n: count() })
+      .from(transactions)
+      .where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
     db
       .select()
       .from(trips)
@@ -38,7 +52,14 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
     umamiWebsiteId: process.env.UMAMI_WEBSITE_ID?.match(/^[0-9a-f-]{36}$/i)?.[0] ?? null,
     reviewCount: review?.n ?? 0,
     trip: trip
-      ? { id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate, autoTag: trip.autoTag, active: trip.startDate <= today }
+      ? {
+          id: trip.id,
+          name: trip.name,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          autoTag: trip.autoTag,
+          active: trip.startDate <= today,
+        }
       : null,
   };
 });
@@ -48,7 +69,10 @@ export const getTransactions = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const meaningMerchants = data.search ? await merchantsByMeaning(getDb(), data.search) : undefined;
     const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500, meaningMerchants });
-    const splits = await splitsByTxnIds(getDb(), rows.map((r) => r.id));
+    const splits = await splitsByTxnIds(
+      getDb(),
+      rows.map((r) => r.id),
+    );
     return rows.map((r) => ({ ...r, splits: splits[r.id] ?? [] }));
   });
 

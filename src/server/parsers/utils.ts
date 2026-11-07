@@ -48,10 +48,30 @@ export function fallbackNow(): string {
 }
 
 const MONTHS: Record<string, number> = {
-  jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3,
-  april: 3, may: 4, jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7,
-  sep: 8, sept: 8, september: 8, oct: 9, october: 9, nov: 10, november: 10,
-  dec: 11, december: 11,
+  jan: 0,
+  january: 0,
+  feb: 1,
+  february: 1,
+  mar: 2,
+  march: 2,
+  apr: 3,
+  april: 3,
+  may: 4,
+  jun: 5,
+  june: 5,
+  jul: 6,
+  july: 6,
+  aug: 7,
+  august: 7,
+  sep: 8,
+  sept: 8,
+  september: 8,
+  oct: 9,
+  october: 9,
+  nov: 10,
+  november: 10,
+  dec: 11,
+  december: 11,
 };
 
 function makeDate(year: number, month: number, day: number, time?: string): Date | null {
@@ -102,12 +122,10 @@ export function parseAmount(str: string): number {
 }
 
 /** Regex that extracts a date after "on" — covers common Indian banking formats. */
-export const DATE_REGEX =
-  /on\s+(\d{2}\s*\w{3}\s*\d{2,4}|\d{2}[-/]\w{3}[-/]\d{2,4}|\d{2}[-/]\d{2}[-/]\d{2,4}|\d{2}\s+\w{3}\s+\d{4})/i;
+export const DATE_REGEX = /on\s+(\d{2}\s*\w{3}\s*\d{2,4}|\d{2}[-/]\w{3}[-/]\d{2,4}|\d{2}[-/]\d{2}[-/]\d{2,4}|\d{2}\s+\w{3}\s+\d{4})/i;
 
 /** Regex that extracts a merchant name after at/towards. */
-export const MERCHANT_REGEX =
-  /(?:at|towards)\s+([A-Za-z][\w\s./-]{2,40}?)(?:\s+on\s|\s+dated|\s*$)/i;
+export const MERCHANT_REGEX = /(?:at|towards)\s+([A-Za-z][\w\s./-]{2,40}?)(?:\s+on\s|\s+dated|\s*$)/i;
 
 export function tryParsers(parsers: Parser[], body: string): ParsedTransaction | null {
   for (const parser of parsers) {
@@ -119,9 +137,7 @@ export function tryParsers(parsers: Parser[], body: string): ParsedTransaction |
 
 // --- Reference-number helpers (SMS-specific additions) ---
 
-const AXIS_REF_PATTERNS = [
-  /(?:Ref\s*(?:No|Number)|RRN|UTR)[.:\s#]+([A-Z0-9]{6,20})/i,
-];
+const AXIS_REF_PATTERNS = [/(?:Ref\s*(?:No|Number)|RRN|UTR)[.:\s#]+([A-Z0-9]{6,20})/i];
 
 const HDFC_REF_PATTERNS = [
   /(?:Ref\s*(?:No|Number)|UTR|RRN)[.:\s#]+([A-Z0-9]{6,22})/i,
@@ -129,10 +145,7 @@ const HDFC_REF_PATTERNS = [
   /(?:Txn\s*ID|Transaction\s*ID)[.:\s#]+([A-Z0-9]{6,22})/i,
 ];
 
-const INDUSIND_REF_PATTERNS = [
-  /(?:Ref\s*(?:No|Number)|UTR|RRN|IMPS\s*Ref\s*no)[.:\s#]+([A-Z0-9]{6,22})/i,
-  /UPI\/([\d]{6,20})/i,
-];
+const INDUSIND_REF_PATTERNS = [/(?:Ref\s*(?:No|Number)|UTR|RRN|IMPS\s*Ref\s*no)[.:\s#]+([A-Z0-9]{6,22})/i, /UPI\/([\d]{6,20})/i];
 
 /** Scan an alert for a plausible reference / UTR / RRN string. */
 export function extractReferenceNumber(body: string, patterns: RegExp[]): string | null {

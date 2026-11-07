@@ -1,6 +1,10 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
 import { isSignedIn } from "./server/auth";
 
+// Render-time dates (this month, today, pace) must match the phone's IST clock, or hydration
+// disagrees around midnight. The server runs in UTC, so pin Node's zone before any request.
+if (typeof process !== "undefined") process.env.TZ ||= "Asia/Kolkata";
+
 // A custom start instance replaces TanStack's default, so CSRF must be listed explicitly.
 const csrf = createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === "serverFn" });
 

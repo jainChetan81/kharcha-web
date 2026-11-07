@@ -16,7 +16,11 @@ const jobs: Record<z.infer<typeof name>, () => Promise<unknown>> = {
   embeddings: () => fillMissing(getDb()),
 };
 const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
-const json = (value: unknown, status = 200) => Response.json(value, status === 200 ? { headers: { "Cache-Control": "no-store" } } : { status, headers: { "Cache-Control": "no-store" } });
+const json = (value: unknown, status = 200) =>
+  Response.json(
+    value,
+    status === 200 ? { headers: { "Cache-Control": "no-store" } } : { status, headers: { "Cache-Control": "no-store" } },
+  );
 function auth(request: Request): Response | undefined {
   const expected = process.env.INGEST_TOKEN;
   if (!expected || expected.length < 32) return json({ error: "Jobs are disabled on this server." }, 503);
@@ -25,12 +29,21 @@ function auth(request: Request): Response | undefined {
 }
 
 export const Route = createFileRoute("/api/jobs/$name")({
-  server: { handlers: { POST: async ({ request, params }) => {
-    const denied = auth(request); if (denied) return denied;
-    const parsed = name.safeParse((params as { name: string }).name); if (!parsed.success) return json({ error: "Unknown job." }, 404);
-    try {
-      const result = await jobs[parsed.data]();
-      return json({ ok: true, result });
-    } catch (error) { console.error(`job ${parsed.data} failed`, error); return json({ error: "Job failed." }, 500); }
-  } } },
+  server: {
+    handlers: {
+      POST: async ({ request, params }) => {
+        const denied = auth(request);
+        if (denied) return denied;
+        const parsed = name.safeParse((params as { name: string }).name);
+        if (!parsed.success) return json({ error: "Unknown job." }, 404);
+        try {
+          const result = await jobs[parsed.data]();
+          return json({ ok: true, result });
+        } catch (error) {
+          console.error(`job ${parsed.data} failed`, error);
+          return json({ error: "Job failed." }, 500);
+        }
+      },
+    },
+  },
 });

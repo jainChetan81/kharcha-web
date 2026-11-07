@@ -56,8 +56,7 @@ export const indusindGenericDebit: Parser = (body) => {
   if (!amountMatch) return null;
 
   const rawMerchant = towardsMatch ? towardsMatch[1].trim() : "Payment";
-  const merchant =
-    rawMerchant.length > 40 ? rawMerchant.slice(0, 40) : rawMerchant;
+  const merchant = rawMerchant.length > 40 ? rawMerchant.slice(0, 40) : rawMerchant;
 
   return {
     amount: parseAmount(amountMatch[1]),
@@ -73,9 +72,7 @@ export const indusindGenericDebit: Parser = (body) => {
 export const indusindImpsCredit: Parser = (body) => {
   const amountMatch = body.match(/credited by Rs\.?([\d,]+\.?\d*)/i);
   const dateMatch = body.match(/on (\d{2}-\d{2}-\d{2})/i);
-  const fromMatch = body.match(
-    /received from account\s+[\dX]+\/([\w\s]+?)(?:\s*\(|$)/i,
-  );
+  const fromMatch = body.match(/received from account\s+[\dX]+\/([\w\s]+?)(?:\s*\(|$)/i);
 
   if (!amountMatch) return null;
 
@@ -94,11 +91,6 @@ export const indusindImpsCredit: Parser = (body) => {
   };
 };
 
-export const INDUSIND_PARSERS: Parser[] = [
-  indusindUpiDebit,
-  indusindUpiCredit,
-  indusindImpsCredit,
-  indusindGenericDebit,
-];
+export const INDUSIND_PARSERS: Parser[] = [indusindUpiDebit, indusindUpiCredit, indusindImpsCredit, indusindGenericDebit];
 
 export { BANK_NAME, PARSER_KEY };

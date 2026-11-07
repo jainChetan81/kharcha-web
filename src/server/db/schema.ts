@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import { blob, check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { CATEGORY_TYPES, HOLDING_KINDS, REIMBURSEMENT_STATUSES, SERIES_KINDS, TXN_TYPES } from "./enums.ts";
 
-export const TXN_TYPES = ["income", "expense", "investment"] as const;
+export { CATEGORY_TYPES, HOLDING_KINDS, REIMBURSEMENT_STATUSES, SERIES_KINDS, TXN_TYPES };
 
 export const transactions = sqliteTable(
   "transactions",
@@ -34,10 +35,7 @@ export const transactions = sqliteTable(
     editedAt: text("edited_at"),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   },
-  (t) => [
-    index("transactions_date_idx").on(t.date),
-    check("transactions_amount_check", sql`${t.amount} >= 0`),
-  ],
+  (t) => [index("transactions_date_idx").on(t.date), check("transactions_amount_check", sql`${t.amount} >= 0`)],
 );
 
 export const budgets = sqliteTable("budgets", {
@@ -56,7 +54,6 @@ export type TxnType = (typeof TXN_TYPES)[number];
 
 // ---- Design rebuild tables (DESIGN.md §7). ----
 
-export const CATEGORY_TYPES = ["expense", "income"] as const;
 export const categories = sqliteTable(
   "categories",
   {
@@ -95,8 +92,12 @@ export const trips = sqliteTable("trips", {
 export const transactionTrips = sqliteTable(
   "transaction_trips",
   {
-    transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
-    tripId: integer("trip_id").notNull().references(() => trips.id, { onDelete: "cascade" }),
+    transactionId: integer("transaction_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
     source: text("source", { enum: ["auto", "manual"] }).notNull(),
     // false for "Getting there" bookings outside the daily budget.
     inDailyBudget: integer("in_daily_budget", { mode: "boolean" }).notNull().default(true),
@@ -104,25 +105,30 @@ export const transactionTrips = sqliteTable(
   (t) => [primaryKey({ columns: [t.transactionId, t.tripId] })],
 );
 
-export const SERIES_KINDS = ["subscription", "bill", "sip", "emi", "insurance"] as const;
 export const recurringSeries = sqliteTable("recurring_series", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   kind: text("kind", { enum: SERIES_KINDS }).notNull(),
   match: text("match").notNull(),
-  cadence: text("cadence", { enum: ["monthly", "quarterly", "yearly", "weekly"] }).notNull().default("monthly"),
+  cadence: text("cadence", { enum: ["monthly", "quarterly", "yearly", "weekly"] })
+    .notNull()
+    .default("monthly"),
   usualDay: integer("usual_day"),
   expectedAmount: real("expected_amount").notNull(),
   tolerancePct: real("tolerance_pct").notNull().default(10),
   holdingId: integer("holding_id"),
-  status: text("status", { enum: ["active", "paused"] }).notNull().default("active"),
+  status: text("status", { enum: ["active", "paused"] })
+    .notNull()
+    .default("active"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
 export const recurringOccurrences = sqliteTable(
   "recurring_occurrences",
   {
-    seriesId: integer("series_id").notNull().references(() => recurringSeries.id, { onDelete: "cascade" }),
+    seriesId: integer("series_id")
+      .notNull()
+      .references(() => recurringSeries.id, { onDelete: "cascade" }),
     dueDate: text("due_date").notNull(),
     transactionId: integer("transaction_id"),
     status: text("status", { enum: ["upcoming", "cleared", "cleared_late", "past_due"] }).notNull(),
@@ -130,7 +136,6 @@ export const recurringOccurrences = sqliteTable(
   (t) => [primaryKey({ columns: [t.seriesId, t.dueDate] })],
 );
 
-export const HOLDING_KINDS = ["fund", "gold", "nps", "other"] as const;
 export const holdings = sqliteTable("holdings", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
@@ -156,7 +161,9 @@ export const sipMandates = sqliteTable("sip_mandates", {
   id: integer("id").primaryKey(),
   // Stable source identity (e.g. broker + folio tail + day) so a re-load updates, not duplicates.
   sourceKey: text("source_key").notNull().unique(),
-  holdingId: integer("holding_id").notNull().references(() => holdings.id, { onDelete: "cascade" }),
+  holdingId: integer("holding_id")
+    .notNull()
+    .references(() => holdings.id, { onDelete: "cascade" }),
   amount: real("amount").notNull(),
   day: integer("day").notNull(),
   nextDate: text("next_date"),
@@ -168,7 +175,9 @@ export const holdingTxns = sqliteTable(
   "holding_txns",
   {
     id: integer("id").primaryKey(),
-    holdingId: integer("holding_id").notNull().references(() => holdings.id, { onDelete: "cascade" }),
+    holdingId: integer("holding_id")
+      .notNull()
+      .references(() => holdings.id, { onDelete: "cascade" }),
     transactionId: integer("transaction_id").unique(),
     date: text("date").notNull(),
     amount: real("amount").notNull(),
@@ -198,13 +207,17 @@ export const attachments = sqliteTable("attachments", {
   mime: text("mime").notNull(),
   bytes: integer("bytes").notNull(),
   // ok | failed | manual: whether AI read it.
-  readStatus: text("read_status", { enum: ["pending", "ok", "failed", "manual"] }).notNull().default("pending"),
+  readStatus: text("read_status", { enum: ["pending", "ok", "failed", "manual"] })
+    .notNull()
+    .default("pending"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
 export const transactionItems = sqliteTable("transaction_items", {
   id: integer("id").primaryKey(),
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  transactionId: integer("transaction_id")
+    .notNull()
+    .references(() => transactions.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   qty: real("qty"),
   amount: real("amount").notNull(),
@@ -217,8 +230,12 @@ export const transactionItems = sqliteTable("transaction_items", {
 
 export const receiptJobs = sqliteTable("receipt_jobs", {
   id: integer("id").primaryKey(),
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
-  status: text("status", { enum: ["queued", "reading", "done", "failed"] }).notNull().default("queued"),
+  transactionId: integer("transaction_id")
+    .notNull()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["queued", "reading", "done", "failed"] })
+    .notNull()
+    .default("queued"),
   error: text("error", { enum: ["unreadable", "not_receipt", "ai_unavailable"] }),
   model: text("model"),
   tokensIn: integer("tokens_in"),
@@ -231,7 +248,9 @@ export const receiptJobs = sqliteTable("receipt_jobs", {
 export const transactionSplits = sqliteTable(
   "transaction_splits",
   {
-    transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+    transactionId: integer("transaction_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
     category: text("category").notNull(),
     amount: real("amount").notNull(),
   },
@@ -264,10 +283,11 @@ export const digests = sqliteTable("digests", {
 });
 
 // Reimbursements (DESIGN.md §15). status is derived from links on every write, except cancelled and manual fully paid.
-export const REIMBURSEMENT_STATUSES = ["pending", "partly", "reimbursed", "extra", "cancelled"] as const;
 export const reimbursements = sqliteTable("reimbursements", {
   id: integer("id").primaryKey(),
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  transactionId: integer("transaction_id")
+    .notNull()
+    .references(() => transactions.id, { onDelete: "cascade" }),
   amount: real("amount").notNull(),
   counterparty: text("counterparty").notNull(),
   note: text("note"),
@@ -283,8 +303,12 @@ export const reimbursements = sqliteTable("reimbursements", {
 export const reimbursementLinks = sqliteTable(
   "reimbursement_links",
   {
-    reimbursementId: integer("reimbursement_id").notNull().references(() => reimbursements.id, { onDelete: "cascade" }),
-    creditTransactionId: integer("credit_transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+    reimbursementId: integer("reimbursement_id")
+      .notNull()
+      .references(() => reimbursements.id, { onDelete: "cascade" }),
+    creditTransactionId: integer("credit_transaction_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
     amount: real("amount").notNull(),
   },
   (t) => [primaryKey({ columns: [t.reimbursementId, t.creditTransactionId] })],

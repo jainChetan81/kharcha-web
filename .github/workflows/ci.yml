@@ -26,6 +26,7 @@ jobs:
       - run: npm ci
       - run: npm run quality
       - run: npm run build
+      - run: npm run check:budget
   # Same build Coolify runs (Railpack + BuildKit), so a broken railpack.json fails here, not in a deploy.
   image:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}

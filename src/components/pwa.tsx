@@ -25,17 +25,37 @@ export async function promptInstall(): Promise<"prompted" | "ios" | "installed" 
   return isIOS() ? "ios" : "unavailable";
 }
 
+// Storage can throw (private mode); the install nudge is optional, so failures just skip it.
+const read = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const write = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Nudge may repeat; nothing else depends on it.
+  }
+};
+
 /** Call after each successful add; the 3rd add offers install once (Android, desktop Chrome). */
 export function countAdd() {
-  const n = Number(localStorage.getItem(ADDS) ?? 0) + 1;
-  localStorage.setItem(ADDS, String(n));
-  if (n < 3 || localStorage.getItem(DISMISSED) || isStandalone()) return;
+  const n = Number(read(ADDS) ?? 0) + 1;
+  write(ADDS, String(n));
+  if (n < 3 || read(DISMISSED) || isStandalone()) return;
   if (deferred)
-    snack("Install Kharcha for one-tap adding", { label: "Install", onClick: () => void promptInstall() }, {
-      label: "Not now",
-      onClick: () => localStorage.setItem(DISMISSED, "1"),
-    });
-  else if (isIOS() && !localStorage.getItem(IOS_SEEN)) for (const l of listeners) l();
+    snack(
+      "Install Kharcha for one-tap adding",
+      { label: "Install", onClick: () => void promptInstall() },
+      {
+        label: "Not now",
+        onClick: () => write(DISMISSED, "1"),
+      },
+    );
+  else if (isIOS() && !read(IOS_SEEN)) for (const l of listeners) l();
 }
 
 export function setBadge(count: number) {
@@ -90,7 +110,7 @@ export function Pwa() {
 
   if (!iosSheet) return null;
   const close = () => {
-    localStorage.setItem(IOS_SEEN, "1");
+    write(IOS_SEEN, "1");
     setIosSheet(false);
   };
   return <IosInstallSheet onClose={close} />;
@@ -106,8 +126,8 @@ export function IosInstallSheet({ onClose }: { onClose: () => void }) {
     <Sheet title="Put Kharcha on your home screen" onClose={onClose}>
       <ol className="m-0 flex list-none flex-col gap-3 p-0">
         {steps.map(([pre, bold, post], i) => (
-          <li key={bold} className="flex items-center gap-3 border-b border-hairline pb-3 text-[15px]">
-            <span className="font-serif text-lg text-brand">{i + 1}</span>
+          <li key={bold} className="flex items-center gap-3 border-b border-hairline pb-3 text-body">
+            <span className="font-serif text-section text-brand">{i + 1}</span>
             <span>
               {pre} <strong className="font-semibold">{bold}</strong>
               {post}
@@ -116,7 +136,9 @@ export function IosInstallSheet({ onClose }: { onClose: () => void }) {
         ))}
       </ol>
       <div className="flex justify-end gap-2">
-        <Button variant="text" onClick={onClose}>Not now</Button>
+        <Button variant="text" onClick={onClose}>
+          Not now
+        </Button>
         <Button onClick={onClose}>Done</Button>
       </div>
     </Sheet>

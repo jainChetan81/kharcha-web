@@ -5,10 +5,21 @@ const KEY = "kharcha.theme";
 /** Runs inline in <head> before paint so a dark page never flashes light. Keep in sync with applyTheme. */
 export const themeBoot = `(()=>{try{var t=localStorage.getItem("${KEY}")||"system";var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}})()`;
 
-export const getTheme = (): Theme => (localStorage.getItem(KEY) as Theme | null) ?? "system";
+const THEMES: readonly Theme[] = ["light", "dark", "system"];
+export function getTheme(): Theme {
+  try {
+    return THEMES.find((theme) => theme === localStorage.getItem(KEY)) ?? "system";
+  } catch {
+    return "system";
+  }
+}
 
 export function applyTheme(theme: Theme = getTheme()) {
-  localStorage.setItem(KEY, theme);
+  try {
+    localStorage.setItem(KEY, theme);
+  } catch {
+    // Private mode: the choice still applies for this visit.
+  }
   const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
 }

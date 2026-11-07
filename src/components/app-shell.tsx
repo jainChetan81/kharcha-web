@@ -1,6 +1,6 @@
 // AppShell (§5): phone tab bar + add button; ≥840px sidebar with trip card, sync pill, Settings.
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { dayMonth } from "../lib/format";
 import { ActivityIcon, InsightsIcon, MoreIcon, PlanIcon, PlusIcon, TodayIcon, WealthIcon } from "./icons";
@@ -8,7 +8,10 @@ import { SyncPill } from "./sync-pill";
 import { AiMark } from "./ai-mark";
 import { Sheet } from "./sheet";
 
-export type ShellData = { reviewCount: number; trip: { id: number; name: string; startDate: string; endDate: string; autoTag: boolean; active: boolean } | null };
+export type ShellData = {
+  reviewCount: number;
+  trip: { id: number; name: string; startDate: string; endDate: string; autoTag: boolean; active: boolean } | null;
+};
 
 const tabs = [
   { to: "/", label: "Today", icon: TodayIcon, match: (p: string) => p === "/" || p === "/review" },
@@ -28,29 +31,30 @@ const side = [
   { to: "/ask", label: "Ask", match: (p: string) => p.startsWith("/ask") },
 ] as const;
 
-const tabClass = "-mt-px flex flex-col items-center justify-center gap-[3px] text-[11px] transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
+const tabClass =
+  "-mt-px flex flex-col items-center justify-center gap-[3px] text-tab transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
 
 /** Full-screen routes on phones: no tab bar, no add button. */
-const bare = (p: string) => /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
+const bare = (p: string) =>
+  /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
 
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = useState(false);
-  const prevPath = useRef(path);
-  useEffect(() => {
-    if (prevPath.current !== path) {
-      prevPath.current = path;
-      setMoreOpen(false);
-    }
-  }, [path]);
+  // Navigating closes the More sheet.
+  const [seenPath, setSeenPath] = useState(path);
+  if (seenPath !== path) {
+    setSeenPath(path);
+    setMoreOpen(false);
+  }
   const hideChrome = bare(path);
   const planAction = path === "/plan/trips" || path === "/plan/recurring";
   const moreOn = path.startsWith("/ask") || path.startsWith("/paste") || path.startsWith("/settings");
   const { trip } = data;
   return (
     <div className="min-h-dvh desk:flex">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-rule bg-card px-4 py-7 desk:flex">
-        <span className="px-3 font-serif text-[26px] font-medium">Kharcha</span>
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-hairline bg-card px-4 py-7 desk:flex">
+        <span className="px-3 font-serif text-page font-medium">Kharcha</span>
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           {side.map((n) => {
             const on = n.match(path);
@@ -59,43 +63,70 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                 key={n.to}
                 to={n.to}
                 aria-current={on ? "page" : undefined}
-                className={cn("flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]", on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink")}
+                className={cn(
+                  "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                  on ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
+                )}
               >
-                <span className="inline-flex items-center gap-1.5">{n.to === "/ask" && <AiMark />}{n.label}</span>
-                {n.to === "/review" && data.reviewCount > 0 && <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>}
+                <span className="inline-flex items-center gap-1.5">
+                  {n.to === "/ask" && <AiMark />}
+                  {n.label}
+                </span>
+                {n.to === "/review" && data.reviewCount > 0 && (
+                  <span className="text-meta font-semibold text-brand">{data.reviewCount}</span>
+                )}
               </Link>
             );
           })}
         </nav>
         {trip && (
-          <Link to="/plan/trips/$id" params={{ id: String(trip.id) }} className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink hover:text-on-ink">
-            <span className="font-serif text-[18px]">{trip.name}</span>
-            <span className="text-xs text-trip-muted">
+          <Link
+            to="/plan/trips/$id"
+            params={{ id: String(trip.id) }}
+            className="mx-1 flex flex-col gap-0.5 rounded-button bg-trip p-3 text-on-ink"
+          >
+            <span className="font-serif text-section">{trip.name}</span>
+            <span className="text-caption text-trip-muted">
               {trip.active ? `Until ${dayMonth(trip.endDate)}` : `Starts ${dayMonth(trip.startDate)}`}
               {trip.autoTag ? " · auto-tag on" : ""}
             </span>
           </Link>
         )}
         <div className="mt-auto flex flex-col gap-2.5 px-3">
-          <span className="self-start"><SyncPill /></span>
-          <Link to="/settings" className="flex min-h-11 items-center self-start text-sm font-medium">Settings</Link>
+          <span className="self-start">
+            <SyncPill />
+          </span>
+          <Link to="/settings" className="flex min-h-11 items-center self-start text-control font-medium">
+            Settings
+          </Link>
         </div>
       </aside>
 
-      <div className={cn("mx-auto w-full min-w-0 pt-[env(safe-area-inset-top)] tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1 desk:pt-0", !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0", planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]")}>
+      <main
+        id="main"
+        tabIndex={-1}
+        className={cn(
+          "mx-auto w-full min-w-0 pt-[env(safe-area-inset-top)] outline-none tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1 desk:pt-0",
+          !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0",
+          planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]",
+        )}
+      >
         {children}
-      </div>
+      </main>
 
       {!hideChrome && (
         <>
           <Link
             to="/add"
             aria-label="Add transaction"
-            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 hover:text-paper motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
+            className="fixed right-5 bottom-[calc(66px+env(safe-area-inset-bottom))] z-30 flex size-14 items-center justify-center rounded-fab bg-ink text-paper shadow-fab transition-transform duration-150 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 desk:hidden"
           >
             <PlusIcon />
           </Link>
-          <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-6 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden">
+          <nav
+            aria-label="Main"
+            className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-6 border-t border-hairline bg-card pb-[env(safe-area-inset-bottom)] desk:hidden"
+          >
             {tabs.map((t) => {
               const on = t.match(path);
               const Icon = t.icon;
@@ -104,10 +135,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   key={t.to}
                   to={t.to}
                   aria-current={on ? "page" : undefined}
-                  className={cn(
-                    tabClass,
-                    on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3",
-                  )}
+                  className={cn(tabClass, on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-2")}
                 >
                   <Icon />
                   {t.label}
@@ -118,10 +146,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
               type="button"
               onClick={() => setMoreOpen(true)}
               aria-current={moreOn ? "page" : undefined}
-              className={cn(
-                tabClass,
-                moreOn ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3",
-              )}
+              className={cn(tabClass, moreOn ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-2")}
             >
               <MoreIcon />
               More
@@ -134,29 +159,32 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/ask"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
-                    path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    path.startsWith("/ask") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
-                  <span className="inline-flex items-center gap-1.5"><AiMark />Ask</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <AiMark />
+                    Ask
+                  </span>
                 </Link>
                 <Link
                   to="/review"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
-                    path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    path.startsWith("/review") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Review</span>
-                  {data.reviewCount > 0 && <span className="text-[13px] font-semibold text-brand">{data.reviewCount}</span>}
+                  {data.reviewCount > 0 && <span className="text-meta font-semibold text-brand">{data.reviewCount}</span>}
                 </Link>
                 <Link
                   to="/paste"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
-                    path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    path.startsWith("/paste") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Paste SMS</span>
@@ -165,8 +193,8 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   to="/settings"
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center justify-between rounded-button px-3 text-[15px]",
-                    path.startsWith("/settings") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken hover:text-ink",
+                    "flex min-h-11 items-center justify-between rounded-button px-3 text-body",
+                    path.startsWith("/settings") ? "bg-brand-soft font-semibold text-brand-deep" : "text-ink hover:bg-sunken",
                   )}
                 >
                   <span>Settings</span>
@@ -182,12 +210,33 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
 
 /** Desktop page frame: main column plus a 300px right rail (§5). Rail stacks under main on phones. */
 /** `reserveRail` keeps the 300px column empty when there is no rail, so sibling tabs share one width. */
-export function DeskPage({ children, rail, className, railClassName, reserveRail }: { children: ReactNode; rail?: ReactNode; className?: string; railClassName?: string; reserveRail?: boolean }) {
+export function DeskPage({
+  children,
+  rail,
+  className,
+  railClassName,
+  reserveRail,
+}: {
+  children: ReactNode;
+  rail?: ReactNode;
+  className?: string;
+  railClassName?: string;
+  reserveRail?: boolean;
+}) {
   return (
     <div className={cn("desk:flex desk:items-start desk:gap-8 desk:px-[clamp(20px,3vw,40px)] desk:pt-7 desk:pb-10", className)}>
-      <main className="min-w-0 desk:flex-1">{children}</main>
+      <div className="min-w-0 desk:flex-1">{children}</div>
       {!rail && reserveRail && <div aria-hidden="true" className="hidden desk:block desk:w-[300px] desk:shrink-0" />}
-      {rail && <aside className={cn("flex flex-col gap-5 px-5 pt-6 desk:sticky desk:top-7 desk:w-[300px] desk:shrink-0 desk:px-0 desk:pt-0", railClassName)}>{rail}</aside>}
+      {rail && (
+        <aside
+          className={cn(
+            "flex flex-col gap-5 px-5 pt-6 desk:sticky desk:top-7 desk:w-[300px] desk:shrink-0 desk:px-0 desk:pt-0",
+            railClassName,
+          )}
+        >
+          {rail}
+        </aside>
+      )}
     </div>
   );
 }

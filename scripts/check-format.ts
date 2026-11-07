@@ -1,7 +1,26 @@
 // Self-check for src/lib/format.ts (DESIGN.md §4). Run: npm run check:format
 import assert from "node:assert/strict";
 import {
-  ago, aiCost, card, compact, dayMonth, evalAmount, foreign, fromSource, money, monthName, navsOf, overOrLeft, rangeLabel, shiftMonth, shortDate, signed, statementOf, time, weekday, weekdayDate,
+  ago,
+  aiCost,
+  card,
+  compact,
+  dayMonth,
+  evalAmount,
+  foreign,
+  fromSource,
+  money,
+  monthName,
+  navsOf,
+  overOrLeft,
+  rangeLabel,
+  shiftMonth,
+  shortDate,
+  signed,
+  statementOf,
+  time,
+  weekday,
+  weekdayDate,
 } from "../src/lib/format.ts";
 
 assert.equal(money(123450), "₹1,23,450");
@@ -61,10 +80,38 @@ assert.equal(aiCost(0), money(0));
   assert.ok(presetOn({ from: now, to: now }, "Today"));
   assert.ok(!presetOn({}, "Today"));
   assert.equal(countFor({ month: "2026-10" }), 0);
-  assert.equal(countFor({ from: "2026-10-01", to: "2026-10-05", categories: ["Food", "Travel"], status: ["review", "split"], min: 100 }), 6);
+  assert.equal(
+    countFor({ from: "2026-10-01", to: "2026-10-05", categories: ["Food", "Travel"], status: ["review", "split"], min: 100 }),
+    6,
+  );
   assert.equal(countFor({ review: true, status: ["review"] }), 1);
   assert.equal(countFor({ review: true }), 1);
   assert.equal(countFor({ sort: "oldest" }), 1);
   assert.equal(countFor({ sort: "oldest" }, false), 0);
   assert.equal(countFor({ sort: "newest" }), 0);
 }
+
+// cn() must know the type scale, or twMerge drops text-meta next to a text colour.
+import { cn } from "../src/lib/cn.ts";
+assert.equal(cn("text-meta text-ink-2"), "text-meta text-ink-2");
+assert.equal(cn("text-body", "text-meta"), "text-meta");
+
+// Stale-chunk reload: once per chunk, at most two per path, reset after 30 minutes.
+import { nextReload } from "../src/lib/stale-chunk.ts";
+{
+  const one = nextReload({}, "/a", "c1", 0);
+  assert.ok(one);
+  assert.equal(nextReload(one, "/a", "c1", 1), null);
+  const two = nextReload(one, "/a", "c2", 1);
+  assert.ok(two);
+  assert.equal(nextReload(two, "/a", "c3", 2), null);
+  assert.ok(nextReload(two, "/b", "c3", 2));
+  assert.ok(nextReload(two, "/a", "c1", 31 * 60_000));
+}
+
+// errorText: people-written messages pass through; zod JSON and network noise fall back.
+import { errorText } from "../src/lib/error-text.ts";
+assert.equal(errorText(new Error("Wrong PDF password."), "x"), "Wrong PDF password.");
+assert.equal(errorText(new Error('[\n  { "code": "invalid_type" }\n]'), "Couldn't load."), "Couldn't load.");
+assert.equal(errorText(new Error("Failed to fetch"), "Offline."), "Offline.");
+assert.equal(errorText("nope", "Fallback."), "Fallback.");

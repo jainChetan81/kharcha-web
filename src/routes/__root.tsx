@@ -1,16 +1,18 @@
 import { PullRefresh } from "../components/pull-refresh";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
 import { MotionConfig } from "motion/react";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { Pwa, setBadge } from "../components/pwa";
-import { Sheet, Snackbars } from "../components/sheet";
+import { editingNow, Sheet, Snackbars, snack } from "../components/sheet";
+import { watchStaleChunks } from "../lib/stale-chunk";
 import { HealthProvider, useHealth } from "../components/sync-pill";
 import { Button } from "../components/ui";
 import { KEYS, useGlobalKeys } from "../keybindings";
 import { getShell } from "../server/fns";
 import stylesheet from "../styles.css?url";
 import { themeBoot, watchSystemTheme } from "../lib/theme";
+import { errorText } from "../lib/error-text";
 
 export const Route = createRootRoute({
   head: ({ loaderData }) => ({
@@ -31,7 +33,16 @@ export const Route = createRootRoute({
     ],
     // Page views only: no query string (Activity search can hold merchant names), production host only.
     scripts: loaderData?.umamiWebsiteId
-      ? [{ src: "https://umami.chetan-vps.tech/script.js", defer: true, "data-website-id": loaderData.umamiWebsiteId, "data-domains": "kharcha.chetan-vps.tech", "data-exclude-search": "true", "data-exclude-hash": "true" }]
+      ? [
+          {
+            src: "https://umami.chetan-vps.tech/script.js",
+            defer: true,
+            "data-website-id": loaderData.umamiWebsiteId,
+            "data-domains": "kharcha.chetan-vps.tech",
+            "data-exclude-search": "true",
+            "data-exclude-hash": "true",
+          },
+        ]
       : [],
   }),
   // Finance pages: never keep a copy in the browser or any proxy cache.
@@ -57,11 +68,19 @@ function Layout() {
   const onLogin = useRouterState({ select: (s) => s.location.pathname === "/login" });
   const health = useHealth();
   const [help, setHelp] = useState(false);
-  const openHelp = useCallback(() => setHelp(true), []);
-  useGlobalKeys(openHelp);
+  useGlobalKeys(setHelp);
   useEffect(() => setBadge(shell.reviewCount), [shell.reviewCount]);
   useEffect(() => watchSystemTheme(), []);
-  if (onLogin) return <Outlet />;
+  useEffect(
+    () => watchStaleChunks(() => snack("A new version is out.", { label: "Reload", onClick: () => location.reload() }), editingNow),
+    [],
+  );
+  if (onLogin)
+    return (
+      <main id="main" tabIndex={-1} className="outline-none">
+        <Outlet />
+      </main>
+    );
   return (
     <MotionConfig reducedMotion="user">
       <HealthProvider value={health}>
@@ -73,10 +92,12 @@ function Layout() {
         <Pwa />
         {help && (
           <Sheet title="Shortcuts" onClose={() => setHelp(false)}>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body">
               {KEYS.map((k) => (
                 <div key={k.key} className="contents">
-                  <dt><kbd className="rounded border border-rule bg-paper px-1.5 py-0.5 font-mono text-xs">{k.key}</kbd></dt>
+                  <dt>
+                    <kbd className="rounded-mark border border-hairline bg-paper px-1.5 py-0.5 font-mono text-caption">{k.key}</kbd>
+                  </dt>
                   <dd className="m-0">{k.label}</dd>
                 </div>
               ))}
@@ -91,12 +112,16 @@ function Layout() {
 function RootError({ error, reset }: ErrorComponentProps) {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
-    <main role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
-      <p className="m-0 font-serif text-2xl leading-snug">
-        {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
+    <main id="main" tabIndex={-1} role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
+      <p className="m-0 font-serif text-title leading-snug">
+        {offline ? "Can’t reach your server right now." : errorText(error, "Something went wrong.")}
       </p>
-      <Button onClick={reset} className="min-h-12 px-7 text-base">Retry</Button>
-      <a href="/login" className="text-ink-2 underline">Sign in</a>
+      <Button onClick={reset} className="min-h-12 px-7 text-entry">
+        Retry
+      </Button>
+      <a href="/login" className="text-ink-2 underline">
+        Sign in
+      </a>
     </main>
   );
 }
@@ -109,6 +134,12 @@ function Document({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-button focus:bg-card focus:px-4 focus:py-2"
+        >
+          Skip to content
+        </a>
         {children}
         <Scripts />
       </body>

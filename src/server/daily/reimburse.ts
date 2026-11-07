@@ -4,14 +4,10 @@ import { and, count, desc, eq, gte, inArray, isNull, lt, ne, sql, sum } from "dr
 import { z } from "zod";
 import { getDb } from "../db/client.ts";
 import { spendable } from "../db/queries.ts";
-import {
-  reimbursementLinks,
-  reimbursements,
-  transactionItems,
-  transactions,
-} from "../db/schema.ts";
+import { reimbursementLinks, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 
-const live = isNull(transactions.deletedAt);
+// Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
+const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 const idSchema = z.object({ id: z.number().int().positive() });
 
 /** Status derived from links: pending → partly → reimbursed / extra. Manual paid stays reimbursed until un-marked. */
@@ -86,12 +82,7 @@ export const markReimbursable = createServerFn({ method: "POST" })
       const items = await db
         .select({ id: transactionItems.id, amount: transactionItems.amount })
         .from(transactionItems)
-        .where(
-          and(
-            eq(transactionItems.transactionId, txn.id),
-            inArray(transactionItems.id, data.itemIds),
-          ),
-        );
+        .where(and(eq(transactionItems.transactionId, txn.id), inArray(transactionItems.id, data.itemIds)));
       if (items.length !== data.itemIds.length) {
         throw new Error("One or more selected items were not found.");
       }
@@ -114,10 +105,7 @@ export const cancelReimbursement = createServerFn({ method: "POST" })
   .validator(idSchema)
   .handler(async ({ data }) => {
     const db = getDb();
-    await db
-      .update(reimbursements)
-      .set({ status: "cancelled", closedAt: sql`(datetime('now'))` })
-      .where(eq(reimbursements.id, data.id));
+    await db.update(reimbursements).set({ status: "cancelled", closedAt: sql`(datetime('now'))` }).where(eq(reimbursements.id, data.id));
     return { ok: true };
   });
 
@@ -135,7 +123,7 @@ export const undoCancelReimbursement = createServerFn({ method: "POST" })
       .from(reimbursements)
       .where(eq(reimbursements.id, data.id))
       .get();
-    if (!claim || claim.status !== "cancelled") throw new Error("Reimbursement is not cancelled.");
+    if (claim?.status !== "cancelled") throw new Error("Reimbursement is not cancelled.");
     // One UPDATE checks credit availability under SQLite's write lock. Cancelled
     // claims release credits; undo fails if another claim already reused them.
     const restored = await db.all<{ id: number }>(sql`
@@ -172,10 +160,7 @@ export const markFullyPaid = createServerFn({ method: "POST" })
         .set({ status: "reimbursed", manualPaid: true, closedAt: sql`(datetime('now'))` })
         .where(and(eq(reimbursements.id, data.id), ne(reimbursements.status, "cancelled")));
     } else {
-      await db
-        .update(reimbursements)
-        .set({ manualPaid: false, closedAt: null })
-        .where(eq(reimbursements.id, data.id));
+      await db.update(reimbursements).set({ manualPaid: false, closedAt: null }).where(eq(reimbursements.id, data.id));
       await refreshClaimStatus(db, data.id);
     }
     return { ok: true };
@@ -191,11 +176,7 @@ export const linkCredit = createServerFn({ method: "POST" })
   .validator(linkCreditSchema)
   .handler(async ({ data }) => {
     const db = getDb();
-    const claim = await db
-      .select()
-      .from(reimbursements)
-      .where(eq(reimbursements.id, data.reimbursementId))
-      .get();
+    const claim = await db.select().from(reimbursements).where(eq(reimbursements.id, data.reimbursementId)).get();
     if (!claim || claim.status === "cancelled") throw new Error("Claim not found or cancelled.");
 
     const credit = await db
@@ -210,11 +191,13 @@ export const linkCredit = createServerFn({ method: "POST" })
       .select({ total: sum(reimbursementLinks.amount).mapWith(Number) })
       .from(reimbursementLinks)
       .innerJoin(reimbursements, eq(reimbursementLinks.reimbursementId, reimbursements.id))
-      .where(and(
-        eq(reimbursementLinks.creditTransactionId, credit.id),
-        ne(reimbursementLinks.reimbursementId, claim.id),
-        ne(reimbursements.status, "cancelled"),
-      ));
+      .where(
+        and(
+          eq(reimbursementLinks.creditTransactionId, credit.id),
+          ne(reimbursementLinks.reimbursementId, claim.id),
+          ne(reimbursements.status, "cancelled"),
+        ),
+      );
     const usedOnOthers = existingOther?.total ?? 0;
     const remainingOnCredit = Math.max(0, credit.amount - usedOnOthers);
     if (remainingOnCredit <= 0.005) {
@@ -225,12 +208,7 @@ export const linkCredit = createServerFn({ method: "POST" })
     const [currentClaimLinked] = await db
       .select({ total: sum(reimbursementLinks.amount).mapWith(Number) })
       .from(reimbursementLinks)
-      .where(
-        and(
-          eq(reimbursementLinks.reimbursementId, claim.id),
-          ne(reimbursementLinks.creditTransactionId, credit.id),
-        ),
-      );
+      .where(and(eq(reimbursementLinks.reimbursementId, claim.id), ne(reimbursementLinks.creditTransactionId, credit.id)));
     const claimOwed = Math.max(0, claim.amount - (currentClaimLinked?.total ?? 0));
     const targetAmount = data.amount
       ? Math.min(data.amount, remainingOnCredit)
@@ -308,11 +286,7 @@ export const suggestCredits = createServerFn({ method: "GET" })
       .get();
     if (!claim) return [];
 
-    const spend = await db
-      .select({ date: transactions.date })
-      .from(transactions)
-      .where(eq(transactions.id, claim.transactionId))
-      .get();
+    const spend = await db.select({ date: transactions.date }).from(transactions).where(eq(transactions.id, claim.transactionId)).get();
     if (!spend) return [];
 
     const spendDate = spend.date.slice(0, 10);
@@ -350,14 +324,7 @@ export const suggestCredits = createServerFn({ method: "GET" })
         accountLast4: transactions.accountLast4,
       })
       .from(transactions)
-      .where(
-        and(
-          live,
-          eq(transactions.type, "income"),
-          gte(transactions.date, `${spendDate} 00:00`),
-          lt(transactions.date, maxDate),
-        ),
-      )
+      .where(and(live, eq(transactions.type, "income"), gte(transactions.date, `${spendDate} 00:00`), lt(transactions.date, maxDate)))
       .orderBy(desc(transactions.date))
       .limit(200);
 
@@ -375,8 +342,7 @@ export const suggestCredits = createServerFn({ method: "GET" })
       })
       .map((c) => {
         const merchantNorm = c.merchant.trim().toUpperCase();
-        const nameMatch =
-          merchantNorm.includes(cpNorm) || (cpNorm.length > 2 && cpNorm.includes(merchantNorm));
+        const nameMatch = merchantNorm.includes(cpNorm) || (cpNorm.length > 2 && cpNorm.includes(merchantNorm));
         const diff = Math.abs(c.amount - claim.amount);
         return {
           id: c.id,
@@ -478,12 +444,8 @@ export const listOwed = createServerFn({ method: "GET" })
 
     const owedRows: OwedRow[] = rows.map((r) => {
       const linkedTotal = linkMap.get(r.id) ?? 0;
-      const dueAmount =
-        r.status === "reimbursed" || r.status === "cancelled"
-          ? 0
-          : Math.max(0, r.claimAmount - linkedTotal);
-      const yoursAmount =
-        r.status === "cancelled" ? r.spendAmount : Math.max(0, r.spendAmount - r.claimAmount);
+      const dueAmount = r.status === "reimbursed" || r.status === "cancelled" ? 0 : Math.max(0, r.claimAmount - linkedTotal);
+      const yoursAmount = r.status === "cancelled" ? r.spendAmount : Math.max(0, r.spendAmount - r.claimAmount);
       const createdMs = Date.parse(r.spendDate.slice(0, 10));
       const daysOld = Math.max(0, Math.floor((nowMs - createdMs) / dayMs));
       const isOverdue = !isDone && daysOld > 30;

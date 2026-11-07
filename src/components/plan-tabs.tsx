@@ -1,7 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "../lib/cn";
 
-const tabs = [{ to: "/plan/budgets", label: "Budgets" }, { to: "/plan/recurring", label: "Recurring" }, { to: "/plan/trips", label: "Trips" }, { to: "/plan/owed", label: "Owed" }, { to: "/plan/cards", label: "Cards" }] as const;
+const tabs = [
+  { to: "/plan/budgets", label: "Budgets" },
+  { to: "/plan/recurring", label: "Recurring" },
+  { to: "/plan/trips", label: "Trips" },
+  { to: "/plan/owed", label: "Owed" },
+  { to: "/plan/cards", label: "Cards" },
+] as const;
 export function PlanTabs() {
   const path = useRouterState({ select: (state) => state.location.pathname });
   return (
@@ -12,7 +18,7 @@ export function PlanTabs() {
           to={tab.to}
           aria-current={path === tab.to ? "page" : undefined}
           className={cn(
-            "flex min-h-11 min-w-0 items-center justify-center rounded-inner px-1 text-center text-[13px] font-medium leading-tight transition-colors hover:text-ink motion-reduce:transition-none desk:min-h-9",
+            "flex min-h-11 min-w-0 items-center justify-center rounded-inner px-1 text-center text-meta font-medium leading-tight transition-colors hover:text-ink motion-reduce:transition-none desk:min-h-9",
             path === tab.to ? "bg-raised text-ink shadow-control" : "text-ink-2",
           )}
         >

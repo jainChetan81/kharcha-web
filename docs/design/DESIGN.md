@@ -73,13 +73,11 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-paper: #F6F4EE;      /* page */
   --color-card: #FBFAF6;       /* cards, sheets, tab bar */
   --color-sunken: #EEEBE2;     /* segmented track, pills, SMS block */
-  --color-rule: #D9D5C8;       /* card borders (decorative) */
   --color-hairline: #E2DED3;   /* row separators */
   --color-field: #8A8576;      /* input, chip, switch-off, dashed suggestion borders: 3.3:1 */
   --color-input: #FFFFFF;      /* field fill */
   --color-ink: #1C2230;
   --color-ink-2: #4A5163;
-  --color-ink-3: #5E6272;      /* lowest text colour; do not go lighter */
   --color-brand: #2F4A7A;
   --color-brand-deep: #1F3459;
   --color-brand-soft: #E3E8F1;
@@ -102,7 +100,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-on-hero-pace: #8FA6CF;
   --color-on-hero-over: #F2A08C; /* over-budget figure on the hero: 7.7:1 */
   --color-raised: #FBFAF6;     /* selected segment */
-  --color-track: #E6E2D7;      /* bar and ring tracks */
   --color-on-cat: #FFFFFF;     /* text on a category fill (treemap) */
 
   --color-cat-food: #B4572E;
@@ -132,7 +129,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
 
   --color-thumb: #FFFFFF;      /* switch thumb; #ECE8DF in dark */
   --shadow-control: 0 1px 2px rgba(28,34,48,.14);  /* selected segment, switch thumb */
-  --shadow-card: 0 8px 24px rgba(28,34,48,.08);    /* review card */
   --shadow-popover: 0 6px 16px rgba(28,34,48,.16); /* snackbar, popover, pull ring */
   --shadow-fab: 0 6px 16px rgba(28,34,48,.22);
   /* Dark: shadows use rgba(0,0,0,.35–.5); same names. */
@@ -150,9 +146,8 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 ```css
 .dark {
   --color-paper: #12151C;  --color-card: #191D26;  --color-sunken: #222733;
-  --color-rule: #323848;   --color-hairline: #282E3B; --color-field: #737A8C;
   --color-input: #12151C;
-  --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;  --color-ink-3: #A0A4B0;
+  --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;
   --color-brand: #9DB3DA;  --color-on-brand: #12151C; --color-brand-soft: #243149;
   --color-brand-deep: #C3D2EC; /* link hover, tags on brand-soft: 8.5:1 */
   --color-earn: #74C595;   --color-earn-soft: #1D3326;
@@ -164,7 +159,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
   --color-cat-other: #8F8B80;
   --color-cat-salary: #74C595; --color-cat-refunds: #5FC4A6; --color-cat-interest: #A4C97E;
   --color-cat-other-income: #8F8B80;
-  --color-hero: #232937; --color-raised: #363D4D; --color-track: #2A303D; --color-on-cat: #12151C;
+  --color-hero: #232937; --color-raised: #363D4D; --color-on-cat: #12151C;
 }
 ```
 
@@ -216,7 +211,7 @@ All of these are on the `RcComponents` board in light and dark.
 | `FilterScreen` | Phones: full screen. Header ✕, "Filters", Clear all; selected chips under it; left rail of filter types (124px, `sunken`; active one on `card` with a 3px `brand` bar; a count when set); options on the right; sticky "Show N transactions" (N live on Activity and Insights; "1 transaction" when one; "Show results" while N loads or fails). Desktop: `FilterRail`, a 248px card beside the table with sections that open and close, live updates, Clear all and a hide button. |
 | `RangeCalendar` | Opened from Date › Custom range › Pick on a calendar (`ActDate`). Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted. The From and To date fields in the Date pane are the fallback. |
 | `SummaryStrip` | Collapsed: one row of stats (count, spent, income, transferred; zero figures hidden except spent). Expanded: net, top 4 categories, biggest, most frequent, avg/day, See insights. |
-| `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-3`, weight 400, never struck through. |
+| `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-2`, weight 400, never struck through. |
 | `SwipeRow` | §19. |
 | `PullToRefresh` | 36px ring: pulling (ring fills with distance), past threshold (arrow flips), refreshing (spinning arc), done (tick, "Up to date · N new"), failed (`over`), offline. |
 | `SwatchPicker` | 7-column grid of 44px targets, 28px swatches, selected has a 2px ink ring and a tick. Category and income colours only; no free hex. |
@@ -607,12 +602,12 @@ Use `motion` springs. Every animation is off under `prefers-reduced-motion: redu
 AI gets one mark and one fill, used only where AI acts. Boards: `ActComponents` (AI section), `Main`, `DeskHome`, `Ask`, `DeskAsk`, `Insights`, `DeskInsights`, `Settings`.
 
 - **Spark:** a four-point star with a small companion star. Filled with the AI fill below, or white on the AI fill.
-- **AI fill:** `linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8)`, white text (6.3:1 or better at every stop), soft `ai-glow` shadow. It is the same in both modes.
-- **Ask button:** a pill with the AI fill, spark and "Ask"; on desktop it shows the `/` shortcut. The fill drifts slowly (`ai-shift`, 6 s, alternate). Reduced motion stops it.
+- **AI fill:** `linear-gradient(120deg, #34508A, #5B3FC4 50%, #8A3FA8)`, white text (6.3:1 or better at every stop). It is the same in both modes. No glow.
+- **Ask button:** a pill with the AI fill, spark and "Ask"; on desktop it shows the `/` shortcut. The fill is still: no drift or pulse.
 - **Insights:** the tab bar and sidebar icons carry the spark. Insight cards stay plain: their numbers come from SQL, not the model.
 - **AI-written content:** the weekly digest gets a 4px AI strip on top and a "Written by AI" tag; Ask answers get a gradient edge (4px on top, 1px elsewhere). "Ask a follow-up" uses `ai-text`.
 - **Settings › AI:** the section title carries the spark.
-- **Tokens:** the fill stops are fixed in `.ai-button` (same in both modes); `ai-text` light `#5B3FC4` (6.8:1 on card), dark `#B9A6F7` (7.9:1); `ai-glow` light `rgba(91,63,196,.38)`, dark `rgba(150,120,255,.42)`.
+- **Tokens:** the fill stops are fixed in `.ai-button` (same in both modes); `ai-text` light `#5B3FC4` (6.8:1 on card), dark `#B9A6F7` (7.9:1).
 
 
 ## 21. Live audit, 19 Oct 2026

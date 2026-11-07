@@ -19,19 +19,45 @@ export function useHoldsInput(active = true) {
 }
 
 export function Sheet({
-  title, description, onClose, confirmClose, children, className, swipe = true,
-}: { title: string; description?: string; onClose: () => void; confirmClose?: () => boolean; children: ReactNode; className?: string; swipe?: boolean }) {
+  title,
+  description,
+  onClose,
+  confirmClose,
+  children,
+  className,
+  swipe = true,
+}: {
+  title: string;
+  description?: string;
+  onClose: () => void;
+  confirmClose?: () => boolean;
+  children: ReactNode;
+  className?: string;
+  swipe?: boolean;
+}) {
   useHoldsInput();
   const reduced = useReducedMotion();
-  const close = () => { if (!confirmClose || confirmClose()) onClose(); };
+  const close = () => {
+    if (!confirmClose || confirmClose()) onClose();
+  };
   return (
     <Dialog.Root open onOpenChange={(o) => !o && close()}>
       <Dialog.Portal>
         <Dialog.Overlay asChild>
-          <motion.div className="fixed inset-0 z-40 bg-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={reduced ? { duration: 0 } : { duration: 0.22 }} />
+          <motion.div
+            className="fixed inset-0 z-40 bg-scrim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduced ? { duration: 0 } : { duration: 0.22 }}
+          />
         </Dialog.Overlay>
         {/* Snackbars sit outside the sheet: tapping Undo/Retry must not close it. */}
-        <Dialog.Content asChild onInteractOutside={(event) => { if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault(); }}>
+        <Dialog.Content
+          asChild
+          onInteractOutside={(event) => {
+            if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault();
+          }}
+        >
           <motion.section
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -50,9 +76,13 @@ export function Sheet({
               className,
             )}
           >
-            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-sm bg-rule tablet:hidden" />
-            <Dialog.Title className="m-0 font-serif text-[22px] font-medium">{title}</Dialog.Title>
-            {description ? <Dialog.Description className="-mt-2 text-[13px] text-ink-3">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{title}</Dialog.Description>}
+            <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-mark bg-hairline tablet:hidden" />
+            <Dialog.Title className="m-0 font-serif text-title font-medium">{title}</Dialog.Title>
+            {description ? (
+              <Dialog.Description className="-mt-2 text-meta text-ink-2">{description}</Dialog.Description>
+            ) : (
+              <Dialog.Description className="sr-only">{title}</Dialog.Description>
+            )}
             {children}
           </motion.section>
         </Dialog.Content>
@@ -86,7 +116,8 @@ export function Snackbars() {
       toastOptions={{
         unstyled: true,
         classNames: {
-          toast: "flex min-h-[52px] w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-sm text-on-ink shadow-popover",
+          toast:
+            "flex min-h-13 w-[min(358px,calc(100vw-32px))] items-center justify-between gap-2 rounded-card bg-hero py-1.5 pr-1.5 pl-3.5 text-control text-on-ink shadow-popover",
           title: "leading-snug",
           actionButton: "min-h-11 px-2.5 font-semibold text-on-ink-pace",
           cancelButton: "min-h-11 px-2.5 text-on-ink-2",

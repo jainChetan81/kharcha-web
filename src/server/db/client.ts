@@ -25,8 +25,7 @@ function bridge(sqlite: DatabaseSync) {
     return { rows: stmt.all(...args) as unknown[] };
   };
   return {
-    one: async (query: string, params: unknown[], method: "run" | "all" | "values" | "get") =>
-      exec(query, params, method),
+    one: async (query: string, params: unknown[], method: "run" | "all" | "values" | "get") => exec(query, params, method),
     // Batches run as one synchronous SQLite transaction: atomic, and never interleaved.
     batch: async (items: { sql: string; params: unknown[]; method: "run" | "all" | "values" | "get" }[]) => {
       sqlite.exec("BEGIN IMMEDIATE");
@@ -52,9 +51,7 @@ function migrate(sqlite: DatabaseSync, folder: string): void {
     entries: { tag: string }[];
   };
   sqlite.exec("CREATE TABLE IF NOT EXISTS __migrations (tag TEXT PRIMARY KEY, applied_at TEXT NOT NULL)");
-  const done = new Set(
-    (sqlite.prepare("SELECT tag FROM __migrations").all() as { tag: string }[]).map((r) => r.tag),
-  );
+  const done = new Set((sqlite.prepare("SELECT tag FROM __migrations").all() as { tag: string }[]).map((r) => r.tag));
   for (const { tag } of journal.entries) {
     if (done.has(tag)) continue;
     const statements = readFileSync(path.join(folder, `${tag}.sql`), "utf8").split("--> statement-breakpoint");
@@ -86,8 +83,10 @@ export function openDb(file: string, migrations = path.resolve("drizzle")): Db {
     const stmt = sqlite.prepare(compiled.sql);
     const columns = stmt.columns().map((column) => column.name);
     return new SQLiteRaw<T[]>(
-      async () => stmt.all(...compiled.params as SQLInputValue[]).map((row) => ({ ...row }) as T),
-      () => sequel, "all", dialect,
+      async () => stmt.all(...(compiled.params as SQLInputValue[])).map((row) => ({ ...row }) as T),
+      () => sequel,
+      "all",
+      dialect,
       (result) => (result as { rows: unknown[][] }).rows.map((row) => Object.fromEntries(columns.map((column, i) => [column, row[i]]))),
     );
   };

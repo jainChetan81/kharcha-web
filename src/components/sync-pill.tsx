@@ -4,7 +4,11 @@ import { ago, time } from "../lib/format";
 import { cn } from "../lib/cn";
 import { getSyncStatus } from "../server/daily/sync";
 
-type Health = { state: "synced" | "offline" | "unreachable" | "quiet" | "mini-offline" | "unknown"; lastIngestAt: string | null; seenAt: string | null };
+type Health = {
+  state: "synced" | "offline" | "unreachable" | "quiet" | "mini-offline" | "unknown";
+  lastIngestAt: string | null;
+  seenAt: string | null;
+};
 const QUIET_MS = 6 * 3600_000;
 
 export function useHealth(): Health {
@@ -46,14 +50,16 @@ export const useOnline = () => {
   return s !== "offline" && s !== "unreachable";
 };
 
-const squeezeAgo = (text: string, short = false) => short ? text.replace(" min ago", "m").replace(" h ago", "h").replace(" d ago", "d") : text;
+const squeezeAgo = (text: string, short = false) =>
+  short ? text.replace(" min ago", "m").replace(" h ago", "h").replace(" d ago", "d") : text;
 
 /** One wording everywhere: "Checked X · last new Y". Both halves reuse seenAt/lastIngestAt. */
 export const checkedLabel = (seenAt: string | null, lastIngestAt: string | null, short = false) => {
   const checked = seenAt ? ago(seenAt) : null;
   const lastNew = lastIngestAt ? ago(lastIngestAt) : null;
   const squeeze = (text: string) => squeezeAgo(text, short);
-  const prefix = checked && Date.parse(seenAt!) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
+  const prefix =
+    seenAt && Date.parse(seenAt) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
   return `${prefix} · last new ${lastNew ? squeeze(lastNew) : "none"}`;
 };
 
@@ -61,21 +67,43 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
   const { state, seenAt } = useSync();
   if (state === "unknown") return null;
   const label =
-    state === "offline" ? "Offline"
-    : state === "unreachable" ? "Server unreachable"
-    : state === "mini-offline" ? `Mini offline since ${seenAt ? time(new Date(seenAt)) : ""}`
-    : seenAt ? `Mini online · ${squeezeAgo(ago(seenAt), short)}` : "Mini not seen yet"; // "Last new" lives in Settings › Sync (§21)
-  const dot = state === "synced" ? (onInk ? "bg-on-ink-gain" : "bg-earn") : state === "quiet" ? "bg-watch" : state === "mini-offline" ? "bg-over" : "bg-ink-3";
+    state === "offline"
+      ? "Offline"
+      : state === "unreachable"
+        ? "Server unreachable"
+        : state === "mini-offline"
+          ? `Mini offline since ${seenAt ? time(new Date(seenAt)) : ""}`
+          : seenAt
+            ? `Mini online · ${squeezeAgo(ago(seenAt), short)}`
+            : "Mini not seen yet"; // "Last new" lives in Settings › Sync (§21)
+  const dot =
+    state === "synced" && seenAt
+      ? onInk
+        ? "bg-on-ink-gain"
+        : "bg-earn"
+      : state === "quiet"
+        ? "bg-watch"
+        : state === "mini-offline"
+          ? "bg-over"
+          : "bg-ink-2";
   return (
     <span
       role="status"
       title={label}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-[5px] text-xs whitespace-nowrap",
-        onInk ? "bg-on-ink/12 text-on-ink-2" : state === "quiet" ? "bg-watch-soft text-watch-text" : state === "mini-offline" ? "bg-over-soft text-ink" : state === "synced" ? "bg-sunken text-ink-2" : "bg-sunken text-ink",
+        "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1.25 text-caption whitespace-nowrap",
+        onInk
+          ? "bg-hero-raised text-on-ink-2"
+          : state === "quiet"
+            ? "bg-watch-soft text-watch-text"
+            : state === "mini-offline"
+              ? "bg-over-soft text-ink"
+              : state === "synced"
+                ? "bg-sunken text-ink-2"
+                : "bg-sunken text-ink",
       )}
     >
-      <span aria-hidden className={cn("size-[7px] rounded-full", dot)} />
+      <span aria-hidden className={cn("size-1.75 rounded-full", dot)} />
       {label}
     </span>
   );

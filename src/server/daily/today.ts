@@ -3,7 +3,8 @@ import { and, asc, count, eq, gte, isNull, lt, sum } from "drizzle-orm";
 import { z } from "zod";
 import { shiftMonth } from "../../lib/format";
 import { getDb } from "../db/client";
-import { listTxns, monthBounds, monthSchema, shareSql, spendByCategory, spendable } from "../db/queries";
+import { listTxns, monthBounds, shareSql, spendByCategory, spendable } from "../db/queries";
+import { monthSchema } from "../db/validators";
 import { budgets, categories, transactions } from "../db/schema";
 
 export const getTodayData = createServerFn({ method: "GET" })
@@ -14,15 +15,35 @@ export const getTodayData = createServerFn({ method: "GET" })
     const [previousFrom] = monthBounds(shiftMonth(data.month, -1));
     const [byCategory, current, previous, recent, [budget], [review], [reviewOther], colors] = await Promise.all([
       spendByCategory(db, from, to),
-      db.select({ date: transactions.date, amount: shareSql(), merchant: transactions.merchant })
-        .from(transactions).where(and(spendable, gte(transactions.date, from), lt(transactions.date, to))).orderBy(asc(transactions.date)),
-      db.select({ date: transactions.date, amount: shareSql() })
-        .from(transactions).where(and(spendable, gte(transactions.date, previousFrom), lt(transactions.date, from))).orderBy(asc(transactions.date)),
+      db
+        .select({ date: transactions.date, amount: shareSql(), merchant: transactions.merchant })
+        .from(transactions)
+        .where(and(spendable, gte(transactions.date, from), lt(transactions.date, to)))
+        .orderBy(asc(transactions.date)),
+      db
+        .select({ date: transactions.date, amount: shareSql() })
+        .from(transactions)
+        .where(and(spendable, gte(transactions.date, previousFrom), lt(transactions.date, from)))
+        .orderBy(asc(transactions.date)),
       listTxns(db, { limit: 5 }),
       db.select({ total: sum(budgets.monthlyLimit) }).from(budgets),
-      db.select({ total: count() }).from(transactions).where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+      db
+        .select({ total: count() })
+        .from(transactions)
+        .where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
       // Only the Other tile's label needs this, and only for the visible month.
-      db.select({ total: count() }).from(transactions).where(and(spendable, eq(transactions.category, "Other"), eq(transactions.needsReview, true), gte(transactions.date, from), lt(transactions.date, to))),
+      db
+        .select({ total: count() })
+        .from(transactions)
+        .where(
+          and(
+            spendable,
+            eq(transactions.category, "Other"),
+            eq(transactions.needsReview, true),
+            gte(transactions.date, from),
+            lt(transactions.date, to),
+          ),
+        ),
       db.select({ name: categories.name, colorToken: categories.colorToken }).from(categories).where(eq(categories.type, "expense")),
     ]);
     const token = new Map(colors.map((item) => [item.name, item.colorToken]));
