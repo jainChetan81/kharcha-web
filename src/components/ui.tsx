@@ -275,7 +275,7 @@ export function PageHeader({
           </Link>
         )}
         <div className="flex min-w-0 flex-col">
-          <h1 className="m-0 line-clamp-2 font-serif text-page leading-tight font-medium break-words">{title}</h1>
+          {title ? <h1 className="m-0 line-clamp-2 font-serif text-page leading-tight font-medium break-words">{title}</h1> : null}
           {sub && <span className="text-meta text-ink-3">{sub}</span>}
         </div>
       </div>

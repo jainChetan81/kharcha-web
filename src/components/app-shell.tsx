@@ -102,15 +102,17 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
         </div>
       </aside>
 
-      <div
+      <main
+        id="main"
+        tabIndex={-1}
         className={cn(
-          "mx-auto w-full min-w-0 pt-[env(safe-area-inset-top)] tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1 desk:pt-0",
+          "mx-auto w-full min-w-0 pt-[env(safe-area-inset-top)] outline-none tablet:max-w-[640px] desk:mx-0 desk:max-w-none desk:flex-1 desk:pt-0",
           !hideChrome && "pb-[calc(138px+env(safe-area-inset-bottom))] desk:pb-0",
           planAction && "pb-[calc(184px+env(safe-area-inset-bottom))]",
         )}
       >
         {children}
-      </div>
+      </main>
 
       {!hideChrome && (
         <>
@@ -225,9 +227,7 @@ export function DeskPage({
 }) {
   return (
     <div className={cn("desk:flex desk:items-start desk:gap-8 desk:px-[clamp(20px,3vw,40px)] desk:pt-7 desk:pb-10", className)}>
-      <main id="main" tabIndex={-1} className="min-w-0 outline-none desk:flex-1">
-        {children}
-      </main>
+      <div className="min-w-0 desk:flex-1">{children}</div>
       {!rail && reserveRail && <div aria-hidden="true" className="hidden desk:block desk:w-[300px] desk:shrink-0" />}
       {rail && (
         <aside

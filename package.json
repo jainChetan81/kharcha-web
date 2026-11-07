@@ -11,6 +11,7 @@
     "build": "vite build && tsc --noEmit && cp -R drizzle .output/",
     "start": "node .output/server/index.mjs",
     "typecheck": "tsc --noEmit",
+    "analyze": "ANALYZE=1 npm run build",
     "typecheck:tooling": "tsc --project tsconfig.tooling.json",
     "unused": "knip",
     "lint": "biome check . --error-on-warnings",
@@ -21,7 +22,8 @@
     "check:format": "node --experimental-strip-types --no-warnings scripts/check-format.ts",
     "seed:dev": "node --experimental-strip-types --no-warnings scripts/seed-dev.ts",
     "check:ai": "node --experimental-strip-types --no-warnings scripts/check-ai.ts",
-    "check:wealth": "node --experimental-strip-types --no-warnings scripts/check-wealth.ts"
+    "check:wealth": "node --experimental-strip-types --no-warnings scripts/check-wealth.ts",
+    "check:budget": "node --experimental-strip-types --no-warnings scripts/check-budget.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
@@ -50,6 +52,7 @@
     "drizzle-kit": "^0.31.11",
     "knip": "^6.41.0",
     "nitro": "^3.0.260903-beta",
+    "rollup-plugin-visualizer": "7.1.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^8.3.4"
