@@ -5,7 +5,7 @@
 - Run `npm run quality` after edits and `npm run build` for SSR/build changes. `scripts/check-db.ts` is the one self-check for ingest merge rules; keep it passing.
 - All DB access goes through Drizzle (`src/server/db/`). Schema changes: edit `schema.ts`, run `npm run db:generate`, commit the migration. Never hand-edit applied migrations.
 - Pages must stay `no-store` and the service worker must never cache HTML or `/_serverFn`/`/api` responses; the device holds no finance data.
-- The ingest contract (`miniRowSchema` in `src/server/db/queries.ts`) must match `kharcha-mini/src/sync/push-vps.ts`. Change both together.
+- The ingest contract (`miniRowSchema` in `src/server/db/validators.ts`) must match `kharcha-mini/src/sync/push-vps.ts`. Change both together.
 - Changes do not authorize push, merge, or deploy. Keep unrelated VPS services and port 20128 running.
 - `src/server/parsers/` is a copy of the mini's regex parsers, used by Paste. A parser fix in `kharcha-mini/src/parsers/` must be copied over.
 - UI follows `docs/design/DESIGN.md` and its boards. Tokens live in `src/styles.css`; formatting in `src/lib/format.ts` (`npm run check:format`).

@@ -75,7 +75,8 @@ export function PaceChart({
     <figure className="m-0">
       <svg
         viewBox="-4 -6 340 150"
-        className="block h-[150px] w-full"
+        preserveAspectRatio="xMinYMid meet"
+        className="block aspect-[340/150] max-h-55 w-full"
         role="img"
         aria-label={`Cumulative ${month} spend ${money(currentTotal)} against budget pace ${money(limit)} and ${lastMonth} spend`}
       >
