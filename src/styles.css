@@ -17,7 +17,6 @@
   --color-paper: #f6f4ee;
   --color-card: #fbfaf6;
   --color-sunken: #eeebe2;
-  --color-rule: #d9d5c8;
   --color-hairline: #e2ded3;
   --color-field: #8a8576;
   --color-input: #ffffff;
@@ -39,7 +38,6 @@
   --color-on-over: #ffffff;
   --color-on-brand: #ffffff;
   --color-raised: #fbfaf6;
-  --color-track: #e6e2d7;
   --color-on-cat: #ffffff;
 
   /* Hero surface: stays dark in both modes. on-ink-* names kept for the hero text. */
@@ -143,7 +141,7 @@
   --accent: var(--color-brand-soft);
   --accent-foreground: var(--color-brand-deep);
   --destructive: var(--color-over);
-  --border: var(--color-rule);
+  --border: var(--color-hairline);
   --input: var(--color-field);
   --ring: var(--color-brand);
   --radius: 10px;
@@ -153,7 +151,6 @@
   --color-paper: #12151c;
   --color-card: #191d26;
   --color-sunken: #222733;
-  --color-rule: #323848;
   --color-hairline: #282e3b;
   --color-field: #737a8c;
   --color-input: #12151c;
@@ -193,7 +190,6 @@
   --color-hero: #232937;
   --color-hero-raised: #3a4152;
   --color-raised: #363d4d;
-  --color-track: #2a303d;
   --color-on-cat: #12151c;
   color-scheme: dark;
 }
@@ -250,7 +246,7 @@ button:disabled {
   color: var(--color-ink);
 }
 @utility hatch {
-  background: repeating-linear-gradient(135deg, var(--color-rule) 0 6px, var(--color-track) 6px 12px);
+  background: repeating-linear-gradient(135deg, var(--color-hairline) 0 6px, var(--color-sunken) 6px 12px);
 }
 
 /* AI look (DESIGN.md §20): a still gradient orb marks model-made content. Colour is decorative; meaning is in the label. */

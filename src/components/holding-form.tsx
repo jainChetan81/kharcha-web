@@ -132,7 +132,7 @@ export function HoldingForm({ initial, onSave }: { initial?: Values; onSave: (va
             hint={searching ? "Searching…" : text.length >= 2 && !shown.length ? "No funds found" : undefined}
           />
           {shown.length ? (
-            <ul className="m-0 flex list-none flex-col rounded-card border border-rule bg-card p-0">
+            <ul className="m-0 flex list-none flex-col rounded-card border border-hairline bg-card p-0">
               {shown.map((hit) => (
                 <li key={hit.code} className="border-b border-hairline last:border-b-0">
                   <button

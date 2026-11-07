@@ -92,7 +92,7 @@ export function SyncSection({ initial }: { initial?: Status }) {
               aria-hidden="true"
               className="animate-spin motion-reduce:animate-none"
             >
-              <circle cx="12" cy="12" r="9" stroke="var(--color-track)" strokeWidth="2.5" />
+              <circle cx="12" cy="12" r="9" stroke="var(--color-sunken)" strokeWidth="2.5" />
               <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
           )}

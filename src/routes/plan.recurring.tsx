@@ -22,7 +22,7 @@ function Recurring() {
       reserveRail
       rail={
         upcoming.length > 0 && (
-          <div className="rounded-card border border-rule bg-card p-4">
+          <div className="rounded-card border border-hairline bg-card p-4">
             <b>Coming up</b>
             <div className="mt-2 flex flex-col gap-2">
               {upcoming.map((row) => (

@@ -196,7 +196,7 @@ export function SectionHead({ title, action, as: H = "h2", id }: { title: ReactN
 }
 
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("rounded-card border border-rule bg-card", className)} {...props} />;
+  return <div className={cn("rounded-card border border-hairline bg-card", className)} {...props} />;
 }
 
 /** Dashed card: something Kharcha guessed. */

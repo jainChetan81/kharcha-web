@@ -70,7 +70,7 @@ export function ReviewDeck({
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.16}
           onDragEnd={dragEnd}
-          className="relative flex flex-col gap-4 rounded-hero border border-rule bg-card p-5"
+          className="relative flex flex-col gap-4 rounded-hero border border-hairline bg-card p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">

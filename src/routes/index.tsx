@@ -146,7 +146,7 @@ function Today() {
     </Link>
   );
   const wealthRow = wealth && (
-    <Link to="/wealth" className="block rounded-card border border-rule bg-card px-4 py-3 text-ink">
+    <Link to="/wealth" className="block rounded-card border border-hairline bg-card px-4 py-3 text-ink">
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0">
           <small className="label-caps">Wealth</small>

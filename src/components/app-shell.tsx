@@ -53,7 +53,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
   const { trip } = data;
   return (
     <div className="min-h-dvh desk:flex">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-rule bg-card px-4 py-7 desk:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-hairline bg-card px-4 py-7 desk:flex">
         <span className="px-3 font-serif text-page font-medium">Kharcha</span>
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           {side.map((n) => {
@@ -125,7 +125,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
           </Link>
           <nav
             aria-label="Main"
-            className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-6 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] desk:hidden"
+            className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(50px+env(safe-area-inset-bottom))] grid-cols-6 border-t border-hairline bg-card pb-[env(safe-area-inset-bottom)] desk:hidden"
           >
             {tabs.map((t) => {
               const on = t.match(path);

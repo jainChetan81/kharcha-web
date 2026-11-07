@@ -22,7 +22,7 @@ function Trips() {
               key={trip.id}
               to="/plan/trips/$id"
               params={{ id: String(trip.id) }}
-              className={`mb-3 flex min-h-28 min-w-0 flex-col justify-between rounded-card p-4 ${trip.active ? "bg-trip text-on-ink" : "border border-rule bg-card"}`}
+              className={`mb-3 flex min-h-28 min-w-0 flex-col justify-between rounded-card p-4 ${trip.active ? "bg-trip text-on-ink" : "border border-hairline bg-card"}`}
             >
               <span className="min-w-0">
                 <b className="block truncate font-serif text-title font-medium">{trip.name}</b>

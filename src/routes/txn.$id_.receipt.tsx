@@ -456,7 +456,7 @@ function Receipt() {
               ))}
             </div>
             {activeDraft && (
-              <div className="space-y-3 rounded-card border border-rule p-3">
+              <div className="space-y-3 rounded-card border border-hairline p-3">
                 <p className="m-0 text-control font-medium">Crop photo before adding</p>
                 <img
                   ref={imageRef}
@@ -564,7 +564,7 @@ function Receipt() {
               </p>
             )}
             {job?.status === "failed" && (
-              <section className="space-y-2 rounded-card border border-rule bg-card p-4">
+              <section className="space-y-2 rounded-card border border-hairline bg-card p-4">
                 <h2 className="m-0 font-serif text-section">
                   {job.error === "not_receipt"
                     ? "This doesn't look like a bill."
@@ -588,7 +588,7 @@ function Receipt() {
               </section>
             )}
             {job && (job.status === "queued" || job.status === "reading") && (
-              <section aria-live="polite" className="space-y-3 rounded-card border border-rule bg-card p-4">
+              <section aria-live="polite" className="space-y-3 rounded-card border border-hairline bg-card p-4">
                 <div className="flex gap-2">
                   {files.map((file, i) => (
                     <div key={file.id} className="flex flex-1 flex-col gap-1">
@@ -819,7 +819,7 @@ function Receipt() {
                 </label>
               </>
             ) : (
-              <div className="space-y-3 rounded-card border border-rule bg-card p-4">
+              <div className="space-y-3 rounded-card border border-hairline bg-card p-4">
                 <h2 className="m-0 font-serif text-title">Add items by hand</h2>
                 <p className="m-0 text-control text-ink-2">
                   {files.length ? "Read receipt to fill items, or enter them by hand." : "Add a receipt photo, or enter items by hand."}

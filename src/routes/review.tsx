@@ -343,7 +343,7 @@ function Review() {
           </div>
         </header>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-button border border-rule px-3 py-1.5">
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-button border border-hairline px-3 py-1.5">
           <span className="text-control font-medium">{selected.length ? `${selected.length} selected` : "Nothing selected"}</span>
           <Button disabled={!online || !selected.length} onClick={confirmSelected} className="min-h-9 px-3.5 text-control">
             Confirm suggested

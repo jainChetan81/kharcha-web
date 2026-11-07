@@ -176,7 +176,7 @@ function Activity() {
             <X size={16} />
           </button>
         )}
-        <kbd className="hidden rounded-mark border border-rule px-1.5 py-0.5 font-mono text-caption text-ink-2 desk:inline">/</kbd>
+        <kbd className="hidden rounded-mark border border-hairline px-1.5 py-0.5 font-mono text-caption text-ink-2 desk:inline">/</kbd>
       </label>
       <button
         type="button"
@@ -379,7 +379,7 @@ function Activity() {
       {active && (
         <section
           aria-label="Transaction detail"
-          className="fixed top-0 right-0 z-30 hidden h-dvh w-[380px] flex-col gap-3 overflow-y-auto border-l border-rule bg-card p-5 desk:flex"
+          className="fixed top-0 right-0 z-30 hidden h-dvh w-[380px] flex-col gap-3 overflow-y-auto border-l border-hairline bg-card p-5 desk:flex"
         >
           <div className="flex items-center justify-between gap-3">
             <span className="label-caps">

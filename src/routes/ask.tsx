@@ -252,7 +252,7 @@ function Ask() {
         </div>
         <form
           onSubmit={(event) => submit(event)}
-          className="sticky bottom-0 border-t border-rule bg-card px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] desk:mt-auto desk:max-w-[760px] desk:px-0 desk:pb-3"
+          className="sticky bottom-0 border-t border-hairline bg-card px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] desk:mt-auto desk:max-w-[760px] desk:px-0 desk:pb-3"
         >
           <label className="flex min-h-12 items-center gap-2 rounded-card border border-field bg-input text-ink py-1 pl-3 pr-1">
             <span className="sr-only">Question</span>

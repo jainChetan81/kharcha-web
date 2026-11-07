@@ -283,7 +283,7 @@ export function ActivityFilters({
               onClick={() => (desktop ? quick("Sort") : setSortOpen(true))}
             />
           )}
-          <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-rule" />
+          <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-hairline" />
           {applied.map((item, i) => (
             <AppliedChip filled key={`${item.name}-${item.key ?? i}`} label={item.value} remove={() => remove(item.name, item.key)} />
           ))}
@@ -326,7 +326,7 @@ export function ActivityFilters({
   if (hiddenRail) return <>{dialogs}</>;
   return (
     <aside aria-label="Activity filter rail" className="flex flex-col gap-3">
-      <div className="rounded-card border border-rule bg-card p-3">
+      <div className="rounded-card border border-hairline bg-card p-3">
         <div className="mb-2 flex items-center justify-between">
           <strong className="text-control">Filters</strong>
           <button
@@ -1069,7 +1069,7 @@ function RangeCalendar({
         </Dialog.Overlay>
         <Dialog.Content asChild aria-describedby={undefined}>
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <section className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-popover outline-none">
+            <section className="w-full max-w-[360px] rounded-card border border-hairline bg-card p-3 shadow-popover outline-none">
               <Dialog.Title className="sr-only">Choose date range</Dialog.Title>
               <div className="mb-2 flex items-center justify-between">
                 <button

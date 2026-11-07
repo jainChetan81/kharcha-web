@@ -61,7 +61,7 @@ function Holding() {
             <polyline points={points} fill="none" stroke="var(--color-brand)" strokeWidth="2" />
           </svg>
         )}
-        <section className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule">
+        <section className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-hairline bg-hairline">
           {[
             ["Units", data.txns.length ? data.units.toFixed(2) : "—"],
             ["NAV", data.price ? money(data.price.nav) : "—"],

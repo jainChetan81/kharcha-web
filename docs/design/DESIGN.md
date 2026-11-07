@@ -73,7 +73,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-paper: #F6F4EE;      /* page */
   --color-card: #FBFAF6;       /* cards, sheets, tab bar */
   --color-sunken: #EEEBE2;     /* segmented track, pills, SMS block */
-  --color-rule: #D9D5C8;       /* card borders (decorative) */
   --color-hairline: #E2DED3;   /* row separators */
   --color-field: #8A8576;      /* input, chip, switch-off, dashed suggestion borders: 3.3:1 */
   --color-input: #FFFFFF;      /* field fill */
@@ -101,7 +100,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-on-hero-pace: #8FA6CF;
   --color-on-hero-over: #F2A08C; /* over-budget figure on the hero: 7.7:1 */
   --color-raised: #FBFAF6;     /* selected segment */
-  --color-track: #E6E2D7;      /* bar and ring tracks */
   --color-on-cat: #FFFFFF;     /* text on a category fill (treemap) */
 
   --color-cat-food: #B4572E;
@@ -148,7 +146,6 @@ body { font-variant-numeric: tabular-nums lining-nums; }
 ```css
 .dark {
   --color-paper: #12151C;  --color-card: #191D26;  --color-sunken: #222733;
-  --color-rule: #323848;   --color-hairline: #282E3B; --color-field: #737A8C;
   --color-input: #12151C;
   --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;
   --color-brand: #9DB3DA;  --color-on-brand: #12151C; --color-brand-soft: #243149;
@@ -162,7 +159,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
   --color-cat-other: #8F8B80;
   --color-cat-salary: #74C595; --color-cat-refunds: #5FC4A6; --color-cat-interest: #A4C97E;
   --color-cat-other-income: #8F8B80;
-  --color-hero: #232937; --color-raised: #363D4D; --color-track: #2A303D; --color-on-cat: #12151C;
+  --color-hero: #232937; --color-raised: #363D4D; --color-on-cat: #12151C;
 }
 ```
 

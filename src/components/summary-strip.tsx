@@ -71,7 +71,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
                 <i aria-hidden className="size-2 shrink-0 rounded-mark" style={{ background: tone(item.category) }} />
                 <span className="truncate">{item.category}</span>
               </span>
-              <span className="h-1 overflow-hidden rounded-full bg-track">
+              <span className="h-1 overflow-hidden rounded-full bg-sunken">
                 <span
                   className="block h-full rounded-full"
                   style={{ width: `${(item.total / max) * 100}%`, background: tone(item.category) }}

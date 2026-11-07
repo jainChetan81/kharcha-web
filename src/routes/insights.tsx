@@ -148,7 +148,7 @@ function Insights() {
             />
           }
         />
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule tablet:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-hairline bg-hairline tablet:grid-cols-4">
           {kpis.map(([label, value]) => (
             <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3">
               <span className="text-caption text-ink-2">{label}</span>

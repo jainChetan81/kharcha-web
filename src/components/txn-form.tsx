@@ -211,7 +211,7 @@ export function TxnForm({
           onChange={(category) => set("category", category)}
         />
       </section>
-      <details className="rounded-card border border-rule px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
+      <details className="rounded-card border border-hairline px-3 py-2 desk:hidden [&_summary]:cursor-pointer">
         <summary className="min-h-11 text-body font-medium">More details</summary>
         <div className={mode === "edit" ? "border-y border-hairline" : "flex flex-wrap items-end gap-2 pb-1"}>
           <Field
