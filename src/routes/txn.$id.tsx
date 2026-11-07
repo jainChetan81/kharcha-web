@@ -42,6 +42,7 @@ function Detail() {
   const [note, setNote] = useState("");
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
+  const [claimProblem, setClaimProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [droppingSplit, setDroppingSplit] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -113,7 +114,19 @@ function Detail() {
     }
   };
   const submitClaim = async () => {
-    if (!online || busy || !counterparty.trim()) return;
+    if (!online || busy) return;
+    // Design guide §10: keep Save enabled and say what is missing.
+    const problem = !counterparty.trim()
+      ? "Enter who owes you."
+      : mode === "items" && !selectedItems.length
+        ? "Pick at least one item."
+        : amountToClaim <= 0
+          ? "Enter an amount above ₹0."
+          : amountToClaim > txn.amount
+            ? `Enter at most ${money(txn.amount)}, the transaction amount.`
+            : null;
+    setClaimProblem(problem);
+    if (problem) return;
     setBusy(true);
     try {
       await markReimbursable({
@@ -597,22 +610,17 @@ function Detail() {
               <dd className="m-0 font-semibold">{money(Math.max(0, txn.amount - amountToClaim))}</dd>
             </div>
           </dl>
-          {!online && <p className="m-0 text-meta text-ink-2">Offline · save unavailable.</p>}
+          {!online && <p className="m-0 text-meta text-ink-2">Offline. Connect to save.</p>}
+          {claimProblem && (
+            <p role="alert" className="m-0 text-control text-over">
+              {claimProblem}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setMarkOpen(false)}>
               Cancel
             </Button>
-            <Button
-              disabled={
-                !online ||
-                busy ||
-                !counterparty.trim() ||
-                amountToClaim <= 0 ||
-                amountToClaim > txn.amount ||
-                (mode === "items" && !selectedItems.length)
-              }
-              onClick={() => void submitClaim()}
-            >
+            <Button disabled={!online || busy} onClick={() => void submitClaim()}>
               {busy ? "Saving…" : "Save claim"}
             </Button>
           </div>

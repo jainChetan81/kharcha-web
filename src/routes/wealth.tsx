@@ -100,8 +100,13 @@ function ImportSheet({ names, onClose }: { names: Set<string>; onClose: () => vo
           </div>
         </>
       ) : null}
+      {csv.length > 1_000_000 && (
+        <p role="alert" className="m-0 text-control text-over">
+          File is over 1 MB. Split it into smaller files.
+        </p>
+      )}
       <Button disabled={!online || pending || !good || csv.length > 1_000_000} onClick={() => void run()}>
-        Import
+        {good ? `Import ${good} ${good === 1 ? "row" : "rows"}` : "Import rows"}
       </Button>
     </Sheet>
   );
