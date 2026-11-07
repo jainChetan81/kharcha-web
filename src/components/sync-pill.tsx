@@ -59,7 +59,7 @@ export const checkedLabel = (seenAt: string | null, lastIngestAt: string | null,
   const lastNew = lastIngestAt ? ago(lastIngestAt) : null;
   const squeeze = (text: string) => squeezeAgo(text, short);
   const prefix =
-    checked && Date.parse(seenAt!) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
+    seenAt && Date.parse(seenAt) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
   return `${prefix} · last new ${lastNew ? squeeze(lastNew) : "none"}`;
 };
 

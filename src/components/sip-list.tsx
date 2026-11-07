@@ -3,7 +3,8 @@ import { dayMonth, money } from "../lib/format";
 type Sip = { id: number; name: string; amount: number; day: number; nextDate: string | null; note: string | null; observedOn: string };
 // Planned mandates from the broker, not buys: a date here does not mean the debit happened.
 export function SipList({ sips, named = true }: { sips: Sip[]; named?: boolean }) {
-  if (!sips.length) return null;
+  const first = sips[0];
+  if (!first) return null;
   const total = sips.reduce((sum, row) => sum + row.amount, 0);
   return (
     <section className="mx-5 mt-6 desk:mx-0">
@@ -24,9 +25,7 @@ export function SipList({ sips, named = true }: { sips: Sip[]; named?: boolean }
           <b className="shrink-0">{money(row.amount)}</b>
         </div>
       ))}
-      <p className="mt-2 mb-0 text-meta text-ink-3">
-        Mandates as seen {dayMonth(sips[0]!.observedOn)}. Planned dates, not confirmed debits.
-      </p>
+      <p className="mt-2 mb-0 text-meta text-ink-3">Mandates as seen {dayMonth(first.observedOn)}. Planned dates, not confirmed debits.</p>
     </section>
   );
 }

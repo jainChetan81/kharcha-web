@@ -81,7 +81,7 @@ export function TxnForm({
           },
         });
         countAdd();
-      } else await saveEdit({ data: { ...value, id: value.id!, amount } });
+      } else if (value.id) await saveEdit({ data: { ...value, id: value.id, amount } });
       snack(`Saved ${money(amount)} · ${value.category}`);
       onDone();
     } catch {
@@ -92,11 +92,12 @@ export function TxnForm({
     }
   };
   const remove = async () => {
-    if (!value.id || !online || saving || deleting || !window.confirm("Delete this transaction?")) return;
+    const id = value.id;
+    if (!id || !online || saving || deleting || !window.confirm("Delete this transaction?")) return;
     setDeleting(true);
     try {
-      await deleteTransaction({ data: { id: value.id } });
-      snack("Transaction deleted.", { label: "Undo", onClick: () => void restoreTransaction({ data: { id: value.id! } }) });
+      await deleteTransaction({ data: { id } });
+      snack("Transaction deleted.", { label: "Undo", onClick: () => void restoreTransaction({ data: { id } }) });
       (onDeleted ?? onDone)();
     } catch {
       saveFailed(remove);

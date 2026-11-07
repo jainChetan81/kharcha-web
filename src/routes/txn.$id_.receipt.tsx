@@ -191,11 +191,9 @@ function Receipt() {
     .filter((group) => group.rows.length);
   const updateItem = (index: number, patch: Partial<Item>) =>
     setItems((current) => current.map((item, i) => (i === index ? { ...item, ...patch } : item)));
-  const fallbackCategory = categories.includes(data.txn.category ?? "")
-    ? data.txn.category!
-    : categories.includes("Other")
-      ? "Other"
-      : (categories[0] ?? "Other");
+  const txnCategory = data.txn.category;
+  const fallbackCategory =
+    txnCategory && categories.includes(txnCategory) ? txnCategory : categories.includes("Other") ? "Other" : (categories[0] ?? "Other");
   const addItem = () =>
     setItems((current) => [
       ...current,
@@ -361,8 +359,10 @@ function Receipt() {
   const merge = () => {
     if (selectedItems.length < 2 || !online) return;
     const first = items.findIndex((item) => selected.includes(item.key));
+    const base = items[first];
+    if (!base) return;
     const merged = {
-      ...items[first]!,
+      ...base,
       amount: selectedItems.reduce((n, item) => n + item.amount, 0),
       qty: selectedItems.reduce((n, item) => n + (item.qty ?? 1), 0),
     };
@@ -712,7 +712,8 @@ function Receipt() {
                       }}
                       onTouchEnd={(event) => {
                         const start = Number((event.currentTarget as HTMLDivElement).dataset.touchX);
-                        if (online && start - event.changedTouches[0]!.clientX > 70) deleteItems([item.key]);
+                        const end = event.changedTouches[0]?.clientX;
+                        if (online && end !== undefined && start - end > 70) deleteItems([item.key]);
                       }}
                       className={`grid grid-cols-[28px_minmax(0,1fr)_80px] gap-2 rounded-card border p-2 ${item.confidence !== null && item.confidence < 0.7 ? "border-watch bg-watch-soft" : "border-hairline bg-card"}`}
                     >

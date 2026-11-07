@@ -75,6 +75,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/components/**", "src/routes/**", "src/lib/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "error"
+          }
+        }
+      }
     }
   ]
 }

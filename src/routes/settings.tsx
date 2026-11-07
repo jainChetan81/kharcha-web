@@ -98,7 +98,10 @@ function Settings() {
     const target = index + direction;
     if (target < 0 || target >= group.length) return;
     const reordered = [...group];
-    [reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!];
+    const a = reordered[index];
+    const b = reordered[target];
+    if (!a || !b) return;
+    [reordered[index], reordered[target]] = [b, a];
     if (!online) return;
     try {
       await reorderCategories({ data: { items: reordered.map((x, sortOrder) => ({ name: x.name, type: x.type, sortOrder })) } });
