@@ -261,7 +261,7 @@ function Wealth() {
             <button type="button" className="min-h-11 desk:hidden" onClick={() => setImporting(true)}>
               Import CSV
             </button>
-            <Link to="/wealth/new" className="grid min-h-11 content-center">
+            <Link to="/wealth/new" className="grid min-h-11 content-center desk:hidden">
               Add holding
             </Link>
           </span>
