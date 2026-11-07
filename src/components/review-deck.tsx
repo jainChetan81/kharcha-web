@@ -75,7 +75,7 @@ export function ReviewDeck({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="m-0 font-serif text-title leading-[1.15] font-medium">{row.merchant}</h2>
-              <p className="mt-1 text-meta text-ink-3">
+              <p className="mt-1 text-meta text-ink-2">
                 {shortDate(row.date)} · {row.accountLast4 ? `Card ${card(row.accountLast4)}` : "Manual"}
               </p>
             </div>
@@ -185,7 +185,7 @@ export function ReviewDeck({
       </div>
 
       <div className="flex flex-col gap-2.5 pt-4 pb-[max(28px,env(safe-area-inset-bottom))]">
-        <span className="text-center text-caption text-ink-3">Swipe right to confirm · left to skip</span>
+        <span className="text-center text-caption text-ink-2">Swipe right to confirm · left to skip</span>
         <div className="grid grid-cols-3 gap-2.5">
           <Button variant="outline" disabled={disabled} onClick={onSkip} className="min-h-13 px-2 text-entry">
             Skip

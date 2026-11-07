@@ -131,7 +131,7 @@ export function TxnForm({
       />
       {mode === "add" && (
         <div className="border-b-3 border-double border-ink px-1 pt-1 text-right desk:hidden">
-          <span className="block min-h-5 font-mono text-control text-ink-3">{expr}</span>
+          <span className="block min-h-5 font-mono text-control text-ink-2">{expr}</span>
           <p className="m-0 pb-1.5 font-serif text-figure leading-none font-medium tracking-tight">
             {value.type === "income" && "+"}
             {money(amount)}
@@ -284,7 +284,7 @@ export function TxnForm({
       </div>
       <div className="sticky bottom-[calc(-16px-env(safe-area-inset-bottom))] -mx-4 mt-auto border-t border-hairline bg-card px-4 pt-2 pb-[env(safe-area-inset-bottom)] desk:hidden">
         {reason && mode === "add" && (
-          <p role="status" className="m-0 pb-1.5 text-center text-meta text-ink-3">
+          <p role="status" className="m-0 pb-1.5 text-center text-meta text-ink-2">
             {reason}
           </p>
         )}
@@ -306,7 +306,7 @@ export function TxnForm({
       </div>
       <div className="hidden desk:block mt-auto border-t border-hairline pt-3.5">
         {reason && (
-          <p role="status" className="m-0 pb-2 text-meta text-ink-3">
+          <p role="status" className="m-0 pb-2 text-meta text-ink-2">
             {reason}
           </p>
         )}

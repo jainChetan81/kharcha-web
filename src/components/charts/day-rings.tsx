@@ -10,7 +10,7 @@ export function DayRings({ rows, month }: { rows: { day: string; total: number; 
   return (
     <figure className="m-0 grid grid-cols-7 gap-2">
       {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((d) => (
-        <span key={d} className="text-center text-tab text-ink-3">
+        <span key={d} className="text-center text-tab text-ink-2">
           <span aria-hidden="true">{d[0]}</span>
           <span className="sr-only">{d}</span>
         </span>

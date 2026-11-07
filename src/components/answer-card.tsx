@@ -81,7 +81,7 @@ export function AnswerCard({
           when={askedAt}
         />
       ) : (
-        <span className="text-caption text-ink-3">Numbers from your ledger</span>
+        <span className="text-caption text-ink-2">Numbers from your ledger</span>
       )}
     </Card>
   );

@@ -63,14 +63,14 @@ function Recurring() {
               >
                 <span className="min-w-0 flex-1">
                   <b className="block truncate text-body">{row.name}</b>
-                  <small className="block truncate text-ink-3">
+                  <small className="block truncate text-ink-2">
                     {row.kind} · {row.cadence}
                     {row.status === "paused" ? " · Paused" : ""}
                   </small>
                 </span>
                 <span className="shrink-0 text-right">
                   <b>{money(row.expectedAmount)}</b>
-                  <small className="block text-ink-3">{occurrence?.dueDate ?? "No due date"}</small>
+                  <small className="block text-ink-2">{occurrence?.dueDate ?? "No due date"}</small>
                 </span>
               </Link>
             );

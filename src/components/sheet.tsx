@@ -79,7 +79,7 @@ export function Sheet({
             <div aria-hidden className="h-1 w-9 shrink-0 self-center rounded-mark bg-rule tablet:hidden" />
             <Dialog.Title className="m-0 font-serif text-title font-medium">{title}</Dialog.Title>
             {description ? (
-              <Dialog.Description className="-mt-2 text-meta text-ink-3">{description}</Dialog.Description>
+              <Dialog.Description className="-mt-2 text-meta text-ink-2">{description}</Dialog.Description>
             ) : (
               <Dialog.Description className="sr-only">{title}</Dialog.Description>
             )}

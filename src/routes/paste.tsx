@@ -124,7 +124,7 @@ function Paste() {
             <div className="flex justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <span className="min-w-0">
                 <b className="block truncate font-serif text-title font-medium">{parsed.merchant}</b>
-                <small className="text-meta text-ink-3">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small>
+                <small className="text-meta text-ink-2">{parsed.accountLast4 ? `Card ••${parsed.accountLast4}` : "Needs review"}</small>
               </span>
               <b className="shrink-0 font-serif text-page font-medium">
                 {parsed.status === "foreign" ? foreign(parsed.currency, parsed.originalAmount, parsed.amount) : money(parsed.amount)}

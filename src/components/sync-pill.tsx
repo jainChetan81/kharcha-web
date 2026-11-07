@@ -85,7 +85,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
         ? "bg-watch"
         : state === "mini-offline"
           ? "bg-over"
-          : "bg-ink-3";
+          : "bg-ink-2";
   return (
     <span
       role="status"
@@ -93,7 +93,7 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
       className={cn(
         "inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1.25 text-caption whitespace-nowrap",
         onInk
-          ? "bg-on-ink/12 text-on-ink-2"
+          ? "bg-hero-raised text-on-ink-2"
           : state === "quiet"
             ? "bg-watch-soft text-watch-text"
             : state === "mini-offline"

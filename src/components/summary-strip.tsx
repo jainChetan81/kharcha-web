@@ -41,7 +41,7 @@ export function SummaryStrip({ summary, colors, scope }: { summary: Summary; col
           {figures.map((f) => (
             <span key={f.label} className="flex min-w-0 flex-col">
               <strong className={`truncate text-control font-semibold tabular-nums ${f.tone}`}>{f.value}</strong>
-              <span className="text-tab text-ink-3">{f.label}</span>
+              <span className="text-tab text-ink-2">{f.label}</span>
             </span>
           ))}
         </span>

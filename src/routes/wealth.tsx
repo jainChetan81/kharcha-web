@@ -265,7 +265,7 @@ function Wealth() {
             >
               <span className="min-w-0 flex-1">
                 <b className="block truncate text-body">{row.name}</b>
-                <small className="block truncate text-ink-3">
+                <small className="block truncate text-ink-2">
                   {row.assetClass}
                   {row.price
                     ? ` · ${navsOf(row.price.date)}`

@@ -16,7 +16,7 @@ export function SipList({ sips, named = true }: { sips: Sip[]; named?: boolean }
         <div key={row.id} className="flex min-h-14 items-center justify-between gap-3 border-b border-hairline py-2">
           <span className="min-w-0 flex-1">
             <b className="block truncate text-body">{named ? row.name : `Day ${row.day}`}</b>
-            <small className="block truncate text-ink-3">
+            <small className="block truncate text-ink-2">
               {named ? `Day ${row.day} · ` : ""}
               {row.nextDate ? `Next ${dayMonth(row.nextDate)}` : "No date listed"}
               {row.note ? ` · ${row.note}` : ""}
@@ -25,7 +25,7 @@ export function SipList({ sips, named = true }: { sips: Sip[]; named?: boolean }
           <b className="shrink-0">{money(row.amount)}</b>
         </div>
       ))}
-      <p className="mt-2 mb-0 text-meta text-ink-3">Mandates as seen {dayMonth(first.observedOn)}. Planned dates, not confirmed debits.</p>
+      <p className="mt-2 mb-0 text-meta text-ink-2">Mandates as seen {dayMonth(first.observedOn)}. Planned dates, not confirmed debits.</p>
     </section>
   );
 }

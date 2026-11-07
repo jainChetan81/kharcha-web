@@ -185,7 +185,7 @@ function Ask() {
         <div className="flex flex-1 flex-col gap-4 px-5 pb-4 desk:max-w-[760px] desk:px-0">
           {chips.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 text-meta">
-              <span className="text-ink-3">Answers within</span>
+              <span className="text-ink-2">Answers within</span>
               {chips.map((chip) => (
                 <button
                   key={chip.label}
@@ -272,7 +272,7 @@ function Ask() {
               {sending ? <AiMark /> : <ArrowUp size={18} />}
             </button>
           </label>
-          <p className="mb-0 mt-2 text-caption leading-4 text-ink-3">
+          <p className="mb-0 mt-2 text-caption leading-4 text-ink-2">
             Sends your question and spending totals to Gemini through 9Router. Never SMS text, card numbers or UPI IDs.
           </p>
         </form>

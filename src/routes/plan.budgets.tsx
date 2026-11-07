@@ -95,7 +95,7 @@ function Budgets() {
                     {row.name}
                   </span>
                   <span className="font-medium">
-                    {money(row.spent)} <em className="not-italic text-ink-3">/ {row.limit ? money(row.limit) : "No budget"}</em>
+                    {money(row.spent)} <em className="not-italic text-ink-2">/ {row.limit ? money(row.limit) : "No budget"}</em>
                   </span>
                 </span>
                 {row.limit && <BudgetBar spent={row.gross} limit={row.limit} reimbursable={rowReimbursable} pacePct={pace} />}

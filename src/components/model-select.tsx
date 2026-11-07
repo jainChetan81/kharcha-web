@@ -49,7 +49,7 @@ export function ModelSelect({
           onClick={() => setOpen(true)}
           className="field flex min-h-11 items-center justify-between gap-3 text-left font-mono text-control"
         >
-          <span className={cn("truncate", !value && "text-ink-3")}>
+          <span className={cn("truncate", !value && "text-ink-2")}>
             {selected ? `${selected.name} · ${selected.provider}` : value || placeholder}
           </span>
           <ChevronDown size={18} aria-hidden />
@@ -65,7 +65,7 @@ export function ModelSelect({
           className="gap-2"
         >
           <label htmlFor={searchId} className="flex min-h-11 items-center gap-2 rounded-button border border-field bg-input px-3">
-            <Search size={18} className="text-ink-3" aria-hidden />
+            <Search size={18} className="text-ink-2" aria-hidden />
             <span className="sr-only">Search models</span>
             <input
               id={searchId}
@@ -94,7 +94,7 @@ export function ModelSelect({
                 >
                   <span className="flex min-w-0 flex-col gap-0.5 py-2">
                     <span className="truncate text-body font-medium">{model.name}</span>
-                    <span className="truncate text-meta text-ink-3">
+                    <span className="truncate text-meta text-ink-2">
                       {model.provider} · <span className="font-mono">{model.id}</span>
                     </span>
                   </span>

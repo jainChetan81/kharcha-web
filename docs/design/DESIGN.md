@@ -79,7 +79,6 @@ Replace the placeholder `@theme` in `src/styles.css` with this, and map shadcn's
   --color-input: #FFFFFF;      /* field fill */
   --color-ink: #1C2230;
   --color-ink-2: #4A5163;
-  --color-ink-3: #5E6272;      /* lowest text colour; do not go lighter */
   --color-brand: #2F4A7A;
   --color-brand-deep: #1F3459;
   --color-brand-soft: #E3E8F1;
@@ -151,7 +150,7 @@ body { font-variant-numeric: tabular-nums lining-nums; }
   --color-paper: #12151C;  --color-card: #191D26;  --color-sunken: #222733;
   --color-rule: #323848;   --color-hairline: #282E3B; --color-field: #737A8C;
   --color-input: #12151C;
-  --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;  --color-ink-3: #A0A4B0;
+  --color-ink: #ECE8DF;    --color-ink-2: #BFC2CC;
   --color-brand: #9DB3DA;  --color-on-brand: #12151C; --color-brand-soft: #243149;
   --color-brand-deep: #C3D2EC; /* link hover, tags on brand-soft: 8.5:1 */
   --color-earn: #74C595;   --color-earn-soft: #1D3326;
@@ -215,7 +214,7 @@ All of these are on the `RcComponents` board in light and dark.
 | `FilterScreen` | Phones: full screen. Header ✕, "Filters", Clear all; selected chips under it; left rail of filter types (124px, `sunken`; active one on `card` with a 3px `brand` bar; a count when set); options on the right; sticky "Show N transactions" (N live on Activity and Insights; "1 transaction" when one; "Show results" while N loads or fails). Desktop: `FilterRail`, a 248px card beside the table with sections that open and close, live updates, Clear all and a hide button. |
 | `RangeCalendar` | Opened from Date › Custom range › Pick on a calendar (`ActDate`). Week starts Monday. Tap start, then end. Start and end filled `brand`, days between on a `brand-soft` band, today ringed, days after today muted. The From and To date fields in the Date pane are the fallback. |
 | `SummaryStrip` | Collapsed: one row of stats (count, spent, income, transferred; zero figures hidden except spent). Expanded: net, top 4 categories, biggest, most frequent, avg/day, See insights. |
-| `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-3`, weight 400, never struck through. |
+| `TxnRow` | Line 1 merchant (+ review dot). Line 2 time · category dot and name (or `Card bill` / `Transfer` tag, or split bar + categories) · card. Card bills and transfers: amount in `ink-2`, weight 400, never struck through. |
 | `SwipeRow` | §19. |
 | `PullToRefresh` | 36px ring: pulling (ring fills with distance), past threshold (arrow flips), refreshing (spinning arc), done (tick, "Up to date · N new"), failed (`over`), offline. |
 | `SwatchPicker` | 7-column grid of 44px targets, 28px swatches, selected has a 2px ink ring and a tick. Category and income colours only; no free hex. |

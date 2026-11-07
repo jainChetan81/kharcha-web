@@ -31,7 +31,7 @@ export function BudgetBar({
       {showLabels && (
         <div className="flex justify-between text-control">
           <span className="font-medium">{money(spent)}</span>
-          <span className="text-ink-3">/ {money(limit)}</span>
+          <span className="text-ink-2">/ {money(limit)}</span>
         </div>
       )}
       <div

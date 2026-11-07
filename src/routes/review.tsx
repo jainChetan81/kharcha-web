@@ -252,7 +252,7 @@ function Review() {
             <div className="flex items-start justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate font-serif text-title font-medium">{open.merchant}</span>
-                <span className="text-meta text-ink-3">
+                <span className="text-meta text-ink-2">
                   {shortDate(open.date)}
                   {open.date.slice(0, 4) === year ? "" : ` ${open.date.slice(0, 4)}`} ·{" "}
                   {open.accountLast4 ? `Card ${card(open.accountLast4)}` : "Manual"}
@@ -301,7 +301,7 @@ function Review() {
           title="Review"
           back="/"
           actions={
-            <span className="text-meta text-ink-3">
+            <span className="text-meta text-ink-2">
               {Math.min(rows.length - remaining + 1, rows.length)} of {rows.length}
             </span>
           }
@@ -330,7 +330,7 @@ function Review() {
               </svg>
             </Link>
             <h1 className="m-0 font-serif text-page-lg font-medium">
-              Review <span className="text-title text-ink-3">{remaining}</span>
+              Review <span className="text-title text-ink-2">{remaining}</span>
             </h1>
           </div>
           <div className="flex flex-wrap gap-2 text-caption text-ink-2">
@@ -388,7 +388,7 @@ function Review() {
                   onChange={() => toggleChecked(row.id)}
                   className="ml-2 size-4.5 accent-brand"
                 />
-                <span className="text-ink-3">
+                <span className="text-ink-2">
                   {row.date.slice(0, 4) === year
                     ? shortDate(row.date).split(",")[0]
                     : `${shortDate(row.date).split(",")[0]} ’${row.date.slice(2, 4)}`}
@@ -397,12 +397,12 @@ function Review() {
                   type="button"
                   onClick={() => setActiveId(row.id)}
                   aria-current={active ? "true" : undefined}
-                  className={`min-h-10 truncate text-left font-medium ${handled ? "text-ink-3" : "text-ink"}`}
+                  className={`min-h-10 truncate text-left font-medium ${handled ? "text-ink-2" : "text-ink"}`}
                 >
                   {row.merchant}
                 </button>
-                <span className="text-ink-3">{card(row.accountLast4)}</span>
-                <span className={`flex items-center gap-1.5 truncate ${handled ? "text-ink-3" : ""}`}>
+                <span className="text-ink-2">{card(row.accountLast4)}</span>
+                <span className={`flex items-center gap-1.5 truncate ${handled ? "text-ink-2" : ""}`}>
                   <CategoryDot color={colorOf(row.suggestion)} />
                   {handled ? `Filed · ${row.suggestion}` : row.suggestion}
                 </span>

@@ -331,7 +331,7 @@ function Detail() {
                       />
                       <span className="font-medium">
                         {group.category}{" "}
-                        <span className="text-meta font-normal text-ink-3">
+                        <span className="text-meta font-normal text-ink-2">
                           · {group.items.length} item{group.items.length === 1 ? "" : "s"}
                         </span>
                       </span>
@@ -395,15 +395,15 @@ function Detail() {
             </p>
             <dl className="m-0 grid grid-cols-3 gap-2 border-t border-hairline pt-3 text-control">
               <div>
-                <dt className="text-ink-3">Paid</dt>
+                <dt className="text-ink-2">Paid</dt>
                 <dd className="m-0 font-semibold">{money(txn.amount)}</dd>
               </div>
               <div>
-                <dt className="text-ink-3">Back from {claim.counterparty}</dt>
+                <dt className="text-ink-2">Back from {claim.counterparty}</dt>
                 <dd className="m-0 font-semibold text-earn">{money(backTotal)}</dd>
               </div>
               <div>
-                <dt className="text-ink-3">Yours</dt>
+                <dt className="text-ink-2">Yours</dt>
                 <dd className="m-0 font-semibold">{money(Math.max(0, txn.amount - claim.amount))}</dd>
               </div>
             </dl>
@@ -465,7 +465,7 @@ function Detail() {
                 {busy ? "Restoring…" : "Undo cancel"}
               </Button>
             )}
-            {!online && <p className="m-0 text-meta text-ink-3">Offline · reimbursement changes unavailable.</p>}
+            {!online && <p className="m-0 text-meta text-ink-2">Offline · reimbursement changes unavailable.</p>}
           </section>
         )}
         <section>
@@ -514,7 +514,7 @@ function Detail() {
                   {label}
                 </Chip>
                 {value === "items" && detail.items.length === 0 && (
-                  <small id="claim-items-why" className="text-ink-3">
+                  <small id="claim-items-why" className="text-ink-2">
                     Add receipt items first
                   </small>
                 )}
@@ -585,19 +585,19 @@ function Detail() {
           <Field id="claim-note" label="Note (optional)" value={note} onChange={(event) => setNote(event.target.value)} maxLength={300} />
           <dl className="m-0 grid grid-cols-3 gap-2 border-t border-hairline pt-3 text-control">
             <div>
-              <dt className="text-ink-3">Paid</dt>
+              <dt className="text-ink-2">Paid</dt>
               <dd className="m-0 font-semibold">{money(txn.amount)}</dd>
             </div>
             <div>
-              <dt className="text-ink-3">Back from {counterparty.trim() || "them"}</dt>
+              <dt className="text-ink-2">Back from {counterparty.trim() || "them"}</dt>
               <dd className="m-0 font-semibold text-earn">{money(amountToClaim)}</dd>
             </div>
             <div>
-              <dt className="text-ink-3">Yours</dt>
+              <dt className="text-ink-2">Yours</dt>
               <dd className="m-0 font-semibold">{money(Math.max(0, txn.amount - amountToClaim))}</dd>
             </div>
           </dl>
-          {!online && <p className="m-0 text-meta text-ink-3">Offline · save unavailable.</p>}
+          {!online && <p className="m-0 text-meta text-ink-2">Offline · save unavailable.</p>}
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setMarkOpen(false)}>
               Cancel

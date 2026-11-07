@@ -41,7 +41,7 @@ export function SyncSection({ initial }: { initial?: Status }) {
   };
 
   const mini = !status?.seenAt
-    ? { dot: "bg-ink-3", line: "Not seen yet" }
+    ? { dot: "bg-ink-2", line: "Not seen yet" }
     : status.online
       ? { dot: "bg-earn", line: `Online · checked ${ago(status.seenAt)}` }
       : { dot: "bg-over", line: `Offline since ${time(new Date(status.seenAt))}` };

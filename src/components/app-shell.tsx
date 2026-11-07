@@ -135,7 +135,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
                   key={t.to}
                   to={t.to}
                   aria-current={on ? "page" : undefined}
-                  className={cn(tabClass, on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3")}
+                  className={cn(tabClass, on ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-2")}
                 >
                   <Icon />
                   {t.label}
@@ -146,7 +146,7 @@ export function AppShell({ data, children }: { data: ShellData; children: ReactN
               type="button"
               onClick={() => setMoreOpen(true)}
               aria-current={moreOn ? "page" : undefined}
-              className={cn(tabClass, moreOn ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-3")}
+              className={cn(tabClass, moreOn ? "border-t-2 border-brand font-semibold text-brand" : "text-ink-2")}
             >
               <MoreIcon />
               More

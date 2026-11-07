@@ -66,7 +66,7 @@ export function ReimbursableBadge({ amount, className }: { amount?: number; clas
 export function RowMeta({ t, withDate, color }: { t: LedgerTxn; withDate?: boolean; color?: string }) {
   const tone = t.excluded || t.type !== "expense" ? undefined : (color ?? "cat-other");
   return (
-    <span className="flex min-w-0 items-center gap-1.5 truncate text-meta text-ink-3">
+    <span className="flex min-w-0 items-center gap-1.5 truncate text-meta text-ink-2">
       <span className="shrink-0">{withDate ? shortDate(t.date) : time(t.date)}</span>
       <span aria-hidden>·</span>
       <span
@@ -127,7 +127,7 @@ export function Amount({ t, className }: { t: LedgerTxn; className?: string }) {
       className={cn(
         "shrink-0 text-body font-medium whitespace-nowrap",
         t.type === "income" && "text-earn",
-        t.excluded && "font-normal text-ink-3",
+        t.excluded && "font-normal text-ink-2",
         className,
       )}
     >
@@ -173,7 +173,7 @@ export function LedgerRow({
         (t.reimbursable ? (
           <span className="flex shrink-0 flex-col items-end gap-0.5">
             <Amount t={t} />
-            <span className="text-meta whitespace-nowrap text-ink-3">
+            <span className="text-meta whitespace-nowrap text-ink-2">
               {money(t.yours ?? 0)} yours · {money(t.reimbursable)} paid
             </span>
           </span>

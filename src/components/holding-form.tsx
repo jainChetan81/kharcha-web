@@ -145,7 +145,7 @@ export function HoldingForm({ initial, onSave }: { initial?: Values; onSave: (va
                     }}
                   >
                     <span>{hit.name}</span>
-                    <small className="shrink-0 text-ink-3">{hit.code}</small>
+                    <small className="shrink-0 text-ink-2">{hit.code}</small>
                   </button>
                 </li>
               ))}

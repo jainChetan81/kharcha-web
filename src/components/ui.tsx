@@ -7,9 +7,9 @@ import { cn } from "../lib/cn";
 type Variant = "primary" | "outline" | "text" | "danger" | "brand";
 // Hover lightens fills, pressed scales to 0.97 (§19); disabled look lives in styles.css.
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-paper px-4.5 rounded-button hover:bg-ink/85",
+  primary: "bg-ink text-paper px-4.5 rounded-button hover:bg-ink-2",
   outline: "border border-ink text-ink px-4.5 rounded-button bg-transparent hover:bg-sunken",
-  brand: "bg-brand text-on-brand px-4.5 rounded-button hover:bg-brand/85",
+  brand: "bg-brand text-on-brand px-4.5 rounded-button",
   text: "text-brand px-2.5 bg-transparent rounded-button hover:bg-brand-soft",
   danger: "text-over px-2.5 bg-transparent rounded-button hover:bg-over-soft",
 };
@@ -276,7 +276,7 @@ export function PageHeader({
         )}
         <div className="flex min-w-0 flex-col">
           {title ? <h1 className="m-0 line-clamp-2 font-serif text-page leading-tight font-medium break-words">{title}</h1> : null}
-          {sub && <span className="text-meta text-ink-3">{sub}</span>}
+          {sub && <span className="text-meta text-ink-2">{sub}</span>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

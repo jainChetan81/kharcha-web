@@ -156,7 +156,7 @@ function Activity() {
   const header = searchOpen && (
     <div className="flex min-h-11 items-center gap-2">
       <label className="field flex min-h-11 min-w-0 flex-1 items-center gap-2 bg-card px-3">
-        <Search className="size-4.5 shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
+        <Search className="size-4.5 shrink-0 text-ink-2" strokeWidth={1.75} aria-hidden="true" />
         <span className="sr-only">Search transactions</span>
         <input
           ref={searchRef}
@@ -164,14 +164,14 @@ function Activity() {
           placeholder="Merchant, category, SMS text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="min-w-0 flex-1 border-0 bg-transparent text-entry text-ink outline-none placeholder:text-ink-3"
+          className="min-w-0 flex-1 border-0 bg-transparent text-entry text-ink outline-none placeholder:text-ink-2"
         />
         {query && (
           <button
             type="button"
             aria-label="Clear search"
             onClick={() => setQuery("")}
-            className="flex size-11 shrink-0 items-center justify-center text-ink-3"
+            className="flex size-11 shrink-0 items-center justify-center text-ink-2"
           >
             <X size={16} />
           </button>
@@ -292,7 +292,7 @@ function Activity() {
             </div>
 
             {!online && (
-              <p role="status" className="mt-3 mb-0 text-meta text-ink-3">
+              <p role="status" className="mt-3 mb-0 text-meta text-ink-2">
                 Offline · saved transactions remain available; delete is disabled.
               </p>
             )}
@@ -310,7 +310,7 @@ function Activity() {
                       /* Storage can be unavailable in private browsing. */
                     }
                   }}
-                  className="flex size-11 shrink-0 items-center justify-center text-ink-3"
+                  className="flex size-11 shrink-0 items-center justify-center text-ink-2"
                 >
                   <X size={16} aria-hidden="true" />
                 </button>
@@ -565,7 +565,7 @@ function ActivityRow({
           className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-2 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >
-          <span className="w-16 shrink-0 whitespace-nowrap text-ink-3">{time(row.date)}</span>
+          <span className="w-16 shrink-0 whitespace-nowrap text-ink-2">{time(row.date)}</span>
           <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">
             {row.needsReview && (
               <>
@@ -585,7 +585,7 @@ function ActivityRow({
               </>
             )}
           </span>
-          <span className="whitespace-nowrap text-ink-3">{card(row.accountLast4)}</span>
+          <span className="whitespace-nowrap text-ink-2">{card(row.accountLast4)}</span>
           <Amount t={row} className="justify-self-end" />
         </button>
       </motion.div>

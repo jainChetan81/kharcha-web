@@ -349,7 +349,7 @@ export function ActivityFilters({
           type="button"
           onClick={onClear}
           disabled={!count}
-          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
+          className="mt-2 min-h-11 w-full text-left text-control font-semibold text-brand disabled:text-ink-2 focus-visible:outline-2 focus-visible:outline-brand"
         >
           Clear all
         </button>
@@ -468,7 +468,7 @@ function OptionRow({
         {checked && <Check size={13} />}
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {secondary && <span className="shrink-0 text-caption text-ink-3">{secondary}</span>}
+      {secondary && <span className="shrink-0 text-caption text-ink-2">{secondary}</span>}
     </button>
   );
 }
@@ -544,7 +544,7 @@ function CategoryFields({
   return (
     <div>
       <label className="flex min-h-12 items-center gap-2 border-b border-hairline bg-card px-3">
-        <Search size={16} className="text-ink-3" aria-hidden="true" />
+        <Search size={16} className="text-ink-2" aria-hidden="true" />
         <span className="sr-only">Search categories</span>
         <input
           value={catQuery}
@@ -719,7 +719,7 @@ function RailSection({
       >
         <span className="font-medium">{name}</span>
         <span className="flex min-w-0 items-center gap-1">
-          <span className={`truncate ${selected ? "text-brand" : "text-ink-3"}`}>{value}</span>
+          <span className={`truncate ${selected ? "text-brand" : "text-ink-2"}`}>{value}</span>
           <ChevronDown size={13} aria-hidden="true" className={open ? "rotate-180" : ""} />
         </span>
       </button>
@@ -1090,7 +1090,7 @@ function RangeCalendar({
                   ›
                 </button>
               </div>
-              <div className="grid grid-cols-7 text-center text-tab text-ink-3">
+              <div className="grid grid-cols-7 text-center text-tab text-ink-2">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((name) => (
                   <span key={name} className="py-1">
                     <span aria-hidden="true">{name[0]}</span>

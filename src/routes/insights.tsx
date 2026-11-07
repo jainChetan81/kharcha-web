@@ -151,7 +151,7 @@ function Insights() {
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-rule bg-rule tablet:grid-cols-4">
           {kpis.map(([label, value]) => (
             <div key={label} className="flex min-h-[92px] flex-col justify-between bg-card p-3">
-              <span className="text-caption text-ink-3">{label}</span>
+              <span className="text-caption text-ink-2">{label}</span>
               <strong className="font-serif text-title font-medium whitespace-nowrap">{value}</strong>
             </div>
           ))}
@@ -219,7 +219,7 @@ function MerchantTable({ rows, scope }: { rows: { merchant: string; total: numbe
         >
           <span className="min-w-0 truncate">
             {row.merchant}{" "}
-            <small className="text-caption text-ink-3">
+            <small className="text-caption text-ink-2">
               · {row.n} {row.n === 1 ? "row" : "rows"}
             </small>
           </span>

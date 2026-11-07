@@ -26,7 +26,7 @@ function Trips() {
             >
               <span className="min-w-0">
                 <b className="block truncate font-serif text-title font-medium">{trip.name}</b>
-                <small className={`mt-1 block truncate ${trip.active ? "text-trip-muted" : "text-ink-3"}`}>
+                <small className={`mt-1 block truncate ${trip.active ? "text-trip-muted" : "text-ink-2"}`}>
                   {trip.startDate} – {trip.endDate} · {trip.autoTag ? "auto-tag on" : "auto-tag off"}
                 </small>
               </span>

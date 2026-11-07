@@ -276,7 +276,7 @@ function Settings() {
                   <span className="text-meta text-ink-2">Daily call cap</span>
                   <span className="text-control">
                     <strong className="font-semibold">{used}</strong>
-                    <span className="text-ink-3"> of {cap} used today</span>
+                    <span className="text-ink-2"> of {cap} used today</span>
                   </span>
                 </div>
                 <Segmented
@@ -471,7 +471,7 @@ function Settings() {
                     <span className="flex min-w-0 flex-col gap-0.5 py-2">
                       <span className="truncate font-mono text-meta text-ink-2">{rule.match}</span>
                       <span className="flex min-w-0 items-center gap-1.5 text-control">
-                        <span aria-hidden className="text-ink-3">
+                        <span aria-hidden className="text-ink-2">
                           →
                         </span>
                         <strong className="truncate font-semibold">{rule.displayMerchant}</strong>
@@ -516,8 +516,8 @@ function IndexRow({ label, detail, onClick }: { label: string; detail: string; o
   return (
     <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-2 border-b border-hairline text-left">
       <span className="flex-1 text-body font-medium">{label}</span>
-      <span className="text-control text-ink-3">{detail}</span>
-      <ChevronRight size={18} className="text-ink-3" aria-hidden />
+      <span className="text-control text-ink-2">{detail}</span>
+      <ChevronRight size={18} className="text-ink-2" aria-hidden />
     </button>
   );
 }
@@ -560,7 +560,7 @@ function CategoryItem({
         <button
           type="button"
           aria-label={`Reorder ${item.name}`}
-          className="flex size-11 cursor-grab items-center justify-center text-ink-3"
+          className="flex size-11 cursor-grab items-center justify-center text-ink-2"
           disabled={!online}
           onPointerDown={(event) => {
             onDragging(true);
@@ -598,13 +598,13 @@ function CategoryItem({
           disabled={!online}
           onBlur={(event) => event.currentTarget.value !== item.name && onNameChange(event.currentTarget.value)}
         />
-        <span className="shrink-0 text-caption text-ink-3">{item.transactionCount} transactions</span>
+        <span className="shrink-0 text-caption text-ink-2">{item.transactionCount} transactions</span>
         {!isOther && (
           <button
             type="button"
             aria-label={`Delete ${item.name}`}
             disabled={!online}
-            className="flex size-11 shrink-0 items-center justify-center text-ink-3"
+            className="flex size-11 shrink-0 items-center justify-center text-ink-2"
             onClick={onDelete}
           >
             <Trash2 size={18} />

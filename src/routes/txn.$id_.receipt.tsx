@@ -806,7 +806,7 @@ function Receipt() {
                 <label className="flex min-h-11 items-center justify-between gap-3 border-y border-hairline py-2">
                   <span>
                     <strong className="block text-body">Split by category</strong>
-                    <span className="text-control text-ink-3">Use item totals in spending views</span>
+                    <span className="text-control text-ink-2">Use item totals in spending views</span>
                   </span>
                   <input
                     aria-label="Split by category"

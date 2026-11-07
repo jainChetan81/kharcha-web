@@ -24,15 +24,15 @@ export function DigestCard({ digest }: { digest: Digest }) {
       <div className="flex items-baseline">
         <AiMark className="mr-2 self-center" />
         <span className="font-serif text-title italic">This week, in short</span>
-        <span className="ml-2 text-caption text-ink-3">{digest.label}</span>
+        <span className="ml-2 text-caption text-ink-2">{digest.label}</span>
       </div>
       <ol className="m-0 flex list-none flex-col gap-2 p-0">
         {digest.lines.map((line, index) => (
           <li key={`${line.pre}-${line.num}-${line.post}`} className="grid grid-cols-[20px_1fr] gap-2 text-body leading-6">
-            <span className="font-serif text-ink-3">{["I", "II", "III"][index]}</span>
+            <span className="font-serif text-ink-2">{["I", "II", "III"][index]}</span>
             <span>
               {line.pre}{" "}
-              <Link to={line.href} className="font-medium text-brand underline decoration-brand/50 underline-offset-2">
+              <Link to={line.href} className="font-medium text-brand underline decoration-brand underline-offset-2">
                 {line.num}
               </Link>
               {line.post}
@@ -40,7 +40,7 @@ export function DigestCard({ digest }: { digest: Digest }) {
           </li>
         ))}
       </ol>
-      <span className="flex flex-col gap-0.5 text-caption text-ink-3">
+      <span className="flex flex-col gap-0.5 text-caption text-ink-2">
         Numbers from your ledger · words by AI
         {digest.model && (
           <AiProvenance

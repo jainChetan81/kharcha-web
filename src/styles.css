@@ -23,7 +23,6 @@
   --color-input: #ffffff;
   --color-ink: #1c2230;
   --color-ink-2: #4a5163;
-  --color-ink-3: #5e6272;
   --color-brand: #2f4a7a;
   --color-brand-deep: #1f3459;
   --color-brand-soft: #e3e8f1;
@@ -45,6 +44,7 @@
 
   /* Hero surface: stays dark in both modes. on-ink-* names kept for the hero text. */
   --color-hero: #1c2230;
+  --color-hero-raised: #343a48;
   --color-on-ink-over: #f2a08c;
 
   --color-on-ink: #f6f4ee;
@@ -139,7 +139,7 @@
   --secondary: var(--color-sunken);
   --secondary-foreground: var(--color-ink);
   --muted: var(--color-sunken);
-  --muted-foreground: var(--color-ink-3);
+  --muted-foreground: var(--color-ink-2);
   --accent: var(--color-brand-soft);
   --accent-foreground: var(--color-brand-deep);
   --destructive: var(--color-over);
@@ -159,7 +159,6 @@
   --color-input: #12151c;
   --color-ink: #ece8df;
   --color-ink-2: #bfc2cc;
-  --color-ink-3: #a0a4b0;
   --color-brand: #9db3da;
   --color-on-brand: #12151c;
   --color-brand-soft: #243149;
@@ -192,6 +191,7 @@
   --color-cat-interest: #a4c97e;
   --color-cat-other-income: #8f8b80;
   --color-hero: #232937;
+  --color-hero-raised: #3a4152;
   --color-raised: #363d4d;
   --color-track: #2a303d;
   --color-on-cat: #12151c;
@@ -237,7 +237,7 @@ button:disabled {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-ink-2);
 }
 @utility field {
   min-height: 44px;

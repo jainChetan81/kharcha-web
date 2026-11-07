@@ -28,7 +28,7 @@ export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amoun
           </span>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-chart text-ink-3">
+      <div className="mt-1 flex justify-between text-chart text-ink-2">
         <span>₹10</span>
         <span>₹100</span>
         <span>₹1K</span>

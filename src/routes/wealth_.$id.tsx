@@ -71,7 +71,7 @@ function Holding() {
             ["Gain", money(data.gain)],
           ].map(([label, value]) => (
             <div key={label} className="bg-card p-3">
-              <small className="block text-ink-3">{label}</small>
+              <small className="block text-ink-2">{label}</small>
               <b>{value}</b>
             </div>
           ))}

@@ -162,7 +162,7 @@ function OwedScreen() {
                     </strong>
                   </div>
 
-                  <div className="flex min-w-0 items-center justify-between gap-2 text-meta text-ink-3 desk:hidden">
+                  <div className="flex min-w-0 items-center justify-between gap-2 text-meta text-ink-2 desk:hidden">
                     <span className="min-w-0 truncate">
                       {shortDate(r.spendDate)} · {r.counterparty}
                       {r.note ? ` · ${r.note}` : ""}
@@ -176,7 +176,7 @@ function OwedScreen() {
                   <span className="hidden text-control text-ink-2 desk:block">{shortDate(r.spendDate)}</span>
                   <span className="hidden truncate text-control font-medium desk:block">
                     {r.merchant}
-                    {r.note && <span className="ml-1 text-caption text-ink-3">({r.note})</span>}
+                    {r.note && <span className="ml-1 text-caption text-ink-2">({r.note})</span>}
                   </span>
                   <span className="hidden truncate text-control desk:block">{r.counterparty}</span>
                   <span className="hidden text-right text-control desk:block">{money(r.spendAmount)}</span>

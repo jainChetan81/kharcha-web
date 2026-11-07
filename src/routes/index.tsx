@@ -89,7 +89,7 @@ function Today() {
           </Link>
         )}
       </div>
-      <div className="hidden grid-cols-3 border-t border-on-ink/20 pt-3 desk:grid">
+      <div className="hidden grid-cols-3 border-t border-hero-raised pt-3 desk:grid">
         <span className="text-control text-on-ink-2">
           Budget{" "}
           {today.limit > 0 ? (
@@ -123,7 +123,7 @@ function Today() {
         {upcoming.slice(0, 3).map((item) => (
           <Card key={`${item.seriesId}-${item.date}`} className="flex min-w-0 flex-col gap-1 p-2.5">
             <span className="font-serif text-title leading-none">
-              {item.date.slice(-2)} <small className="font-sans text-tab text-ink-3">{weekday(item.date)}</small>
+              {item.date.slice(-2)} <small className="font-sans text-tab text-ink-2">{weekday(item.date)}</small>
             </span>
             <span className="truncate text-meta font-medium">{item.name}</span>
             <span className="text-meta text-ink-2">{money(item.amount)}</span>
@@ -183,7 +183,7 @@ function Today() {
               />
             ))}
           </div>
-          <div className="mt-1 flex flex-wrap gap-x-2 text-tab leading-tight text-ink-3">
+          <div className="mt-1 flex flex-wrap gap-x-2 text-tab leading-tight text-ink-2">
             {wealth.allocation.slice(0, 3).map((item, index) => (
               <span key={item.name} className="whitespace-nowrap">
                 <i
@@ -199,7 +199,7 @@ function Today() {
           </div>
         </div>
       )}
-      <div className="mt-1.5 text-tab text-ink-3">
+      <div className="mt-1.5 text-tab text-ink-2">
         {wealth.holdings} holdings
         {wealth.navDate
           ? ` · ${navsOf(wealth.navDate)} · ${signed(wealth.dayChange)} since previous NAV`
