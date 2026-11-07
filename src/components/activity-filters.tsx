@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
 import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
@@ -186,22 +186,19 @@ export function ActivityFilters({
     onRailVisibilityChange?.(next);
   };
   const count = countFor(search, Boolean(onReview));
-  const cats = useMemo(() => selectedCategories(search), [search]);
-  const status = useMemo(
-    () => [...new Set([...(search.status ?? []), ...(search.review ? ["review" as const] : [])])],
-    [search.status, search.review],
-  );
+  const cats = selectedCategories(search);
+  const status = [...new Set([...(search.status ?? []), ...(search.review ? ["review" as const] : [])])];
   const customLabel = search.from && search.to ? rangeLabel(search.from, search.to) : undefined;
   const quick = (name: Filter) => {
     setSection(name);
     setScreen(true);
   };
-  useEffect(() => {
-    if (dateOpen) {
-      setSection("Date");
-      setScreen(true);
-    }
-  }, [dateOpen]);
+  // The page's month label asks for the Date filter; open it on that change, during render.
+  const [wasDateOpen, setWasDateOpen] = useState(dateOpen);
+  if (wasDateOpen !== dateOpen) {
+    setWasDateOpen(dateOpen);
+    if (dateOpen) quick("Date");
+  }
   const remove = (name: Filter, category?: string) => {
     if (name === "Category" && category) {
       const next = cats.filter((v) => v !== category);
@@ -211,21 +208,19 @@ export function ActivityFilters({
       onApply({ status: next.length ? next : undefined, review: undefined });
     } else onApply(without(search, name));
   };
-  const applied = useMemo(() => {
-    const out: { name: Filter; value: string; key?: string }[] = [];
-    if ((search.from || search.to) && !search.month) out.push({ name: "Date", value: customLabel ?? "Date" });
-    cats.forEach((v) => {
-      out.push({ name: "Category", value: v.split(":").at(-1) ?? v, key: v });
-    });
-    if (search.card) out.push({ name: "Card", value: `••${search.card}` });
-    if (search.type) out.push({ name: "Type", value: typeOptions.find(([k]) => k === search.type)?.[1] ?? search.type });
-    if (search.tripId) out.push({ name: "Trip", value: trips.find((v) => v.id === search.tripId)?.name ?? "Trip" });
-    if (search.min !== undefined || search.max !== undefined) out.push({ name: "Amount", value: compactRange(search) });
-    status.forEach((v) => {
-      out.push({ name: "Status", value: statusOptions.find((o) => o.id === v)?.label ?? v, key: v });
-    });
-    return out;
-  }, [search, cats, status, trips, customLabel]);
+  const applied: { name: Filter; value: string; key?: string }[] = [];
+  if ((search.from || search.to) && !search.month) applied.push({ name: "Date", value: customLabel ?? "Date" });
+  cats.forEach((v) => {
+    applied.push({ name: "Category", value: v.split(":").at(-1) ?? v, key: v });
+  });
+  if (search.card) applied.push({ name: "Card", value: `••${search.card}` });
+  if (search.type) applied.push({ name: "Type", value: typeOptions.find(([k]) => k === search.type)?.[1] ?? search.type });
+  if (search.tripId) applied.push({ name: "Trip", value: trips.find((v) => v.id === search.tripId)?.name ?? "Trip" });
+  if (search.min !== undefined || search.max !== undefined) applied.push({ name: "Amount", value: compactRange(search) });
+  status.forEach((v) => {
+    applied.push({ name: "Status", value: statusOptions.find((o) => o.id === v)?.label ?? v, key: v });
+  });
+
   const dialogs = (
     <>
       {screen && (
@@ -695,10 +690,12 @@ function RailSection({
   const [open, setOpen] = useState(false);
   const [minText, setMinText] = useState(search.min?.toString() ?? "");
   const [maxText, setMaxText] = useState(search.max?.toString() ?? "");
-  useEffect(() => {
+  const [seenRange, setSeenRange] = useState([search.min, search.max]);
+  if (seenRange[0] !== search.min || seenRange[1] !== search.max) {
+    setSeenRange([search.min, search.max]);
     setMinText(search.min?.toString() ?? "");
     setMaxText(search.max?.toString() ?? "");
-  }, [search.min, search.max]);
+  }
   const value = summaryValue(search, name, trips);
   const selected = activeCount(search, name) > 0;
   const cats = selectedCategories(search);

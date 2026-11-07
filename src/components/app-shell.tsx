@@ -1,6 +1,6 @@
 // AppShell (§5): phone tab bar + add button; ≥840px sidebar with trip card, sync pill, Settings.
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { dayMonth } from "../lib/format";
 import { ActivityIcon, InsightsIcon, MoreIcon, PlanIcon, PlusIcon, TodayIcon, WealthIcon } from "./icons";
@@ -41,13 +41,12 @@ const bare = (p: string) =>
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = useState(false);
-  const prevPath = useRef(path);
-  useEffect(() => {
-    if (prevPath.current !== path) {
-      prevPath.current = path;
-      setMoreOpen(false);
-    }
-  }, [path]);
+  // Navigating closes the More sheet.
+  const [seenPath, setSeenPath] = useState(path);
+  if (seenPath !== path) {
+    setSeenPath(path);
+    setMoreOpen(false);
+  }
   const hideChrome = bare(path);
   const planAction = path === "/plan/trips" || path === "/plan/recurring";
   const moreOn = path.startsWith("/ask") || path.startsWith("/paste") || path.startsWith("/settings");

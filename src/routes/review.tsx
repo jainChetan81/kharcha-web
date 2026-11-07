@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DeskPage } from "../components/app-shell";
 import { CategoryPicker } from "../components/category-picker";
 import { ReviewDeck } from "../components/review-deck";
@@ -45,8 +45,14 @@ export const Route = createFileRoute("/review")({
 function Review() {
   const { rows: loaded, categories } = Route.useLoaderData();
   // Keep the session's rows: refetches drop filed rows, but progress and "done" need them. New arrivals append.
+  // Adjusted during render (not in an effect) so the merged list never paints a frame late.
   const [rows, setRows] = useState(loaded);
-  useEffect(() => setRows((prev) => [...prev, ...loaded.filter((row) => !prev.some((item) => item.id === row.id))]), [loaded]);
+  const [seen, setSeen] = useState(loaded);
+  if (seen !== loaded) {
+    setSeen(loaded);
+    const ids = new Set(rows.map((row) => row.id));
+    setRows([...rows, ...loaded.filter((row) => !ids.has(row.id))]);
+  }
   const busy = useRef(false);
   const router = useRouter();
   const online = useOnline();
@@ -59,8 +65,8 @@ function Review() {
   const [sheet, setSheet] = useState(false);
   const [duplicates, setDuplicates] = useState<Duplicate[]>([]);
 
-  const done = useMemo(() => new Set([...skipped, ...picked]), [picked, skipped]);
-  const queue = useMemo(() => rows.filter((row) => !done.has(row.id)), [done, rows]);
+  const done = new Set([...skipped, ...picked]);
+  const queue = rows.filter((row) => !done.has(row.id));
   const current = queue[0];
   const open = queue.find((row) => row.id === activeId) ?? current;
   const selected = queue.filter((row) => checked.includes(row.id));
@@ -68,10 +74,6 @@ function Review() {
   const makeRule = Boolean(open && rule?.id === open.id && rule.on);
   const year = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 4); // Ledger dates are IST.
   const colorOf = (name: string | null) => categories.find((item) => item.name === name)?.colorToken ?? "cat-other";
-
-  useEffect(() => {
-    if (activeId !== open?.id) setActiveId(open?.id ?? null);
-  }, [activeId, open?.id]);
 
   const merchant = open?.merchant;
   const rowId = open?.id;

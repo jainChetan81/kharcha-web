@@ -79,10 +79,13 @@ function Activity() {
   const reviewCount = rows.filter((row) => row.needsReview).length;
   const customRange = search.from && search.to ? rangeLabel(search.from, search.to) : undefined;
 
-  useEffect(() => setQuery(search.search ?? ""), [search.search]);
-  useEffect(() => {
+  // Back/forward or a shared link changed the search: follow it, unless it's our own debounced write.
+  const [seenSearch, setSeenSearch] = useState(search.search);
+  if (seenSearch !== search.search) {
+    setSeenSearch(search.search);
+    if ((search.search ?? "") !== query.trim()) setQuery(search.search ?? "");
     if (search.search) setSearchOpen(true);
-  }, [search.search]);
+  }
   useEffect(() => {
     if (!searchOpen) return;
     const timer = window.setTimeout(() => searchRef.current?.focus(), 30);
@@ -110,14 +113,14 @@ function Activity() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+  // Storage is read after hydration so server and client render the same first frame.
   useEffect(() => {
-    if (!rows.some((row) => row.excluded)) return;
     try {
       setShowExcludedNote(window.localStorage.getItem("kharcha-activity-excluded-note") !== "dismissed");
     } catch {
       setShowExcludedNote(true);
     }
-  }, [rows]);
+  }, []);
 
   const change = (next: Partial<ActivitySearch>) => void router.navigate({ to: "/activity", search: { ...search, ...next } });
   const clearFilters = () => void router.navigate({ to: "/activity", search: { month: search.month, search: search.search } });

@@ -29,7 +29,7 @@ export function usePageKeys(keys: PageKeys) {
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /** Global keys. Mount once in the root layout. */
-export function useGlobalKeys(openHelp: () => void) {
+export function useGlobalKeys(setHelp: (open: boolean) => void) {
   const navigate = useNavigate();
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -39,12 +39,12 @@ export function useGlobalKeys(openHelp: () => void) {
       if (k === "n") void navigate({ to: "/add" });
       else if (k === "/") void navigate({ to: "/ask" });
       else if (k === "r") void navigate({ to: "/review" });
-      else if (e.key === "?") openHelp();
+      else if (e.key === "?") setHelp(true);
       else if (k in pageKeys) pageKeys[k as keyof PageKeys]?.();
       else return;
       e.preventDefault();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, openHelp]);
+  }, [navigate, setHelp]);
 }

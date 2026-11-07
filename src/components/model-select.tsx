@@ -1,5 +1,5 @@
 import { Check, ChevronDown, Search } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { Sheet } from "./sheet";
 import { cn } from "../lib/cn";
 import { presets } from "../lib/ai-models";
@@ -26,9 +26,8 @@ export function ModelSelect({
   const listId = useId();
   const searchId = useId();
   const selected = presets.find((model) => model.id === value);
-  const filtered = useMemo(
-    () => presets.filter((model) => `${model.name} ${model.provider} ${model.id}`.toLowerCase().includes(query.trim().toLowerCase())),
-    [query],
+  const filtered = presets.filter((model) =>
+    `${model.name} ${model.provider} ${model.id}`.toLowerCase().includes(query.trim().toLowerCase()),
   );
   const choose = (modelId: string) => {
     onChange(modelId);

@@ -1,7 +1,7 @@
 import { PullRefresh } from "../components/pull-refresh";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
 import { MotionConfig } from "motion/react";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { Pwa, setBadge } from "../components/pwa";
 import { editingNow, Sheet, Snackbars, snack } from "../components/sheet";
@@ -67,8 +67,7 @@ function Layout() {
   const onLogin = useRouterState({ select: (s) => s.location.pathname === "/login" });
   const health = useHealth();
   const [help, setHelp] = useState(false);
-  const openHelp = useCallback(() => setHelp(true), []);
-  useGlobalKeys(openHelp);
+  useGlobalKeys(setHelp);
   useEffect(() => setBadge(shell.reviewCount), [shell.reviewCount]);
   useEffect(() => watchSystemTheme(), []);
   useEffect(
