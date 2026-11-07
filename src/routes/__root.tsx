@@ -111,7 +111,7 @@ function Layout() {
 function RootError({ error, reset }: ErrorComponentProps) {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
-    <main role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
+    <main id="main" tabIndex={-1} role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
       <p className="m-0 font-serif text-title leading-snug">
         {offline ? "Can’t reach your server right now." : error instanceof Error ? error.message : "Something went wrong."}
       </p>

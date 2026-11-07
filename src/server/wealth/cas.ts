@@ -41,15 +41,18 @@ const rawScheme = z.object({
   valuation: z.object({ date: z.string(), nav: num }),
   transactions: z.array(rawTxn),
 });
-const casJson = z.object({ cas_type: z.string(), folios: z.array(z.object({ schemes: z.array(rawScheme) })) });
+// Schemes stay unknown here and are checked one by one, so one odd scheme doesn't sink the whole statement.
+const casJson = z.object({ cas_type: z.string(), folios: z.array(z.object({ schemes: z.array(z.unknown()) })) });
 export type CasJson = z.output<typeof casJson>;
 
 const n = (value: string | null | undefined) => Number(value ?? 0);
 /** casparser JSON to one scheme per ISIN (a fund held in several folios merges). Rows without units only add stamp duty to that day's buy. */
 export function casSchemes(json: CasJson): CasScheme[] {
   const byIsin = new Map<string, CasScheme>();
-  for (const raw of json.folios.flatMap((folio) => folio.schemes)) {
-    if (!raw.isin) continue;
+  for (const item of json.folios.flatMap((folio) => folio.schemes)) {
+    const parsed = rawScheme.safeParse(item);
+    if (!parsed.success || !parsed.data.isin) continue;
+    const raw = { ...parsed.data, isin: parsed.data.isin };
     const txns: CasTxn[] = [];
     for (const row of raw.transactions) {
       const units = n(row.units);

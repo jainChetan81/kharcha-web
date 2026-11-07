@@ -5,7 +5,7 @@ import { CategoryPicker } from "../components/category-picker";
 import { ReviewDeck } from "../components/review-deck";
 import { Sheet, saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { Button, CategoryDot, ErrorState, PageHeader, Skeleton } from "../components/ui";
+import { Button, CategoryDot, ErrorState, PageHeader } from "../components/ui";
 import { usePageKeys } from "../keybindings";
 import { card, money, shortDate } from "../lib/format";
 import { getReview } from "../server/daily/fns";
@@ -28,7 +28,6 @@ export const Route = createFileRoute("/review")({
     const [rows, categories] = await Promise.all([getReview(), getCategories()]);
     return { rows, categories };
   },
-  pendingComponent: () => <Skeleton />,
   errorComponent: () => {
     const router = useRouter();
     return (

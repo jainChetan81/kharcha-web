@@ -237,7 +237,7 @@ export const closeHolding = createServerFn({ method: "POST" })
     await getDb().update(holdings).set({ isClosed: true }).where(eq(holdings.id, data.id));
   });
 
-const fundHits = z.array(z.object({ schemeCode: z.union([z.string(), z.number()]), schemeName: z.string() }));
+const fundHit = z.object({ schemeCode: z.union([z.string(), z.number()]), schemeName: z.string() });
 
 export const searchFund = createServerFn({ method: "GET" })
   .validator(z.object({ query: z.string().trim().min(2).max(120) }))
@@ -247,8 +247,15 @@ export const searchFund = createServerFn({ method: "GET" })
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) return [];
-      const rows = fundHits.parse(await response.json());
-      return rows.slice(0, 10).map((row) => ({ code: String(row.schemeCode), name: row.schemeName }));
+      const body: unknown = await response.json();
+      if (!Array.isArray(body)) return [];
+      // Drop malformed rows, keep the rest.
+      return body
+        .flatMap((item) => {
+          const row = fundHit.safeParse(item);
+          return row.success ? [{ code: String(row.data.schemeCode), name: row.data.schemeName }] : [];
+        })
+        .slice(0, 10);
     } catch {
       return [];
     }
