@@ -493,7 +493,7 @@ function ActivityRow({
         disabled={!canDelete}
         onClick={onDelete}
         style={{ opacity: reveal }}
-        className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-control font-semibold text-on-over disabled:opacity-50 desk:hidden"
+        className="absolute inset-y-0 right-0 flex w-[88px] items-center justify-center bg-over text-control font-semibold text-on-over desk:hidden"
       >
         <motion.span style={{ scale }}>Delete</motion.span>
       </motion.button>

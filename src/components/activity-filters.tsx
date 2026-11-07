@@ -1119,7 +1119,7 @@ function RangeCalendar({
                 disabled={future}
                 aria-pressed={selected}
                 onClick={() => chooseDay(value)}
-                className={`size-10 justify-self-center rounded-full text-meta disabled:text-ink-3/40 ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
+                className={`size-10 justify-self-center rounded-full text-meta ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
               >
                 {day}
               </button>

@@ -397,12 +397,12 @@ function Review() {
                 <button
                   type="button"
                   onClick={() => setActiveId(row.id)}
-                  className={`min-h-10 truncate text-left font-medium text-ink ${handled ? "opacity-45" : ""}`}
+                  className={`min-h-10 truncate text-left font-medium ${handled ? "text-ink-3" : "text-ink"}`}
                 >
                   {row.merchant}
                 </button>
                 <span className="text-ink-3">{card(row.accountLast4)}</span>
-                <span className={`flex items-center gap-1.5 truncate ${handled ? "opacity-45" : ""}`}>
+                <span className={`flex items-center gap-1.5 truncate ${handled ? "text-ink-3" : ""}`}>
                   <CategoryDot color={colorOf(row.suggestion)} />
                   {handled ? `Filed · ${row.suggestion}` : row.suggestion}
                 </span>

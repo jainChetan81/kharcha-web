@@ -530,7 +530,7 @@ function Receipt() {
                         type="button"
                         aria-label={`Remove receipt file ${i + 1}`}
                         disabled={!online || busy}
-                        className="flex min-h-11 min-w-11 items-center justify-center text-over disabled:opacity-50"
+                        className="flex min-h-11 min-w-11 items-center justify-center text-over"
                         onClick={() => void removeFile(file.id)}
                       >
                         <Trash2 size={16} />

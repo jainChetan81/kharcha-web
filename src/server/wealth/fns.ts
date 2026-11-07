@@ -237,6 +237,8 @@ export const closeHolding = createServerFn({ method: "POST" })
     await getDb().update(holdings).set({ isClosed: true }).where(eq(holdings.id, data.id));
   });
 
+const fundHits = z.array(z.object({ schemeCode: z.union([z.string(), z.number()]), schemeName: z.string() }));
+
 export const searchFund = createServerFn({ method: "GET" })
   .validator(z.object({ query: z.string().trim().min(2).max(120) }))
   .handler(async ({ data }) => {
@@ -245,7 +247,7 @@ export const searchFund = createServerFn({ method: "GET" })
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) return [];
-      const rows = (await response.json()) as { schemeCode: string | number; schemeName: string }[];
+      const rows = fundHits.parse(await response.json());
       return rows.slice(0, 10).map((row) => ({ code: String(row.schemeCode), name: row.schemeName }));
     } catch {
       return [];

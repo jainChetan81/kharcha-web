@@ -25,18 +25,24 @@ export type CasScheme = {
   navDate: string | null;
   txns: CasTxn[];
 };
-type RawTxn = { date: string; type: string; amount: string | null; units: string | null; nav: string | null };
-type RawScheme = {
-  scheme: string;
-  isin: string | null;
-  amfi: string | null;
-  open: string;
-  close: string;
-  close_calculated: string;
-  valuation: { date: string; nav: string };
-  transactions: RawTxn[];
-};
-export type CasJson = { cas_type: string; folios: { schemes: RawScheme[] }[] };
+// casparser output is outside data: validate its shape before reading numbers out of it.
+const num = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((v) => (v == null ? null : String(v)));
+const rawTxn = z.object({ date: z.string(), type: z.string(), amount: num, units: num, nav: num });
+const rawScheme = z.object({
+  scheme: z.string(),
+  isin: z.string().nullable(),
+  amfi: z.string().nullable(),
+  open: num,
+  close: num,
+  close_calculated: num,
+  valuation: z.object({ date: z.string(), nav: num }),
+  transactions: z.array(rawTxn),
+});
+const casJson = z.object({ cas_type: z.string(), folios: z.array(z.object({ schemes: z.array(rawScheme) })) });
+export type CasJson = z.output<typeof casJson>;
 
 const n = (value: string | null | undefined) => Number(value ?? 0);
 /** casparser JSON to one scheme per ISIN (a fund held in several folios merges). Rows without units only add stamp duty to that day's buy. */
@@ -122,7 +128,9 @@ async function readCasPdf(bytes: Uint8Array, password: string): Promise<CasJson>
     });
     if (code === 2) throw new Error("Wrong PDF password. CAS passwords are usually your PAN in capitals.");
     if (code !== 0) throw new Error("Couldn't read this PDF as a CAS.");
-    return JSON.parse(stdout) as CasJson;
+    const parsed = casJson.safeParse(JSON.parse(stdout));
+    if (!parsed.success) throw new Error("Couldn't read this PDF as a CAS.");
+    return parsed.data;
   } finally {
     await rm(file, { force: true });
   }

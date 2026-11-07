@@ -80,7 +80,7 @@ function Ask() {
               id: String(item.id),
               question: item.question,
               answer: {
-                ...(item.answer as Answer),
+                ...item.answer,
                 model: item.model ?? undefined,
                 tokensIn: item.tokensIn,
                 tokensOut: item.tokensOut,
@@ -267,7 +267,7 @@ function Ask() {
               type="submit"
               aria-label="Send"
               disabled={sending || !initial.enabled || !question.trim()}
-              className="flex size-11 items-center justify-center rounded-button bg-ink text-paper disabled:opacity-50"
+              className="flex size-11 items-center justify-center rounded-button bg-ink text-paper"
             >
               {sending ? <AiMark /> : <ArrowUp size={18} />}
             </button>

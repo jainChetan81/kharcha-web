@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import { Beeswarm } from "../components/charts/beeswarm";
 import { DayRings } from "../components/charts/day-rings";
 import { SixMonths } from "../components/charts/six-months";
@@ -25,6 +26,16 @@ export const Route = createFileRoute("/insights")({
   },
   component: Insights,
 });
+
+// The jobs write this JSON; a bad row shows as an empty card instead of breaking the page.
+const payloadSchema = z.record(z.string(), z.unknown());
+function payloadOf(json: string) {
+  try {
+    return payloadSchema.parse(JSON.parse(json));
+  } catch {
+    return {};
+  }
+}
 
 function Figure({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
   return (
@@ -58,13 +69,9 @@ function Insights() {
         ? `${data.from ?? "…"} – ${data.to ?? "now"}`
         : monthLabel(data.month);
   const [hidden, setHidden] = useState<number[]>([]);
-  const cards = data.insights
+  const cards: InsightView[] = data.insights
     .filter((item) => !hidden.includes(item.id))
-    .map((item) => ({
-      id: item.id,
-      detector: item.detector,
-      payload: JSON.parse(item.payloadJson) as Record<string, unknown>,
-    })) as InsightView[];
+    .map((item) => ({ id: item.id, detector: item.detector, payload: payloadOf(item.payloadJson) }));
   const dismiss = async (id: number) => {
     setHidden((list) => [...list, id]);
     try {
