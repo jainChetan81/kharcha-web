@@ -678,9 +678,7 @@ function RuleEditor({
         <Button type="button" variant="text" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" className="min-h-9">
-          Save rule
-        </Button>
+        <Button type="submit">Save rule</Button>
       </div>
     </form>
   );

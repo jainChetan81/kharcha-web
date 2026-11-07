@@ -824,7 +824,7 @@ function FilterScreen({
   const [section, setSection] = useState<Filter>(initialSection);
   const [minText, setMinText] = useState(initial.min?.toString() ?? "");
   const [maxText, setMaxText] = useState(initial.max?.toString() ?? "");
-  const [count, setCount] = useState<number | undefined>(getCount ? undefined : resultCount);
+  const [count, setCount] = useState<number | "failed" | undefined>(getCount ? undefined : resultCount);
   const cats = selectedCategories(draft);
   const statuses = [...new Set([...(draft.status ?? []), ...(draft.review ? ["review" as const] : [])])];
   const badAmount = minText !== "" && maxText !== "" && Number(minText) > Number(maxText);
@@ -838,7 +838,7 @@ function FilterScreen({
             if (live) setCount(n);
           })
           .catch(() => {
-            if (live) setCount(undefined);
+            if (live) setCount("failed");
           }),
       120,
     );
@@ -1011,8 +1011,15 @@ function FilterScreen({
                 }
                 className="w-full"
               >
-                {count === undefined ? "Show results" : `Show ${count} ${count === 1 ? "transaction" : "transactions"}`}
+                Show results
               </Button>
+              <p className="sr-only" role="status">
+                {count === undefined
+                  ? "Updating count"
+                  : count === "failed"
+                    ? "Count unavailable"
+                    : `${count} ${count === 1 ? "transaction" : "transactions"}`}
+              </p>
             </footer>
           </motion.div>
         </Dialog.Content>
@@ -1050,78 +1057,76 @@ function RangeCalendar({
     }
   };
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-scrim p-4">
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label="Choose date range"
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.stopPropagation();
-            close();
-          }
-        }}
-        className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-popover"
-      >
-        <div className="mb-2 flex items-center justify-between">
-          <button
-            type="button"
-            aria-label="Previous month"
-            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-            className="size-11"
-          >
-            ‹
-          </button>
-          <strong>{monthLabel(key(1).slice(0, 7))}</strong>
-          <button
-            type="button"
-            aria-label="Next month"
-            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-            className="size-11"
-          >
-            ›
-          </button>
-        </div>
-        <div className="grid grid-cols-7 text-center text-tab text-ink-3">
-          {[
-            ["Mon", "M"],
-            ["Tue", "T"],
-            ["Wed", "W"],
-            ["Thu", "T"],
-            ["Fri", "F"],
-            ["Sat", "S"],
-            ["Sun", "S"],
-          ].map(([name, d]) => (
-            <span key={name} className="py-1">
-              {d}
-            </span>
-          ))}
-          {offset > 0 && <span key="pad" style={{ gridColumn: `span ${offset}` }} />}
-          {Array.from({ length: days }, (_, i) => {
-            const day = i + 1;
-            const value = key(day);
-            const selected = value === start || value === end;
-            const between = start && end && value > start && value < end;
-            const future = value > today();
-            return (
-              <button
-                key={value}
-                type="button"
-                disabled={future}
-                aria-pressed={selected}
-                onClick={() => chooseDay(value)}
-                className={`size-10 justify-self-center rounded-full text-meta ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
-              >
-                {day}
+    <Dialog.Root
+      open
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay asChild>
+          <div className="fixed inset-0 z-[60] bg-scrim" />
+        </Dialog.Overlay>
+        <Dialog.Content asChild aria-describedby={undefined}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <section className="w-full max-w-[360px] rounded-card border border-rule bg-card p-3 shadow-popover outline-none">
+              <Dialog.Title className="sr-only">Choose date range</Dialog.Title>
+              <div className="mb-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                  className="size-11"
+                >
+                  ‹
+                </button>
+                <strong>{monthLabel(key(1).slice(0, 7))}</strong>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                  className="size-11"
+                >
+                  ›
+                </button>
+              </div>
+              <div className="grid grid-cols-7 text-center text-tab text-ink-3">
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((name) => (
+                  <span key={name} className="py-1">
+                    <span aria-hidden="true">{name[0]}</span>
+                    <span className="sr-only">{name}</span>
+                  </span>
+                ))}
+                {offset > 0 && <span key="pad" style={{ gridColumn: `span ${offset}` }} />}
+                {Array.from({ length: days }, (_, i) => {
+                  const day = i + 1;
+                  const value = key(day);
+                  const selected = value === start || value === end;
+                  const between = start && end && value > start && value < end;
+                  const future = value > today();
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={future}
+                      aria-pressed={selected}
+                      aria-label={`${day} ${monthLabel(key(1).slice(0, 7))}`}
+                      onClick={() => chooseDay(value)}
+                      className={`size-11 justify-self-center rounded-full text-meta ${selected ? "bg-brand text-on-brand" : between ? "bg-brand-soft text-brand" : "text-ink hover:bg-sunken"}`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+              <button type="button" onClick={close} className="mt-2 min-h-11 w-full text-control text-brand">
+                Cancel
               </button>
-            );
-          })}
-        </div>
-        <button type="button" onClick={close} className="mt-2 min-h-11 w-full text-control text-brand">
-          Cancel
-        </button>
-      </section>
-    </div>
+            </section>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 function SortDialog({

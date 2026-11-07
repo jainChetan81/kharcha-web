@@ -2,8 +2,12 @@ import { compact, money } from "../../lib/format";
 export function Beeswarm({ rows }: { rows: { id: number; merchant: string; amount: number; category: string }[] }) {
   const max = Math.max(...rows.map((row) => row.amount), 1);
   return (
-    <figure role="img" aria-label="Each dot is a payment this month; dots farther right are larger." className="m-0">
-      <div className="relative h-40 border-b border-ink">
+    <figure className="m-0">
+      <div
+        role="img"
+        aria-label="Each dot is a payment this month; dots farther right are larger."
+        className="relative h-40 border-b border-ink"
+      >
         {rows.map((row, index) => (
           <span
             key={row.id}

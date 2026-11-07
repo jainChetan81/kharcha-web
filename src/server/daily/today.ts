@@ -3,7 +3,8 @@ import { and, asc, count, eq, gte, isNull, lt, sum } from "drizzle-orm";
 import { z } from "zod";
 import { shiftMonth } from "../../lib/format";
 import { getDb } from "../db/client";
-import { listTxns, monthBounds, monthSchema, shareSql, spendByCategory, spendable } from "../db/queries";
+import { listTxns, monthBounds, shareSql, spendByCategory, spendable } from "../db/queries";
+import { monthSchema } from "../db/validators";
 import { budgets, categories, transactions } from "../db/schema";
 
 export const getTodayData = createServerFn({ method: "GET" })

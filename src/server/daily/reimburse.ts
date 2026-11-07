@@ -6,7 +6,8 @@ import { getDb } from "../db/client.ts";
 import { spendable } from "../db/queries.ts";
 import { reimbursementLinks, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 
-const live = isNull(transactions.deletedAt);
+// Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
+const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 const idSchema = z.object({ id: z.number().int().positive() });
 
 /** Status derived from links: pending → partly → reimbursed / extra. Manual paid stays reimbursed until un-marked. */

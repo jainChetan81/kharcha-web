@@ -2,8 +2,8 @@ import { compact, monthLabel } from "../../lib/format";
 export function SixMonths({ rows }: { rows: { month: string; total: number; current: boolean }[] }) {
   const max = Math.max(...rows.map((row) => row.total), 1);
   return (
-    <figure role="img" aria-label="Six months of spending on the same scale." className="m-0">
-      <div className="flex h-32 items-end gap-3 border-b border-ink">
+    <figure className="m-0">
+      <div role="img" aria-label="Six months of spending on the same scale." className="flex h-32 items-end gap-3 border-b border-ink">
         {rows.map((row) => (
           <span
             key={row.month}

@@ -171,7 +171,7 @@ function Activity() {
             type="button"
             aria-label="Clear search"
             onClick={() => setQuery("")}
-            className="flex size-9 shrink-0 items-center justify-center text-ink-3"
+            className="flex size-11 shrink-0 items-center justify-center text-ink-3"
           >
             <X size={16} />
           </button>
@@ -268,7 +268,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ ids: undefined })}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
                   >
                     {search.ids.length} supporting transactions<span aria-hidden="true">×</span>
                     <span className="sr-only">Show all</span>
@@ -278,7 +278,7 @@ function Activity() {
                   <button
                     type="button"
                     onClick={() => change({ merchant: undefined })}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 text-meta font-medium text-brand desk:min-h-9"
                   >
                     {search.merchant}
                     <span aria-hidden="true">×</span>
@@ -561,6 +561,7 @@ function ActivityRow({
         <button
           type="button"
           onClick={onSelect}
+          aria-current={active ? "true" : undefined}
           className="hidden min-h-11 w-full grid-cols-[64px_minmax(0,1fr)_140px_64px_96px] items-center gap-3 px-2 text-left text-control text-ink hover:bg-sunken focus-visible:outline-2 focus-visible:outline-brand desk:grid"
           style={active ? { background: "var(--color-brand-soft)" } : undefined}
         >

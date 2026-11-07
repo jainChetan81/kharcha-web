@@ -3,7 +3,7 @@ import { useState, type ComponentProps } from "react";
 import { saveFailed, snack } from "../components/sheet";
 import { TripForm } from "../components/trip-form";
 import { Button, ErrorState, PageHeader } from "../components/ui";
-import { money } from "../lib/format";
+import { dayMonth, money } from "../lib/format";
 import { endTrip, getTrip, saveTrip } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/trips_/$id")({
@@ -56,15 +56,20 @@ function Trip() {
         </section>
         <section>
           <h2 className="font-serif text-section">By day</h2>
-          {byDay.map(([day, amount]) => (
-            <div
-              key={day}
-              role="img"
-              aria-label={`${day} spent ${money(amount)}`}
-              className="my-2 h-6 rounded-mark bg-brand"
-              style={{ width: `${Math.min(100, (amount / Math.max(trip.budget, 1)) * 100)}%` }}
-            />
-          ))}
+          <ul className="m-0 list-none p-0">
+            {byDay.map(([day, amount]) => (
+              <li key={day} className="my-2 flex items-center gap-3">
+                <span className="min-w-0 flex-1 truncate text-control">
+                  {dayMonth(day)} · {money(amount)}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="h-6 rounded-mark bg-brand"
+                  style={{ width: `${Math.min(100, (amount / Math.max(trip.budget, 1)) * 100)}%` }}
+                />
+              </li>
+            ))}
+          </ul>
         </section>
         <section>
           <h2 className="font-serif text-section">Getting there</h2>

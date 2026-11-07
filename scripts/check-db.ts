@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { sql } from "drizzle-orm";
 import { openDb } from "../src/server/db/client.ts";
-import { addTxn, editTxn, ingest, listTxns, miniRowSchema, monthSummary, removeTxn, setBudget } from "../src/server/db/queries.ts";
+import { addTxn, editTxn, ingest, listTxns, monthSummary, removeTxn, setBudget } from "../src/server/db/queries.ts";
+import { miniRowSchema } from "../src/server/db/validators.ts";
 import { merchantRules } from "../src/server/db/schema.ts";
 
 const db = openDb(":memory:");
@@ -199,7 +200,8 @@ assert.notEqual(
 }
 // List filters: date range inclusive, multi-category matches name AND type, min/max, transfer = excluded.
 {
-  const { listSchema, summarizeTxns } = await import("../src/server/db/queries.ts");
+  const { summarizeTxns } = await import("../src/server/db/queries.ts");
+  const { listSchema } = await import("../src/server/db/validators.ts");
   const fdb = openDb(":memory:");
   const seed = (id: number, date: string, amount: number, type: "expense" | "income", category: string, excluded = false) =>
     addTxn(fdb, { type, amount, merchant: `M${id}`, category, date }).then(async (newId) => {

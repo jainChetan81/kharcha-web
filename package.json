@@ -70,5 +70,14 @@
     "ignore": [
       "src/server/parsers/**"
     ]
-  }
+  },
+  "sideEffects": [
+    "*.css",
+    "./src/routes/**",
+    "./src/router.tsx",
+    "./src/start.ts",
+    "./src/components/**",
+    "./src/lib/**",
+    "./src/keybindings.ts"
+  ]
 }

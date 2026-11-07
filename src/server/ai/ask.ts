@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
-import { filteredAmount, listWhere, type Scope, spendByCategory } from "../db/queries.ts";
+import { filteredAmount, listWhere, spendByCategory } from "../db/queries.ts";
+import type { Scope } from "../db/validators.ts";
 import { z } from "zod";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callAi } from "./client.ts";

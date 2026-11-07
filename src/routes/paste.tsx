@@ -113,9 +113,13 @@ function Paste() {
             {parsing ? "Parsing…" : "Parse"}
           </Button>
         </div>
-        {failed && <Card className="p-4 text-body">Couldn’t parse this SMS. Add it manually below.</Card>}
+        {failed && (
+          <Card role="alert" className="p-4 text-body">
+            Couldn’t parse this SMS. Add it manually below.
+          </Card>
+        )}
         {parsed && (
-          <Card className="mt-2 flex flex-col gap-3.5 p-5">
+          <Card aria-live="polite" className="mt-2 flex flex-col gap-3.5 p-5">
             <span className="label-caps">Parsed on server · {parsed.bankName}</span>
             <div className="flex justify-between gap-3 border-b-3 border-double border-ink pb-3">
               <span className="min-w-0">

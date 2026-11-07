@@ -81,6 +81,8 @@ function Budgets() {
             <div key={row.name} className="border-b border-hairline">
               <button
                 type="button"
+                aria-expanded={open === row.name}
+                aria-controls={`budget-editor-${row.name}`}
                 className="flex w-full flex-col gap-2 py-3.5 text-left"
                 onClick={() => {
                   setOpen(open === row.name ? undefined : row.name);
@@ -106,7 +108,7 @@ function Budgets() {
                 </span>
               </button>
               {open === row.name && (
-                <div className="flex items-end gap-2 pb-4">
+                <div id={`budget-editor-${row.name}`} className="flex items-end gap-2 pb-4">
                   <Field
                     id={`limit-${row.name}`}
                     label="Monthly limit"

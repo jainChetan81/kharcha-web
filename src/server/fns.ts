@@ -6,24 +6,19 @@ import { z } from "zod";
 import { getDb } from "./db/client";
 import {
   addRule,
-  addSchema,
   addTxn,
-  budgetSchema,
   categoryList,
-  editSchema,
   editTxn,
-  flagSchema,
   flagTxn,
   getTxn,
-  listSchema,
   listTxns,
   removeTxn,
   restoreTxn,
-  ruleSchema,
   setBudget,
   splitsByTxnIds,
   summarizeTxns,
 } from "./db/queries";
+import { addSchema, budgetSchema, editSchema, flagSchema, listSchema, ruleSchema } from "./db/validators";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
 import { merchantsByMeaning } from "./ai/embed";

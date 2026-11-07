@@ -85,9 +85,10 @@ export function ModelSelect({
           </label>
           <div id={listId} className="m-0 max-h-[min(60dvh,520px)] overflow-y-auto">
             {filtered.map((model) => (
-              <div key={model.id} aria-current={value === model.id ? "true" : undefined} className="border-b border-hairline">
+              <div key={model.id} className="border-b border-hairline">
                 <button
                   type="button"
+                  aria-current={value === model.id ? "true" : undefined}
                   className="grid min-h-16 w-full grid-cols-[minmax(0,1fr)_24px] items-center gap-2.5 text-left"
                   onClick={() => choose(model.id)}
                 >
@@ -97,7 +98,14 @@ export function ModelSelect({
                       {model.provider} · <span className="font-mono">{model.id}</span>
                     </span>
                   </span>
-                  <span className="text-brand">{value === model.id && <Check size={20} aria-label="Selected" />}</span>
+                  <span className="text-brand">
+                    {value === model.id && (
+                      <>
+                        <Check size={20} aria-hidden="true" />
+                        <span className="sr-only">Selected</span>
+                      </>
+                    )}
+                  </span>
                 </button>
               </div>
             ))}

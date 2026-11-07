@@ -122,7 +122,7 @@ export function HoldingForm({ initial, onSave }: { initial?: Values; onSave: (va
         className="grid-cols-2"
       />
       {manual ? null : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5" aria-live="polite">
           <Field
             id="holding-search"
             label="Search funds"

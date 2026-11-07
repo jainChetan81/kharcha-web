@@ -65,7 +65,7 @@ export function AnswerCard({
               key={q}
               type="button"
               onClick={() => onFollowUp(q)}
-              className="min-h-10 rounded-chip border border-brand px-3 text-left text-control text-brand"
+              className="min-h-11 rounded-chip border border-brand px-3 text-left text-control text-brand desk:min-h-9"
             >
               {q}
             </button>

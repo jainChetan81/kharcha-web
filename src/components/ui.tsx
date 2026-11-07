@@ -175,7 +175,7 @@ export function Field({
         {...props}
       />
       {note && (
-        <span id={`${id}-note`} role={error ? "alert" : undefined} className={cn("text-meta", error ? "text-over" : "text-ink-2")}>
+        <span id={`${id}-note`} role={error ? "alert" : "status"} className={cn("text-meta", error ? "text-over" : "text-ink-2")}>
           {note}
         </span>
       )}

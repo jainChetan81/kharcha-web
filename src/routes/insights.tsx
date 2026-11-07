@@ -10,6 +10,7 @@ import { InsightCard, type InsightView } from "../components/insight-card";
 import { Empty, PageHeader, SectionHead } from "../components/ui";
 import { compact, money, monthLabel, rangeLabel, signed } from "../lib/format";
 import { ActivityFilters } from "../components/activity-filters";
+import { snack } from "../components/sheet";
 import { MonthStepper } from "../components/month-stepper";
 import { pickScope, scopeSearch, type ScopeSearch } from "../lib/filters";
 import { getActivityMeta } from "../server/daily/fns";
@@ -78,6 +79,7 @@ function Insights() {
       await dismissInsight({ data: { id } });
     } catch {
       setHidden((list) => list.filter((item) => item !== id));
+      snack("Couldn’t dismiss. Check the connection.");
     }
   };
   const total = data.waterfall.spending;

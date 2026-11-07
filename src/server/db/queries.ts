@@ -1,6 +1,9 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
-import { z } from "zod";
+import type { z } from "zod";
 import type { Db } from "./client.ts";
+import type { TXN_TYPES } from "./enums.ts";
+import type { addSchema, budgetSchema, editSchema, flagSchema, ListQuery, MiniRow, ruleSchema } from "./validators.ts";
+
 import {
   attachments,
   budgets,
@@ -8,54 +11,13 @@ import {
   merchantRules,
   meta,
   reimbursements,
-  TXN_TYPES,
   transactions,
   transactionSplits,
   type MerchantRule,
 } from "./schema.ts";
 
-/** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
-function realDate(value: string): boolean {
-  const [y, m, d] = value.slice(0, 10).split("-").map(Number);
-  const day = new Date(Date.UTC(y, m - 1, d));
-  if (day.getUTCFullYear() !== y || day.getUTCMonth() !== m - 1 || day.getUTCDate() !== d) return false;
-  if (value.length === 10) return true;
-  const [h, min] = value.slice(11).split(":").map(Number);
-  return h < 24 && min < 60;
-}
-const dateTime = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)
-  .refine(realDate, "not a real date");
-export const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
-
-// Row shape kharcha-mini pushes (its drizzle select, camelCase). Unknown keys are dropped.
-export const miniRowSchema = z.object({
-  id: z.number().int().positive(),
-  type: z.enum(TXN_TYPES),
-  amount: z.number().nonnegative(),
-  merchant: z.string(),
-  merchantCanonical: z.string().nullish(),
-  category: z.string().nullish(),
-  // Old manual rows in the mini are date-only; normalise to midnight.
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?$/)
-    .refine(realDate, "not a real date")
-    .transform((d) => (d.length === 10 ? `${d} 00:00` : d)),
-  rawText: z.string(),
-  bankName: z.string().nullish(),
-  parsedBy: z.string(),
-  referenceNumber: z.string().nullish(),
-  accountLast4: z.string().nullish(),
-  currency: z.string().nullish(),
-  originalAmount: z.number().nullish(),
-  needsReview: z.number().int().optional(),
-  deletedAt: z.string().nullish(),
-});
-export type MiniRow = z.output<typeof miniRowSchema>;
-
-const live = isNull(transactions.deletedAt);
+// Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
+const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 
 /** Keep the app's value once a human edited the row; otherwise take the mini's. */
 const mini = (column: string) =>
@@ -140,16 +102,6 @@ export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
   return rows.length;
 }
 
-export const editSchema = z.object({
-  id: z.number().int().positive(),
-  merchant: z.string().trim().min(1).max(120),
-  category: z.string().trim().max(40),
-  amount: z.number().positive().max(1e9),
-  type: z.enum(TXN_TYPES),
-  excluded: z.boolean().optional(),
-  date: dateTime.optional(),
-});
-
 export async function editTxn(db: Db, e: z.infer<typeof editSchema>): Promise<void> {
   await db
     .update(transactions)
@@ -166,14 +118,6 @@ export async function editTxn(db: Db, e: z.infer<typeof editSchema>): Promise<vo
     .where(eq(transactions.id, e.id));
 }
 
-/** Review actions that touch one flag only. */
-export const flagSchema = z.object({
-  id: z.number().int().positive(),
-  excluded: z.boolean().optional(),
-  duplicateOf: z.number().int().positive().nullable().optional(),
-  needsReview: z.boolean().optional(),
-  category: z.string().trim().min(1).max(40).optional(),
-});
 export async function flagTxn(db: Db, f: z.infer<typeof flagSchema>): Promise<void> {
   const { id, ...set } = f;
   await db
@@ -181,26 +125,6 @@ export async function flagTxn(db: Db, f: z.infer<typeof flagSchema>): Promise<vo
     .set({ ...set, editedAt: sql`(datetime('now'))` })
     .where(eq(transactions.id, id));
 }
-
-export const addSchema = z.object({
-  type: z.enum(TXN_TYPES),
-  amount: z.number().positive().max(1e9),
-  merchant: z.string().trim().min(1).max(120),
-  category: z.string().trim().max(40),
-  date: dateTime,
-  source: z.enum(["manual", "paste"]).optional(),
-  rawText: z.string().max(2000).optional(),
-  accountLast4: z
-    .string()
-    .regex(/^\d{4}$/)
-    .optional(),
-  currency: z
-    .string()
-    .regex(/^[A-Z]{3}$/)
-    .optional(),
-  originalAmount: z.number().positive().optional(),
-  excluded: z.boolean().optional(),
-});
 
 /** Returns the new row id. */
 export async function addTxn(db: Db, a: z.infer<typeof addSchema>): Promise<number> {
@@ -234,7 +158,12 @@ export async function restoreTxn(db: Db, id: number): Promise<void> {
 }
 
 /** Rows that count as spend: live, expense, not excluded, not a duplicate. */
-export const spendable = and(live, eq(transactions.type, "expense"), eq(transactions.excluded, false), isNull(transactions.duplicateOf));
+export const spendable = /* @__PURE__ */ and(
+  live,
+  eq(transactions.type, "expense"),
+  eq(transactions.excluded, false),
+  isNull(transactions.duplicateOf),
+);
 
 // DESIGN.md §15. Correlated subqueries, so joins never multiply ledger rows. Cancelled claims and their links are ignored.
 const claimedOf = (t: string) =>
@@ -316,59 +245,6 @@ export async function monthSummary(db: Db, month: string) {
       categories.push({ category: b.category, total: 0, n: 0, limit: b.monthlyLimit });
   return { month, totals, categories, reviewCount: review?.n ?? 0, lastIngestAt: last?.value ?? null };
 }
-
-/** Status chips (Activity filter screen). Accepts a comma list ("review,split") or an array. */
-export const STATUSES = ["review", "receipt", "split", "reimbursable"] as const;
-const statusList = z.preprocess((v) => (typeof v === "string" ? v.split(",").filter(Boolean) : v), z.array(z.enum(STATUSES)).max(4));
-const daySchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .refine((v) => realDate(v), "not a real date");
-const listShape = z.object({
-  month: monthSchema.optional(),
-  from: daySchema.optional(),
-  to: daySchema.optional(),
-  search: z.string().trim().max(60).optional(),
-  review: z.boolean().optional(),
-  category: z
-    .string()
-    .trim()
-    .max(49)
-    .refine((v) => (v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40))
-    .optional(),
-  categories: z
-    .array(
-      z
-        .string()
-        .trim()
-        .min(1)
-        .max(49)
-        .refine((v) => (v.includes(":") ? v.slice(v.lastIndexOf(":") + 1).length <= 40 : v.length <= 40)),
-    )
-    .max(40)
-    .optional(),
-  card: z
-    .string()
-    .regex(/^\d{4}$/)
-    .optional(),
-  type: z.enum([...TXN_TYPES, "transfer"]).optional(),
-  min: z.number().finite().min(0).max(1e9).optional(),
-  max: z.number().finite().min(0).max(1e9).optional(),
-  sort: z.enum(["newest", "oldest", "amount-desc", "amount-asc"]).optional(),
-  status: statusList.optional(),
-  tripId: z.number().int().positive().optional(),
-  merchant: z.string().trim().max(120).optional(),
-  ids: z.array(z.number().int().positive()).max(500).optional(),
-});
-const ordered = <T extends z.ZodType<{ from?: string; to?: string; min?: number; max?: number }>>(schema: T) =>
-  schema
-    .refine((q) => !q.from || !q.to || q.from <= q.to, { path: ["to"], message: "to must not precede from" })
-    .refine((q) => q.min === undefined || q.max === undefined || q.min <= q.max, { path: ["max"], message: "max must be at least min" });
-export const listSchema = ordered(listShape);
-export type ListQuery = z.infer<typeof listSchema>;
-/** Activity's filters minus list-only keys: what Insights and Ask scope accept. */
-export const scopeSchema = ordered(listShape.omit({ sort: true, ids: true, review: true }));
-export type Scope = z.infer<typeof scopeSchema>;
 
 /** meaningMerchants: server-only, from merchantsByMeaning. Widens text search; never set from the client. */
 export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
@@ -569,12 +445,6 @@ export function categoryList(db: Db) {
   return db.select().from(categories).orderBy(categories.type, categories.sortOrder);
 }
 
-export const budgetSchema = z.object({
-  category: z.string().trim().min(1).max(40),
-  // 0 removes the budget.
-  monthlyLimit: z.number().min(0).max(1e9),
-});
-
 export async function setBudget(db: Db, b: z.infer<typeof budgetSchema>): Promise<void> {
   if (b.monthlyLimit === 0) {
     await db.delete(budgets).where(eq(budgets.category, b.category));
@@ -589,13 +459,6 @@ export async function setBudget(db: Db, b: z.infer<typeof budgetSchema>): Promis
     });
 }
 
-/** "Always file X as Y": one rule, applied to this and future rows. Past rows are not rewritten. */
-export const ruleSchema = z.object({
-  match: z.string().trim().min(2).max(120),
-  displayMerchant: z.string().trim().min(1).max(120),
-  category: z.string().trim().min(1).max(40),
-  createdFromTxnId: z.number().int().positive().optional(),
-});
 /** One rule per match (case-insensitive, trimmed): a same-match rule is replaced, never stacked. Newest rule wins at ingest. */
 export const sameMatch = (match: string, exceptId = -1) =>
   sql`lower(trim(${merchantRules.match})) = lower(${match.trim()}) AND ${merchantRules.id} != ${exceptId}`;

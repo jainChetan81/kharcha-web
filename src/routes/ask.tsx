@@ -178,7 +178,7 @@ function Ask() {
               <button type="button" onClick={back} className="min-h-11 px-2 text-control font-medium text-brand">
                 Back
               </button>
-              <History size={18} className="text-brand" />
+              <History size={18} aria-hidden="true" className="text-brand" />
             </>
           }
         />

@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { cardBalances, monthBounds, monthSchema, spendByCategory } from "../db/queries";
+import { cardBalances, monthBounds, spendByCategory } from "../db/queries";
+import { monthSchema } from "../db/validators";
 import {
   categories,
   recurringOccurrences,

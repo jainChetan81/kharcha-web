@@ -24,20 +24,21 @@ export function BudgetBar({
   const reimbursablePct = spent > 0 ? Math.min(pct, Math.max(0, (reimbursable / spent) * pct)) : 0;
   const projected = normPace > 0 ? spent / normPace : spent;
   const tone = projected > limit ? "bg-over" : projected > limit * 0.9 ? "bg-watch" : "bg-brand";
+  const status = limit <= 0 ? "no budget set" : projected > limit ? "over" : projected > limit * 0.9 ? "near limit" : "on track";
 
   return (
-    <div
-      role="img"
-      aria-label={limit > 0 ? `Spent ${money(spent)} of ${money(limit)}` : `Spent ${money(spent)}, no budget set`}
-      className={cn("flex flex-col gap-1.5", className)}
-    >
+    <div className={cn("flex flex-col gap-1.5", className)}>
       {showLabels && (
         <div className="flex justify-between text-control">
           <span className="font-medium">{money(spent)}</span>
           <span className="text-ink-3">/ {money(limit)}</span>
         </div>
       )}
-      <div className="relative h-1.5 rounded-chip bg-sunken">
+      <div
+        role="img"
+        aria-label={limit > 0 ? `Spent ${money(spent)} of ${money(limit)}, ${status}` : `Spent ${money(spent)}, no budget set`}
+        className="relative h-1.5 rounded-chip bg-sunken"
+      >
         <span className={cn("absolute inset-y-0 left-0 rounded-chip", tone)} style={{ width: `${pct}%` }} />
         {reimbursablePct > 0 && (
           <span

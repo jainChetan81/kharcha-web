@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import { blob, check, index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { CATEGORY_TYPES, HOLDING_KINDS, REIMBURSEMENT_STATUSES, SERIES_KINDS, TXN_TYPES } from "./enums.ts";
 
-export const TXN_TYPES = ["income", "expense", "investment"] as const;
+export { CATEGORY_TYPES, HOLDING_KINDS, REIMBURSEMENT_STATUSES, SERIES_KINDS, TXN_TYPES };
 
 export const transactions = sqliteTable(
   "transactions",
@@ -53,7 +54,6 @@ export type TxnType = (typeof TXN_TYPES)[number];
 
 // ---- Design rebuild tables (DESIGN.md §7). ----
 
-export const CATEGORY_TYPES = ["expense", "income"] as const;
 export const categories = sqliteTable(
   "categories",
   {
@@ -105,7 +105,6 @@ export const transactionTrips = sqliteTable(
   (t) => [primaryKey({ columns: [t.transactionId, t.tripId] })],
 );
 
-export const SERIES_KINDS = ["subscription", "bill", "sip", "emi", "insurance"] as const;
 export const recurringSeries = sqliteTable("recurring_series", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
@@ -137,7 +136,6 @@ export const recurringOccurrences = sqliteTable(
   (t) => [primaryKey({ columns: [t.seriesId, t.dueDate] })],
 );
 
-export const HOLDING_KINDS = ["fund", "gold", "nps", "other"] as const;
 export const holdings = sqliteTable("holdings", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
@@ -285,7 +283,6 @@ export const digests = sqliteTable("digests", {
 });
 
 // Reimbursements (DESIGN.md §15). status is derived from links on every write, except cancelled and manual fully paid.
-export const REIMBURSEMENT_STATUSES = ["pending", "partly", "reimbursed", "extra", "cancelled"] as const;
 export const reimbursements = sqliteTable("reimbursements", {
   id: integer("id").primaryKey(),
   transactionId: integer("transaction_id")

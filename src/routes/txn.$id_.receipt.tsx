@@ -768,14 +768,17 @@ function Receipt() {
                           onChange={(e) => updateItem(index, { amount: Number(e.currentTarget.value) || 0 })}
                         />
                         {item.confidence !== null && item.confidence < 0.7 && (
-                          <button
-                            type="button"
-                            className="min-h-11 text-control text-watch-text"
-                            disabled={!online}
-                            onClick={() => updateItem(index, { confidence: null })}
-                          >
-                            ? Looks right
-                          </button>
+                          <>
+                            <span className="sr-only">Low confidence</span>
+                            <button
+                              type="button"
+                              className="min-h-11 text-control text-watch-text"
+                              disabled={!online}
+                              onClick={() => updateItem(index, { confidence: null })}
+                            >
+                              ? Looks right
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>

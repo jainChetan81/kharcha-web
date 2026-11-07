@@ -396,6 +396,7 @@ function Review() {
                 <button
                   type="button"
                   onClick={() => setActiveId(row.id)}
+                  aria-current={active ? "true" : undefined}
                   className={`min-h-10 truncate text-left font-medium ${handled ? "text-ink-3" : "text-ink"}`}
                 >
                   {row.merchant}

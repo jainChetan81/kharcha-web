@@ -9,7 +9,8 @@ import { afterWrite } from "../jobs";
 import { parseMessage } from "../parsers/index.ts";
 
 const id = z.object({ id: z.number().int().positive() });
-const live = isNull(transactions.deletedAt);
+// Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
+const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 
 export const getReview = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();

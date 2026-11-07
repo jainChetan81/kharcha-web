@@ -5,7 +5,7 @@ import { getDb } from "../db/client.ts";
 import { askLog } from "../db/schema.ts";
 import { aiConfig } from "./client.ts";
 import { askLedger } from "./ask.ts";
-import { scopeSchema } from "../db/queries.ts";
+import { scopeSchema } from "../db/validators.ts";
 
 export const ask = createServerFn({ method: "POST" })
   .validator(z.object({ question: z.string().trim().min(2).max(500), scope: scopeSchema.optional() }))
