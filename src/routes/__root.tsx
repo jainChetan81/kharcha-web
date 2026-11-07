@@ -10,6 +10,7 @@ import { HealthProvider, useHealth } from "../components/sync-pill";
 import { Button } from "../components/ui";
 import { KEYS, useGlobalKeys } from "../keybindings";
 import { getShell } from "../server/fns";
+import bodyFont from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
 import stylesheet from "../styles.css?url";
 import { themeBoot, watchSystemTheme } from "../lib/theme";
 import { errorText } from "../lib/error-text";
@@ -29,6 +30,8 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: stylesheet },
+      // Body text font on the first screen; the other faces load on demand.
+      { rel: "preload", href: bodyFont, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -59,9 +62,12 @@ export const Route = createRootRoute({
   component: Layout,
   errorComponent: RootError,
   notFoundComponent: () => (
-    <p className="p-6">
-      Page not found. <Link to="/">Go to Today</Link>
-    </p>
+    <div className="p-6">
+      <h1 className="m-0 font-serif text-page">Page not found</h1>
+      <p className="mb-0 text-body text-ink-2">
+        This address doesn’t match a page. <Link to="/">Go to Today</Link>
+      </p>
+    </div>
   ),
 });
 
@@ -117,9 +123,9 @@ function RootError({ error, reset }: ErrorComponentProps) {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   return (
     <main id="main" tabIndex={-1} role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-6 px-8 text-center">
-      <p className="m-0 font-serif text-title leading-snug">
+      <h1 className="m-0 font-serif text-title leading-snug">
         {offline ? "Can’t reach your server right now." : errorText(error, "Something went wrong.")}
-      </p>
+      </h1>
       <Button onClick={reset} className="min-h-12 px-7 text-entry">
         Retry
       </Button>

@@ -106,7 +106,7 @@ function Activity() {
         setSearchOpen(true);
       }
       if (event.key === "Escape") {
-        if (target === searchRef.current) (target as HTMLInputElement).blur();
+        if (target === searchRef.current) searchRef.current?.blur();
         setActiveId(null);
       }
     };

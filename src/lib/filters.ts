@@ -58,7 +58,7 @@ export const pickScope = (search: Record<string, unknown>): ScopeSearch =>
     Object.keys(scopeShape.shape)
       .filter((key) => search[key] !== undefined)
       .map((key) => [key, search[key]]),
-  ) as ScopeSearch;
+  ) as ScopeSearch; // SAFETY: only keys of scopeShape survive, and search was already validated by the route.
 
 type FilterCount = {
   month?: string;

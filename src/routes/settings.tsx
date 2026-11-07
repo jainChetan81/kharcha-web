@@ -550,7 +550,8 @@ function CategoryItem({
   return (
     <Reorder.Item
       value={item}
-      layout={dragging as true} /* false turns layout animation off; the prop type omits it */
+      // SAFETY: motion accepts layout={false} at runtime (animation off); its prop type only lists true and strings.
+      layout={dragging as true}
       onDragEnd={() => onDragging(false)}
       dragListener={false}
       dragControls={controls}

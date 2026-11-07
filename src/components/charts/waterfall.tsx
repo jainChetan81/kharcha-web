@@ -9,7 +9,7 @@ export function Waterfall({ values }: { values: { income: number; investments: n
   ] as const;
   const max = Math.max(...rows.map((row) => Math.abs(row[1])), 1);
   return (
-    <figure className="m-0 flex flex-col gap-3">
+    <figure role="img" aria-label={rows.map(([label, value]) => `${label} ${money(value)}`).join(", ")} className="m-0 flex flex-col gap-3">
       {rows.map(([label, value, color]) => (
         <div key={label} className="grid grid-cols-[76px_1fr] items-center gap-3">
           <span className="text-meta font-medium">

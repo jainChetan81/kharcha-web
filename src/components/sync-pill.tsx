@@ -53,18 +53,8 @@ export const useOnline = () => {
 const squeezeAgo = (text: string, short = false) =>
   short ? text.replace(" min ago", "m").replace(" h ago", "h").replace(" d ago", "d") : text;
 
-/** One wording everywhere: "Checked X · last new Y". Both halves reuse seenAt/lastIngestAt. */
-export const checkedLabel = (seenAt: string | null, lastIngestAt: string | null, short = false) => {
-  const checked = seenAt ? ago(seenAt) : null;
-  const lastNew = lastIngestAt ? ago(lastIngestAt) : null;
-  const squeeze = (text: string) => squeezeAgo(text, short);
-  const prefix =
-    seenAt && Date.parse(seenAt) > Date.now() - 60_000 ? "Checked just now" : checked ? `Checked ${squeeze(checked)}` : "Not checked yet";
-  return `${prefix} · last new ${lastNew ? squeeze(lastNew) : "none"}`;
-};
-
 export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean }) {
-  const { state, seenAt } = useSync();
+  const { state, seenAt, lastIngestAt } = useSync();
   if (state === "unknown") return null;
   const label =
     state === "offline"
@@ -73,9 +63,11 @@ export function SyncPill({ onInk, short }: { onInk?: boolean; short?: boolean })
         ? "Server unreachable"
         : state === "mini-offline"
           ? `Mini offline since ${seenAt ? time(new Date(seenAt)) : ""}`
-          : seenAt
-            ? `Mini online · ${squeezeAgo(ago(seenAt), short)}`
-            : "Mini not seen yet"; // "Last new" lives in Settings › Sync (§21)
+          : state === "quiet" && seenAt
+            ? `Mini quiet · ${lastIngestAt ? squeezeAgo(ago(lastIngestAt), short) : "no rows yet"}`
+            : seenAt
+              ? `Mini online · ${squeezeAgo(ago(seenAt), short)}`
+              : "Mini not seen yet"; // "Last new" lives in Settings › Sync (§21)
   const dot =
     state === "synced" && seenAt
       ? onInk

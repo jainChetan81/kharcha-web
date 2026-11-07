@@ -55,7 +55,7 @@ export function Sheet({
         <Dialog.Content
           asChild
           onInteractOutside={(event) => {
-            if ((event.target as Element | null)?.closest("[data-sonner-toaster]")) event.preventDefault();
+            if (event.target instanceof Element && event.target.closest("[data-sonner-toaster]")) event.preventDefault();
           }}
         >
           <m.section

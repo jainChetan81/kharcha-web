@@ -1,11 +1,17 @@
 @import "tailwindcss";
-@import "@fontsource/newsreader/400.css";
-@import "@fontsource/newsreader/500.css";
-@import "@fontsource/newsreader/400-italic.css";
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-mono/400.css";
+/* Latin + latin-ext only (₹ is in latin-ext); the browser fetches a subset only when a glyph needs it. */
+@import "@fontsource/newsreader/latin-400.css";
+@import "@fontsource/newsreader/latin-ext-400.css";
+@import "@fontsource/newsreader/latin-500.css";
+@import "@fontsource/newsreader/latin-ext-500.css";
+@import "@fontsource/newsreader/latin-400-italic.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-400.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-600.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
 
 /* Ledger tokens: DESIGN.md §3. Light here, dark under .dark below; every colour stays behind a token. */
 @custom-variant dark (&:where(.dark, .dark *));

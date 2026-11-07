@@ -1,7 +1,7 @@
 import { Dialog } from "radix-ui";
 import { m, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { money, monthLabel, rangeLabel } from "../lib/format";
 import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
@@ -66,7 +66,7 @@ const compactRange = (s: SearchState) =>
     ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}`
     : "";
 const chipBase =
-  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
+  "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
 
 function FilterPill({
   label,
@@ -99,7 +99,7 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
       type="button"
       onClick={remove}
       aria-label={`Remove ${label} filter`}
-      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-full px-3 text-meta font-medium ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
+      className={`inline-flex min-h-11 desk:min-h-9 shrink-0 items-center gap-2 rounded-full px-3 text-meta font-medium transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${filled ? "bg-brand text-on-brand" : "bg-brand-soft text-brand"} focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2`}
     >
       {label}
       <X size={14} aria-hidden="true" />
@@ -609,6 +609,7 @@ function AmountFields({
   onPatch: (next: Partial<SearchState>) => void;
 }) {
   const badAmount = minText !== "" && maxText !== "" && Number(minText) > Number(maxText);
+  const errorId = useId();
   return (
     <div className="space-y-4 p-3">
       <div className="flex flex-wrap gap-2">
@@ -636,6 +637,8 @@ function AmountFields({
           Minimum
           <input
             aria-label="Minimum amount"
+            aria-invalid={badAmount || undefined}
+            aria-describedby={badAmount ? errorId : undefined}
             inputMode="decimal"
             value={minText}
             onChange={(e) => {
@@ -651,6 +654,8 @@ function AmountFields({
           Maximum
           <input
             aria-label="Maximum amount"
+            aria-invalid={badAmount || undefined}
+            aria-describedby={badAmount ? errorId : undefined}
             inputMode="decimal"
             value={maxText}
             onChange={(e) => {
@@ -664,8 +669,8 @@ function AmountFields({
         </label>
       </div>
       {badAmount && (
-        <p role="alert" className="m-0 text-control text-over">
-          Minimum is more than maximum.
+        <p id={errorId} role="alert" className="m-0 text-control text-over">
+          Minimum is more than maximum. Lower the minimum or raise the maximum.
         </p>
       )}
     </div>

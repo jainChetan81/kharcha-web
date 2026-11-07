@@ -108,7 +108,6 @@ function Receipt() {
       ...item,
       key: crypto.randomUUID(),
       confidence: item.confidence ?? null,
-      source: item.source as Item["source"],
     })),
   );
   const [baseline, setBaseline] = useState(() => sig(items));
@@ -138,9 +137,20 @@ function Receipt() {
     if (!txnId || jobRun < 0) return;
     let alive = true;
     let timer: ReturnType<typeof setInterval> | undefined;
+    let misses = 0;
     const poll = async () => {
-      const result = await getReceiptJob({ data: { transactionId: txnId } }).catch(() => null);
-      if (!alive || !result?.job) return;
+      const result = await getReceiptJob({ data: { transactionId: txnId } }).catch(() => undefined);
+      if (!alive) return;
+      // A failed poll is not "still reading": after ~10 s of misses, stop and say so.
+      if (result === undefined) {
+        if (++misses >= 7) {
+          clearInterval(timer);
+          setJob({ status: "failed", error: "unreachable" });
+        }
+        return;
+      }
+      misses = 0;
+      if (!result.job) return;
       setJob({ status: result.job.status, error: result.job.error });
       if (result.job.status === "done") {
         clearInterval(timer);
@@ -151,7 +161,6 @@ function Receipt() {
             ...item,
             key: crypto.randomUUID(),
             confidence: item.confidence ?? null,
-            source: item.source as Item["source"],
           }));
           setItems(next);
           setBaseline(sig(next));
@@ -570,20 +579,24 @@ function Receipt() {
                     ? "This doesn't look like a bill."
                     : job.error === "ai_unavailable"
                       ? "Receipt reading is unavailable right now."
-                      : "Couldn't read this photo."}
+                      : job.error === "unreachable"
+                        ? "Can’t reach your server."
+                        : "Couldn't read this photo."}
                 </h2>
                 <p className="m-0 text-control text-ink-2">
                   {job.error === "not_receipt"
                     ? "No prices or totals were found. Pick the order summary or invoice instead."
                     : job.error === "ai_unavailable"
                       ? "The daily limit is reached or the AI service is down. Your images are saved and you can read them later."
-                      : "It's too blurry or dark. Try a sharper photo, or a screenshot of the order page."}{" "}
+                      : job.error === "unreachable"
+                        ? "The reading may still finish. Check the connection, then reopen this page."
+                        : "It's too blurry or dark. Try a sharper photo, or a screenshot of the order page."}{" "}
                   Images stay attached.
                 </p>
                 <Button onClick={addItem}>Enter items by hand</Button>
                 <Button variant="outline" disabled={!online} onClick={() => void startRead()}>
                   <RotateCcw size={16} />
-                  {job.error === "ai_unavailable" ? "Try again later" : "Try another photo"}
+                  {job.error === "ai_unavailable" ? "Try again later" : job.error === "unreachable" ? "Read again" : "Try another photo"}
                 </Button>
               </section>
             )}

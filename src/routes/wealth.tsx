@@ -145,6 +145,7 @@ function CasSheet({ onClose }: { onClose: () => void }) {
         type="file"
         accept="application/pdf,.pdf"
         aria-label="CAS PDF"
+        aria-describedby={error ? "cas-error" : undefined}
         className="text-control"
         onChange={(event) => setFile(event.target.files?.[0] ?? null)}
       />
@@ -152,13 +153,15 @@ function CasSheet({ onClose }: { onClose: () => void }) {
         type="password"
         autoComplete="off"
         aria-label="PDF password"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "cas-error" : undefined}
         placeholder="PDF password (usually PAN)"
         className="field"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
       {error && (
-        <p role="alert" className="m-0 text-control text-over">
+        <p id="cas-error" role="alert" className="m-0 text-control text-over">
           {error}
         </p>
       )}

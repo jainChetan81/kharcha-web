@@ -8,6 +8,7 @@ import { DeskPage } from "../components/app-shell";
 import { Button, Card, PageHeader } from "../components/ui";
 import { scopeSearch, type ScopeSearch } from "../lib/filters";
 import { money, monthLabel, rangeLabel, shortDate } from "../lib/format";
+import { errorText } from "../lib/error-text";
 import { ask, getAskHistory } from "../server/ai/fns";
 
 export const Route = createFileRoute("/ask")({
@@ -96,6 +97,7 @@ function Ask() {
   );
   const [unavailable, setUnavailable] = useState(!initial.enabled);
   const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const back = () => {
     if (router.history.canGoBack()) router.history.back();
     else void navigate({ to: "/" });
@@ -104,6 +106,7 @@ function Ask() {
     event?.preventDefault();
     if (!q.trim() || sending || !initial.enabled) return;
     setSending(true);
+    setFailed(null);
     try {
       const result = await ask({ data: { question: q.trim(), scope: chips.length ? scope : undefined } });
       setUnavailable(!result.ok);
@@ -120,8 +123,8 @@ function Ask() {
           },
         ]);
       setQuestion("");
-    } catch {
-      setUnavailable(true);
+    } catch (error) {
+      setFailed(errorText(error, "Couldn’t reach the server. Your question is still in the box; try again."));
     } finally {
       setSending(false);
     }
@@ -231,7 +234,12 @@ function Ask() {
             </Card>
           )}
           {unavailable && <AiUnavailable />}
-          {!answers.length && !unavailable && (
+          {failed && (
+            <p role="alert" className="m-0 text-body text-over">
+              {failed}
+            </p>
+          )}
+          {!answers.length && !unavailable && !failed && (
             <p className="mt-8 text-body text-ink-2">Ask about spending, merchants, categories, or dates.</p>
           )}
           {!sending && (
