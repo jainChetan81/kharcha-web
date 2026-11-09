@@ -34,14 +34,12 @@ const side = [
 const tabClass =
   "-mt-px flex flex-col items-center justify-center gap-[3px] text-caption transition-[opacity,transform] duration-150 hover:text-ink active:scale-95 active:opacity-70 motion-reduce:transition-none motion-reduce:active:scale-100 motion-reduce:active:opacity-100";
 
-/** Full-screen routes on phones: no tab bar, no add button. */
 const bare = (p: string) =>
   /^\/(review(?:\/|$)|add|paste|ask|settings|txn\/.+\/(edit|receipt)|plan\/(trips|recurring)\/(new|\d+)|wealth\/(new|\d+\/edit))/.test(p);
 
 export function AppShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = useState(false);
-  // Navigating closes the More sheet.
   const [seenPath, setSeenPath] = useState(path);
   if (seenPath !== path) {
     setSeenPath(path);

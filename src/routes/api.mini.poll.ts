@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ingestAuth } from "../server/auth";
+import { ingestAuth, noStoreJson as json } from "../server/auth";
 import { getDb } from "../server/db/client";
 import { minipoll } from "../server/mini";
 
@@ -12,9 +12,9 @@ export const Route = createFileRoute("/api/mini/poll")({
         if (denied) return denied;
         try {
           const done = new URL(request.url).searchParams.get("done") === "1";
-          return Response.json(await minipoll(getDb(), done), { headers: { "Cache-Control": "no-store" } });
+          return json(await minipoll(getDb(), done));
         } catch {
-          return Response.json({ error: "Store is unavailable." }, { status: 500, headers: { "Cache-Control": "no-store" } });
+          return json({ error: "Store is unavailable." }, 500);
         }
       },
     },

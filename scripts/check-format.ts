@@ -58,7 +58,6 @@ assert.equal(evalAmount("4++5"), undefined);
 assert.equal(evalAmount(""), undefined);
 assert.equal(fromSource("sms", "2026-10-18 19:47"), "From SMS · 18 Oct, 7:47 PM");
 
-// Dates, times and numbers are formatted only in src/lib/format.ts.
 const { readdirSync, readFileSync } = await import("node:fs");
 const banned = /toLocale(Date|Time)?String\(|\.slice\(11, ?16\)/;
 const offenders = (readdirSync("src", { recursive: true }) as string[])
@@ -66,9 +65,8 @@ const offenders = (readdirSync("src", { recursive: true }) as string[])
   .filter((f) => banned.test(readFileSync(`src/${f}`, "utf8")));
 assert.deepEqual(offenders, [], "format dates, times and numbers via src/lib/format.ts");
 console.log("check-format: ok");
-assert.equal(aiCost(0), money(0));
+assert.equal(aiCost(0), "₹0");
 
-// Activity filter helpers (src/lib/filters.ts, §16).
 {
   const { countFor, preset, presetOn, today } = await import("../src/lib/filters.ts");
   const now = today();
@@ -91,12 +89,10 @@ assert.equal(aiCost(0), money(0));
   assert.equal(countFor({ sort: "newest" }), 0);
 }
 
-// cn() must know the type scale, or twMerge drops text-meta next to a text colour.
 import { cn } from "../src/lib/cn.ts";
 assert.equal(cn("text-meta text-ink-2"), "text-meta text-ink-2");
 assert.equal(cn("text-body", "text-meta"), "text-meta");
 
-// Stale-chunk reload: once per chunk, at most two per path, reset after 30 minutes.
 import { nextReload } from "../src/lib/stale-chunk.ts";
 {
   const one = nextReload({}, "/a", "c1", 0);
@@ -109,7 +105,6 @@ import { nextReload } from "../src/lib/stale-chunk.ts";
   assert.ok(nextReload(two, "/a", "c1", 31 * 60_000));
 }
 
-// errorText: people-written messages pass through; zod JSON and network noise fall back.
 import { errorText } from "../src/lib/error-text.ts";
 assert.equal(errorText(new Error("Wrong PDF password."), "x"), "Wrong PDF password.");
 assert.equal(errorText(new Error('[\n  { "code": "invalid_type" }\n]'), "Couldn't load."), "Couldn't load.");

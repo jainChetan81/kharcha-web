@@ -5,7 +5,6 @@ import { BANK_NAME as INDUSIND_BANK_NAME, INDUSIND_PARSERS, PARSER_KEY as INDUSI
 import { decodeHtmlEntities, tryParsers, type ParsedTransaction, type Parser } from "./utils.ts";
 
 export type { ParsedTransaction };
-export { tryParsers };
 
 export interface ParseOutcome {
   parsed: ParsedTransaction | null;
@@ -42,8 +41,4 @@ export function parseMessage(parserKey: string | null, rawBody: string): ParseOu
     bankName: parserKey ? (PARSER_MAP[parserKey]?.bankName ?? null) : null,
     parserKey,
   };
-}
-
-export function getBankName(parserKey: string | null): string | null {
-  return parserKey ? (PARSER_MAP[parserKey]?.bankName ?? null) : null;
 }

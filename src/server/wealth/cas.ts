@@ -9,7 +9,7 @@ import { z } from "zod";
 import { getDb, type Db } from "../db/client.ts";
 import { holdingTxns, holdings, prices } from "../db/schema.ts";
 import { navDate } from "./jobs.ts";
-import { realDay } from "./xirr.ts";
+import { realDay } from "../../lib/dates.ts";
 
 // CAS PDFs are read by casparser (MIT, github.com/codereverser/casparser) via scripts/cas-to-json.py.
 

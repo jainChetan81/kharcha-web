@@ -1,5 +1,5 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
-import { isSignedIn } from "./server/auth";
+import { canRead } from "./server/auth";
 
 // Render-time dates (this month, today, pace) must match the phone's IST clock, or hydration
 // disagrees around midnight. The server runs in UTC, so pin Node's zone before any request.
@@ -13,14 +13,9 @@ const csrf = createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === "server
 const PUBLIC = new Set(["/login", "/api/login", "/api/logout", "/api/ingest", "/api/health", "/api/mini/poll"]);
 const isPublic = (path: string) => PUBLIC.has(path) || path.startsWith("/api/jobs/");
 
-// ponytail: KHARCHA_AUTH=off opens the whole app (owner's choice while data is low-stakes).
-// Remove that line from /etc/kharcha-web/env and restart to require the login again.
-const authOff = process.env.KHARCHA_AUTH === "off";
-
 const auth = createMiddleware().server(async ({ request, pathname, handlerType, next }) => {
-  if (authOff) return next();
+  if (canRead(request)) return next();
   if (handlerType === "router" && isPublic(pathname)) return next();
-  if (isSignedIn(request)) return next();
   if (handlerType === "serverFn") return new Response(SIGN_IN_AGAIN, { status: 401 });
   return new Response(null, {
     status: 302,

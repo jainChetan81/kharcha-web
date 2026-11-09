@@ -6,7 +6,6 @@ const PER_PATH = 2;
 
 type Log = Record<string, { at: number; chunks: string[] }>;
 
-/** Pure rule: may this chunk failure on this path reload? Returns the updated log, or null to stop. */
 export function nextReload(log: Log, path: string, chunk: string, now: number): Log | null {
   const entry = log[path] && now - log[path].at < WINDOW_MS ? log[path] : { at: now, chunks: [] };
   if (entry.chunks.includes(chunk) || entry.chunks.length >= PER_PATH) return null;

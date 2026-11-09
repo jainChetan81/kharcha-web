@@ -1,26 +1,24 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { eq } from "drizzle-orm";
-import { askLedger, askSpecSchema, describeScope, figuresMatchRows, redact, scrub } from "../src/server/ai/ask.ts";
+import { askLedger, askSpecSchema, describeScope, figuresMatchRows } from "../src/server/ai/ask.ts";
+import { redact, scrub, redactReceiptText, scrubItemName } from "../src/lib/privacy.ts";
 import { openDb } from "../src/server/db/client.ts";
 import { digests, insights, transactions } from "../src/server/db/schema.ts";
 import { callAi } from "../src/server/ai/client.ts";
 import { attachments, receiptJobs } from "../src/server/db/schema.ts";
-import {
-  categorize,
-  receiptOutput,
-  receiptSplitMatches,
-  redactReceiptText,
-  runReceiptJob,
-  scrubItemName,
-} from "../src/server/ai/receipt.ts";
-import { spendByCategory } from "../src/server/db/queries.ts";
+import { categorize, receiptOutput, receiptSplitMatches, runReceiptJob } from "../src/server/ai/receipt.ts";
+import { spendByCategory, splitCategoryKey } from "../src/server/db/queries.ts";
 import { transactionSplits } from "../src/server/db/schema.ts";
 import { validDigestLines, runDetectors, runDigest } from "../src/server/insights/jobs.ts";
 
 const spec = askSpecSchema.safeParse({ metric: "sum", filters: { category: "Food" }, groupBy: "month", period: "last_3_months" });
 assert.equal(spec.success, true);
 assert.equal(askSpecSchema.safeParse({ metric: "sum", filters: { card: "2047" } }).success, false);
+assert.deepEqual(splitCategoryKey("expense:Food"), { type: "expense", category: "Food" });
+assert.deepEqual(splitCategoryKey("income:Other"), { type: "income", category: "Other" });
+assert.deepEqual(splitCategoryKey("Food"), { type: undefined, category: "Food" });
+assert.deepEqual(splitCategoryKey("custom:Food"), { type: undefined, category: "Food" });
 assert.equal(figuresMatchRows("Total is ₹1,200.", [{ value: 1200 }]), true);
 assert.equal(figuresMatchRows("Total is ₹1,201.", [{ value: 1200 }]), false);
 assert.equal(figuresMatchRows("About ₹1,200 so far.", [{ value: 1199.6 }]), true);
@@ -286,7 +284,6 @@ try {
         accountLast4: "4242",
       },
     ]);
-    // Planner asks for everything, all time; scope must still win.
     const replies = [
       JSON.stringify({ queries: [{ metric: "sum", period: "all", filters: {} }] }),
       JSON.stringify({ answer: "In scope you spent ₹100.", followUps: [] }),
@@ -316,7 +313,6 @@ try {
     replies[1] = JSON.stringify({ answer: "Total ₹1,500.", followUps: [] });
     const all = await askLedger(sdb, "How much?");
     assert.equal(all.ok && all.rows[0]?.value, 1500, "no scope: planner's period applies");
-    // Split row: scope Food counts only the Food part.
     const { transactionSplits: splits } = await import("../src/server/db/schema.ts");
     const [split] = await sdb
       .insert(transactions)
@@ -391,7 +387,6 @@ try {
     assert.deepEqual(await merchantsByMeaning(openDb(":memory:"), "off switch check"), []);
     assert.equal(calls, 0, "AI off: no embedding call");
 
-    // On path: "pharmacy" vector sits next to "Apollo Pharmacy", far from "Uber".
     const vec = (x: number) => Array.from({ length: 768 }, (_, i) => (i === 0 ? x : i === 1 ? 1 - x : 0));
     const known: Record<string, number[]> = { "Apollo Pharmacy": vec(1), Uber: vec(0) };
     globalThis.fetch = async (_input, init) => {
@@ -420,7 +415,6 @@ try {
     assert.deepEqual(await merchantsByMeaning(edb, "pharmacy"), ["Apollo Pharmacy"]);
     assert.deepEqual(await fillMissing(edb), { embedded: 0, missing: 0 }, "second run: nothing to embed");
 
-    // Wrong dimension from the endpoint: rejected, not stored as NaN scores.
     await edb
       .insert(transactions)
       .values({ source: "manual", type: "expense", amount: 50, merchant: "Odd", category: "Other", date: "2026-10-06 10:00" });

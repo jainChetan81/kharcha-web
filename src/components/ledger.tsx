@@ -1,6 +1,5 @@
 // LedgerRow and DayHeader (§5): 56px rows; day total under a 1px ink rule.
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { card, foreign, money, shortDate, time, weekdayDate } from "../lib/format";
 
@@ -23,7 +22,8 @@ export type LedgerTxn = {
 };
 
 /** Excluded rows (card bills, own-account moves, anything marked "Not a spend") stay listed but don't count. Ingest files card bills as Other, so the tag can't tell them apart. */
-const cardBill = (t: LedgerTxn) => /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
+export const cardBill = (t: { merchant: string; rawMerchant?: string | null }) =>
+  /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
 const label = (t: LedgerTxn) =>
   t.excluded
     ? cardBill(t)
@@ -137,19 +137,7 @@ export function Amount({ t, className }: { t: LedgerTxn; className?: string }) {
   );
 }
 
-export function LedgerRow({
-  t,
-  withDate,
-  trailing,
-  className,
-  color,
-}: {
-  t: LedgerTxn;
-  withDate?: boolean;
-  trailing?: ReactNode;
-  className?: string;
-  color?: string;
-}) {
+export function LedgerRow({ t, withDate, className, color }: { t: LedgerTxn; withDate?: boolean; className?: string; color?: string }) {
   return (
     <Link
       to="/txn/$id"
@@ -169,31 +157,29 @@ export function LedgerRow({
         <RowMeta t={t} withDate={withDate} color={color} />
         {t.reimbursable != null && t.reimbursable > 0 && <ReimbursableBadge amount={t.reimbursable} className="self-start" />}
       </span>
-      {trailing ??
-        (t.reimbursable ? (
-          <span className="flex shrink-0 flex-col items-end gap-0.5">
-            <Amount t={t} />
-            <span className="text-meta whitespace-nowrap text-ink-2">
-              {money(t.yours ?? 0)} yours · {money(t.reimbursable)} paid
-            </span>
-          </span>
-        ) : (
+      {t.reimbursable ? (
+        <span className="flex shrink-0 flex-col items-end gap-0.5">
           <Amount t={t} />
-        ))}
+          <span className="text-meta whitespace-nowrap text-ink-2">
+            {money(t.yours ?? 0)} yours · {money(t.reimbursable)} paid
+          </span>
+        </span>
+      ) : (
+        <Amount t={t} />
+      )}
     </Link>
   );
 }
 
-export function DayHeader({ date, total, label }: { date: string; total: number; label?: string }) {
+export function DayHeader({ date, total }: { date: string; total: number }) {
   return (
     <div className="flex min-w-0 items-baseline justify-between gap-2 border-b border-ink pt-4.5 pb-1.5 text-caption font-medium text-ink-2">
-      <span className="min-w-0 truncate">{label ?? weekdayDate(date)}</span>
+      <span className="min-w-0 truncate">{weekdayDate(date)}</span>
       <span className="shrink-0 font-semibold text-ink">{money(total)}</span>
     </div>
   );
 }
 
-/** Group rows by day, newest first, with the day's spend total (expenses that count). */
 export function byDay<T extends LedgerTxn>(rows: T[]): { date: string; total: number; rows: T[] }[] {
   const out: { date: string; total: number; rows: T[] }[] = [];
   for (const r of rows) {
@@ -204,7 +190,6 @@ export function byDay<T extends LedgerTxn>(rows: T[]): { date: string; total: nu
       out.push(g);
     }
     g.rows.push(r);
-    // Your share when the server sent one; reimbursed amounts don't count toward the day.
     if (r.type === "expense" && !r.excluded) g.total += r.yours ?? r.amount;
   }
   return out;

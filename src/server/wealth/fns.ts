@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { holdingCsvRows } from "../../lib/csv.ts";
+import { holdingCsvIssue, holdingCsvRows } from "../../lib/csv.ts";
+import { istToday } from "../../lib/dates.ts";
 import { getDb } from "../db/client.ts";
 import { holdingTxns, holdings, prices, sipMandates } from "../db/schema.ts";
-import { realDay, xirr } from "./xirr.ts";
+import { xirr } from "./xirr.ts";
+import { realDay } from "../../lib/dates.ts";
 
 export type WealthSummary = {
   value: number;
@@ -52,7 +54,7 @@ export function navDayChange(
   return previousUnits * (nav - previousNav);
 }
 export function isNotFutureDateInIST(date: string, now = new Date()) {
-  return date <= new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
+  return date <= istToday(now);
 }
 // ponytail: invested-over-time with today's value as the final point; past values need per-date NAV, add when price history covers every holding.
 function investedSeries(txns: { date: string; amount: number }[], value: number) {
@@ -109,9 +111,24 @@ function wealthFlows(rows: { txns: { date: string; amount: number }[]; value: nu
   if (traded) flows.push({ date: new Date().toISOString().slice(0, 10), amount: traded });
   return flows;
 }
+function wealthBase(rows: Awaited<ReturnType<typeof holdingsWithValue>>) {
+  const value = rows.reduce((sum, row) => sum + row.value, 0);
+  const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
+  return {
+    value,
+    dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0),
+    navDate: dates.sort().at(-1) ?? null,
+    asOf: snapshotDate(rows),
+    spark: investedSeries(
+      rows.flatMap((row) => row.txns),
+      value,
+    ),
+    xirr: xirr(wealthFlows(rows)),
+  };
+}
 /** Next occurrence of a SIP day-of-month on or after today in IST, clamped to month end (day 31 in Feb gives 28/29). */
 export function nextSipDate(day: number, now = new Date()) {
-  const today = new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
+  const today = istToday(now);
   const [y, m] = today.split("-").map(Number) as [number, number, number];
   const onMonth = (year: number, monthIndex: number) => {
     const last = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
@@ -125,8 +142,8 @@ export function nextSipDate(day: number, now = new Date()) {
 export const getWealthSummary = createServerFn({ method: "GET" }).handler(async (): Promise<WealthSummary | null> => {
   const [rows, mandates] = await Promise.all([holdingsWithValue(), getDb().select().from(sipMandates)]);
   if (!rows.length) return null;
-  const value = rows.reduce((sum, row) => sum + row.value, 0);
-  const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
+  const base = wealthBase(rows);
+  const { value } = base;
   const based = rows.filter((row) => row.txns.length || row.manualInvested != null);
   const invested = based.length ? based.reduce((sum, row) => sum + row.invested, 0) : null;
   const gain = invested == null ? null : based.reduce((sum, row) => sum + row.value, 0) - invested;
@@ -142,19 +159,11 @@ export const getWealthSummary = createServerFn({ method: "GET" }).handler(async 
       .map((row) => ({ amount: row.amount, date: nextSipDate(row.day) }))
       .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
   return {
-    value,
-    dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0),
-    navDate: dates.sort().at(-1) ?? null,
-    asOf: snapshotDate(rows),
-    spark: investedSeries(
-      rows.flatMap((row) => row.txns),
-      value,
-    ),
+    ...base,
     holdings: rows.length,
     invested,
     gain,
     gainPct: invested && invested > 0 ? (gain! / invested) * 100 : null,
-    xirr: xirr(wealthFlows(rows)),
     allocation,
     nextSip,
   };
@@ -164,10 +173,9 @@ export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
   const [rows, mandates] = await Promise.all([holdingsWithValue(), getDb().select().from(sipMandates).orderBy(asc(sipMandates.day))]);
   const names = new Map(rows.map((row) => [row.id, row.name]));
   const sips = mandates.filter((row) => names.has(row.holdingId)).map((row) => ({ ...row, name: names.get(row.holdingId)! }));
-  const value = rows.reduce((sum, row) => sum + row.value, 0);
+  const base = wealthBase(rows);
+  const { value } = base;
   const invested = rows.reduce((sum, row) => sum + row.invested, 0);
-  const dates = rows.map((row) => row.price?.date).filter(Boolean) as string[];
-  const flows = wealthFlows(rows); // Snapshot-only holdings have no dated cost, so their value stays out of XIRR.
   const allocation = Object.values(
     rows.reduce<Record<string, { value: number; target: number; hasTarget: boolean; name: string }>>((map, row) => {
       const item = map[row.assetClass] ?? { name: row.assetClass, value: 0, target: 0, hasTarget: false };
@@ -186,21 +194,13 @@ export const getWealth = createServerFn({ method: "GET" }).handler(async () => {
     .reduce((sum, txn) => sum + txn.amount, 0);
   return {
     rows,
-    value,
-    dayChange: rows.reduce((sum, row) => sum + row.dayChange, 0),
+    ...base,
     invested,
     gain: value - invested,
-    xirr: xirr(flows),
-    navDate: dates.sort().at(-1) ?? null,
-    asOf: snapshotDate(rows),
     sips,
     allocation,
     nps,
     financialYear,
-    spark: investedSeries(
-      rows.flatMap((row) => row.txns),
-      value,
-    ),
   };
 });
 
@@ -249,7 +249,6 @@ export const searchFund = createServerFn({ method: "GET" })
       if (!response.ok) return [];
       const body: unknown = await response.json();
       if (!Array.isArray(body)) return [];
-      // Drop malformed rows, keep the rest.
       return body
         .flatMap((item) => {
           const row = fundHit.safeParse(item);
@@ -261,18 +260,6 @@ export const searchFund = createServerFn({ method: "GET" })
     }
   });
 
-const csvRow = z
-  .object({
-    date: z
-      .string()
-      .refine(realDay, "not a real date")
-      .refine((d) => isNotFutureDateInIST(d), "future date"),
-    fund: z.string().trim().min(1),
-    amount: z.coerce.number().refine((n) => n !== 0),
-    units: z.coerce.number().refine((n) => n !== 0),
-    nav: z.coerce.number().positive(),
-  })
-  .refine((row) => Math.sign(row.amount) === Math.sign(row.units)); // negative amount + units = redemption
 export const importHoldingCsv = createServerFn({ method: "POST" })
   .validator(z.object({ csv: z.string().max(1_000_000) }))
   .handler(async ({ data }) => {
@@ -280,17 +267,18 @@ export const importHoldingCsv = createServerFn({ method: "POST" })
     const db = getDb();
     const all = await db.select().from(holdings);
     const seen = new Set((await db.select().from(holdingTxns)).map((row) => `${row.holdingId}|${row.date}|${row.amount}|${row.units}`));
+    const names = new Set(all.map((row) => row.name.toLowerCase()));
     let imported = 0;
     let errors = 0;
     let skipped = 0;
     for (const [date, fund, amount, units, nav] of values) {
-      const parsed = csvRow.safeParse({ date, fund, amount, units, nav });
-      const holding = parsed.success ? all.find((row) => row.name.toLowerCase() === parsed.data.fund.toLowerCase()) : undefined;
-      if (!parsed.success || !holding) {
+      const row = { date: date ?? "", fund: fund ?? "", amount: amount ?? "", units: units ?? "", nav: nav ?? "" };
+      const holding = all.find((item) => item.name.toLowerCase() === row.fund.toLowerCase());
+      if (holdingCsvIssue(row, names) || !holding) {
         errors++;
         continue;
       }
-      const key = `${holding.id}|${parsed.data.date}|${parsed.data.amount}|${parsed.data.units}`;
+      const key = `${holding.id}|${row.date}|${Number(row.amount)}|${Number(row.units)}`;
       if (seen.has(key)) {
         skipped++;
         continue;
@@ -298,10 +286,10 @@ export const importHoldingCsv = createServerFn({ method: "POST" })
       seen.add(key);
       await db.insert(holdingTxns).values({
         holdingId: holding.id,
-        date: parsed.data.date,
-        amount: parsed.data.amount,
-        units: parsed.data.units,
-        nav: parsed.data.nav,
+        date: row.date,
+        amount: Number(row.amount),
+        units: Number(row.units),
+        nav: Number(row.nav),
         source: "csv",
       });
       imported++;

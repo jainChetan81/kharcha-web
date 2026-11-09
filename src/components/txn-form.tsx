@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { evalAmount, money, nowLocal } from "../lib/format";
+import { DESKTOP_MEDIA_QUERY, evalAmount, fromDateTimeLocal, money, nowLocal, toDateTimeLocal } from "../lib/format";
 import { addTransaction, deleteTransaction, restoreTransaction, saveEdit } from "../server/fns";
 import { CategoryPicker, type PickerCategory } from "./category-picker";
 import { countAdd } from "./pwa";
-import { saveFailed, snack, useHoldsInput } from "./sheet";
+import { deletedSnack, saveFailed, snack, useHoldsInput } from "./sheet";
 import { useOnline } from "./sync-pill";
 import { Button, ButtonLink, Field, Segmented, Switch } from "./ui";
 
@@ -35,7 +35,6 @@ export function TxnForm({
   onDone: () => void;
   onCancel?: () => void;
   onDeleted?: () => void;
-  /** Parent reads `.current` when it needs to confirm a discard. */
   dirtyRef?: { current: boolean };
 }) {
   useHoldsInput();
@@ -57,7 +56,7 @@ export function TxnForm({
   }, [dirty, dirtyRef]);
   // Desktop dialog autofocuses Merchant; Radix traps focus inside the dialog.
   useEffect(() => {
-    if (window.matchMedia("(min-width: 840px)").matches) document.getElementById("merchant-desk")?.focus();
+    if (window.matchMedia(DESKTOP_MEDIA_QUERY).matches) document.getElementById("merchant-desk")?.focus();
   }, []);
   const cancel = onCancel ?? onDone;
   const set = <K extends keyof Value>(key: K, item: Value[K]) => setValue((old) => ({ ...old, [key]: item }));
@@ -97,7 +96,7 @@ export function TxnForm({
     setDeleting(true);
     try {
       await deleteTransaction({ data: { id } });
-      snack("Transaction deleted.", { label: "Undo", onClick: () => void restoreTransaction({ data: { id } }) });
+      deletedSnack("Transaction deleted.", () => void restoreTransaction({ data: { id } }));
       (onDeleted ?? onDone)();
     } catch {
       saveFailed(remove);
@@ -109,7 +108,7 @@ export function TxnForm({
   const merchantError = tried && !value.merchant.trim() ? "Add a merchant to save" : undefined;
   const amountError = tried && amount <= 0 ? "Enter an amount to save" : undefined;
   const cannotSubmit = !online || saving || deleting || (tried && (amount <= 0 || !value.merchant.trim()));
-  const setDate = (v: string) => set("date", v.replace("T", " "));
+  const setDate = (v: string) => set("date", fromDateTimeLocal(v));
   return (
     <form
       noValidate
@@ -218,7 +217,7 @@ export function TxnForm({
             id="date"
             label="Date"
             type="datetime-local"
-            value={value.date.replace(" ", "T")}
+            value={toDateTimeLocal(value.date)}
             onChange={(e) => setDate(e.target.value)}
             className={mode === "edit" ? "py-2.5" : "min-w-0 flex-[1_1_190px]"}
           />
@@ -257,7 +256,7 @@ export function TxnForm({
             id="date-desk"
             label="Date"
             type="datetime-local"
-            value={value.date.replace(" ", "T")}
+            value={toDateTimeLocal(value.date)}
             onChange={(e) => setDate(e.target.value)}
           />
           {mode === "add" && (

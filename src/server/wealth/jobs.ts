@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client.ts";
-import { realDay } from "./xirr.ts";
+import { realDay } from "../../lib/dates.ts";
 import { holdingTxns, holdings, prices, transactions } from "../db/schema.ts";
 
 const ymd = (date: string) => date.slice(0, 10);

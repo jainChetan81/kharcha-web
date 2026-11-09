@@ -5,14 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { DeskPage } from "../components/app-shell";
 import { ActivityFilters, FilterToolbar } from "../components/activity-filters";
-import { Amount, byDay, DayHeader, RowMeta, SplitMeta } from "../components/ledger";
+import { Amount, byDay, cardBill, DayHeader, RowMeta, SplitMeta } from "../components/ledger";
 import { MonthStepper } from "../components/month-stepper";
 import { SummaryStrip } from "../components/summary-strip";
-import { saveFailed, snack, snackError } from "../components/sheet";
+import { deletedSnack, saveFailed, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
+import { typing } from "../keybindings";
 import { Button, CategoryDot, Empty } from "../components/ui";
-import { card, money, rangeLabel, thisMonth, time, weekdayDate } from "../lib/format";
-import { ordered, pickScope, scopeShape } from "../lib/filters";
+import { card, money, rangeLabel, thisMonth, time, transactionSourceLabels, weekdayDate } from "../lib/format";
+import { ordered, pickScope, scopeShape, shortCategory } from "../lib/filters";
 import { getActivityMeta } from "../server/daily/fns";
 import { deleteTransaction, getTransactions, getTransactionSummary, restoreTransaction } from "../server/fns";
 
@@ -26,8 +27,6 @@ const activitySearch = ordered(
 
 type ActivitySearch = z.infer<typeof activitySearch>;
 type Row = Awaited<ReturnType<typeof getTransactions>>[number];
-// Same rule as ledger.tsx's row label; ingest files card bills as Other, so the category can't tell them apart.
-const cardBill = (t: Row) => /cred|credit card|card payment/i.test(`${t.merchant} ${t.rawMerchant ?? ""}`);
 
 export const Route = createFileRoute("/activity")({
   validateSearch: activitySearch,
@@ -59,15 +58,15 @@ function Activity() {
   const [dateOpen, setDateOpen] = useState(false);
   const [showExcludedNote, setShowExcludedNote] = useState(false);
   const active = rows.find((row) => row.id === activeId);
+  const activeSourceLabels = active ? transactionSourceLabels(active.source) : undefined;
   const month = search.month ?? thisMonth();
   const cards = [...new Set(rows.map((row) => row.accountLast4).filter((value): value is string => Boolean(value)))];
   const activeCategories = search.categories ?? (search.category ? [search.category] : []);
-  const splitOnly = activeCategories.length === 1 ? activeCategories[0].split(":").at(-1) : undefined;
-  // Project filtered split rows to selected parts. Day totals use the same share fraction.
+  const splitOnly = activeCategories.length === 1 ? shortCategory(activeCategories[0]) : undefined;
   const viewRows = rows.map((r) => {
     if (!activeCategories.length || !r.splits.length) return r;
     const part = r.splits
-      .filter((x) => activeCategories.some((value) => !/^(income|investment):/.test(value) && value.split(":").at(-1) === x.category))
+      .filter((x) => activeCategories.some((value) => !/^(income|investment):/.test(value) && shortCategory(value) === x.category))
       .reduce((sum, x) => sum + x.amount, 0);
     const ratio = r.amount > 0 ? part / r.amount : 0;
     return { ...r, amount: part, yours: r.yours * ratio, originalTotal: r.amount };
@@ -100,7 +99,7 @@ function Activity() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target;
-      const editable = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+      const editable = typing(target);
       if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !editable) {
         event.preventDefault();
         setSearchOpen(true);
@@ -128,7 +127,6 @@ function Activity() {
     const { review, ids, sort, ...rest } = draft as ActivitySearch;
     void ids;
     void sort;
-    // The Needs review pill sets review=true; count it the way the list does.
     const status = review && !rest.status?.includes("review") ? [...(rest.status ?? []), "review" as const] : rest.status;
     const data = { ...rest, status, month: rest.from || rest.to ? undefined : (rest.month ?? month) };
     return (await getTransactionSummary({ data })).count;
@@ -140,14 +138,11 @@ function Activity() {
         setSwipedId(null);
         if (activeId === row.id) setActiveId(null);
         void router.invalidate();
-        snack("Deleted.", {
-          label: "Undo",
-          onClick: () => {
-            if (!online) return;
-            void restoreTransaction({ data: { id: row.id } })
-              .then(() => void router.invalidate())
-              .catch(() => snackError("Couldn’t undo the delete."));
-          },
+        deletedSnack("Deleted.", () => {
+          if (!online) return;
+          void restoreTransaction({ data: { id: row.id } })
+            .then(() => void router.invalidate())
+            .catch(() => snackError("Couldn’t undo the delete."));
         });
       })
       .catch(() => saveFailed(() => remove(row)));
@@ -411,8 +406,8 @@ function Activity() {
             {[
               ["Date", weekdayDate(active.date)],
               ["Card", card(active.accountLast4) || "Manual"],
-              ["Source", active.source === "sms" ? "SMS via Mac mini" : active.source === "paste" ? "Pasted text" : "Added by hand"],
-              ["Parsed by", active.source === "sms" ? "Regex" : active.source === "paste" ? "Paste" : "Manual"],
+              ["Source", activeSourceLabels?.source ?? ""],
+              ["Parsed by", activeSourceLabels?.parsedBy ?? ""],
               ["Status", active.needsReview ? "Needs review" : active.excluded ? "Not counted" : "Reviewed"],
             ].map(([label, value]) => (
               <div key={label} className="flex min-h-9 items-center justify-between gap-4 border-b border-hairline text-control">

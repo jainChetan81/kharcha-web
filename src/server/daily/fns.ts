@@ -2,15 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { categoryList } from "../db/queries";
-import { attachments, categories, reimbursements, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
-import { receiptSplitMatches, scrubItemName } from "../ai/receipt";
+import { activeItemClaim, categoryList, fileFiling, live } from "../db/queries";
+import { attachments, categories, transactionItems, transactionSplits, transactions, trips } from "../db/schema";
+import { receiptSplitMatches } from "../ai/receipt";
+import { scrubItemName } from "../../lib/privacy.ts";
 import { afterWrite } from "../jobs";
 import { parseMessage } from "../parsers/index.ts";
 
 const id = z.object({ id: z.number().int().positive() });
 // Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
-const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 
 export const getReview = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
@@ -99,17 +99,7 @@ export const saveReceipt = createServerFn({ method: "POST" })
     if (!txn) throw new Error("Transaction not found.");
     // Item claims hold item IDs; replacing those rows would silently restore the
     // claimed amount to split-category totals. Cancel claim before editing receipt.
-    const itemClaim = await db
-      .select({ id: reimbursements.id })
-      .from(reimbursements)
-      .where(
-        and(
-          eq(reimbursements.transactionId, data.id),
-          sql`${reimbursements.itemIds} IS NOT NULL`,
-          sql`${reimbursements.status} != 'cancelled'`,
-        ),
-      )
-      .get();
+    const itemClaim = await activeItemClaim(db, data.id);
     if (itemClaim) throw new Error("Cancel the item reimbursement claim before changing receipt items.");
     const known = new Set(
       (
@@ -185,11 +175,11 @@ export const savePasted = createServerFn({ method: "POST" })
     if (parsed?.status !== "parsed") throw new Error("Message needs manual entry.");
     const db = getDb();
     const known = await db
-      .select({ name: categories.name })
+      .select({ name: categories.name, type: categories.type })
       .from(categories)
       .where(eq(categories.type, parsed.type === "income" ? "income" : "expense"));
-    const isTransfer = parsed.category === "Credit Card Payment";
-    const category = known.some((item) => item.name === parsed.category) ? parsed.category : "Other";
+    const { category, excluded } = fileFiling(parsed.type === "income" ? "income" : "expense", parsed.category, parsed.category, known);
+    const needsReview = !excluded && category === "Other";
     const [row] = await db
       .insert(transactions)
       .values({
@@ -203,8 +193,8 @@ export const savePasted = createServerFn({ method: "POST" })
         rawText: data.text,
         bankName: parsed.bankName,
         accountLast4: parsed.accountLast4 ?? null,
-        needsReview: !isTransfer && category === "Other",
-        excluded: isTransfer,
+        needsReview,
+        excluded,
         editedAt: sql`datetime('now')`,
       })
       .returning({ id: transactions.id });

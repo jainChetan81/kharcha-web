@@ -1,10 +1,12 @@
 import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
-import { filteredAmount, listWhere, spendByCategory } from "../db/queries.ts";
+import { categoryOrOther, filteredAmount, listWhere, spendable, spendByCategory, splitCategoryKey } from "../db/queries.ts";
+import { redact, scrub } from "../../lib/privacy.ts";
 import type { Scope } from "../db/validators.ts";
 import { z } from "zod";
+import { istToday } from "../../lib/dates.ts";
 import { askLog, budgets, categories, recurringSeries, transactions, trips } from "../db/schema.ts";
 import { callAi } from "./client.ts";
-import { merchantsByMeaning } from "./embed.ts";
+import { withMeaning, merchantsByMeaning } from "./embed.ts";
 import type { Db } from "../db/client.ts";
 
 const filterSchema = z
@@ -69,15 +71,6 @@ const dropNulls = (value: unknown): unknown =>
             .map(([k, v]) => [k, dropNulls(v)]),
         )
       : value;
-/** Merchant labels can carry UPI IDs or account numbers; neither may reach the AI model. */
-export const scrub = (label: string) => (/@|\d(?:[\s.-]*\d){5}|\d{4}/.test(label) ? "[private payee]" : label); // 4 digits: card last-4 in labels like "Visa 4242".
-/** Free text (questions, past answers) keeps its words but loses handles, long digit runs and bare 4-digit numbers (card last-4). Years and ₹ amounts stay. */
-export const redact = (text: string) =>
-  text
-    .replace(/\S+@\S+/g, "[private]")
-    .replace(/\d[\d\s.-]{5,}\d/g, (m) => (m.replace(/\D/g, "").length >= 6 ? "[number]" : m))
-    .replace(/(?<![\d,.]|₹ ?|Rs\.? ?|INR ?)(\d{4})(?![\d]|[,.]\d)/g, (m) => (/^(19|20)\d\d$/.test(m) ? m : "[number]"));
-const istToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const plan = z.object({ queries: z.array(askSpecSchema).min(1).max(3) });
 
 function dates(spec: AskSpec) {
@@ -102,7 +95,7 @@ const scopeDated = (scope: Scope) => Boolean(scope.month || scope.from || scope.
 
 async function runSpec(db: Db, spec: AskSpec, scope: Scope & { meaningMerchants?: string[] } = {}): Promise<ResultRow[]> {
   // Scope is applied here, server-side, so the model can't widen it and card digits never leave the box.
-  const where = [isNull(transactions.deletedAt), isNull(transactions.duplicateOf), ...listWhere(scope)];
+  const where = [isNull(transactions.duplicateOf), ...listWhere(scope)];
   if (scope.type !== "transfer") where.push(eq(transactions.excluded, false)); // "Not counted" scope asks about exactly those rows.
   const period = scopeDated(scope) ? {} : dates(spec);
   if (period.from) where.push(gte(transactions.date, period.from));
@@ -128,7 +121,7 @@ async function runSpec(db: Db, spec: AskSpec, scope: Scope & { meaningMerchants?
       : group === "month"
         ? sql<string>`substr(${transactions.date}, 1, 7)`
         : group === "category"
-          ? sql<string>`coalesce(${transactions.category}, 'Other')`
+          ? categoryOrOther(transactions.category).mapWith(String)
           : group === "merchant"
             ? transactions.merchant
             : sql<string>`'Total'`;
@@ -171,25 +164,19 @@ async function ledgerContext(db: Db) {
     d.setUTCMonth(d.getUTCMonth() + by);
     return d.toISOString().slice(0, 10);
   };
-  const live = and(
-    isNull(transactions.deletedAt),
-    eq(transactions.type, "expense"),
-    eq(transactions.excluded, false),
-    isNull(transactions.duplicateOf),
-  );
   const [thisMonth, lastThree, months, merchants, limits, series, tripRows, cats, recent] = await Promise.all([
     spendByCategory(db, shift(0), shift(1)),
     spendByCategory(db, shift(-3), shift(0)),
     db
       .select({ month: sql<string>`substr(${transactions.date}, 1, 7)`, total: sum(transactions.amount).mapWith(Number) })
       .from(transactions)
-      .where(and(live, gte(transactions.date, shift(-5))))
+      .where(and(spendable, gte(transactions.date, shift(-5))))
       .groupBy(sql`1`)
       .orderBy(sql`1`),
     db
       .select({ merchant: transactions.merchant, total: sum(transactions.amount).mapWith(Number), n: count() })
       .from(transactions)
-      .where(and(live, gte(transactions.date, shift(-2))))
+      .where(and(spendable, gte(transactions.date, shift(-2))))
       .groupBy(transactions.merchant)
       .orderBy(desc(sum(transactions.amount)))
       .limit(15),
@@ -272,7 +259,7 @@ followUps: up to 3 short next questions this ledger can answer (totals, counts o
 
 /** What the model is told about the scope: names and dates only. Card digits, raw search text and amounts stay local. */
 export function describeScope(scope: Scope) {
-  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => scrub(value.split(":").at(-1) ?? value));
+  const cats = (scope.categories ?? (scope.category ? [scope.category] : [])).map((value) => scrub(splitCategoryKey(value).category));
   const parts = {
     period: scope.from || scope.to ? `${scope.from ?? "start"} to ${scope.to ?? "today"}` : scope.month,
     categories: cats.length ? cats : undefined,
@@ -319,8 +306,8 @@ export async function askLedger(db: Db, question: string, scope: Scope = {}): Pr
   const queries = parsed.success ? parsed.data.queries : single?.success ? [single.data] : null;
   if (!queries) return { ok: false, reason: "invalid" };
   // Same meaning search as Activity and Insights, so an Ask from a searched view covers the same rows.
-  const meaningMerchants = scope.search ? await merchantsByMeaning(db, scope.search) : undefined;
-  const results = await Promise.all(queries.map((spec) => runSpec(db, spec, { ...scope, meaningMerchants })));
+  const scopedWithMeaning = await withMeaning(db, scope);
+  const results = await Promise.all(queries.map((spec) => runSpec(db, spec, scopedWithMeaning)));
   const rows = results[0] ?? [];
   const transactionIds = [...new Set(rows.flatMap((row) => row.transactionIds))];
   const shown = results.map((list, index) => ({

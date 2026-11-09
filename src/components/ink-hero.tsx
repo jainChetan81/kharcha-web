@@ -12,7 +12,6 @@ export function InkHero({ children, className }: { children: ReactNode; classNam
   );
 }
 
-/** "₹47,854" in display serif with a smaller muted rupee sign. */
 export function HeroAmount({ value, size = "md" }: { value: string; size?: "md" | "lg" }) {
   const [sign, rest] = value.startsWith("₹") ? ["₹", value.slice(1)] : ["", value];
   return (

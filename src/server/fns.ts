@@ -21,25 +21,22 @@ import {
 import { addSchema, budgetSchema, editSchema, flagSchema, listSchema, ruleSchema } from "./db/validators";
 import { transactions, trips } from "./db/schema";
 import { afterWrite } from "./jobs";
-import { merchantsByMeaning } from "./ai/embed";
+import { withMeaning } from "./ai/embed";
+import { istToday } from "../lib/dates.ts";
+import { live } from "./db/queries";
 
 const id = z.object({ id: z.number().int().positive() });
-const localToday = () => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-};
 
 /** Shell data on every page: review count and the trip card (active, or starting within 7 days). */
 export const getShell = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
-  const today = localToday();
+  const today = istToday();
   const week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   const [[review], trip] = await Promise.all([
     db
       .select({ n: count() })
       .from(transactions)
-      .where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+      .where(and(live, eq(transactions.needsReview, true))),
     db
       .select()
       .from(trips)
@@ -67,8 +64,8 @@ export const getShell = createServerFn({ method: "GET" }).handler(async () => {
 export const getTransactions = createServerFn({ method: "GET" })
   .validator(listSchema.safeExtend({ limit: z.number().int().min(1).max(500).optional(), withRaw: z.boolean().optional() }))
   .handler(async ({ data }) => {
-    const meaningMerchants = data.search ? await merchantsByMeaning(getDb(), data.search) : undefined;
-    const rows = await listTxns(getDb(), { ...data, limit: data.limit ?? 500, meaningMerchants });
+    const q = await withMeaning(getDb(), { ...data, limit: data.limit ?? 500 });
+    const rows = await listTxns(getDb(), q);
     const splits = await splitsByTxnIds(
       getDb(),
       rows.map((r) => r.id),
@@ -79,8 +76,8 @@ export const getTransactions = createServerFn({ method: "GET" })
 export const getTransactionSummary = createServerFn({ method: "GET" })
   .validator(listSchema)
   .handler(async ({ data }) => {
-    const meaningMerchants = data.search ? await merchantsByMeaning(getDb(), data.search) : undefined;
-    return summarizeTxns(getDb(), { ...data, meaningMerchants });
+    const q = await withMeaning(getDb(), data);
+    return summarizeTxns(getDb(), q);
   });
 
 export const getTransaction = createServerFn({ method: "GET" })

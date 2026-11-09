@@ -1,8 +1,9 @@
+import { saveWithSnack } from "../components/save-with-snack";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { TripForm } from "../components/trip-form";
 import { Button, PageHeader } from "../components/ui";
-import { saveFailed, snack, snackError } from "../components/sheet";
+import { snack, snackError } from "../components/sheet";
 import { findBookings, saveTrip } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/trips_/new")({ component: NewTrip });
@@ -10,15 +11,11 @@ function NewTrip() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<{ id: number; merchant: string; amount: number }[]>();
   const [finding, setFinding] = useState(false);
-  const save = async (value: Parameters<typeof saveTrip>[0]["data"]) => {
-    try {
-      const id = await saveTrip({ data: value });
-      snack("Trip saved");
-      await navigate({ to: "/plan/trips/$id", params: { id: String(id) } });
-    } catch {
-      saveFailed(() => void save(value));
-    }
-  };
+  const save = saveWithSnack(async (value: Parameters<typeof saveTrip>[0]["data"]) => {
+    const id = await saveTrip({ data: value });
+    snack("Trip saved");
+    await navigate({ to: "/plan/trips/$id", params: { id: String(id) } });
+  });
   const find = async () => {
     if (finding) return;
     setFinding(true);

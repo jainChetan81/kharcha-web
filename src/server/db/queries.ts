@@ -1,4 +1,5 @@
-import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, like, lt, lte, or, sql, sum, type SQLWrapper } from "drizzle-orm";
+import { istToday, monthBounds } from "../../lib/dates.ts";
 import type { z } from "zod";
 import type { Db } from "./client.ts";
 import type { TXN_TYPES } from "./enums.ts";
@@ -17,26 +18,48 @@ import {
 } from "./schema.ts";
 
 // Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
-const live = /* @__PURE__ */ isNull(transactions.deletedAt);
+export const live = /* @__PURE__ */ isNull(transactions.deletedAt);
+export const categoryOrOther = (...categories: SQLWrapper[]) => sql`COALESCE(${sql.join(categories, sql`, `)}, 'Other')`;
+/** Split filters may prefix a category with one transaction type, e.g. "expense:Food". */
+export function splitCategoryKey(value: string): { type?: (typeof TXN_TYPES)[number]; category: string } {
+  const split = value.lastIndexOf(":");
+  const type =
+    split > 0 && ["expense", "income", "investment"].includes(value.slice(0, split))
+      ? (value.slice(0, split) as (typeof TXN_TYPES)[number])
+      : undefined;
+  return { type, category: split > 0 ? value.slice(split + 1) : value };
+}
 
-/** Keep the app's value once a human edited the row; otherwise take the mini's. */
 const mini = (column: string) =>
   sql.raw(`CASE WHEN "transactions"."edited_at" IS NULL THEN excluded."${column}" ELSE "transactions"."${column}" END`);
 /** Half-open [first of month, first of next month). */
 function inMonth(month: string) {
-  const [y, m] = month.split("-").map(Number);
-  const next = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
-  return sql`${gte(transactions.date, `${month}-01`)} AND ${lt(transactions.date, `${next}-01`)}`;
+  const [from, to] = monthBounds(month);
+  return sql`${gte(transactions.date, from)} AND ${lt(transactions.date, to)}`;
 }
-
 /** Mini categories that are transfers, not spend. Kept in the ledger, excluded from totals. */
-const TRANSFER_CATEGORIES = new Set(["Credit Card Payment"]);
+export const TRANSFER_CATEGORY = "Credit Card Payment";
 
-/** Rule match: case-insensitive; trailing * = starts with, otherwise contains. */
 export function ruleMatches(rule: Pick<MerchantRule, "match">, merchant: string): boolean {
   const m = rule.match.trim().toUpperCase();
   const text = merchant.toUpperCase();
   return m.endsWith("*") ? text.startsWith(m.slice(0, -1)) : text.includes(m);
+}
+
+export function fileCategory(type: string, wanted: string | null | undefined, cats: { name: string; type: string }[]) {
+  // No FK on category: anything unknown files as Other so ingest never fails.
+  if (type === "investment") return wanted || null;
+  const known = cats.some((c) => c.name === wanted && c.type === type);
+  return known && wanted ? wanted : "Other";
+}
+/** Category and transfer flag for an incoming row; review policy stays with the caller. */
+export function fileFiling(
+  type: string,
+  wanted: string | null | undefined,
+  original: string | null | undefined,
+  cats: { name: string; type: string }[],
+) {
+  return { category: fileCategory(type, wanted, cats), excluded: original === TRANSFER_CATEGORY };
 }
 
 /** Upsert pushed rows by mini_id atomically. A tombstone from either side sticks. */
@@ -47,15 +70,12 @@ export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
     db.select().from(merchantRules).orderBy(desc(merchantRules.id)),
     db.select({ name: categories.name, type: categories.type }).from(categories),
   ]);
-  const known = (type: string, name: string) => cats.some((c) => c.name === name && c.type === type);
   const upserts = rows.map((r) => {
     const raw = r.merchantCanonical || r.merchant;
     // Newest rule wins. Rules never touch investments; those belong to Wealth.
     const rule = r.type === "investment" ? undefined : rules.find((x) => ruleMatches(x, r.merchant) || ruleMatches(x, raw));
-    const excluded = TRANSFER_CATEGORIES.has(r.category ?? "");
-    const wanted = rule?.category ?? r.category ?? "";
-    // No FK on category: anything unknown files as Other so ingest never fails.
-    const category = r.type === "investment" ? r.category || null : known(r.type, wanted) ? wanted : "Other";
+    const { category, excluded } = fileFiling(r.type, rule?.category ?? r.category ?? "", r.category, cats);
+    const needsReview = !rule && r.needsReview === 1;
     return db
       .insert(transactions)
       .values({
@@ -74,7 +94,7 @@ export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
         parsedBy: r.parsedBy,
         currency: r.currency ?? null,
         originalAmount: r.originalAmount ?? null,
-        needsReview: rule ? false : r.needsReview === 1,
+        needsReview,
         excluded,
         deletedAt: r.deletedAt ?? null,
       })
@@ -96,7 +116,7 @@ export async function ingest(db: Db, rows: MiniRow[]): Promise<number> {
   });
   const stamp = db
     .insert(meta)
-    .values({ key: "last_ingest_at", value: new Date().toISOString() })
+    .values({ key: META.LAST_INGEST_AT, value: new Date().toISOString() })
     .onConflictDoUpdate({ target: meta.key, set: { value: sql`excluded."value"` } });
   await db.batch([stamp, ...upserts]);
   return rows.length;
@@ -126,7 +146,6 @@ export async function flagTxn(db: Db, f: z.infer<typeof flagSchema>): Promise<vo
     .where(eq(transactions.id, id));
 }
 
-/** Returns the new row id. */
 export async function addTxn(db: Db, a: z.infer<typeof addSchema>): Promise<number> {
   const [row] = await db
     .insert(transactions)
@@ -157,7 +176,6 @@ export async function restoreTxn(db: Db, id: number): Promise<void> {
   await db.update(transactions).set({ deletedAt: null }).where(eq(transactions.id, id));
 }
 
-/** Rows that count as spend: live, expense, not excluded, not a duplicate. */
 export const spendable = /* @__PURE__ */ and(
   live,
   eq(transactions.type, "expense"),
@@ -165,18 +183,21 @@ export const spendable = /* @__PURE__ */ and(
   isNull(transactions.duplicateOf),
 );
 
+export function spendableSql(alias: string) {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(alias)) throw new Error("Invalid SQL alias");
+  const t = sql.raw(`"${alias}"`);
+  return sql`${t}.deleted_at IS NULL AND ${t}.type = 'expense' AND ${t}.excluded = 0 AND ${t}.duplicate_of IS NULL`;
+}
+
 // DESIGN.md §15. Correlated subqueries, so joins never multiply ledger rows. Cancelled claims and their links are ignored.
 const claimedOf = (t: string) =>
   `COALESCE((SELECT SUM(r.amount) FROM reimbursements r WHERE r.transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
 const linkedOf = (t: string) =>
   `COALESCE((SELECT SUM(l.amount) FROM reimbursement_links l JOIN reimbursements r ON r.id = l.reimbursement_id WHERE l.credit_transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
-/** Links beyond their claim, split across the links pro rata. Counts as income in the month the credit arrived. */
 const extraOf = (t: string) =>
   `COALESCE((SELECT SUM(l.amount * MAX(0, (SELECT SUM(l2.amount) FROM reimbursement_links l2 WHERE l2.reimbursement_id = r.id) - r.amount) / (SELECT SUM(l2.amount) FROM reimbursement_links l2 WHERE l2.reimbursement_id = r.id)) FROM reimbursement_links l JOIN reimbursements r ON r.id = l.reimbursement_id WHERE l.credit_transaction_id = ${t}.id AND r.status != 'cancelled'), 0)`;
-/** Your share of a spend: amount minus open and settled claims, never below zero. */
 const shareOf = (t: string) => `MAX(0, ${t}.amount - ${claimedOf(t)})`;
 export const shareSql = (t = "transactions") => sql<number>`${sql.raw(shareOf(t))}`.mapWith(Number);
-/** Per-row counted amount: spend → your share; income → unlinked part plus extra back. */
 const countedOf = (t: string) =>
   `CASE WHEN ${t}.type = 'income' THEN ${t}.amount - ${linkedOf(t)} + ${extraOf(t)} WHEN ${t}.type = 'expense' THEN ${shareOf(t)} ELSE ${t}.amount END`;
 const countedSql = (t = "transactions") => sql.raw(countedOf(t));
@@ -200,12 +221,12 @@ export async function spendByCategory(
   gross = false,
 ): Promise<{ category: string; total: number; n: number }[]> {
   // Unsplit spend: the row's share. Split spend: each split less the claim on its items, plus its pro rata part of any whole/part claim.
-  const filter = sql`t.deleted_at IS NULL AND t.type = 'expense' AND t.excluded = 0 AND t.duplicate_of IS NULL AND t.date >= ${from} AND t.date < ${to}`;
+  const filter = sql`${spendableSql("t")} AND t.date >= ${from} AND t.date < ${to}`;
   const unsplitAmt = gross ? "t.amount" : `MAX(0, t.amount - ${claimedOf("t")})`;
   const splitAmt = gross ? "s.amount" : splitShareOf("t", "s");
   const rows = await db.all<{ category: string; total: number; n: number }>(sql`
     SELECT category, SUM(amt) AS total, COUNT(DISTINCT id) AS n FROM (
-      SELECT t.id AS id, COALESCE(t.category, 'Other') AS category, ${sql.raw(unsplitAmt)} AS amt
+      SELECT t.id AS id, ${categoryOrOther(sql.raw("t.category"))} AS category, ${sql.raw(unsplitAmt)} AS amt
       FROM transactions t
       WHERE ${filter} AND NOT EXISTS (SELECT 1 FROM transaction_splits x WHERE x.transaction_id = t.id)
       UNION ALL
@@ -214,11 +235,6 @@ export async function spendByCategory(
       WHERE ${filter}
     ) GROUP BY category ORDER BY total DESC`);
   return rows.map((r) => (Array.isArray(r) ? { category: String(r[0]), total: Number(r[1]), n: Number(r[2]) } : r));
-}
-
-export function monthBounds(month: string): [string, string] {
-  const [y, m] = month.split("-").map(Number);
-  return [`${month}-01`, `${new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7)}-01`];
 }
 
 export async function monthSummary(db: Db, month: string) {
@@ -234,7 +250,7 @@ export async function monthSummary(db: Db, month: string) {
       .select({ n: count() })
       .from(transactions)
       .where(and(live, eq(transactions.needsReview, true))),
-    db.select({ value: meta.value }).from(meta).where(eq(meta.key, "last_ingest_at")),
+    db.select({ value: meta.value }).from(meta).where(eq(meta.key, META.LAST_INGEST_AT)),
     db.select().from(budgets),
   ]);
   const limitOf = new Map(limits.map((b) => [b.category, b.monthlyLimit]));
@@ -255,13 +271,11 @@ export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
   const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
   if (selectedCategories.length) {
     const matches = selectedCategories.map((value) => {
-      const split = value.lastIndexOf(":");
-      const type = split > 0 && ["expense", "income", "investment"].includes(value.slice(0, split)) ? value.slice(0, split) : undefined;
-      const category = split > 0 ? value.slice(split + 1) : value;
+      const { type, category } = splitCategoryKey(value);
       const splitMatch = sql`EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id} AND fs.category = ${category}${type ? sql` AND ${transactions.type} = ${type}` : sql``})`;
       const noSplits = sql`NOT EXISTS (SELECT 1 FROM transaction_splits fs WHERE fs.transaction_id = ${transactions.id})`;
       // Null category reads as Other everywhere, so the Other filter includes uncategorised rows.
-      const categoryMatch = sql`COALESCE(${transactions.category}, 'Other') = ${category}`;
+      const categoryMatch = sql`${categoryOrOther(transactions.category)} = ${category}`;
       const rowMatch = type
         ? and(eq(transactions.type, type as (typeof TXN_TYPES)[number]), categoryMatch, noSplits)
         : and(categoryMatch, noSplits);
@@ -297,7 +311,6 @@ export function listWhere(q: ListQuery & { meaningMerchants?: string[] }) {
   return where;
 }
 
-/** withRaw adds the SMS text; only Detail, Review and Activity's pane need it. */
 export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boolean; meaningMerchants?: string[] }) {
   const where = listWhere(q);
   const order =
@@ -343,7 +356,7 @@ function dayCount(q: ListQuery): number | null {
   if (q.month) {
     const [first, next] = monthBounds(q.month);
     // Current month: pace so far, not spend spread over days still to come.
-    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+    const today = istToday();
     if (today.slice(0, 7) === q.month) return Number(today.slice(8, 10));
     return (Date.parse(next) - Date.parse(first)) / dayMs;
   }
@@ -351,7 +364,6 @@ function dayCount(q: ListQuery): number | null {
 }
 
 /** One query, same WHERE as listTxns. Spend excludes excluded and duplicate rows; transferred is the excluded rows. counted_amount is the filtered split part, scaled to your share (§15). */
-/** Counted amount per row under a category filter: a split row counts only its selected parts (§15). */
 export function filteredAmount(q: Pick<ListQuery, "category" | "categories">) {
   const selectedCategories = q.categories?.length ? q.categories : q.category ? [q.category] : [];
   // Splits exist only on expense rows, so "income:Travel" never picks a split part.
@@ -389,14 +401,14 @@ export async function summarizeTxns(db: Db, q: ListQuery & { meaningMerchants?: 
     frequent: string | null;
   }>(sql`
     WITH m AS (SELECT transactions.*, ${counted} AS counted_amount FROM transactions WHERE ${where}),
-    s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)
+    s AS (SELECT * FROM m WHERE ${spendableSql("m")})
     SELECT
       (SELECT COUNT(*) FROM m) AS n,
       (SELECT COALESCE(SUM(counted_amount), 0) FROM s) AS spent,
       (SELECT COALESCE(SUM(counted_amount), 0) FROM m WHERE type = 'income' AND excluded = 0 AND duplicate_of IS NULL) AS income,
       (SELECT COALESCE(SUM(amount), 0) FROM m WHERE excluded = 1) AS transferred,
       (SELECT COALESCE(json_group_array(json_object('category', c, 'total', t)), '[]')
-         FROM (SELECT COALESCE(fs.category, s.category, 'Other') AS c,
+         FROM (SELECT ${categoryOrOther(sql.raw("fs.category"), sql.raw("s.category"))} AS c,
                 SUM(CASE WHEN fs.transaction_id IS NULL THEN s.counted_amount ELSE ${sql.raw(splitShareOf("s", "fs"))} END) AS t
                FROM s LEFT JOIN transaction_splits fs ON fs.transaction_id = s.id
                WHERE fs.transaction_id IS NULL OR (fs.transaction_id IS NOT NULL${splitFilter})
@@ -459,7 +471,6 @@ export async function setBudget(db: Db, b: z.infer<typeof budgetSchema>): Promis
     });
 }
 
-/** One rule per match (case-insensitive, trimmed): a same-match rule is replaced, never stacked. Newest rule wins at ingest. */
 export const sameMatch = (match: string, exceptId = -1) =>
   sql`lower(trim(${merchantRules.match})) = lower(${match.trim()}) AND ${merchantRules.id} != ${exceptId}`;
 /** Saves the rule, then files the source row and every pending row it matches so Review doesn't ask again. */
@@ -484,6 +495,24 @@ export async function addRule(db: Db, r: z.infer<typeof ruleSchema>): Promise<{ 
   return { ruleId: row?.id ?? 0, ids: [...ids] };
 }
 
+export const META = {
+  LAST_INGEST_AT: "last_ingest_at",
+} as const;
+
+export async function activeItemClaim(db: Db, txnId: number) {
+  return db
+    .select({ id: reimbursements.id })
+    .from(reimbursements)
+    .where(
+      and(
+        eq(reimbursements.transactionId, txnId),
+        sql`${reimbursements.itemIds} IS NOT NULL`,
+        sql`${reimbursements.status} != 'cancelled'`,
+      ),
+    )
+    .get();
+}
+
 export async function getMeta(db: Db, key: string): Promise<string | undefined> {
   const row = await db.select({ value: meta.value }).from(meta).where(eq(meta.key, key)).get();
   return row?.value;
@@ -495,75 +524,7 @@ export async function setMeta(db: Db, key: string, value: string): Promise<void>
 export async function health(db: Db) {
   const [[rows], [last]] = await Promise.all([
     db.select({ n: count() }).from(transactions),
-    db.select({ value: meta.value }).from(meta).where(eq(meta.key, "last_ingest_at")),
+    db.select({ value: meta.value }).from(meta).where(eq(meta.key, META.LAST_INGEST_AT)),
   ]);
   return { ok: true, rows: rows?.n ?? 0, lastIngestAt: last?.value ?? null };
-}
-
-/** Credit card spend vs payments, per card. A payment row (category Credit Card Payment, from the bank account)
- * is matched to a card by its "payment received" receipt: same amount within 3 days, receipt may be a tombstone. */
-export async function cardBalances(db: Db, cards: readonly string[]) {
-  const pays = await db.all<{ id: number; date: string; amount: number; card: string | null }>(sql`
-    SELECT p.id, p.date, p.amount,
-      (SELECT r.account_last4 FROM transactions r WHERE r.account_last4 IN (${sql.join(
-        cards.map((c) => sql`${c}`),
-        sql`, `,
-      )})
-        AND r.merchant LIKE '%Credit Card' AND abs(r.amount - p.amount) <= 50
-        AND abs(julianday(substr(r.date, 1, 10)) - julianday(substr(p.date, 1, 10))) <= 3 LIMIT 1) AS card
-    FROM transactions p WHERE p.deleted_at IS NULL AND p.category = 'Credit Card Payment' ORDER BY p.date DESC`);
-  return Promise.all(
-    cards.map(async (card) => {
-      const mine = pays.filter((p) => p.card === card);
-      const last = mine[0] ?? null;
-      const since = last?.date ?? "0000";
-      const [row] = await db.all<{ spent: number | null; n: number }>(sql`
-      SELECT SUM(amount) AS spent, COUNT(*) AS n FROM transactions
-      WHERE deleted_at IS NULL AND duplicate_of IS NULL AND type = 'expense' AND account_last4 = ${card} AND date > ${since}`);
-      const [refund] = await db.all<{ back: number | null }>(sql`
-      SELECT SUM(amount) AS back FROM transactions
-      WHERE deleted_at IS NULL AND type = 'income' AND category = 'Refunds' AND account_last4 = ${card} AND date > ${since}`);
-      // Bill SMS arrive as ₹0 rows (tombstoned on ingest); their raw text still holds the bill.
-      const notices = await db.all<{ date: string; raw_text: string }>(sql`
-      SELECT date, raw_text FROM transactions WHERE amount = 0 AND raw_text LIKE ${`%${card}%`}
-        AND (raw_text LIKE '%due%' OR raw_text LIKE 'Statement Generated%') AND raw_text NOT LIKE '%declined%' AND raw_text NOT LIKE '%OTP%' ORDER BY date DESC LIMIT 50`);
-      const bill = notices.map((n) => parseCardBill(n.raw_text, n.date)).find((b) => b !== null) ?? null;
-      return {
-        card,
-        owed: Math.round(((row?.spent ?? 0) - (refund?.back ?? 0)) * 100) / 100,
-        spends: row?.n ?? 0,
-        lastPayment: last ? { date: last.date, amount: last.amount } : null,
-        payments: mine.slice(0, 6),
-        bill,
-      };
-    }),
-  );
-}
-
-const MON: Record<string, string> = {
-  JAN: "01",
-  FEB: "02",
-  MAR: "03",
-  APR: "04",
-  MAY: "05",
-  JUN: "06",
-  JUL: "07",
-  AUG: "08",
-  SEP: "09",
-  OCT: "10",
-  NOV: "11",
-  DEC: "12",
-};
-const num = (v: string) => Number(v.replace(/,/g, ""));
-/** Latest card bill from a bank notice: amount and due date when the SMS gives them. Null for reminders without a bill. */
-export function parseCardBill(text: string, sentAt: string): { amount: number | null; dueDate: string | null; issued: string } | null {
-  const issued = sentAt.slice(0, 10);
-  let m = text.match(/Payment of INR ([\d,.]+) for Axis Bank Credit Card .*?due on (\d{2})-(\d{2})-(\d{2})/is);
-  if (m) return { amount: num(m[1]), dueDate: `20${m[4]}-${m[3]}-${m[2]}`, issued };
-  m = text.match(/Amount Due Rs\.?\s*([\d,.]+) on HDFC Bank Credit Card .*?by (\d{2})\/([A-Z]{3})\/(\d{4})/is);
-  if (m && MON[m[3].toUpperCase()]) return { amount: num(m[1]), dueDate: `${m[4]}-${MON[m[3].toUpperCase()]}-${m[2]}`, issued };
-  m = text.match(/Statement: Total due: Rs\.?\s*([\d,.]+).*?Pay by (\d{2})-(\d{2})-(\d{4})/is);
-  if (m) return { amount: num(m[1]), dueDate: `${m[4]}-${m[3]}-${m[2]}`, issued };
-  if (/^Statement Generated/i.test(text.trim())) return { amount: null, dueDate: null, issued };
-  return null;
 }

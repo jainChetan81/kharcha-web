@@ -29,7 +29,6 @@ export function Button({
   return <button type={type} className={buttonClass(variant, className)} {...props} />;
 }
 
-/** Link that looks like a Button. */
 export function ButtonLink({
   variant = "primary",
   className,
@@ -52,7 +51,6 @@ export function IconButton({ label, className, type = "button", ...props }: Butt
   );
 }
 
-/** Selectable pill (category picker, filters). */
 export function Chip({
   on,
   className,
@@ -78,7 +76,6 @@ export function Chip({
   );
 }
 
-/** Segmented control on a sunken track. Native radios, styled. */
 export function Segmented<T extends string>({
   options,
   value,
@@ -152,7 +149,6 @@ export function Switch({
   );
 }
 
-/** `error` shows under the input in `over`, sets aria-invalid and is announced via aria-describedby. */
 export function Field({
   label,
   id,
@@ -183,13 +179,12 @@ export function Field({
   );
 }
 
-/** Serif section heading over a 1px ink rule, optional right-side link or text. */
-export function SectionHead({ title, action, as: H = "h2", id }: { title: ReactNode; action?: ReactNode; as?: "h2" | "h3"; id?: string }) {
+export function SectionHead({ title, action, id }: { title: ReactNode; action?: ReactNode; id?: string }) {
   return (
     <div className="flex items-baseline justify-between border-b border-ink pb-2">
-      <H id={id} className="m-0 font-serif text-section font-medium">
+      <h2 id={id} className="m-0 font-serif text-section font-medium">
         {title}
-      </H>
+      </h2>
       {action && <span className="text-control [&>a]:-my-3 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center">{action}</span>}
     </div>
   );
@@ -199,7 +194,6 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("rounded-panel border border-hairline bg-card", className)} {...props} />;
 }
 
-/** Dashed card: something Kharcha guessed. */
 export function Suggestion({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("rounded-panel border border-dashed border-field p-4", className)} {...props} />;
 }
@@ -223,18 +217,12 @@ export function StatusTag({ tone, children, className }: { tone: keyof typeof ta
   );
 }
 
-/** Category swatch + label; colour never alone. */
-export function CategoryDot({ color, size = 8 }: { color: string; size?: number }) {
+export function CategoryDot({ color }: { color: string }) {
   return (
-    <span
-      aria-hidden
-      className="inline-block shrink-0 rounded-none"
-      style={{ width: size, height: size, background: `var(--color-${color})` }}
-    />
+    <span aria-hidden className="inline-block shrink-0 rounded-none" style={{ width: 8, height: 8, background: `var(--color-${color})` }} />
   );
 }
 
-/** Page header for non-hero screens: serif title, optional back link and actions. */
 export function PageHeader({
   title,
   back,

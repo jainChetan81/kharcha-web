@@ -1,4 +1,5 @@
-/** Split CSV text into rows of trimmed cells. Handles quoted cells with commas or "" escapes and a leading BOM. */
+import { istToday, realDay } from "./dates.ts";
+
 export function csvRows(text: string): string[][] {
   return text
     .replace(/^﻿/, "")
@@ -23,8 +24,25 @@ export function csvRows(text: string): string[][] {
     });
 }
 
-/** Holding CSV body rows (header skipped): date, fund, amount, units, nav. */
 export const holdingCsvRows = (text: string) => {
   const rows = csvRows(text);
   return rows[0]?.[0]?.toLowerCase() === "date" ? rows.slice(1) : rows;
 };
+
+export function holdingCsvIssue(
+  row: { date: string; fund: string; amount: string; units: string; nav: string },
+  names: Set<string>,
+): boolean {
+  const { date, fund, amount, units, nav } = row;
+  return (
+    !realDay(date) ||
+    date > istToday() ||
+    !fund.trim() ||
+    !names.has(fund.toLowerCase()) ||
+    ![amount, units, nav].every((value) => Number.isFinite(Number(value))) ||
+    Number(nav) <= 0 ||
+    Number(amount) === 0 ||
+    Number(units) === 0 ||
+    Math.sign(Number(amount)) !== Math.sign(Number(units))
+  );
+}

@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client.ts";
-import { ruleMatches } from "../db/queries.ts";
+import { live, ruleMatches, spendable } from "../db/queries.ts";
+import { istToday } from "../../lib/dates.ts";
 import { recurringOccurrences, recurringSeries, transactionTrips, transactions, trips } from "../db/schema.ts";
 
 const ymd = (date: string) => date.slice(0, 10);
@@ -20,11 +21,13 @@ export function nextDue(date: string, cadence: "monthly" | "quarterly" | "yearly
   return d.toISOString().slice(0, 10);
 }
 
-/** trip-tag (§8): tag spend inside an active trip window, honouring each trip's autoTag and skipRecurring. */
 export async function tagTrips(txnIds: number[], db: Db = getDb()): Promise<void> {
   if (!txnIds.length) return;
   const [rows, active, series] = await Promise.all([
-    db.select().from(transactions).where(inArray(transactions.id, txnIds)),
+    db
+      .select()
+      .from(transactions)
+      .where(and(inArray(transactions.id, txnIds), spendable)),
     db
       .select()
       .from(trips)
@@ -32,14 +35,7 @@ export async function tagTrips(txnIds: number[], db: Db = getDb()): Promise<void
     db.select().from(recurringSeries).where(eq(recurringSeries.status, "active")),
   ]);
   for (const row of rows) {
-    if (
-      row.deletedAt ||
-      row.excluded ||
-      row.duplicateOf ||
-      row.type !== "expense" ||
-      /\b(transfer|upi.*self|self.*upi)\b/i.test(row.merchant)
-    )
-      continue;
+    if (/\b(transfer|upi.*self|self.*upi)\b/i.test(row.merchant)) continue;
     const recurring = series.some((s) => ruleMatches(s, row.merchant));
     for (const trip of active)
       if (!(recurring && trip.skipRecurring) && ymd(row.date) >= trip.startDate && ymd(row.date) <= trip.endDate)
@@ -73,7 +69,6 @@ function nearestCadenceDate(date: string, s: typeof recurringSeries.$inferSelect
   const candidates = [-1, 0, 1].map((offset) => cadenceDate(anchor, periods + offset, s));
   return candidates.sort((a, b) => Math.abs(days(date, a)) - Math.abs(days(date, b)))[0]!;
 }
-/** The due date a payment settles: an open occurrence near it, else the nearest date on the anchored cadence. */
 function dueFor(date: string, s: typeof recurringSeries.$inferSelect, open: string[], anchors: string[]) {
   const near = open
     .filter((due) => Math.abs(days(date, due)) <= GRACE)
@@ -84,7 +79,6 @@ function dueFor(date: string, s: typeof recurringSeries.$inferSelect, open: stri
   return Math.abs(days(date, due)) <= GRACE ? due : null;
 }
 
-/** recurring (§8): match payments, mark missed dues past_due, keep one next upcoming occurrence per active series. */
 export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySeriesId?: number): Promise<void> {
   const series = await db
     .select()
@@ -96,7 +90,7 @@ export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySer
     );
   const rows = txnIds.length ? await db.select().from(transactions).where(inArray(transactions.id, txnIds)) : [];
   rows.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+  const today = istToday();
   for (const s of series) {
     const occurrences = await db.select().from(recurringOccurrences).where(eq(recurringOccurrences.seriesId, s.id));
     const open = occurrences.filter((o) => !o.transactionId).map((o) => o.dueDate);
@@ -124,7 +118,7 @@ export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySer
       .select({ due: recurringOccurrences.dueDate })
       .from(recurringOccurrences)
       .innerJoin(transactions, eq(recurringOccurrences.transactionId, transactions.id))
-      .where(and(eq(recurringOccurrences.seriesId, s.id), isNull(transactions.deletedAt)))
+      .where(and(eq(recurringOccurrences.seriesId, s.id), live))
       .orderBy(sql`${recurringOccurrences.dueDate} desc`)
       .limit(1);
     const anchorDay = s.usualDay ?? (anchors.length ? new Date(`${anchors.slice().sort()[0]}T00:00:00Z`).getUTCDate() : null);
@@ -148,7 +142,6 @@ export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySer
         });
       next = nextDue(next, s.cadence, anchorDay);
     }
-    // One upcoming row: drop stale ones left by edits to cadence or usual day.
     await db
       .delete(recurringOccurrences)
       .where(
@@ -165,16 +158,14 @@ export async function matchRecurring(txnIds: number[], db: Db = getDb(), onlySer
   }
 }
 
-/** Run after a series is saved: match its past year of payments and schedule its next due date. */
 export async function scheduleSeries(seriesId: number, db: Db = getDb()): Promise<void> {
   const s = await db.select().from(recurringSeries).where(eq(recurringSeries.id, seriesId)).get();
   if (!s) return;
-  // Occurrences are derived from matches, so a cadence or usual-day edit rebuilds them all (linked ones too).
   await db.delete(recurringOccurrences).where(eq(recurringOccurrences.seriesId, seriesId));
   const year = await db
     .select({ id: transactions.id, merchant: transactions.merchant })
     .from(transactions)
-    .where(and(isNull(transactions.deletedAt), sql`${transactions.date} >= date('now', '-13 months')`));
+    .where(and(live, sql`${transactions.date} >= date('now', '-13 months')`));
   await matchRecurring(
     year.filter((row) => ruleMatches(s, row.merchant)).map((row) => row.id),
     db,

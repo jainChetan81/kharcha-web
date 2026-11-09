@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { saveFailed, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, ButtonLink, ErrorState, PageHeader } from "../components/ui";
-import { money, navsOf, statementOf } from "../lib/format";
+import { money, navsOf, polylinePoints, statementOf } from "../lib/format";
 import { SipList } from "../components/sip-list";
 import { closeHolding, getHolding } from "../server/wealth/fns";
 
@@ -31,9 +31,13 @@ function Holding() {
     }
   };
   const max = Math.max(...data.history.map((row) => row.nav), 1);
-  const points = data.history
-    .map((row, index) => `${(index / Math.max(1, data.history.length - 1)) * 600},${130 - (row.nav / max) * 110}`)
-    .join(" ");
+  const points = polylinePoints(
+    data.history.map((row) => row.nav),
+    max,
+    600,
+    20,
+    130,
+  );
   return (
     <>
       <PageHeader

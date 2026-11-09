@@ -2,9 +2,9 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useState } from "react";
 import { Button, ButtonLink, Chip, ErrorState, Field, PageHeader, SectionHead, StatusTag } from "../components/ui";
 import { LedgerRow } from "../components/ledger";
-import { saveFailed, Sheet, snack, snackError } from "../components/sheet";
+import { deletedSnack, saveFailed, Sheet, snack, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { card, foreign, money, shortDate } from "../lib/format";
+import { card, foreign, money, shortDate, transactionSourceLabels } from "../lib/format";
 import {
   cancelReimbursement,
   getClaimDetails,
@@ -50,6 +50,7 @@ function Detail() {
 
   if (!detail) return <ErrorState text="Transaction not found." back="/activity" backLabel="Back to Activity" />;
   const { txn, more } = detail;
+  const sourceLabels = transactionSourceLabels(txn.source, txn.parsedBy);
   const claimInfo = data.claim;
   const claim = claimInfo?.claim;
   const total = more.reduce((sum, row) => sum + row.amount, 0);
@@ -69,13 +70,13 @@ function Detail() {
     setDeleting(true);
     try {
       await deleteTransaction({ data: { id: txn.id } });
-      snack("Transaction deleted.", {
-        label: "Undo",
-        onClick: () =>
+      deletedSnack(
+        "Transaction deleted.",
+        () =>
           void restoreTransaction({ data: { id: txn.id } })
             .then(() => router.invalidate())
             .catch(() => snackError("Couldn’t undo the delete.")),
-      });
+      );
       void navigate({ to: "/activity" });
     } catch {
       saveFailed(remove);
@@ -260,17 +261,8 @@ function Detail() {
             ["Date", shortDate(txn.date)],
             ["Category", txn.category ?? "Other"],
             ["Card", card(txn.accountLast4)],
-            ["Source", txn.source === "sms" ? "SMS via Mac mini" : txn.source === "paste" ? "Pasted text" : "Added by hand"],
-            [
-              "Parsed by",
-              txn.source === "sms"
-                ? txn.parsedBy === "regex" || !txn.parsedBy
-                  ? "Regex"
-                  : txn.parsedBy
-                : txn.source === "paste"
-                  ? "Paste"
-                  : "Manual",
-            ],
+            ["Source", sourceLabels.source],
+            ["Parsed by", sourceLabels.parsedBy],
             ["Status", txn.needsReview ? "Needs review" : txn.excluded ? "Not a spend" : "Reviewed"],
           ].map(([key, value]) => (
             <div key={key} className="flex min-h-12 items-center justify-between gap-4 border-b border-hairline text-body">

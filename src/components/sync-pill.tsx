@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ago, time } from "../lib/format";
 import { cn } from "../lib/cn";
-import { getSyncStatus } from "../server/daily/sync";
+import { getSyncStatus } from "../server/mini";
 
 type Health = {
   state: "synced" | "offline" | "unreachable" | "quiet" | "mini-offline" | "unknown";

@@ -3,10 +3,12 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import path from "node:path";
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "../db/client";
+import { live } from "../db/queries";
 import { attachments, receiptJobs, transactions } from "../db/schema";
 import { runReceiptJob } from "../ai/receipt";
+import { aiEnabled } from "../ai/client";
 
 const MAX_ATTACHMENTS = 5;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -34,7 +36,7 @@ async function storeReceiptFile(transactionId: number, mime: string, bytes: Uint
     db
       .select({ id: transactions.id })
       .from(transactions)
-      .where(and(eq(transactions.id, transactionId), isNull(transactions.deletedAt)))
+      .where(and(eq(transactions.id, transactionId), live))
       .get(),
     db.select({ count: count() }).from(attachments).where(eq(attachments.transactionId, transactionId)).get(),
   ]);
@@ -93,7 +95,7 @@ export const deleteAttachment = createServerFn({ method: "POST" })
     return { deleted: true };
   });
 
-export const getReceiptAvailability = createServerFn({ method: "GET" }).handler(() => ({ aiOn: process.env.KHARCHA_AI === "on" }));
+export const getReceiptAvailability = createServerFn({ method: "GET" }).handler(() => ({ aiOn: aiEnabled() }));
 
 export const startReceiptJob = createServerFn({ method: "POST" })
   .validator(z.object({ transactionId: z.number().int().positive() }))
@@ -102,10 +104,10 @@ export const startReceiptJob = createServerFn({ method: "POST" })
     const txn = await db
       .select({ id: transactions.id })
       .from(transactions)
-      .where(and(eq(transactions.id, data.transactionId), isNull(transactions.deletedAt)))
+      .where(and(eq(transactions.id, data.transactionId), live))
       .get();
     if (!txn) throw new Error("Transaction not found.");
-    if (process.env.KHARCHA_AI !== "on") return { jobId: null, status: "failed" as const, error: "ai_unavailable" as const };
+    if (!aiEnabled()) return { jobId: null, status: "failed" as const, error: "ai_unavailable" as const };
     const active = await db
       .select({ id: receiptJobs.id, status: receiptJobs.status, error: receiptJobs.error })
       .from(receiptJobs)

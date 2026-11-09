@@ -50,7 +50,6 @@ export function ReviewDeck({
   const [rule, setRule] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
-  // Picked duplicate, or the first match when none was picked (or the pick left the list).
   const [picked, setDuplicateOf] = useState<number | null>(null);
   const duplicateOf = duplicates.some((item) => item.id === picked) ? picked : (duplicates[0]?.id ?? null);
 

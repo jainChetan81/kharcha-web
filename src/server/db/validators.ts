@@ -2,16 +2,8 @@
 // in the browser bundle, so importing the schema from this file would ship Drizzle with them.
 import { z } from "zod";
 import { TXN_TYPES } from "./enums.ts";
+import { realDate } from "../../lib/dates.ts";
 
-/** True when "YYYY-MM-DD[ HH:mm]" is a real calendar date and time. */
-export function realDate(value: string): boolean {
-  const [y, m, d] = value.slice(0, 10).split("-").map(Number);
-  const day = new Date(Date.UTC(y, m - 1, d));
-  if (day.getUTCFullYear() !== y || day.getUTCMonth() !== m - 1 || day.getUTCDate() !== d) return false;
-  if (value.length === 10) return true;
-  const [h, min] = value.slice(11).split(":").map(Number);
-  return h < 24 && min < 60;
-}
 const dateTime = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)
@@ -54,7 +46,6 @@ export const editSchema = z.object({
   date: dateTime.optional(),
 });
 
-/** Review actions that touch one flag only. */
 export const flagSchema = z.object({
   id: z.number().int().positive(),
   excluded: z.boolean().optional(),

@@ -1,21 +1,18 @@
+import { saveWithSnack } from "../components/save-with-snack";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "../components/ui";
 import { SeriesForm } from "../components/series-form";
-import { saveFailed, snack } from "../components/sheet";
+import { snack } from "../components/sheet";
 import { saveSeries } from "../server/plan/fns";
 
 export const Route = createFileRoute("/plan/recurring_/new")({ component: NewSeries });
 function NewSeries() {
   const navigate = useNavigate();
-  const save = async (value: Parameters<typeof saveSeries>[0]["data"]) => {
-    try {
-      const id = await saveSeries({ data: value });
-      snack("Recurring saved");
-      await navigate({ to: "/plan/recurring/$id", params: { id: String(id) } });
-    } catch {
-      saveFailed(() => void save(value));
-    }
-  };
+  const save = saveWithSnack(async (value: Parameters<typeof saveSeries>[0]["data"]) => {
+    const id = await saveSeries({ data: value });
+    snack("Recurring saved");
+    await navigate({ to: "/plan/recurring/$id", params: { id: String(id) } });
+  });
   return (
     <>
       <PageHeader title="Add recurring" back="/plan/recurring" />
