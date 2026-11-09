@@ -179,6 +179,46 @@ assert.ok(bill.includes("Milk 60.00\nTotal 1,234.50"), "items, amounts and line 
 assert.ok(!redactReceiptText("Ravi Kumar\n9876543210\nhi@shop.in").match(/9876543210|@shop/), "phone and email removed");
 assert.ok(!bill.includes("4111") && !bill.includes("@okbank") && !bill.includes("123456789012"), "card, UPI and account removed");
 
+// Unlabelled identifiers as OCR splits them: dots, spaces, short accounts, a space before @.
+for (const [leak, secret] of [
+  ["4111.1111.1111.1111", "1111"],
+  ["4111 1111 1111 1111 60.00", "1111"],
+  ["4111.1111.1111.11", "1111"],
+  ["4111111111111111, paid", "4111"],
+  ["Payment,4111111111111111", "4111"],
+  ["4111  1111\t1111  1111", "1111"],
+  ["12345678", "12345678"],
+  ["1234 5678 9012", "5678"],
+  ["+91 98765 43210 60.00", "98765"],
+  ["syntheticpayer @okhdfcbank", "okhdfcbank"],
+  ["name  @bank", "@bank"],
+  ["4111, 1111, 1111, 1111", "1111"],
+  ["4111 - 1111 - 1111 - 1111", "1111"],
+  ["4111-11-11 1111-11-11", "4111"],
+  ["(4111 1111 1111 1111)", "1111"],
+  ["41 11 11 11 11 11 11 11", "11 11"],
+  ["4111 11.11 1111 1111", "1111"],
+  ["41111111111111.11", "4111"],
+  ["12 34 56 78 90", "56 78"],
+  ["Balance:12345 67890", "67890"],
+  ["12345678.90", "12345678"],
+  ["4 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", "1 1 1 1"],
+  ["+91 9 8765 43210", "8765"],
+  ["9 8 7 6 5 4 3 2 1 0", "5 4 3"],
+  ["Ref12345678901234", "12345678"],
+  ["\uE000 4111 1111 1111 1111", "1111"],
+])
+  assert.ok(!redactReceiptText(`Mart\n${leak}\nMilk 60.00`).includes(secret), `unlabelled ${leak} removed`);
+const items =
+  "1 450.00 450.00\nRice 1 1450.00 1450.00\nDal 2 725 1450\nQty 2 @ 30.00\n05/10/2026 10:30\nDate 2026-10-05 10:30:15\n05-10-2026 10:30\n05.10.2026\nTotal 1,234.50\nGrand 12,345.00\nRice 12.00 15.00 20.00 25.00\nRice 10.00 70.00 20.00 25.00\n1000\n2000\n3000\nGSTIN 29ABCDE1234F1Z5\n\uE000 Milk 60.00";
+assert.equal(redactReceiptText(items), items, "prices, quantities, dates, times and totals kept");
+assert.equal(redactReceiptText("Bill 4111 1111 1111 1111 60.00"), "Bill [number] 60.00", "the price beside a card number stays");
+{
+  const started = performance.now();
+  redactReceiptText("a".repeat(100_000));
+  assert.ok(performance.now() - started < 1000, "long OCR text redacts in linear time");
+}
+
 // runReceiptJob: injected OCR, mocked fetch, in-memory DB. Never touches disk or network.
 async function receiptHarness(text: string | null) {
   const rdb = openDb(":memory:");
