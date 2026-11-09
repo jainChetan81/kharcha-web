@@ -17,7 +17,6 @@ type Summary = {
   avgPerDay: number | null;
 };
 
-/** One server query (getTransactionSummary). Collapsed: one row of figures. Expanded: the rest. */
 export function SummaryStrip({ summary, colors, scope }: { summary: Summary; colors: Record<string, string>; scope: ScopeSearch }) {
   const [expanded, setExpanded] = useState(false);
   const reduced = useReducedMotion();

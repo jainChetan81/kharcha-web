@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isNull } from "drizzle-orm";
-import { isSignedIn } from "../server/auth";
+import { canRead } from "../server/auth";
 import { getDb } from "../server/db/client";
+import { live } from "../server/db/queries";
 import { transactions } from "../server/db/schema";
 
 // Leading = + - @ tab or CR makes spreadsheets run the cell as a formula; a ' prefix keeps it text. Numbers stay numbers.
@@ -13,9 +13,8 @@ export const Route = createFileRoute("/api/export")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (process.env.KHARCHA_AUTH !== "off" && !isSignedIn(request))
-          return new Response("Unauthorized", { status: 401, headers: { "Cache-Control": "no-store" } });
-        const rows = await getDb().select().from(transactions).where(isNull(transactions.deletedAt));
+        if (!canRead(request)) return new Response("Unauthorized", { status: 401, headers: { "Cache-Control": "no-store" } });
+        const rows = await getDb().select().from(transactions).where(live);
         const headers = ["date", "merchant", "category", "type", "amount", "card", "source"];
         const body = [
           headers.join(","),

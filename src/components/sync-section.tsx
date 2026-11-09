@@ -1,7 +1,7 @@
 // Settings → Sync (§18). Sync now asks the mini via /api/mini/poll; the VPS can't call it.
 import { useEffect, useState } from "react";
 import { ago, time } from "../lib/format";
-import { getSyncStatus, syncNow } from "../server/daily/sync";
+import { getSyncStatus, syncNow } from "../server/mini";
 import { saveFailed } from "./sheet";
 import { Button, SectionHead } from "./ui";
 import { useOnline, useSync } from "./sync-pill";

@@ -8,6 +8,7 @@ import { useOnline } from "../components/sync-pill";
 import { Button, CategoryDot, ErrorState, PageHeader } from "../components/ui";
 import { usePageKeys } from "../keybindings";
 import { card, money, shortDate } from "../lib/format";
+import { istToday } from "../lib/dates";
 import { getReview } from "../server/daily/fns";
 import { createRule, flagTransaction, getCategories, getTransactions } from "../server/fns";
 
@@ -71,7 +72,7 @@ function Review() {
   const selected = queue.filter((row) => checked.includes(row.id));
   const suggested = open && category?.id === open.id ? category.name : (open?.suggestion ?? "Other");
   const makeRule = Boolean(open && rule?.id === open.id && rule.on);
-  const year = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 4); // Ledger dates are IST.
+  const year = istToday().slice(0, 4); // Ledger dates are IST.
   const colorOf = (name: string | null) => categories.find((item) => item.name === name)?.colorToken ?? "cat-other";
 
   const merchant = open?.merchant;

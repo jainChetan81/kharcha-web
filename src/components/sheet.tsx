@@ -104,6 +104,10 @@ export function snack(text: string, action?: SnackAction, secondary?: SnackActio
   });
 }
 
+export function deletedSnack(text: string, undo: () => void) {
+  snack(text, { label: "Undo", onClick: undo });
+}
+
 /** A failure the user should read: no auto-dismiss, with Dismiss (or the given action) to close it. */
 export function snackError(text: string, action?: SnackAction) {
   toast(text, {

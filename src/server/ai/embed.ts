@@ -1,5 +1,5 @@
 import { eq, sql } from "drizzle-orm";
-import { aiConfig } from "./client.ts";
+import { aiConfig, aiEnabled, aiEndpoint } from "./client.ts";
 import type { Db } from "../db/client.ts";
 import { merchantVectors, transactions } from "../db/schema.ts";
 
@@ -12,9 +12,10 @@ const DIMENSIONS = 768;
 
 // Local and free, so embeddings do not count against the daily cap; cap 0 (AI off) still stops them.
 async function embed(db: Db, texts: string[], timeoutMs: number): Promise<Float32Array[] | null> {
-  const base = process.env.AI_BASE_URL;
-  const key = process.env.AI_API_KEY;
-  if (process.env.KHARCHA_AI !== "on" || !base || !key || !texts.length) return null;
+  if (!aiEnabled() || !texts.length) return null;
+  const ep = aiEndpoint();
+  if (!ep) return null;
+  const { base, key } = ep;
   try {
     if ((await aiConfig(db)).cap === 0) return null;
     const response = await fetch(`${base}/embeddings`, {
@@ -85,10 +86,14 @@ export function pickMerchants(scored: { merchant: string; score: number }[], flo
     .map((s) => s.merchant);
 }
 
-// Activity loads the list and the summary at once; both ask for the same search. Share one lookup.
 const recent = new Map<string, { at: number; result: Promise<string[]> }>();
 
-/** Merchants whose name means the same as the search text. Empty when AI is off or 9Router fails: search falls back to text. */
+export async function withMeaning<T extends { search?: string }>(db: Db, q: T): Promise<T & { meaningMerchants?: string[] }> {
+  if (!q.search) return q as T & { meaningMerchants?: string[] };
+  const meaningMerchants = await merchantsByMeaning(db, q.search);
+  return { ...q, meaningMerchants };
+}
+
 export function merchantsByMeaning(db: Db, search: string): Promise<string[]> {
   const key = search.trim().toLowerCase();
   const hit = recent.get(key);

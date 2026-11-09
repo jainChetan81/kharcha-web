@@ -1,3 +1,4 @@
+import { saveWithSnack } from "../components/save-with-snack";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, type ComponentProps } from "react";
 import { saveFailed, snack } from "../components/sheet";
@@ -23,16 +24,16 @@ function Trip() {
   const totals = new Map<string, number>();
   for (const row of daily) totals.set(row.date.slice(0, 10), (totals.get(row.date.slice(0, 10)) ?? 0) + row.amount);
   const byDay = [...totals];
-  const onSave: ComponentProps<typeof TripForm>["onSave"] = async (value) => {
-    try {
+  const onSave: ComponentProps<typeof TripForm>["onSave"] = saveWithSnack(
+    async (value) => {
       await saveTrip({ data: { ...value, id: trip.id } });
       snack("Trip saved.");
       void router.invalidate();
-    } catch {
-      saveFailed(() => void onSave(value));
+    },
+    () => {
       throw new Error("Couldn't save trip");
-    }
-  };
+    },
+  );
   const end = async () => {
     if (ending || !window.confirm(`End ${trip.name}?`)) return;
     setEnding(true);

@@ -2,8 +2,21 @@ import { sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client.ts";
 import { meta } from "../db/schema.ts";
 import { presets } from "../../lib/ai-models.ts";
+import { istToday } from "../../lib/dates.ts";
 
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+const today = () => istToday();
+
+export function aiEnabled(): boolean {
+  return process.env.KHARCHA_AI === "on";
+}
+
+/** 9Router endpoint + key; null when not configured. */
+export function aiEndpoint(): { base: string; key: string } | null {
+  const base = process.env.AI_BASE_URL;
+  const key = process.env.AI_API_KEY;
+  if (!base || !key) return null;
+  return { base, key };
+}
 
 export type AiConfig = { model: string; cap: number; used: number };
 
@@ -30,12 +43,11 @@ export async function callAi(
   | { ok: true; content: string; model: string; tokensIn: number | null; tokensOut: number | null; costUsd: number | null }
   | { ok: false; reason: string }
 > {
-  // One switch for every outbound call: Ask, digest, receipts.
-  if (process.env.KHARCHA_AI !== "on") return { ok: false, reason: "disabled" };
+  if (!aiEnabled()) return { ok: false, reason: "disabled" };
   // 9Router on the VPS (subscription models). Key is the restricted `kharcha` key.
-  const base = process.env.AI_BASE_URL;
-  const key = process.env.AI_API_KEY;
-  if (!base || !key) return { ok: false, reason: "unavailable" };
+  const ep = aiEndpoint();
+  if (!ep) return { ok: false, reason: "unavailable" };
+  const { base, key } = ep;
   const db = options.db ?? getDb();
   const config = await aiConfig(db);
   if (config.used >= config.cap) return { ok: false, reason: "cap" };

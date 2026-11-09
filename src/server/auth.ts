@@ -80,12 +80,21 @@ export function sameOrigin(request: Request): boolean {
   return !origin || new URL(origin).host === request.headers.get("host");
 }
 
-/** Bearer check for the mini's machine endpoints. 503 when INGEST_TOKEN is unset or short, 401 on a wrong token. */
+// ponytail: KHARCHA_AUTH=off opens the whole app (owner's choice while data is low-stakes).
+// Remove that line from /etc/kharcha-web/env and restart to require the login again.
+const authOff = process.env.KHARCHA_AUTH === "off";
+
+export function noStoreJson(value: unknown, status = 200): Response {
+  return Response.json(value, { status, headers: { "Cache-Control": "no-store" } });
+}
+
+export const canRead = (request: Request): boolean => authOff || isSignedIn(request);
+
+/** Bearer check for the mini's and the timer's machine endpoints. 503 when INGEST_TOKEN is unset or short, 401 on a wrong token. */
 export function ingestAuth(request: Request): Response | undefined {
   const expected = process.env.INGEST_TOKEN;
-  const no = (error: string, status: number) => Response.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
-  if (!expected || expected.length < 32) return no("Disabled on this server.", 503);
+  if (!expected || expected.length < 32) return noStoreJson({ error: "Disabled on this server." }, 503);
   const given = request.headers.get("authorization")?.replace(/^Bearer /i, "") ?? "";
   const digest = (value: string) => crypto.createHash("sha256").update(value).digest();
-  if (!given || !crypto.timingSafeEqual(digest(given), digest(expected))) return no("Wrong ingest token.", 401);
+  if (!given || !crypto.timingSafeEqual(digest(given), digest(expected))) return noStoreJson({ error: "Wrong ingest token." }, 401);
 }

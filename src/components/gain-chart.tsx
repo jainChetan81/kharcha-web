@@ -1,11 +1,11 @@
+import { polylinePoints } from "../lib/format";
+
 export function GainChart({ values, invested }: { values: number[]; invested: number }) {
   if (values.length < 2) return null;
   const max = Math.max(invested, ...values, 1);
   const width = 640;
   const height = 150;
-  const points = values
-    .map((value, index) => `${(index / Math.max(1, values.length - 1)) * width},${height - (value / max) * (height - 16)}`)
-    .join(" ");
+  const points = polylinePoints(values, max, width, 16, height);
   const line = `${0},${height - (invested / max) * (height - 16)} ${width},${height - (invested / max) * (height - 16)}`;
   return (
     <svg

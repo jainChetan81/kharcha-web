@@ -1,16 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "../db/client";
-import { aiConfig } from "../ai/client";
-import { presets } from "../../lib/ai-models";
-import { getMeta, sameMatch, setMeta } from "../db/queries";
-import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema";
+import { type Db, getDb } from "../db/client.ts";
+import { aiConfig, aiEnabled } from "../ai/client.ts";
+import { presets } from "../../lib/ai-models.ts";
+import { categoryOrOther, live, META, getMeta, sameMatch, setMeta } from "../db/queries.ts";
+import { budgets, categories, merchantRules, transactionItems, transactionSplits, transactions } from "../db/schema.ts";
 
 const name = z.string().trim().min(1).max(40);
 const type = z.enum(["expense", "income"]);
 const colorToken = z.string().regex(/^cat-[a-z-]+$/);
 const sortOrder = z.number().int().min(0).max(99);
+
+async function categoryOwnership(db: Db, name: string, type: "expense" | "income") {
+  const ofType = type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
+  const owned = db.select({ id: transactions.id }).from(transactions).where(ofType);
+  const shared = await db
+    .select({ name: categories.name })
+    .from(categories)
+    .where(and(eq(categories.name, name), ne(categories.type, type)))
+    .get();
+  return { ofType, owned, shared };
+}
 const ruleFields = z.object({
   match: z.string().trim().min(1).max(120),
   displayMerchant: z.string().trim().min(1).max(120),
@@ -28,11 +39,11 @@ const settingsSchema = z.discriminatedUnion("key", [
 
 export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
-  const keys = [...settingKey.options, "last_ingest_at"];
+  const keys = [...settingKey.options, META.LAST_INGEST_AT];
   const entries = await Promise.all(keys.map(async (key) => [key, await getMeta(db, key)] as const));
   // Count is type-scoped (null category counts as Other): income categories count income rows, expense categories count the rest.
   const transactionCount = count(transactions.id);
-  const aiOn = process.env.KHARCHA_AI === "on";
+  const aiOn = aiEnabled();
   const ai = await aiConfig(db);
   return {
     categories: await db
@@ -47,8 +58,8 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
       .leftJoin(
         transactions,
         and(
-          sql`coalesce(${transactions.category}, 'Other') = ${categories.name}`,
-          isNull(transactions.deletedAt),
+          sql`${categoryOrOther(transactions.category)} = ${categories.name}`,
+          live,
           sql`((${categories.type} = 'income') = (${transactions.type} = 'income'))`,
         ),
       )
@@ -62,7 +73,6 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
   };
 });
 
-// Real counts for the delete sheet. Same scoping rules as deleteCategory.
 export const getCategoryDeleteCounts = createServerFn({ method: "GET" })
   .validator(z.object({ name, type }))
   .handler(async ({ data }) => {
@@ -77,7 +87,7 @@ export const getCategoryDeleteCounts = createServerFn({ method: "GET" })
       db
         .select({ count: count() })
         .from(transactions)
-        .where(and(sql`coalesce(${transactions.category}, 'Other') = ${data.name}`, isNull(transactions.deletedAt), ofType))
+        .where(and(sql`${categoryOrOther(transactions.category)} = ${data.name}`, live, ofType))
         .get(),
       data.type === "expense"
         ? db.select({ count: count() }).from(budgets).where(eq(budgets.category, data.name)).get()
@@ -118,13 +128,7 @@ export const saveCategory = createServerFn({ method: "POST" })
     // Income and expense can share a name (both have "Other"), so every cascade is scoped by type.
     // Investment rows use expense categories. Budgets are expense-only. Rules carry no type: they follow
     // the expense side when the name is shared, and whichever side owns it otherwise.
-    const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
-    const owned = db.select({ id: transactions.id }).from(transactions).where(ofType);
-    const shared = await db
-      .select({ name: categories.name })
-      .from(categories)
-      .where(and(eq(categories.name, data.oldName), ne(categories.type, data.type)))
-      .get();
+    const { ofType, owned, shared } = await categoryOwnership(db, data.oldName, data.type);
     const ops = [
       db
         .update(categories)
@@ -152,51 +156,46 @@ export const saveCategory = createServerFn({ method: "POST" })
 
 // Moves the category's rows to Other, drops its budget and rules, and removes it in one batch.
 // Other (expense and income) is the fallback, so it cannot be deleted.
+export async function removeCategory(db: Db, data: { name: string; type: "expense" | "income" }): Promise<void> {
+  if (data.name === "Other") throw new Error("Other can't be deleted.");
+  const { ofType, owned, shared } = await categoryOwnership(db, data.name, data.type);
+  const ops = [
+    db
+      .update(transactions)
+      .set({ category: "Other" })
+      .where(and(eq(transactions.category, data.name), ofType)),
+    db
+      .update(transactionItems)
+      .set({ category: "Other" })
+      .where(and(eq(transactionItems.category, data.name), inArray(transactionItems.transactionId, owned))),
+    // A transaction may already hold an "Other" split (PK is transaction_id + category), so fold the amount into it.
+    db
+      .insert(transactionSplits)
+      .select(
+        db
+          .select({
+            transactionId: transactionSplits.transactionId,
+            category: sql<string>`'Other'`.as("category"),
+            amount: transactionSplits.amount,
+          })
+          .from(transactionSplits)
+          .where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
+      )
+      .onConflictDoUpdate({
+        target: [transactionSplits.transactionId, transactionSplits.category],
+        set: { amount: sql`${transactionSplits.amount} + excluded.amount` },
+      }),
+    db.delete(transactionSplits).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
+    ...(data.type === "expense" ? [db.delete(budgets).where(eq(budgets.category, data.name))] : []),
+    ...(data.type === "expense" || !shared ? [db.delete(merchantRules).where(eq(merchantRules.category, data.name))] : []),
+    db.delete(categories).where(and(eq(categories.name, data.name), eq(categories.type, data.type))),
+  ];
+  await db.batch(ops as [(typeof ops)[number], ...(typeof ops)[number][]]);
+}
+
 export const deleteCategory = createServerFn({ method: "POST" })
   .validator(z.object({ name, type }))
-  .handler(async ({ data }) => {
-    if (data.name === "Other") throw new Error("Other can't be deleted.");
-    const db = getDb();
-    const ofType = data.type === "income" ? eq(transactions.type, "income") : ne(transactions.type, "income");
-    const owned = db.select({ id: transactions.id }).from(transactions).where(ofType);
-    const shared = await db
-      .select({ name: categories.name })
-      .from(categories)
-      .where(and(eq(categories.name, data.name), ne(categories.type, data.type)))
-      .get();
-    const ops = [
-      db
-        .update(transactions)
-        .set({ category: "Other" })
-        .where(and(eq(transactions.category, data.name), ofType)),
-      db
-        .update(transactionItems)
-        .set({ category: "Other" })
-        .where(and(eq(transactionItems.category, data.name), inArray(transactionItems.transactionId, owned))),
-      // A transaction may already hold an "Other" split (PK is transaction_id + category), so fold the amount into it.
-      db
-        .insert(transactionSplits)
-        .select(
-          db
-            .select({
-              transactionId: transactionSplits.transactionId,
-              category: sql<string>`'Other'`.as("category"),
-              amount: transactionSplits.amount,
-            })
-            .from(transactionSplits)
-            .where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
-        )
-        .onConflictDoUpdate({
-          target: [transactionSplits.transactionId, transactionSplits.category],
-          set: { amount: sql`${transactionSplits.amount} + excluded.amount` },
-        }),
-      db.delete(transactionSplits).where(and(eq(transactionSplits.category, data.name), inArray(transactionSplits.transactionId, owned))),
-      ...(data.type === "expense" ? [db.delete(budgets).where(eq(budgets.category, data.name))] : []),
-      ...(data.type === "expense" || !shared ? [db.delete(merchantRules).where(eq(merchantRules.category, data.name))] : []),
-      db.delete(categories).where(and(eq(categories.name, data.name), eq(categories.type, data.type))),
-    ];
-    await db.batch(ops as [(typeof ops)[number], ...(typeof ops)[number][]]);
-  });
+  .handler(({ data }) => removeCategory(getDb(), data));
 
 // One atomic batch for all sortOrder writes, so a drag-reorder never half-applies.
 export const reorderCategories = createServerFn({ method: "POST" })
@@ -224,7 +223,6 @@ export const updateRule = createServerFn({ method: "POST" })
     ]);
   });
 
-// Returns the deleted row so the client can offer undo via restoreRule.
 export const removeRule = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number().int().positive() }))
   .handler(async ({ data }) => {

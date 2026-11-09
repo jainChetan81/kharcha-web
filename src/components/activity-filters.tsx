@@ -2,8 +2,8 @@ import { Dialog } from "radix-ui";
 import { m, useReducedMotion } from "motion/react";
 import { CalendarDays, Check, ChevronDown, Filter as FilterIcon, Search, X } from "lucide-react";
 import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
-import { money, monthLabel, rangeLabel } from "../lib/format";
-import { countFor, preset, presetOn, selectedCategories, today } from "../lib/filters";
+import { DESKTOP_MEDIA_QUERY, money, monthLabel, rangeLabel } from "../lib/format";
+import { countFor, preset, presetOn, selectedCategories, shortCategory, today } from "../lib/filters";
 import { Button, Chip } from "./ui";
 
 type Status = "review" | "receipt" | "split" | "reimbursable";
@@ -36,7 +36,6 @@ type Props = {
   onReview?: () => void;
   dateOpen?: boolean;
   onDateClose?: () => void;
-  /** Insights puts its month stepper in this row, right after Filter. */
   month?: ReactNode;
   hiddenRail?: boolean;
   onRailVisibilityChange?: (hidden: boolean) => void;
@@ -65,6 +64,35 @@ const compactRange = (s: SearchState) =>
   s.min !== undefined || s.max !== undefined
     ? `${s.min === undefined ? "" : money(s.min)}${s.min !== undefined && s.max !== undefined ? "–" : ""}${s.max === undefined ? "" : money(s.max)}`
     : "";
+type AppliedChipData = { name: Filter; value: string; key?: string };
+function appliedChips(s: SearchState, trips: Props["trips"], partialDateLabel = "Custom date"): AppliedChipData[] {
+  const chips: AppliedChipData[] = [];
+  if ((s.from || s.to) && !s.month) chips.push({ name: "Date", value: s.from && s.to ? rangeLabel(s.from, s.to) : partialDateLabel });
+  selectedCategories(s).forEach((value) => {
+    chips.push({ name: "Category", value: shortCategory(value), key: value });
+  });
+  if (s.card) chips.push({ name: "Card", value: `••${s.card}` });
+  if (s.type) chips.push({ name: "Type", value: typeOptions.find(([key]) => key === s.type)?.[1] ?? s.type });
+  if (s.tripId) chips.push({ name: "Trip", value: trips.find((trip) => trip.id === s.tripId)?.name ?? "Trip" });
+  if (s.min !== undefined || s.max !== undefined) chips.push({ name: "Amount", value: compactRange(s) });
+  const statuses = [...new Set([...(s.status ?? []), ...(s.review ? (["review"] as const) : [])])];
+  statuses.forEach((value) => {
+    chips.push({ name: "Status", value: statusOptions.find((option) => option.id === value)?.label ?? value, key: value });
+  });
+  return chips;
+}
+function removeAppliedChip(s: SearchState, name: Filter, key?: string): Partial<SearchState> {
+  if (name === "Category" && key) {
+    const next = selectedCategories(s).filter((value) => value !== key);
+    return { categories: next.length ? next : undefined, category: undefined };
+  }
+  if (name === "Status" && key) {
+    const statuses = [...new Set([...(s.status ?? []), ...(s.review ? (["review"] as const) : [])])];
+    const next = statuses.filter((value) => value !== key);
+    return { status: next.length ? next : undefined, review: undefined };
+  }
+  return without(s, name);
+}
 const chipBase =
   "inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border px-3 text-meta font-medium whitespace-nowrap transition-transform duration-150 active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-3 focus-visible:outline-brand focus-visible:outline-offset-2";
 
@@ -107,16 +135,15 @@ function AppliedChip({ label, remove, filled }: { label: string; remove: () => v
   );
 }
 // Desktop vs phone layout; the server snapshot is phone so SSR and first paint agree.
-const DESK = "(min-width: 840px)";
 const subscribeDesk = (change: () => void) => {
-  const media = window.matchMedia(DESK);
+  const media = window.matchMedia(DESKTOP_MEDIA_QUERY);
   media.addEventListener("change", change);
   return () => media.removeEventListener("change", change);
 };
 const useDesktop = () =>
   useSyncExternalStore(
     subscribeDesk,
-    () => window.matchMedia(DESK).matches,
+    () => window.matchMedia(DESKTOP_MEDIA_QUERY).matches,
     () => false,
   );
 function activeCount(s: SearchState, name: Filter) {
@@ -132,12 +159,7 @@ function activeCount(s: SearchState, name: Filter) {
 function summaryValue(s: SearchState, name: Filter, trips: Props["trips"]) {
   if (name === "Sort") return sortOptions.find(([k]) => k === (s.sort ?? "newest"))?.[1] ?? "Newest first";
   if (name === "Date") return s.from && s.to ? rangeLabel(s.from, s.to) : "Any date";
-  if (name === "Category")
-    return (
-      selectedCategories(s)
-        .map((v) => v.split(":").at(-1))
-        .join(", ") || "Any category"
-    );
+  if (name === "Category") return selectedCategories(s).map(shortCategory).join(", ") || "Any category";
   if (name === "Card") return s.card ? `••${s.card}` : "Any card";
   if (name === "Type") return typeOptions.find(([k]) => k === s.type)?.[1] ?? "Any type";
   if (name === "Trip") return trips.find((v) => v.id === s.tripId)?.name ?? "Any trip";
@@ -195,33 +217,13 @@ export function ActivityFilters({
     setSection(name);
     setScreen(true);
   };
-  // The page's month label asks for the Date filter; open it on that change, during render.
   const [wasDateOpen, setWasDateOpen] = useState(dateOpen);
   if (wasDateOpen !== dateOpen) {
     setWasDateOpen(dateOpen);
     if (dateOpen) quick("Date");
   }
-  const remove = (name: Filter, category?: string) => {
-    if (name === "Category" && category) {
-      const next = cats.filter((v) => v !== category);
-      onApply({ categories: next.length ? next : undefined, category: undefined });
-    } else if (name === "Status" && category) {
-      const next = status.filter((v) => v !== category);
-      onApply({ status: next.length ? next : undefined, review: undefined });
-    } else onApply(without(search, name));
-  };
-  const applied: { name: Filter; value: string; key?: string }[] = [];
-  if ((search.from || search.to) && !search.month) applied.push({ name: "Date", value: customLabel ?? "Date" });
-  cats.forEach((v) => {
-    applied.push({ name: "Category", value: v.split(":").at(-1) ?? v, key: v });
-  });
-  if (search.card) applied.push({ name: "Card", value: `••${search.card}` });
-  if (search.type) applied.push({ name: "Type", value: typeOptions.find(([k]) => k === search.type)?.[1] ?? search.type });
-  if (search.tripId) applied.push({ name: "Trip", value: trips.find((v) => v.id === search.tripId)?.name ?? "Trip" });
-  if (search.min !== undefined || search.max !== undefined) applied.push({ name: "Amount", value: compactRange(search) });
-  status.forEach((v) => {
-    applied.push({ name: "Status", value: statusOptions.find((o) => o.id === v)?.label ?? v, key: v });
-  });
+  const remove = (name: Filter, category?: string) => onApply(removeAppliedChip(search, name, category));
+  const applied = appliedChips(search, trips, customLabel ?? "Date");
 
   const dialogs = (
     <>
@@ -377,30 +379,8 @@ export function FilterToolbar({
   railHidden?: boolean;
 }) {
   const options = sortOptions;
-  const cats = selectedCategories(search);
-  const statuses = [...new Set([...(search.status ?? []), ...(search.review ? ["review" as const] : [])])];
-  const chips: { name: Filter; value: string; key?: string }[] = [];
-  if ((search.from || search.to) && !search.month)
-    chips.push({ name: "Date", value: search.from && search.to ? rangeLabel(search.from, search.to) : "Custom date" });
-  cats.forEach((v) => {
-    chips.push({ name: "Category", value: v.split(":").at(-1) ?? v, key: v });
-  });
-  if (search.card) chips.push({ name: "Card", value: `••${search.card}` });
-  if (search.type) chips.push({ name: "Type", value: typeOptions.find(([k]) => k === search.type)?.[1] ?? search.type });
-  if (search.tripId) chips.push({ name: "Trip", value: trips.find((t) => t.id === search.tripId)?.name ?? "Trip" });
-  if (search.min !== undefined || search.max !== undefined) chips.push({ name: "Amount", value: compactRange(search) });
-  statuses.forEach((v) => {
-    chips.push({ name: "Status", value: statusOptions.find((o) => o.id === v)?.label ?? v, key: v });
-  });
-  const removeChip = (name: Filter, key?: string) => {
-    if (name === "Category" && key) {
-      const next = cats.filter((v) => v !== key);
-      onApply({ categories: next.length ? next : undefined, category: undefined });
-    } else if (name === "Status" && key) {
-      const next = statuses.filter((v) => v !== key);
-      onApply({ status: next.length ? next : undefined, review: undefined });
-    } else onApply(without(search, name));
-  };
+  const chips = appliedChips(search, trips);
+  const removeChip = (name: Filter, key?: string) => onApply(removeAppliedChip(search, name, key));
   return (
     <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-hairline pb-2 text-meta">
       {railHidden && onShowRail && (
@@ -590,7 +570,6 @@ function CategoryFields({
   );
 }
 
-// Digits and one decimal point; "." alone or "1.2.3" never reach the URL schema as NaN.
 const amountText = (raw: string) => raw.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
 
 function AmountFields({
@@ -852,7 +831,6 @@ function FilterScreen({
       window.clearTimeout(timer);
     };
   }, [draft, getCount]);
-  // Radix Dialog closes on Escape through onOpenChange.
   // A changed draft drops the old N, so the button never advertises a stale count.
   const patch = (next: Partial<SearchState>) => {
     if (getCount) setCount(undefined);
@@ -876,26 +854,8 @@ function FilterScreen({
   const row = (label: string, checked: boolean, onClick: () => void, mode: "checkbox" | "radio" = "checkbox", secondary?: string) => (
     <OptionRow key={label} label={label} checked={checked} onClick={onClick} mode={mode} secondary={secondary} />
   );
-  const removeChip = (name: Filter, key?: string) => {
-    if (name === "Category" && key) {
-      const next = cats.filter((v) => v !== key);
-      patch({ categories: next.length ? next : undefined, category: undefined });
-    } else if (name === "Status" && key) setStatus(key as Status);
-    else patch(without(draft, name));
-  };
-  const selected: { name: Filter; value: string; key?: string }[] = [];
-  if ((draft.from || draft.to) && !draft.month)
-    selected.push({ name: "Date", value: draft.from && draft.to ? rangeLabel(draft.from, draft.to) : "Custom date" });
-  cats.forEach((v) => {
-    selected.push({ name: "Category", value: v.split(":").at(-1) ?? v, key: v });
-  });
-  if (draft.card) selected.push({ name: "Card", value: `••${draft.card}` });
-  if (draft.type) selected.push({ name: "Type", value: typeOptions.find(([k]) => k === draft.type)?.[1] ?? draft.type });
-  if (draft.tripId) selected.push({ name: "Trip", value: trips.find((t) => t.id === draft.tripId)?.name ?? "Trip" });
-  if (draft.min !== undefined || draft.max !== undefined) selected.push({ name: "Amount", value: compactRange(draft) });
-  statuses.forEach((v) => {
-    selected.push({ name: "Status", value: statusOptions.find((o) => o.id === v)?.label ?? v, key: v });
-  });
+  const removeChip = (name: Filter, key?: string) => patch(removeAppliedChip(draft, name, key));
+  const selected = appliedChips(draft, trips);
   const focus = (name: Filter) => setSection(name);
   const options = () => {
     if (section === "Sort")

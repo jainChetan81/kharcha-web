@@ -57,7 +57,6 @@ function Insights() {
   const [dateOpen, setDateOpen] = useState(false);
   // The server defaults to this month; links must say so, or Activity/Ask widen to all time.
   const scope = { ...pickScope(search), ...(search.from || search.to ? {} : { month: data.month }) };
-  // Same count Activity shows for this scope; a whole month stays the default when no range is set.
   const getCount = async (draft: Record<string, unknown>) => {
     const s = pickScope(draft);
     return (await getTransactionSummary({ data: { ...s, month: s.from || s.to ? undefined : (s.month ?? data.month) } })).count;

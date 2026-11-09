@@ -6,10 +6,9 @@ import { InkHero, HeroAmount } from "../components/ink-hero";
 import { saveFailed, Sheet, snack } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
 import { Button, ButtonLink, Empty, PageHeader } from "../components/ui";
-import { holdingCsvRows } from "../lib/csv";
+import { holdingCsvIssue, holdingCsvRows } from "../lib/csv";
 import { money, navsOf, signed, statementOf } from "../lib/format";
 import { SipList } from "../components/sip-list";
-import { realDay } from "../server/wealth/xirr";
 import { getWealth, importHoldingCsv } from "../server/wealth/fns";
 import { importCas } from "../server/wealth/cas";
 import { errorText } from "../lib/error-text";
@@ -26,14 +25,7 @@ function parseCsv(csv: string, names: Set<string>) {
       amount,
       units,
       nav,
-      ok:
-        realDay(date) &&
-        date <= new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()) &&
-        [amount, units, nav].every((value) => Number.isFinite(Number(value))) &&
-        names.has(fund.toLowerCase()) &&
-        Number(nav) > 0 &&
-        Number(amount) !== 0 &&
-        Math.sign(Number(amount)) === Math.sign(Number(units)),
+      ok: !holdingCsvIssue({ date, fund, amount, units, nav }, names),
     };
   });
 }

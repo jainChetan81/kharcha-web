@@ -41,6 +41,15 @@ export function foreign(currency: string | null | undefined, original: number | 
 export const card = (last4: string | null | undefined) => (last4 ? `••${last4}` : "");
 
 const p2 = (n: number) => String(n).padStart(2, "0");
+// Mirrors --breakpoint-desk (840px) in styles.css.
+export const DESKTOP_MEDIA_QUERY = "(min-width: 840px)";
+export const toDateTimeLocal = (value: string) => value.replace(" ", "T");
+export const fromDateTimeLocal = (value: string) => value.replace("T", " ");
+export function polylinePoints(values: number[], max: number, width: number, top: number, bottom: number): string {
+  return values
+    .map((value, index) => `${(index / Math.max(1, values.length - 1)) * width},${bottom - (value / max) * (bottom - top)}`)
+    .join(" ");
+}
 const day = (date: string) => new Date(`${date.slice(0, 10)}T00:00:00`);
 const dm = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
@@ -58,6 +67,13 @@ export function time(value: string | Date): string {
 }
 /** "15 Oct, 2:44 PM". */
 export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)}, ${time(date)}` : dayMonth(date));
+/** Source metadata labels shared by transaction detail and Activity. */
+export function transactionSourceLabels(source: string, parsedBy?: string | null): { source: string; parsedBy: string } {
+  return {
+    source: source === "sms" ? "SMS via Mac mini" : source === "paste" ? "Pasted text" : "Added by hand",
+    parsedBy: source === "sms" ? (parsedBy === "regex" || !parsedBy ? "Regex" : parsedBy) : source === "paste" ? "Paste" : "Manual",
+  };
+}
 /** Edit source line: "From SMS · 18 Oct, 7:47 PM". */
 export const fromSource = (source: string, date: string) => `From ${source === "sms" ? "SMS" : source} · ${shortDate(date)}`;
 /** "Thu". */
@@ -119,7 +135,6 @@ export function ago(iso: string, now = Date.now()): string {
   return `${Math.round(mins / 1440)} d ago`;
 }
 
-/** Evaluate a keypad expression like "450+120-30". Undefined when invalid. */
 export function evalAmount(expr: string): number | undefined {
   const clean = expr.replace(/\s|,/g, "");
   if (!/^\d+(\.\d{1,2})?([+-]\d+(\.\d{1,2})?)*$/.test(clean)) return undefined;

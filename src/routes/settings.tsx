@@ -7,7 +7,7 @@ import { applyTheme, getTheme, type Theme } from "../lib/theme";
 import { IosInstallSheet, isStandalone, promptInstall } from "../components/pwa";
 import { saveFailed, Sheet, snack, useHoldsInput, snackError } from "../components/sheet";
 import { useOnline } from "../components/sync-pill";
-import { getSyncStatus } from "../server/daily/sync";
+import { getSyncStatus } from "../server/mini";
 import {
   deleteCategory,
   getCategoryDeleteCounts,

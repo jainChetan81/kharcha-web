@@ -1,6 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { monthLabel, shiftMonth } from "../lib/format";
+import { monthLabel } from "../lib/format";
+import { MonthArrow } from "./month-arrow";
 
 /** Activity/Insights header chip: "October 2026" with ‹ ›. A custom range replaces the label and drops the arrows. */
 export function MonthStepper({
@@ -17,16 +16,7 @@ export function MonthStepper({
   const text = label ?? monthLabel(month);
   return (
     <span className="flex min-h-11 items-center rounded-full border border-field bg-card text-ink">
-      {!label && (
-        <Link
-          to={to}
-          search={(prev: Record<string, unknown>) => ({ ...prev, from: undefined, to: undefined, month: shiftMonth(month, -1) })}
-          aria-label="Previous month"
-          className="flex size-11 shrink-0 items-center justify-center rounded-control transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
-        >
-          <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />
-        </Link>
-      )}
+      {!label && <MonthArrow to={to} month={month} direction={-1} />}
       <button
         type="button"
         onClick={onOpen}
@@ -34,16 +24,7 @@ export function MonthStepper({
       >
         {text}
       </button>
-      {!label && (
-        <Link
-          to={to}
-          search={(prev: Record<string, unknown>) => ({ ...prev, from: undefined, to: undefined, month: shiftMonth(month, 1) })}
-          aria-label="Next month"
-          className="flex size-11 shrink-0 items-center justify-center rounded-control transition-[background-color,transform] duration-150 hover:bg-sunken active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100"
-        >
-          <ChevronRight size={18} strokeWidth={1.75} aria-hidden="true" />
-        </Link>
-      )}
+      {!label && <MonthArrow to={to} month={month} direction={1} />}
     </span>
   );
 }

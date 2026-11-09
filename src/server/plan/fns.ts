@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, gte, isNull, lte, sql, sum } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { cardBalances, monthBounds, spendByCategory } from "../db/queries";
+import { live, spendByCategory, spendable, spendableSql } from "../db/queries";
+import { cardBalances } from "./cards";
 import { monthSchema } from "../db/validators";
+import { istToday, monthBounds } from "../../lib/dates.ts";
 import {
   categories,
   recurringOccurrences,
@@ -17,7 +19,6 @@ import {
 import { scheduleSeries } from "./jobs";
 
 export type UpcomingPayment = { seriesId: number; date: string; name: string; amount: number; kind: string };
-const today = () => new Date().toISOString().slice(0, 10);
 const id = z.object({ id: z.number().int().positive() });
 const seriesSchema = z.object({
   id: z.number().int().positive().optional(),
@@ -47,7 +48,7 @@ const tripSchema = z
 export const getUpcoming = createServerFn({ method: "GET" })
   .validator(z.object({ days: z.number().int().min(1).max(60) }))
   .handler(async ({ data }): Promise<UpcomingPayment[]> => {
-    const until = new Date(Date.now() + data.days * 864e5).toISOString().slice(0, 10);
+    const until = istToday(new Date(Date.now() + data.days * 864e5));
     const rows = await getDb()
       .select({
         seriesId: recurringOccurrences.seriesId,
@@ -61,7 +62,7 @@ export const getUpcoming = createServerFn({ method: "GET" })
       .where(
         and(
           eq(recurringOccurrences.status, "upcoming"),
-          gte(recurringOccurrences.dueDate, today()),
+          gte(recurringOccurrences.dueDate, istToday()),
           lte(recurringOccurrences.dueDate, until),
           eq(recurringSeries.status, "active"),
         ),
@@ -123,7 +124,6 @@ export const getRecurring = createServerFn({ method: "GET" })
         .groupBy(sipMandates.holdingId),
     ]);
     const openIds = new Set(open.map((row) => row.id));
-    // Wealth SIP mandates for open holdings, minus any series already tracking that holding.
     const linked = new Set(series.filter((row) => row.status === "active" && row.holdingId != null).map((row) => row.holdingId));
     const wealthSips = sipTotals
       .filter((row) => openIds.has(row.holdingId) && !linked.has(row.holdingId))
@@ -178,9 +178,9 @@ export const removeSeries = createServerFn({ method: "POST" })
 export const getTrips = createServerFn({ method: "GET" }).handler(async () => {
   const db = getDb();
   const all = await db.select().from(trips).orderBy(desc(trips.startDate));
-  const now = today();
+  const now = istToday();
   const totals = await db.all<{ trip_id: number; total: number }>(
-    sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where t.deleted_at is null and t.type = 'expense' and t.excluded = 0 and t.duplicate_of is null and tt.in_daily_budget=1 group by tt.trip_id`,
+    sql`select tt.trip_id, sum(t.amount) total from transaction_trips tt join transactions t on t.id=tt.transaction_id where ${spendableSql("t")} and tt.in_daily_budget=1 group by tt.trip_id`,
   );
   const spend = new Map(totals.map((row) => [Number(row.trip_id), Number(row.total)]));
   return all.map((trip) => ({
@@ -207,15 +207,7 @@ export const getTrip = createServerFn({ method: "GET" })
       })
       .from(transactionTrips)
       .innerJoin(transactions, eq(transactionTrips.transactionId, transactions.id))
-      .where(
-        and(
-          eq(transactionTrips.tripId, data.id),
-          isNull(transactions.deletedAt),
-          eq(transactions.type, "expense"),
-          eq(transactions.excluded, false),
-          isNull(transactions.duplicateOf),
-        ),
-      )
+      .where(and(eq(transactionTrips.tripId, data.id), spendable))
       .orderBy(desc(transactions.date));
     return { trip, rows };
   });
@@ -258,7 +250,7 @@ export const findBookings = createServerFn({ method: "GET" })
       .from(transactions)
       .where(
         and(
-          isNull(transactions.deletedAt),
+          live,
           lte(transactions.date, `${data.before} 23:59`),
           sql`(${transactions.category} = 'Transport' or lower(${transactions.merchant}) glob '*flight*' or lower(${transactions.merchant}) glob '*rail*' or lower(${transactions.merchant}) glob '*hotel*' or lower(${transactions.merchant}) glob '*ibibo*' or lower(${transactions.merchant}) glob '*makemytrip*' or lower(${transactions.merchant}) glob '*irctc*')`,
         ),

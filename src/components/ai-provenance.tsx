@@ -1,7 +1,6 @@
 import { aiCost, grouped, ago } from "../lib/format";
 import { presets } from "./model-select";
 
-/** One muted line under an AI answer: model, tokens, cost, time. Null parts drop out; old rows show model + time. */
 export function AiProvenance({
   model,
   tokensIn,

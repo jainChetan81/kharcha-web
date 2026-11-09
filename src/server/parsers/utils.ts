@@ -1,5 +1,4 @@
 // Copied from kharcha-mini/src/parsers/utils.ts; kept in sync with mini parser behavior.
-export const DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
 
 export interface ParsedTransaction {
   amount: number;
@@ -42,7 +41,6 @@ function formatDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-/** Current datetime as the standard fallback when no date can be extracted. */
 export function fallbackNow(): string {
   return formatDate(new Date());
 }
@@ -120,9 +118,6 @@ export function parseHdfcDate(rawDate: string, rawTime?: string): string | null 
 export function parseAmount(str: string): number {
   return Number.parseFloat(str.replace(/,/g, ""));
 }
-
-/** Regex that extracts a date after "on" — covers common Indian banking formats. */
-export const DATE_REGEX = /on\s+(\d{2}\s*\w{3}\s*\d{2,4}|\d{2}[-/]\w{3}[-/]\d{2,4}|\d{2}[-/]\d{2}[-/]\d{2,4}|\d{2}\s+\w{3}\s+\d{4})/i;
 
 /** Regex that extracts a merchant name after at/towards. */
 export const MERCHANT_REGEX = /(?:at|towards)\s+([A-Za-z][\w\s./-]{2,40}?)(?:\s+on\s|\s+dated|\s*$)/i;

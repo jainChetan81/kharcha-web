@@ -18,7 +18,6 @@ type Values = {
 };
 // Default asset class per kind; only replaced while the user hasn't typed their own class.
 const CLASS_OF: Record<Kind, string> = { fund: "Equity", gold: "Gold", nps: "NPS", other: "Other" };
-// Numeric inputs stay text until valid; only finite numbers in range are sent.
 const NUM_RULES = { manualValue: (n: number) => n >= 0, targetPct: (n: number) => n >= 0 && n <= 100, sipAmount: (n: number) => n > 0 };
 type NumKey = keyof typeof NUM_RULES;
 const NUM_HINT: Record<NumKey, string> = {

@@ -1,3 +1,4 @@
+import { saveWithSnack } from "../components/save-with-snack";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { SeriesForm } from "../components/series-form";
@@ -17,15 +18,11 @@ function Series() {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   if (!data) return <ErrorState text="Series not found." back="/plan/recurring" backLabel="Back to Recurring" />;
-  const save = async (value: Parameters<typeof saveSeries>[0]["data"]) => {
-    try {
-      await saveSeries({ data: { ...value, id: data.series.id } });
-      snack("Recurring saved");
-      void router.invalidate();
-    } catch {
-      saveFailed(() => void save(value));
-    }
-  };
+  const save = saveWithSnack(async (value: Parameters<typeof saveSeries>[0]["data"]) => {
+    await saveSeries({ data: { ...value, id: data.series.id } });
+    snack("Recurring saved");
+    void router.invalidate();
+  });
   const remove = async () => {
     if (deleting || !window.confirm(`Delete ${data.series.name}?`)) return;
     setDeleting(true);

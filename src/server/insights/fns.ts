@@ -3,11 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, type Db } from "../db/client.ts";
-import { filteredAmount, listWhere, splitShareOf } from "../db/queries.ts";
+import { categoryOrOther, filteredAmount, listWhere, spendableSql, splitShareOf } from "../db/queries.ts";
 import { type Scope, scopeSchema } from "../db/validators.ts";
 import { dayMonth, shiftMonth } from "../../lib/format.ts";
+import { istToday } from "../../lib/dates.ts";
 import { digests, insights } from "../db/schema.ts";
-import { merchantsByMeaning } from "../ai/embed.ts";
+import { withMeaning } from "../ai/embed.ts";
 
 export type DigestLine = { pre: string; num: string; post: string; href: string };
 export type Digest =
@@ -66,17 +67,19 @@ const moneyRows = <T>(rows: T[]) =>
 /** Same filters as Activity (listWhere), so "See insights" shows the rows Activity showed. Default period: this month. */
 export const getInsights = createServerFn({ method: "GET" })
   .validator(scopeSchema)
-  .handler(async ({ data }) => insightsFor(getDb(), data, data.search ? await merchantsByMeaning(getDb(), data.search) : undefined));
+  .handler(async ({ data }) => {
+    return insightsFor(getDb(), await withMeaning(getDb(), data));
+  });
 
-export async function insightsFor(db: Db, data: Scope, meaningMerchants?: string[]) {
-  const now = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7);
+export async function insightsFor(db: Db, data: Scope & { meaningMerchants?: string[] }) {
+  const now = istToday().slice(0, 7);
   const ranged = Boolean(data.from || data.to);
-  const q = { ...(ranged ? { ...data, month: undefined } : { ...data, month: data.month ?? now }), meaningMerchants };
+  const q = ranged ? { ...data, month: undefined } : { ...data, month: data.month ?? now };
   // Anchor month for the calendar and the six-month bars: the month the period ends in (open end = now).
   const month = data.to?.slice(0, 7) ?? (data.from ? now : (q.month ?? now));
   const { counted, splitFilter } = filteredAmount(q);
   const scoped = (where: SQL) => sql`WITH m AS (SELECT transactions.*, ${counted} AS counted_amount FROM transactions WHERE ${where}),
-      s AS (SELECT * FROM m WHERE type = 'expense' AND excluded = 0 AND duplicate_of IS NULL)`;
+      s AS (SELECT * FROM m WHERE ${spendableSql("m")})`;
   const head = scoped(and(...listWhere(q)) ?? sql`1 = 1`);
   const [waterfall, daily, bees, merchants, allInsights] = await Promise.all([
     db.all<{ income: number; investments: number; spending: number }>(sql`${head} SELECT
@@ -85,11 +88,11 @@ export async function insightsFor(db: Db, data: Scope, meaningMerchants?: string
         (SELECT COALESCE(SUM(counted_amount), 0) FROM s) spending`),
     db.all<{ day: string; total: number; category: string }>(sql`${head}
         SELECT substr(s.date, 1, 10) day, SUM(CASE WHEN fs.transaction_id IS NULL THEN s.counted_amount ELSE ${sql.raw(splitShareOf("s", "fs"))} END) total,
-          COALESCE(fs.category, s.category, 'Other') category
+          ${categoryOrOther(sql.raw("fs.category"), sql.raw("s.category"))} category
         FROM s LEFT JOIN transaction_splits fs ON fs.transaction_id = s.id
         WHERE fs.transaction_id IS NULL OR (fs.transaction_id IS NOT NULL${splitFilter}) GROUP BY 1, 3`),
     db.all<{ id: number; merchant: string; amount: number; category: string; date: string }>(
-      sql`${head} SELECT id, merchant, counted_amount amount, COALESCE(category, 'Other') category, date FROM s ORDER BY amount DESC LIMIT 120`,
+      sql`${head} SELECT id, merchant, counted_amount amount, ${categoryOrOther(sql.raw("category"))} category, date FROM s ORDER BY amount DESC LIMIT 120`,
     ),
     db.all<{ merchant: string; total: number; n: number }>(
       sql`${head} SELECT merchant, SUM(counted_amount) total, COUNT(*) n FROM s GROUP BY merchant ORDER BY total DESC LIMIT 8`,

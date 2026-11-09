@@ -1,13 +1,12 @@
 // Reimbursements server fns (DESIGN.md §15).
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, gte, inArray, isNull, lt, ne, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lt, ne, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client.ts";
-import { spendable } from "../db/queries.ts";
+import { live, spendable } from "../db/queries.ts";
 import { reimbursementLinks, reimbursements, transactionItems, transactions } from "../db/schema.ts";
 
 // Pure: lets the client bundle drop this (and the Drizzle schema) when only validators are used there.
-const live = /* @__PURE__ */ isNull(transactions.deletedAt);
 const idSchema = z.object({ id: z.number().int().positive() });
 
 /** Status derived from links: pending → partly → reimbursed / extra. Manual paid stays reimbursed until un-marked. */
@@ -139,7 +138,6 @@ export const undoCancelReimbursement = createServerFn({ method: "POST" })
         )
       ) RETURNING id`);
     if (!restored.length) throw new Error("Unlink reused credits before restoring this claim.");
-    // Re-derive status from links
     const status = await deriveClaimStatus(db, { ...claim, status: "pending" });
     const closed = status === "reimbursed" || status === "extra";
     await db
@@ -186,7 +184,6 @@ export const linkCredit = createServerFn({ method: "POST" })
       .get();
     if (!credit) throw new Error("Credit transaction not found.");
 
-    // Check existing links for this credit excluding current claim
     const [existingOther] = await db
       .select({ total: sum(reimbursementLinks.amount).mapWith(Number) })
       .from(reimbursementLinks)
@@ -204,7 +201,6 @@ export const linkCredit = createServerFn({ method: "POST" })
       throw new Error("Credit has already been fully linked to other claims.");
     }
 
-    // Default amount: remaining on credit capped at what's still owed on claim
     const [currentClaimLinked] = await db
       .select({ total: sum(reimbursementLinks.amount).mapWith(Number) })
       .from(reimbursementLinks)
@@ -217,7 +213,6 @@ export const linkCredit = createServerFn({ method: "POST" })
     if (targetAmount <= 0.005) throw new Error("Link amount must be greater than zero.");
     const linkAmt = Math.round(targetAmount * 100) / 100;
 
-    // Verify sum of this credit's links will never exceed the credit
     if (usedOnOthers + linkAmt > credit.amount + 0.005) {
       throw new Error("Sum of credit's links cannot exceed the credit transaction amount.");
     }
@@ -294,7 +289,6 @@ export const suggestCredits = createServerFn({ method: "GET" })
     const maxMs = Date.UTC(y, m - 1, d) + 45 * 864e5;
     const maxDate = new Date(maxMs).toISOString().slice(0, 10) + " 24:00";
 
-    // Linked amounts per credit
     const links = await db
       .select({
         creditId: reimbursementLinks.creditTransactionId,
@@ -305,7 +299,6 @@ export const suggestCredits = createServerFn({ method: "GET" })
       .groupBy(reimbursementLinks.creditTransactionId);
     const usedMap = new Map(links.map((l) => [l.creditId, l.total ?? 0]));
 
-    // Already linked to this claim?
     const alreadyLinked = new Set(
       (
         await db
@@ -336,7 +329,6 @@ export const suggestCredits = createServerFn({ method: "GET" })
         const used = usedMap.get(c.id) ?? 0;
         const available = c.amount - used;
         if (available <= 0.005) return false;
-        // Amount within 10%
         const diff = Math.abs(c.amount - claim.amount);
         return diff <= claim.amount * 0.101;
       })
@@ -428,7 +420,6 @@ export const listOwed = createServerFn({ method: "GET" })
     const nowMs = Date.now();
     const dayMs = 864e5;
 
-    // Get linked sums
     const claimIds = rows.map((r) => r.id);
     const linkSums = claimIds.length
       ? await db
@@ -461,7 +452,6 @@ export const listOwed = createServerFn({ method: "GET" })
       };
     });
 
-    // Person totals for pending view
     const personMap = new Map<string, { counterparty: string; totalDue: number; count: number }>();
     let totalOwed = 0;
     let overdueCount = 0;

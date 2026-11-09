@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, count, eq, gte, isNull, lt, sum } from "drizzle-orm";
+import { and, asc, count, eq, gte, lt, sum } from "drizzle-orm";
 import { z } from "zod";
 import { shiftMonth } from "../../lib/format";
 import { getDb } from "../db/client";
-import { listTxns, monthBounds, shareSql, spendByCategory, spendable } from "../db/queries";
+import { monthBounds } from "../../lib/dates.ts";
+import { listTxns, live, shareSql, spendByCategory, spendable } from "../db/queries";
 import { monthSchema } from "../db/validators";
 import { budgets, categories, transactions } from "../db/schema";
 
@@ -30,7 +31,7 @@ export const getTodayData = createServerFn({ method: "GET" })
       db
         .select({ total: count() })
         .from(transactions)
-        .where(and(isNull(transactions.deletedAt), eq(transactions.needsReview, true))),
+        .where(and(live, eq(transactions.needsReview, true))),
       // Only the Other tile's label needs this, and only for the visible month.
       db
         .select({ total: count() })

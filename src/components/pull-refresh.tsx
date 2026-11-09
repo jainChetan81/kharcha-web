@@ -30,7 +30,6 @@ export function PullRefresh() {
       if (start === null) return;
       const dy = e.touches[0].clientY - start;
       if (dy <= 0 || window.scrollY > 0) return pull.set(0);
-      // Rubber band: resistance grows the further you pull.
       const next = Math.min(120, dy * 0.5);
       if (next >= TRIGGER && pull.get() < TRIGGER) navigator.vibrate?.(10);
       pull.set(next);

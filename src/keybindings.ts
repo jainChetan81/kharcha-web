@@ -14,7 +14,6 @@ export const KEYS = [
   { key: "?", label: "Shortcuts" },
 ] as const;
 
-/** Page-level actions (J/K/X/C/E) that a screen like Review or Activity registers while mounted. */
 export type PageKeys = Partial<Record<"j" | "k" | "x" | "c" | "e" | "enter", () => void>>;
 let pageKeys: PageKeys = {};
 export function usePageKeys(keys: PageKeys) {
@@ -26,9 +25,9 @@ export function usePageKeys(keys: PageKeys) {
   }, [keys]);
 }
 
-const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+export const typing = (t: EventTarget | null) =>
+  t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-/** Global keys. Mount once in the root layout. */
 export function useGlobalKeys(setHelp: (open: boolean) => void) {
   const navigate = useNavigate();
   useEffect(() => {

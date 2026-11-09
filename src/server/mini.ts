@@ -1,8 +1,9 @@
 // Mini presence and Sync now (§18). The VPS can't reach the mini, so the mini polls
 // /api/mini/poll every 30 s; each poll records last_seen_at and picks up a pending request.
+import { createServerFn } from "@tanstack/react-start";
 import { and, count, eq, gte } from "drizzle-orm";
-import type { Db } from "./db/client.ts";
-import { getMeta, setMeta } from "./db/queries.ts";
+import { getDb, type Db } from "./db/client.ts";
+import { getMeta, META, setMeta } from "./db/queries.ts";
 import { transactions } from "./db/schema.ts";
 
 const SEEN = "mini_last_seen_at";
@@ -22,6 +23,17 @@ export async function minipoll(db: Db, done: boolean, now = new Date()): Promise
 export async function requestSync(db: Db, now = new Date()): Promise<void> {
   await setMeta(db, REQUESTED, now.toISOString());
 }
+
+/** Sync pill and Settings → Sync (§9, §18). */
+export const getSyncStatus = createServerFn({ method: "GET" }).handler(async () => {
+  const db = getDb();
+  return { ...(await miniStatus(db)), lastIngestAt: (await getMeta(db, META.LAST_INGEST_AT)) ?? null };
+});
+
+export const syncNow = createServerFn({ method: "POST" }).handler(async () => {
+  await requestSync(getDb());
+  return { ok: true };
+});
 
 export type SyncState = "idle" | "waiting" | "synced";
 

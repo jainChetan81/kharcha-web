@@ -1,8 +1,4 @@
-/** True for a real "YYYY-MM-DD" calendar day (rejects 2026-13-01, 2026-02-30). */
-export const realDay = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-  !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) &&
-  new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
+import { realDay } from "../../lib/dates.ts";
 export type Cashflow = { date: string; amount: number };
 
 /** Annual internal rate of return, Newton solved with a guarded bisection fallback. */

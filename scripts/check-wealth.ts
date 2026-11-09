@@ -6,7 +6,8 @@ import { openDb } from "../src/server/db/client.ts";
 import { holdingTxns, holdings, prices } from "../src/server/db/schema.ts";
 import { applyCas, casProblem, casSchemes } from "../src/server/wealth/cas.ts";
 import { isNotFutureDateInIST, navDayChange, nextSipDate, snapshotDate, valueHolding } from "../src/server/wealth/fns.ts";
-import { realDay, xirr } from "../src/server/wealth/xirr.ts";
+import { xirr } from "../src/server/wealth/xirr.ts";
+import { realDay } from "../src/lib/dates.ts";
 import { holdingCsvRows } from "../src/lib/csv.ts";
 
 const rate = xirr([
@@ -67,7 +68,6 @@ assert.equal(
   60,
   "prior redemptions reduce exposure",
 );
-// Statement snapshot (synthetic): no buys, so value and basis come from the statement.
 const snap = valueHolding({ manualValue: 110_000, manualInvested: 100_000 }, [], undefined);
 assert.deepEqual([snap.value, snap.invested, snap.gain, snap.units, snap.dayChange], [110_000, 100_000, 10_000, 0, 0]);
 assert.equal(valueHolding({ manualValue: 50_000, manualInvested: null }, [], undefined).gain, 0, "unknown basis never invents a gain");
@@ -111,7 +111,6 @@ try {
   globalThis.fetch = savedFetch;
 }
 
-// CAS import (synthetic casparser JSON).
 const t = (date: string, type: string, amount: string | null, units: string | null, nav: string | null) => ({
   date,
   type,

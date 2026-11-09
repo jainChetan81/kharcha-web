@@ -1,13 +1,14 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, type Db } from "../db/client.ts";
-import { shareSql, spendByCategory } from "../db/queries.ts";
+import { shareSql, spendByCategory, spendable, spendableSql } from "../db/queries.ts";
+import { scrub } from "../../lib/privacy.ts";
 import { budgets, digests, holdings, holdingTxns, insights, recurringSeries, transactions } from "../db/schema.ts";
-import { scrub } from "../ai/ask.ts";
 import { callAi } from "../ai/client.ts";
+import { istToday } from "../../lib/dates.ts";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
-const localDate = () => new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date())}T00:00:00Z`);
+const localDate = () => new Date(`${istToday()}T00:00:00Z`);
 const weekStart = (d = localDate()) => {
   const out = new Date(d);
   out.setUTCDate(out.getUTCDate() - ((out.getUTCDay() + 6) % 7));
@@ -23,7 +24,6 @@ async function addInsight(db: Db, detector: string, key: string, payload: object
     .onConflictDoNothing();
 }
 
-/** detectors job (§8), nightly. Owner: Insights+AI agent. */
 export async function runDetectors(db: Db = getDb()): Promise<{ found: number }> {
   const now = localDate();
   const from = new Date(now.getTime() - 56 * 864e5);
@@ -37,15 +37,7 @@ export async function runDetectors(db: Db = getDb()): Promise<{ found: number }>
       category: transactions.category,
     })
     .from(transactions)
-    .where(
-      and(
-        isNull(transactions.deletedAt),
-        eq(transactions.type, "expense"),
-        eq(transactions.excluded, false),
-        isNull(transactions.duplicateOf),
-        sql`${transactions.date} >= ${iso(from)}`,
-      ),
-    );
+    .where(and(spendable, sql`${transactions.date} >= ${iso(from)}`));
   let found = 0;
   const merchants = new Map<string, number[]>();
   for (const row of rows) {
@@ -153,7 +145,6 @@ export async function runDetectors(db: Db = getDb()): Promise<{ found: number }>
   return { found };
 }
 
-/** digest job (§8), Monday 07:00 IST. Owner: Insights+AI agent. */
 const lineSchema = z.array(z.object({ pre: z.string(), num: z.string(), post: z.string(), factKey: z.string() })).length(3);
 const parseJson = (value: string): unknown => {
   try {
@@ -168,7 +159,6 @@ export function validDigestLines(value: unknown, facts: Record<string, string>):
 }
 
 export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }> {
-  // Runs Monday morning, so report the last full Monday-to-Sunday week.
   const now = localDate();
   const week = new Date(weekStart(now).getTime() - 7 * 864e5);
   const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
@@ -176,7 +166,7 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
   const usualSpend = await spendByCategory(db, iso(new Date(week.getTime() - 28 * 864e5)), iso(week));
   const monthSpend = await spendByCategory(db, iso(month), iso(monthEnd(now)));
   const monthRows = await db.all<{ merchant: string; total: number }>(
-    sql`SELECT merchant, SUM(${shareSql()}) total FROM transactions WHERE deleted_at IS NULL AND type = 'expense' AND excluded = 0 AND duplicate_of IS NULL AND date >= ${iso(month)} AND date < ${iso(monthEnd(now))} GROUP BY merchant ORDER BY total DESC LIMIT 1`,
+    sql`SELECT merchant, SUM(${shareSql()}) total FROM transactions WHERE ${spendableSql("transactions")} AND date >= ${iso(month)} AND date < ${iso(monthEnd(now))} GROUP BY merchant ORDER BY total DESC LIMIT 1`,
   );
   const total = monthSpend.reduce((sum, row) => sum + row.total, 0);
   const top = monthRows[0];
@@ -210,7 +200,6 @@ export async function runDigest(db: Db = getDb()): Promise<{ written: boolean }>
     budgetForecast: "/plan/budgets",
     reviewBacklog: "/review",
   };
-  // Context lets the model judge which facts matter; only facts values may appear as figures.
   const context = {
     dayOfMonth: day,
     daysInMonth: daysIn(now),
@@ -244,7 +233,6 @@ num must be copied verbatim from the chosen facts value, and factKey must be tha
       model = response.model;
     }
   }
-  // Provenance only when the model's words were kept; a rejected reply still cost money but is not shown.
   const tokensIn = text !== null && response.ok ? response.tokensIn : null;
   const tokensOut = text !== null && response.ok ? response.tokensOut : null;
   const costUsd = text !== null && response.ok ? response.costUsd : null;

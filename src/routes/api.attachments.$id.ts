@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { and, eq, isNull } from "drizzle-orm";
-import { isSignedIn } from "../server/auth";
+import { and, eq } from "drizzle-orm";
+import { canRead } from "../server/auth";
 import { getDb } from "../server/db/client";
+import { live } from "../server/db/queries";
 import { attachments, transactions } from "../server/db/schema";
 
 const MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
@@ -14,8 +15,7 @@ export const Route = createFileRoute("/api/attachments/$id")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (process.env.KHARCHA_AUTH !== "off" && !isSignedIn(request))
-          return new Response("Unauthorized.", { status: 401, headers: noStore });
+        if (!canRead(request)) return new Response("Unauthorized.", { status: 401, headers: noStore });
         const id = Number(params.id);
         if (!Number.isSafeInteger(id) || id < 1) return new Response("Bad id.", { status: 400, headers: noStore });
 
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/attachments/$id")({
           .select({ path: attachments.path, mime: attachments.mime, bytes: attachments.bytes })
           .from(attachments)
           .innerJoin(transactions, eq(transactions.id, attachments.transactionId))
-          .where(and(eq(attachments.id, id), isNull(transactions.deletedAt)))
+          .where(and(eq(attachments.id, id), live))
           .get();
         if (!row || !MIME_TYPES.has(row.mime)) return new Response("Not found.", { status: 404, headers: noStore });
         const root = path.resolve(process.env.STATE_DIRECTORY ?? ".data", "attachments") + path.sep;

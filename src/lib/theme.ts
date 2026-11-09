@@ -24,7 +24,6 @@ export function applyTheme(theme: Theme = getTheme()) {
   document.documentElement.classList.toggle("dark", dark);
 }
 
-/** Follow the OS while on System. */
 export function watchSystemTheme(): () => void {
   const mq = matchMedia("(prefers-color-scheme: dark)");
   const on = () => getTheme() === "system" && applyTheme("system");

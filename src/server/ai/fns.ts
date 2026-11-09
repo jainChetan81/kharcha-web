@@ -3,7 +3,7 @@ import { desc } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client.ts";
 import { askLog } from "../db/schema.ts";
-import { aiConfig } from "./client.ts";
+import { aiConfig, aiEnabled } from "./client.ts";
 import { askLedger } from "./ask.ts";
 import { scopeSchema } from "../db/validators.ts";
 
@@ -33,6 +33,6 @@ export const getAskHistory = createServerFn({ method: "GET" }).handler(async () 
   return {
     history: history.map((row) => ({ ...row, answer: answerOf(row.answerJson) })),
     usage: config,
-    enabled: process.env.KHARCHA_AI === "on",
+    enabled: aiEnabled(),
   };
 });

@@ -6,7 +6,7 @@ import { AnswerCard, type Answer } from "../components/answer-card";
 import { AiMark } from "../components/ai-mark";
 import { DeskPage } from "../components/app-shell";
 import { Button, Card, PageHeader } from "../components/ui";
-import { scopeSearch, type ScopeSearch } from "../lib/filters";
+import { scopeSearch, shortCategory, type ScopeSearch } from "../lib/filters";
 import { money, monthLabel, rangeLabel, shortDate } from "../lib/format";
 import { errorText } from "../lib/error-text";
 import { ask, getAskHistory } from "../server/ai/fns";
@@ -24,7 +24,6 @@ const ideas = [
   "How much went into SIPs since January?",
 ];
 const scopedIdeas = ["Where did most of it go?", "Which merchants stand out?", "How does this compare to usual?"];
-/** Human chips for the scope Ask runs within. Each removes one filter. */
 function scopeChips(scope: ScopeSearch): { label: string; clear: Partial<ScopeSearch> }[] {
   const cats = scope.categories ?? (scope.category ? [scope.category] : []);
   return [
@@ -39,7 +38,7 @@ function scopeChips(scope: ScopeSearch): { label: string; clear: Partial<ScopeSe
         ? [{ label: monthLabel(scope.month), clear: { month: undefined } }]
         : []),
     ...cats.map((value) => ({
-      label: value.split(":").at(-1) ?? value,
+      label: shortCategory(value),
       clear: { categories: cats.filter((v) => v !== value).length ? cats.filter((v) => v !== value) : undefined, category: undefined },
     })),
     ...(scope.merchant ? [{ label: scope.merchant, clear: { merchant: undefined } }] : []),

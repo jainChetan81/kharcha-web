@@ -48,7 +48,6 @@ function OwedScreen() {
     return "Cancelled";
   };
 
-  // Rail on desktop: By person breakdown
   const rail = (
     <div className="flex flex-col gap-6">
       {data.byPerson.length > 0 && (
@@ -73,7 +72,6 @@ function OwedScreen() {
     <DeskPage reserveRail rail={rail}>
       <PlanHeader sub={monthLabel(thisMonth())} />
 
-      {/* Header totals */}
       <section className="mx-5 mt-4 flex flex-col gap-3 border-b-3 border-double border-ink pb-5 desk:mx-0">
         <span className="label-muted">Owed to you</span>
         <div className="flex flex-wrap items-baseline gap-6">
@@ -86,7 +84,6 @@ function OwedScreen() {
           {view === "pending" && data.oldestDays > 0 && <span className="text-control text-ink-2">Oldest: {data.oldestDays} days</span>}
         </div>
 
-        {/* By person pills/summary on mobile */}
         {data.byPerson.length > 0 && (
           <div className="flex flex-wrap gap-3 pt-1 text-control desk:hidden">
             {data.byPerson.map((p) => (
@@ -99,7 +96,6 @@ function OwedScreen() {
         )}
       </section>
 
-      {/* Pending / Done view switch */}
       <div className="mx-5 mt-4 desk:mx-0">
         <Segmented
           label="View"
@@ -115,7 +111,6 @@ function OwedScreen() {
         />
       </div>
 
-      {/* Rows */}
       <section className="mx-5 mt-2 desk:mx-0">
         {data.rows.length === 0 ? (
           <Empty
@@ -134,7 +129,6 @@ function OwedScreen() {
           />
         ) : (
           <div>
-            {/* Desktop table header */}
             <div className="hidden min-h-9 items-center gap-3.5 border-b border-ink label-muted desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px]">
               <span>Date</span>
               <span>Spend</span>
@@ -145,7 +139,6 @@ function OwedScreen() {
               <span>Status</span>
             </div>
 
-            {/* List / Table rows */}
             <div className="divide-y divide-hairline">
               {data.rows.map((r) => (
                 <Link
@@ -154,7 +147,6 @@ function OwedScreen() {
                   params={{ id: String(r.transactionId) }}
                   className="flex flex-col gap-1 py-3 text-ink hover:bg-sunken desk:grid desk:grid-cols-[76px_minmax(0,1.4fr)_90px_96px_96px_96px_120px] desk:items-center desk:gap-3.5 desk:py-2.5"
                 >
-                  {/* Mobile Row */}
                   <div className="flex min-w-0 items-baseline justify-between gap-2 desk:hidden">
                     <span className="min-w-0 truncate text-body font-medium">{r.merchant}</span>
                     <strong className="shrink-0 text-body font-semibold">
@@ -172,7 +164,6 @@ function OwedScreen() {
                     </StatusTag>
                   </div>
 
-                  {/* Desktop columns */}
                   <span className="hidden text-control text-ink-2 desk:block">{shortDate(r.spendDate)}</span>
                   <span className="hidden truncate text-control font-medium desk:block">
                     {r.merchant}

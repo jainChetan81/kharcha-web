@@ -27,7 +27,6 @@ const PRIVACY =
   "Photos stay on your server. Kharcha reads the text there, removes card, account and UPI numbers, and sends only the remaining text to the AI service.";
 const MIN_CROP = 24;
 
-/** Render the photo with its Rotate turns applied. maxSide caps the longer edge (preview 900, upload 2400). */
 function rotatedCanvas(image: HTMLImageElement, rotate: number, maxSide: number): HTMLCanvasElement {
   const swapped = rotate % 2 === 1;
   const width = swapped ? image.naturalHeight : image.naturalWidth;
@@ -50,7 +49,6 @@ function rotatedCanvas(image: HTMLImageElement, rotate: number, maxSide: number)
   return out;
 }
 
-/** Paint the preview canvas: rotated photo, dimmed outside the crop frame, handles on the frame. */
 function drawCrop(image: HTMLImageElement, canvas: HTMLCanvasElement, rect: Rect | null, rotate: number) {
   if (!image.naturalWidth) return;
   const source = rotatedCanvas(image, rotate, 900);
@@ -94,7 +92,6 @@ export const Route = createFileRoute("/txn/$id_/receipt")({
   component: Receipt,
 });
 
-// Compare item content only; React keys are not part of the saved draft.
 const sig = (list: Item[]) => JSON.stringify(list.map(({ key: _key, ...item }) => item));
 
 function Receipt() {
@@ -256,7 +253,6 @@ function Receipt() {
     const image = imageRef.current;
     const preview = canvas.current;
     if (!draft || !image || !preview || !online) return;
-    // Crop is in preview pixels; map it onto a full-resolution render of the same rotation.
     const full = rotatedCanvas(image, draft.rotate, 2400);
     const k = full.width / preview.width;
     const frame = crop ?? { x: 0, y: 0, width: preview.width, height: preview.height };

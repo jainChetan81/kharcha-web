@@ -1,12 +1,9 @@
 // Client-safe URL filters shared by Activity, Insights and Ask. Server twin: listSchema/scopeSchema in db/queries.ts.
 import { z } from "zod";
 
+import { realDay as realDayFn } from "./dates.ts";
 /** Same check as the server's realDate, so a URL the client accepts never 400s. */
-const realDay = (value: string) => {
-  const [y, m, d] = value.split("-").map(Number);
-  const t = new Date(Date.UTC(y, m - 1, d));
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
-};
+const realDay = (value: string) => realDayFn(value);
 const day = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -52,7 +49,8 @@ export const ordered = <T extends z.ZodType<{ from?: string; to?: string; min?: 
 export const scopeSearch = ordered(scopeShape);
 export type ScopeSearch = z.infer<typeof scopeShape>;
 
-/** Keeps only scope keys, so list-only params (sort, ids, review) don't leak into Insights or Ask. */
+export const shortCategory = (value: string) => value.split(":").at(-1) ?? value;
+
 export const pickScope = (search: Record<string, unknown>): ScopeSearch =>
   Object.fromEntries(
     Object.keys(scopeShape.shape)
@@ -75,7 +73,6 @@ type FilterCount = {
   review?: boolean;
   sort?: string;
 };
-/** Local-time date presets for the Date filter. */
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
