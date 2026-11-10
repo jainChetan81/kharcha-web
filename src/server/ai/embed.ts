@@ -3,14 +3,15 @@ import { aiConfig, aiEnabled, aiEndpoint } from "./client.ts";
 import type { Db } from "../db/client.ts";
 import { merchantVectors, transactions } from "../db/schema.ts";
 
-// Local model through 9Router: text never leaves the VPS. One model per index; a change re-embeds every merchant.
-const MODEL = "ollama-local/embeddinggemma:300m";
-const DOC = "title: none | text: ";
-const QUERY = "task: search result | query: ";
+// Hosted model through 9Router (restricted key `kharcha`). One model per index; a change re-embeds every merchant.
+const MODEL = "openrouter/qwen/qwen3-embedding-8b";
+// Qwen3 embeddings: documents go in plain; queries carry an instruction.
+const DOC = "";
+const QUERY = "Instruct: Given a spending search term, find bank transaction merchants that match it\nQuery: ";
 
 const DIMENSIONS = 768;
 
-// Local and free, so embeddings do not count against the daily cap; cap 0 (AI off) still stops them.
+// Embeddings cost about $0.00001 a day, so they do not count against the daily cap; cap 0 (AI off) still stops them.
 async function embed(db: Db, texts: string[], timeoutMs: number): Promise<Float32Array[] | null> {
   if (!aiEnabled() || !texts.length) return null;
   const ep = aiEndpoint();
@@ -22,7 +23,7 @@ async function embed(db: Db, texts: string[], timeoutMs: number): Promise<Float3
       method: "POST",
       signal: AbortSignal.timeout(timeoutMs),
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, input: texts }),
+      body: JSON.stringify({ model: MODEL, input: texts, dimensions: DIMENSIONS }),
     });
     if (!response.ok) return null;
     const data = ((await response.json()) as { data?: { embedding?: number[] }[] }).data;
@@ -75,8 +76,8 @@ export async function fillMissing(db: Db): Promise<{ embedded: number; missing: 
   return { embedded: missing.length, missing: missing.length };
 }
 
-// ponytail: scores from embeddinggemma on short merchant names sit low (0.3 to 0.7), so the cut is relative to the best hit.
-// Tested on the live ledger 2026-11-04: "medicine" finds pharmacies, "cab ride" Uber. Re-tune when the model changes.
+// ponytail: scores on short merchant names sit low (Qwen3 0.4 to 0.65), so the cut is relative to the best hit.
+// Tested 2026-11-10 on 15 merchants and 6 queries: Qwen3 with the instruction 5/6, embeddinggemma 3/6. Re-tune when the model changes.
 export function pickMerchants(scored: { merchant: string; score: number }[], floor = 0.3, window = 0.1, max = 10): string[] {
   const sorted = [...scored].sort((a, b) => b.score - a.score);
   const top = sorted[0]?.score ?? 0;

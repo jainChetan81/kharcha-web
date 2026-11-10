@@ -433,7 +433,7 @@ try {
       calls++;
       const input = (JSON.parse(String(init?.body)) as { input: string[] }).input;
       return Response.json({
-        data: input.map((t) => ({ embedding: t.startsWith("task:") ? vec(0.95) : known[t.replace("title: none | text: ", "")] })),
+        data: input.map((t) => ({ embedding: t.startsWith("Instruct:") ? vec(0.95) : known[t] })),
       });
     };
     process.env.KHARCHA_AI = "on";
