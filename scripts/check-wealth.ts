@@ -103,10 +103,23 @@ try {
       }
       return new Response("123;isin;isin;Fund;12.5;15-Oct-2026");
     };
-    assert.equal((await runPrices(db)).updated, 1, `${failure} failure falls back to AMFI`);
+    assert.deepEqual(await runPrices(db), { updated: 1, holdings: 1 }, `${failure} failure falls back to AMFI`);
     assert.equal(requests, 2);
     assert.equal((await db.select().from(prices).get())?.source, "amfi");
   }
+  // Nothing to price: manual-value holdings and holdings without a scheme code. The job says so and fetches nothing.
+  const idle = openDb(":memory:");
+  await idle.insert(holdings).values([
+    { name: "Manual fund", kind: "fund", schemeCode: "123", manualValue: 1000 },
+    { name: "No code fund", kind: "fund" },
+  ]);
+  let idleRequests = 0;
+  globalThis.fetch = async () => {
+    idleRequests++;
+    return new Response("");
+  };
+  assert.deepEqual(await runPrices(idle), { updated: 0, holdings: 0, skipped: "no-priced-holdings" });
+  assert.equal(idleRequests, 0);
 } finally {
   globalThis.fetch = savedFetch;
 }

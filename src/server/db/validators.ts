@@ -44,6 +44,7 @@ export const editSchema = z.object({
   type: z.enum(TXN_TYPES),
   excluded: z.boolean().optional(),
   date: dateTime.optional(),
+  note: z.string().trim().max(500).optional(),
 });
 
 export const flagSchema = z.object({
@@ -72,6 +73,7 @@ export const addSchema = z.object({
     .optional(),
   originalAmount: z.number().positive().optional(),
   excluded: z.boolean().optional(),
+  note: z.string().trim().max(500).optional(),
 });
 
 /** Status chips (Activity filter screen). Accepts a comma list ("review,split") or an array. */

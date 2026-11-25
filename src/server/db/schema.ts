@@ -33,6 +33,8 @@ export const transactions = sqliteTable(
     deletedAt: text("deleted_at"),
     // Set once a human edits the row; ingest stops overwriting user-owned fields.
     editedAt: text("edited_at"),
+    // Free-text note on the transaction (e.g. "two-year renewal").
+    note: text("note"),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   },
   (t) => [index("transactions_date_idx").on(t.date), check("transactions_amount_check", sql`${t.amount} >= 0`)],

@@ -92,6 +92,49 @@ assert.equal(escaped.merchant, "Swiggy");
 assert.equal(escaped.date, "2026-04-01 19:03");
 assert.equal(decodeHtmlEntities("A&amp;B&#39;s"), "A&B's");
 
+// "Spent ... using Axis Bank Credit Card ... at {merchant}." layout, multi-line and flattened.
+for (const [amount, merchant, want, currency] of [
+  ["INR 7918", "YATRA ONLIN", "YATRA ONLIN", undefined],
+  ["INR 4590", "PAY*BLINKIT", "PAY*BLINKIT", undefined],
+  ["INR 3", "Facebook In", "Facebook In", undefined],
+  ["USD 17.7", "POLAR* C0DE", "POLAR* C0DE", "USD"],
+  ["USD 19.99", "PADDLE*NET*", "PADDLE*NET*", "USD"],
+  ["USD 12.74", "OPENROUTER,", "OPENROUTER", "USD"],
+] as const) {
+  const tail = "Avl limit: INR 61504.89. Not you? SMS BLOCK 1111 to +910000000000";
+  for (const sms of [
+    `Spent ${amount} \nusing Axis Bank Credit Card no. XX1111 on 06-11-26 18:19:44 IST at \n${merchant}. \n${tail}`,
+    `Spent ${amount}  using Axis Bank Credit Card no. XX1111 on 06-11-26 18:19:44 IST at  ${merchant}.  ${tail}`,
+  ]) {
+    const spend = parse("axis", sms);
+    assert.equal(spend.merchant, want, sms);
+    assert.equal(spend.amount, Number(amount.split(" ")[1]));
+    assert.equal(spend.currency, currency);
+    assert.equal(spend.date, "2026-11-06 18:19");
+    assert.equal(spend.accountLast4, "1111");
+    assert.equal(spend.type, "expense");
+  }
+}
+// UPI merchant names with "&", "-" or accents keep their name.
+for (const [name, want] of [
+  ["TEST SNACKS & TEA", "TEST SNACKS & TEA"],
+  ["Test Hotel - IB.C", "Test Hotel - IB"],
+  ["Test Beach Café", "Test Beach Café"],
+  ["MPD-1 TEST ENT", "MPD-1 TEST ENT"],
+] as const) {
+  const upi = parse(
+    "axis",
+    `INR 460.00 debited\nA/c no. XX2222\n10-11-26, 10:03:16\nUPI/P2M/700000000002/${name}\nNot you? SMS BLOCKUPI Cust ID to 919900000000`,
+  );
+  assert.equal(upi.merchant, want);
+  assert.equal(upi.referenceNumber, "700000000002");
+}
+// The older layout still parses.
+assert.equal(
+  parse("axis", "Spent INR 1215\nAxis Bank Card no. XX1111\n12-10-26 19:03:54 IST\nIBIBO GROUP\nAvl Limit: INR 70794.64").merchant,
+  "IBIBO GROUP",
+);
+
 const axisCb = parse(
   "axis",
   "Congratulations! Cashback of INR 455 has been credited to your Axis Bank Flipkart Credit Card XX1111 towards your last month spends - Axis Bank",

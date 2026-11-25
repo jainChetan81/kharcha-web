@@ -35,6 +35,15 @@ Today, Review, Activity, Plan (budgets, recurring, trips, owed), Wealth, Insight
 
 Live fund values come from a CAMS/KFintech **Detailed CAS** (PDF, from inception): Wealth → Import CAS. The server reads it with [casparser](https://github.com/codereverser/casparser) (`scripts/cas-to-json.py`, venv at `.cas/`; password on stdin, never stored; the PDF is deleted at once), takes each fund's AMFI scheme code, replaces that fund's buys up to the statement date with exact units and cost, backfills NAV history from MFAPI, and clears `manual_value`/`manual_invested`/`manual_value_date`. After that the nightly price job gives live value, day change and XIRR. Funds whose statement does not start at zero units, or whose units do not add up, are skipped and listed. Funds not in a CAS (NPS, gold, broker statements) keep the manual statement value, loaded by an agent on the VPS after a `.backup`.  Local dev: `uv venv .cas && uv pip install --python .cas/bin/python casparser==1.4.1` (or set `CAS_PYTHON`).
 
+## Rows loaded by an agent
+
+Some spend never reaches the bank SMS feed. An agent on the VPS loads it after a `.backup`; these rows have `source = 'manual'` and no `mini_id`, so ingest never touches them.
+
+- **Bank statement lines the SMS missed:** `parsed_by = 'statement'`, `reference_number` = the UPI reference. Match the statement by reference first; never import one statement twice.
+- **Splitwise shares:** `parsed_by = 'splitwise'`, `bank_name = 'Splitwise'`, `reference_number = 'SW' + expense id` (the idempotency key). Add a row only when a flatmate paid and the owner paid nothing; the amount is the owner's share. When the owner paid, the bank row already exists and the flatmates' share goes in a reimbursement (`counterparty = 'Suncity flatmates'`, status reimbursed). A cash settle-up between flatmates is a transfer: mark it "Not a spend".
+
+Transaction detail shows these as "Splitwise share" and "Bank statement" (`transactionSourceLabels`).
+
 ## Develop
 
 ```bash

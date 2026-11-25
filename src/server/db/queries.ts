@@ -132,6 +132,7 @@ export async function editTxn(db: Db, e: z.infer<typeof editSchema>): Promise<vo
       type: e.type,
       ...(e.excluded === undefined ? {} : { excluded: e.excluded }),
       ...(e.date ? { date: e.date } : {}),
+      ...(e.note === undefined ? {} : { note: e.note || null }),
       needsReview: false,
       editedAt: sql`(datetime('now'))`,
     })
@@ -161,6 +162,7 @@ export async function addTxn(db: Db, a: z.infer<typeof addSchema>): Promise<numb
       currency: a.currency ?? null,
       originalAmount: a.originalAmount ?? null,
       excluded: a.excluded ?? false,
+      note: a.note || null,
       editedAt: sql`(datetime('now'))`,
     })
     .returning({ id: transactions.id });
@@ -336,6 +338,7 @@ export function listTxns(db: Db, q: ListQuery & { limit: number; withRaw?: boole
       currency: transactions.currency,
       originalAmount: transactions.originalAmount,
       rawText: q.withRaw ? transactions.rawText : sql<null>`NULL`,
+      note: transactions.note,
       needsReview: transactions.needsReview,
       excluded: transactions.excluded,
       duplicateOf: transactions.duplicateOf,
