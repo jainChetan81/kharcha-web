@@ -72,12 +72,18 @@ export function mfapiNav(body: { data?: unknown }) {
   return Number.isFinite(nav) && nav > 0 && date ? { nav, date, source: "mfapi" as const } : undefined;
 }
 
-/** Fetch each scheme independently. Remote failures are deliberately ignored. */
-export async function runPrices(db: Db = getDb()): Promise<{ updated: number }> {
+/**
+ * Fetch each scheme independently. Remote failures are deliberately ignored.
+ * `skipped` says the job had nothing to price, so a run that did nothing is
+ * not read as a healthy update. `holdings` is how many it tried.
+ */
+export async function runPrices(db: Db = getDb()): Promise<{ updated: number; holdings: number; skipped?: "no-priced-holdings" }> {
   const open = await db
     .select()
     .from(holdings)
     .where(and(eq(holdings.isClosed, false), isNull(holdings.manualValue), sql`${holdings.schemeCode} is not null`));
+  // Manual-value holdings and holdings without a scheme code are never priced.
+  if (!open.length) return { updated: 0, holdings: 0, skipped: "no-priced-holdings" };
   let updated = 0;
   for (const holding of open)
     try {
@@ -111,5 +117,5 @@ export async function runPrices(db: Db = getDb()): Promise<{ updated: number }> 
     } catch {
       /* network failure leaves this holding stale */
     }
-  return { updated };
+  return { updated, holdings: open.length };
 }
