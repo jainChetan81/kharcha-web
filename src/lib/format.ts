@@ -69,6 +69,9 @@ export function time(value: string | Date): string {
 export const shortDate = (date: string) => (date.length > 10 ? `${dayMonth(date)}, ${time(date)}` : dayMonth(date));
 /** Source metadata labels shared by transaction detail and Activity. */
 export function transactionSourceLabels(source: string, parsedBy?: string | null): { source: string; parsedBy: string } {
+  // Rows an agent loads on the VPS: a flatmate-paid Splitwise share, or a bank statement line the SMS missed.
+  if (source === "manual" && parsedBy === "splitwise") return { source: "Splitwise share", parsedBy: "Splitwise" };
+  if (source === "manual" && parsedBy === "statement") return { source: "Bank statement", parsedBy: "Statement" };
   return {
     source: source === "sms" ? "SMS via Mac mini" : source === "paste" ? "Pasted text" : "Added by hand",
     parsedBy: source === "sms" ? (parsedBy === "regex" || !parsedBy ? "Regex" : parsedBy) : source === "paste" ? "Paste" : "Manual",

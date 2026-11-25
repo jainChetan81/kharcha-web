@@ -98,6 +98,20 @@ list = await listTxns(db, { search: "Instamart", limit: 10 });
 assert.equal(list[0]?.amount, 250, "re-push must not overwrite app edits");
 assert.equal(list[0]?.needsReview, false);
 
+await editTxn(db, {
+  id: swiggy.id,
+  merchant: "Swiggy Instamart",
+  category: "Groceries",
+  amount: 250,
+  type: "expense",
+  note: "two-year renewal",
+});
+await ingest(db, [{ ...row, amount: 888 }]);
+list = await listTxns(db, { search: "Instamart", limit: 10 });
+assert.equal(list[0]?.note, "two-year renewal", "re-push must keep the note");
+await editTxn(db, { id: swiggy.id, merchant: "Swiggy Instamart", category: "Groceries", amount: 250, type: "expense", note: "" });
+assert.equal((await listTxns(db, { search: "Instamart", limit: 10 }))[0]?.note, null, "empty note clears");
+
 await ingest(db, [{ ...ghost, deletedAt: "2026-10-15 14:00" }]);
 assert.equal((await listTxns(db, { search: "ghost", limit: 10 })).length, 0, "mini tombstone hides row");
 

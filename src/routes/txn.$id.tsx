@@ -271,6 +271,7 @@ function Detail() {
             </div>
           ))}
         </dl>
+        {txn.note && <p className="m-0 rounded-panel bg-sunken p-3 text-body leading-relaxed break-words">{txn.note}</p>}
         {txn.rawText && (
           <details className="flex flex-col gap-2">
             <summary className="label-muted min-h-11 cursor-pointer">Source SMS</summary>

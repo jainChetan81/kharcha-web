@@ -9,6 +9,7 @@ import {
   evalAmount,
   foreign,
   fromSource,
+  transactionSourceLabels,
   money,
   monthName,
   navsOf,
@@ -57,6 +58,10 @@ assert.equal(evalAmount("450+120-20.5"), 549.5);
 assert.equal(evalAmount("4++5"), undefined);
 assert.equal(evalAmount(""), undefined);
 assert.equal(fromSource("sms", "2026-10-18 19:47"), "From SMS · 18 Oct, 7:47 PM");
+assert.deepEqual(transactionSourceLabels("manual", "splitwise"), { source: "Splitwise share", parsedBy: "Splitwise" });
+assert.deepEqual(transactionSourceLabels("manual", "statement"), { source: "Bank statement", parsedBy: "Statement" });
+assert.deepEqual(transactionSourceLabels("manual"), { source: "Added by hand", parsedBy: "Manual" });
+assert.deepEqual(transactionSourceLabels("sms", "regex"), { source: "SMS via Mac mini", parsedBy: "Regex" });
 
 const { readdirSync, readFileSync } = await import("node:fs");
 const banned = /toLocale(Date|Time)?String\(|\.slice\(11, ?16\)/;

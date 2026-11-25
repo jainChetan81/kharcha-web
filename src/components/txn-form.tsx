@@ -17,9 +17,11 @@ type Value = {
   excluded?: boolean;
   accountLast4?: string | null;
   rawMerchant?: string | null;
+  note?: string | null;
 };
 // Amount lives in expr (accepts "250+210" via evalAmount); value.amount only seeds it.
-const restOf = (v: Value) => JSON.stringify([v.merchant, v.category, v.type, v.date, v.excluded ?? false, v.accountLast4 ?? null]);
+const restOf = (v: Value) =>
+  JSON.stringify([v.merchant, v.category, v.type, v.date, v.excluded ?? false, v.accountLast4 ?? null, v.note ?? null]);
 export function TxnForm({
   mode,
   initial,
@@ -77,10 +79,11 @@ export function TxnForm({
             source: "manual",
             ...(value.excluded ? { excluded: true } : {}),
             ...(value.accountLast4 ? { accountLast4: value.accountLast4 } : {}),
+            ...(value.note?.trim() ? { note: value.note.trim() } : {}),
           },
         });
         countAdd();
-      } else if (value.id) await saveEdit({ data: { ...value, id: value.id, amount } });
+      } else if (value.id) await saveEdit({ data: { ...value, id: value.id, amount, note: value.note?.trim() ?? "" } });
       snack(`Saved ${money(amount)} · ${value.category}`);
       onDone();
     } catch {
@@ -281,6 +284,18 @@ export function TxnForm({
           />
         </div>
       </div>
+      <label htmlFor="note" className="flex flex-col gap-1.5 text-meta text-ink-2">
+        Note
+        <textarea
+          id="note"
+          value={value.note ?? ""}
+          onChange={(e) => set("note", e.target.value || null)}
+          rows={2}
+          maxLength={500}
+          placeholder="Optional"
+          className="field min-h-16 resize-y text-body leading-relaxed"
+        />
+      </label>
       <div className="sticky bottom-[calc(-16px-env(safe-area-inset-bottom))] -mx-4 mt-auto border-t border-hairline bg-card px-4 pt-2 pb-[env(safe-area-inset-bottom)] desk:hidden">
         {reason && mode === "add" && (
           <p role="status" className="m-0 pb-1.5 text-center text-meta text-ink-2">
